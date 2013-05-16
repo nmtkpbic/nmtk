@@ -1,0 +1,14 @@
+# Ignore the venv since it is generated from requirements.txt
+venv
+
+# ignore any compiled python files
+*.pyc
+
+# Ignore any sqlite databases
+*.sqlite
+
+# Logfiles are not checked in
+logs/*
+
+# Ignore static media, which is collected by django
+htdocs/static

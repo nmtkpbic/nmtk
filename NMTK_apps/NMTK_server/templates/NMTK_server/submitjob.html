@@ -1,0 +1,13 @@
+{% load url from future %}
+<html>
+<head><title>Submit a job to a NMTK tool</title></head>
+<body>
+<form enctype="multipart/form-data" method="POST" action="{% url 'submitJob' %}">
+{% csrf_token %}
+{{form.as_p}}
+<input type="submit" value="Submit" />
+</form>
+
+
+</body>
+</html>

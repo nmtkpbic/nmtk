@@ -1,0 +1,350 @@
+2013-01-11 15:01:47,846 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 15:03:03,799 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 15:03:35,428 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 15:05:16,290 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 15:05:30,614 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 15:06:47,456 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 15:06:47,458 [INFO] NMTK_server.decorators.authentication: message!
+2013-01-11 15:06:53,183 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 15:06:53,186 [INFO] NMTK_server.decorators.authentication: message!
+2013-01-11 15:07:11,928 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 15:07:11,931 [INFO] NMTK_server.decorators.authentication: {'GDM_KEYBOARD_LAYOUT': 'us', 'WINDOWID': '29388455', 'wsgi.multiprocess': False, 'RUN_MAIN': 'true', 'GNOME_DESKTOP_SESSION_ID': 'this-is-deprecated', 'SERVER_PROTOCOL': 'HTTP/1.1', 'SERVER_SOFTWARE': 'WSGIServer/0.1 Python/2.6.6', 'SCRIPT_NAME': u'', 'HTTP_AUTH_KEY': '0583514663754d2d9df1fc52ab86957e', 'REQUEST_METHOD': 'PUT', 'LOGNAME': 'student', 'USER': 'student', 'GNOME_KEYRING_CONTROL': '/tmp/keyring-PmD1TK', 'QUERY_STRING': '', 'PATH': '/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games', 'DISPLAY': ':0.0', 'SSH_AGENT_PID': '2544', 'LANG': 'en_US.utf8', 'TERM': 'xterm', 'SHELL': '/bin/bash', 'TZ': 'America/New_York', 'XDG_SESSION_COOKIE': '98eff27193d90fea5dc72ee900000003-1357140884.547715-106930406', 'SERVER_NAME': 'localhost', 'SESSION_MANAGER': 'local/debian:@/tmp/.ICE-unix/2510,unix/debian:/tmp/.ICE-unix/2510', 'SHLVL': '1', 'wsgi.url_scheme': 'http', 'WINDOWPATH': '7', '_': '/usr/bin/python', 'SERVER_PORT': '8000', 'GPG_AGENT_INFO': '/tmp/seahorse-hdz2PU/S.gpg-agent:2558:1', 'HOME': '/home/student', 'USERNAME': 'student', 'CONTENT_LENGTH': '6127', 'COLORTERM': 'gnome-terminal', 'CONTENT_TYPE': 'application/json', 'SSH_AUTH_SOCK': '/tmp/keyring-PmD1TK/ssh', 'GDMSESSION': 'default', 'wsgi.input': <socket._fileobject object at 0x971d1ec>, 'HTTP_USER_AGENT': 'python-requests/1.0.4 CPython/2.6.6 Linux/2.6.32-5-686', 'HTTP_HOST': 'localhost:8000', 'wsgi.multithread': True, 'DBUS_SESSION_BUS_ADDRESS': 'unix:abstract=/tmp/dbus-ZKSFB6DYG5,guid=c0a23586b79b2eb009b8a9cc00000031', 'ORBIT_SOCKETDIR': '/tmp/orbit-student', 'GNOME_KEYRING_PID': '2491', 'HTTP_ACCEPT': '*/*', 'DESKTOP_SESSION': 'default', 'wsgi.file_wrapper': <class wsgiref.util.FileWrapper at 0x8d9fa7c>, 'wsgi.version': (1, 0), 'GTK_MODULES': 'canberra-gtk-module', 'GATEWAY_INTERFACE': 'CGI/1.1', 'wsgi.run_once': False, 'CSRF_COOKIE': 'IPEONt26LZec5g4JTMfLd3Lxu6sI6Stc', 'OLDPWD': '/home/student/NMTK', 'REMOTE_ADDR': '127.0.0.1', 'GDM_LANG': 'en_US.utf8', 'wsgi.errors': <open file '<stderr>', mode 'w' at 0xb73de0d0>, 'XAUTHORITY': '/var/run/gdm3/auth-for-student-PeyPaM/database', 'XDG_DATA_DIRS': '/usr/share/gnome:/usr/share/gdm/:/usr/local/share/:/usr/share/', 'PWD': '/home/student/NMTK/NMTK_apps', 'DJANGO_SETTINGS_MODULE': 'NMTK_apps.settings', 'GTK_RC_FILES': '/etc/gtk/gtkrc:/home/student/.gtkrc-1.2-gnome2', 'LS_COLORS': 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arj=01;31:*.taz=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.zip=01;31:*.z=01;31:*.Z=01;31:*.dz=01;31:*.gz=01;31:*.lz=01;31:*.xz=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.rar=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.jpg=01;35:*.jpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.axv=01;35:*.anx=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.axa=00;36:*.oga=00;36:*.spx=00;36:*.xspf=00;36:', 'REMOTE_HOST': '', 'HTTP_ACCEPT_ENCODING': 'gzip, deflate, compress', 'PATH_INFO': u'/server/config/upload'}
+2013-01-11 15:07:23,019 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 15:07:23,022 [INFO] NMTK_server.decorators.authentication: None
+2013-01-11 15:09:02,418 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 15:09:02,420 [INFO] NMTK_server.decorators.authentication: 0583514663754d2d9df1fc52ab86957e
+2013-01-11 15:09:02,421 [ERROR] NMTK_server.decorators.authentication: Failed to locate NMTK Tool with public_key of 0583514663754d2d9df1fc52ab86957e
+Traceback (most recent call last):
+  File "/home/student/NMTK/NMTK_apps/NMTK_server/decorators/authentication.py", line 25, in function_wrapper
+    tool=models.Tool.objects.get(public_key=request.META['HTTP_AUTH_KEY'])
+  File "/home/student/NMTK/venv/lib/python2.6/site-packages/django/db/models/manager.py", line 131, in get
+    return self.get_query_set().get(*args, **kwargs)
+  File "/home/student/NMTK/venv/lib/python2.6/site-packages/django/db/models/query.py", line 358, in get
+    clone = self.filter(*args, **kwargs)
+  File "/home/student/NMTK/venv/lib/python2.6/site-packages/django/db/models/query.py", line 624, in filter
+    return self._filter_or_exclude(False, *args, **kwargs)
+  File "/home/student/NMTK/venv/lib/python2.6/site-packages/django/db/models/query.py", line 642, in _filter_or_exclude
+    clone.query.add_q(Q(*args, **kwargs))
+  File "/home/student/NMTK/venv/lib/python2.6/site-packages/django/db/models/sql/query.py", line 1250, in add_q
+    can_reuse=used_aliases, force_having=force_having)
+  File "/home/student/NMTK/venv/lib/python2.6/site-packages/django/db/models/sql/query.py", line 1122, in add_filter
+    process_extras=process_extras)
+  File "/home/student/NMTK/venv/lib/python2.6/site-packages/django/db/models/sql/query.py", line 1316, in setup_joins
+    "Choices are: %s" % (name, ", ".join(names)))
+FieldError: Cannot resolve keyword 'public_key' into field. Choices are: active, auth_token, job, name, remote_ip, tool_id, toolconfig
+2013-01-11 15:10:06,733 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 15:10:06,736 [INFO] NMTK_server.decorators.authentication: 0583514663754d2d9df1fc52ab86957e
+2013-01-11 15:10:06,743 [ERROR] NMTK_server.decorators.authentication: Failed to locate NMTK Tool with public_key of 0583514663754d2d9df1fc52ab86957e
+Traceback (most recent call last):
+  File "/home/student/NMTK/NMTK_apps/NMTK_server/decorators/authentication.py", line 27, in function_wrapper
+    return wrapped_function(request, *pargs, **kwargs)
+  File "/home/student/NMTK/NMTK_apps/NMTK_server/views.py", line 33, in uploadConfig
+    return HttpResponse(json.dumps({'status': 'OK'}))
+NameError: global name 'HttpResponse' is not defined
+2013-01-11 15:10:31,087 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 15:10:31,089 [INFO] NMTK_server.decorators.authentication: 0583514663754d2d9df1fc52ab86957e
+2013-01-11 15:14:21,467 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 15:14:21,469 [INFO] NMTK_server.decorators.authentication: aaab600a2ad94db08ec217d2e5adbc24
+2013-01-11 15:14:21,472 [ERROR] NMTK_server.decorators.authentication: Failed to locate NMTK Tool with public_key of aaab600a2ad94db08ec217d2e5adbc24
+Traceback (most recent call last):
+  File "/home/student/NMTK/NMTK_apps/NMTK_server/decorators/authentication.py", line 27, in function_wrapper
+    return wrapped_function(request, *pargs, **kwargs)
+  File "/home/student/NMTK/NMTK_apps/NMTK_server/views.py", line 34, in uploadConfig
+    request.NMTK.toolconfig
+  File "/home/student/NMTK/venv/lib/python2.6/site-packages/django/db/models/fields/related.py", line 255, in __get__
+    rel_obj = self.get_query_set(instance=instance).get(**params)
+  File "/home/student/NMTK/venv/lib/python2.6/site-packages/django/db/models/query.py", line 366, in get
+    % self.model._meta.object_name)
+DoesNotExist: ToolConfig matching query does not exist.
+2013-01-11 15:14:33,915 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 15:14:33,921 [INFO] NMTK_server.decorators.authentication: aaab600a2ad94db08ec217d2e5adbc24
+2013-01-11 15:14:33,924 [ERROR] NMTK_server.decorators.authentication: Failed to locate NMTK Tool with public_key of aaab600a2ad94db08ec217d2e5adbc24
+Traceback (most recent call last):
+  File "/home/student/NMTK/NMTK_apps/NMTK_server/decorators/authentication.py", line 27, in function_wrapper
+    return wrapped_function(request, *pargs, **kwargs)
+  File "/home/student/NMTK/NMTK_apps/NMTK_server/views.py", line 34, in uploadConfig
+    request.NMTK.toolconfig
+  File "/home/student/NMTK/venv/lib/python2.6/site-packages/django/db/models/fields/related.py", line 255, in __get__
+    rel_obj = self.get_query_set(instance=instance).get(**params)
+  File "/home/student/NMTK/venv/lib/python2.6/site-packages/django/db/models/query.py", line 366, in get
+    % self.model._meta.object_name)
+DoesNotExist: ToolConfig matching query does not exist.
+2013-01-11 15:14:35,321 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 15:14:35,326 [INFO] NMTK_server.decorators.authentication: aaab600a2ad94db08ec217d2e5adbc24
+2013-01-11 15:14:35,328 [ERROR] NMTK_server.decorators.authentication: Failed to locate NMTK Tool with public_key of aaab600a2ad94db08ec217d2e5adbc24
+Traceback (most recent call last):
+  File "/home/student/NMTK/NMTK_apps/NMTK_server/decorators/authentication.py", line 27, in function_wrapper
+    return wrapped_function(request, *pargs, **kwargs)
+  File "/home/student/NMTK/NMTK_apps/NMTK_server/views.py", line 34, in uploadConfig
+    request.NMTK.toolconfig
+  File "/home/student/NMTK/venv/lib/python2.6/site-packages/django/db/models/fields/related.py", line 255, in __get__
+    rel_obj = self.get_query_set(instance=instance).get(**params)
+  File "/home/student/NMTK/venv/lib/python2.6/site-packages/django/db/models/query.py", line 366, in get
+    % self.model._meta.object_name)
+DoesNotExist: ToolConfig matching query does not exist.
+2013-01-11 15:23:06,163 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 15:23:06,166 [INFO] NMTK_server.decorators.authentication: aaab600a2ad94db08ec217d2e5adbc24
+2013-01-11 15:23:22,981 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 15:23:22,983 [INFO] NMTK_server.decorators.authentication: aaab600a2ad94db08ec217d2e5adbc24
+2013-01-11 15:24:04,364 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 15:24:04,377 [INFO] NMTK_server.decorators.authentication: aaab600a2ad94db08ec217d2e5adbc24
+2013-01-11 15:24:58,047 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 15:24:58,053 [INFO] NMTK_server.decorators.authentication: aaab600a2ad94db08ec217d2e5adbc24
+2013-01-11 15:25:57,850 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 15:25:57,852 [INFO] NMTK_server.decorators.authentication: aaab600a2ad94db08ec217d2e5adbc24
+2013-01-11 15:26:17,246 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 15:26:17,249 [INFO] NMTK_server.decorators.authentication: aaab600a2ad94db08ec217d2e5adbc24
+2013-01-11 15:26:34,177 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 15:26:34,185 [INFO] NMTK_server.decorators.authentication: aaab600a2ad94db08ec217d2e5adbc24
+2013-01-11 17:44:40,095 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 17:47:59,377 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 17:47:59,382 [ERROR] NMTK_server.decorators.authentication: Failed to locate NMTK Tool with public_key of 1436faf3dffc4ae89ff5f07ce91b2300
+Traceback (most recent call last):
+  File "/home/student/NMTK/NMTK_apps/NMTK_server/decorators/authentication.py", line 36, in function_wrapper
+    if len(jobs)== 1:
+  File "/home/student/NMTK/venv/lib/python2.6/site-packages/django/db/models/query.py", line 85, in __len__
+    self._result_cache = list(self.iterator())
+  File "/home/student/NMTK/venv/lib/python2.6/site-packages/django/db/models/query.py", line 291, in iterator
+    for row in compiler.results_iter():
+  File "/home/student/NMTK/venv/lib/python2.6/site-packages/django/db/models/sql/compiler.py", line 763, in results_iter
+    for rows in self.execute_sql(MULTI):
+  File "/home/student/NMTK/venv/lib/python2.6/site-packages/django/db/models/sql/compiler.py", line 818, in execute_sql
+    cursor.execute(sql, params)
+  File "/home/student/NMTK/venv/lib/python2.6/site-packages/django/db/backends/util.py", line 40, in execute
+    return self.cursor.execute(sql, params)
+  File "/home/student/NMTK/venv/lib/python2.6/site-packages/django/db/backends/sqlite3/base.py", line 344, in execute
+    return Database.Cursor.execute(self, query, params)
+DatabaseError: no such column: NMTK_server_job.results
+2013-01-11 17:49:45,684 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 17:49:45,694 [ERROR] NMTK_server.decorators.authentication: Failed to locate NMTK Tool with public_key of 55d9d5eae69e4a7084b1af6469ecb8e5
+Traceback (most recent call last):
+  File "/home/student/NMTK/NMTK_apps/NMTK_server/decorators/authentication.py", line 45, in function_wrapper
+    hashlib.sha1)
+  File "/usr/lib/python2.6/hmac.py", line 133, in new
+    return HMAC(key, msg, digestmod)
+  File "/usr/lib/python2.6/hmac.py", line 72, in __init__
+    self.outer.update(key.translate(trans_5C))
+TypeError: character mapping must return integer, None or unicode
+2013-01-11 17:50:24,029 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 17:50:24,035 [ERROR] NMTK_server.decorators.authentication: Failed to locate NMTK Tool with public_key of 55d9d5eae69e4a7084b1af6469ecb8e5
+Traceback (most recent call last):
+  File "/home/student/NMTK/NMTK_apps/NMTK_server/decorators/authentication.py", line 45, in function_wrapper
+    hashlib.sha1)
+  File "/usr/lib/python2.6/hmac.py", line 133, in new
+    return HMAC(key, msg, digestmod)
+  File "/usr/lib/python2.6/hmac.py", line 72, in __init__
+    self.outer.update(key.translate(trans_5C))
+TypeError: character mapping must return integer, None or unicode
+2013-01-11 17:50:33,090 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 17:50:33,100 [ERROR] NMTK_server.decorators.authentication: Failed to locate NMTK Tool with public_key of 55d9d5eae69e4a7084b1af6469ecb8e5
+Traceback (most recent call last):
+  File "/home/student/NMTK/NMTK_apps/NMTK_server/decorators/authentication.py", line 45, in function_wrapper
+    hashlib.sha1)
+  File "/usr/lib/python2.6/hmac.py", line 133, in new
+    return HMAC(key, msg, digestmod)
+  File "/usr/lib/python2.6/hmac.py", line 72, in __init__
+    self.outer.update(key.translate(trans_5C))
+TypeError: character mapping must return integer, None or unicode
+2013-01-11 17:52:01,179 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 17:52:01,184 [ERROR] NMTK_server.decorators.authentication: Failed to locate NMTK Tool with public_key of 55d9d5eae69e4a7084b1af6469ecb8e5
+Traceback (most recent call last):
+  File "/home/student/NMTK/NMTK_apps/NMTK_server/decorators/authentication.py", line 45, in function_wrapper
+    hashlib.sha1)
+  File "/usr/lib/python2.6/hmac.py", line 133, in new
+    return HMAC(key, msg, digestmod)
+  File "/usr/lib/python2.6/hmac.py", line 72, in __init__
+    self.outer.update(key.translate(trans_5C))
+TypeError: character mapping must return integer, None or unicode
+2013-01-11 17:52:05,702 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 17:52:05,706 [ERROR] NMTK_server.decorators.authentication: Failed to locate NMTK Tool with public_key of 55d9d5eae69e4a7084b1af6469ecb8e5
+Traceback (most recent call last):
+  File "/home/student/NMTK/NMTK_apps/NMTK_server/decorators/authentication.py", line 45, in function_wrapper
+    hashlib.sha1)
+  File "/usr/lib/python2.6/hmac.py", line 133, in new
+    return HMAC(key, msg, digestmod)
+  File "/usr/lib/python2.6/hmac.py", line 72, in __init__
+    self.outer.update(key.translate(trans_5C))
+TypeError: character mapping must return integer, None or unicode
+2013-01-11 17:52:21,744 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 17:52:21,749 [ERROR] NMTK_server.decorators.authentication: Failed to locate NMTK Tool with public_key of 55d9d5eae69e4a7084b1af6469ecb8e5
+Traceback (most recent call last):
+  File "/home/student/NMTK/NMTK_apps/NMTK_server/decorators/authentication.py", line 45, in function_wrapper
+    hashlib.sha1)
+  File "/usr/lib/python2.6/hmac.py", line 133, in new
+    return HMAC(key, msg, digestmod)
+  File "/usr/lib/python2.6/hmac.py", line 72, in __init__
+    self.outer.update(key.translate(trans_5C))
+TypeError: character mapping must return integer, None or unicode
+2013-01-11 17:55:01,162 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 17:55:01,170 [ERROR] NMTK_server.decorators.authentication: Failed to locate NMTK Tool with public_key of 55d9d5eae69e4a7084b1af6469ecb8e5
+Traceback (most recent call last):
+  File "/home/student/NMTK/NMTK_apps/NMTK_server/decorators/authentication.py", line 47, in function_wrapper
+    hashlib.sha1)
+  File "/usr/lib/python2.6/hmac.py", line 133, in new
+    return HMAC(key, msg, digestmod)
+  File "/usr/lib/python2.6/hmac.py", line 72, in __init__
+    self.outer.update(key.translate(trans_5C))
+TypeError: character mapping must return integer, None or unicode
+2013-01-11 17:55:47,251 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 17:55:47,260 [ERROR] NMTK_server.decorators.authentication: Failed to locate NMTK Tool with public_key of 55d9d5eae69e4a7084b1af6469ecb8e5
+Traceback (most recent call last):
+  File "/home/student/NMTK/NMTK_apps/NMTK_server/decorators/authentication.py", line 48, in function_wrapper
+    hashlib.sha1)
+  File "/usr/lib/python2.6/hmac.py", line 133, in new
+    return HMAC(key, msg, digestmod)
+  File "/usr/lib/python2.6/hmac.py", line 72, in __init__
+    self.outer.update(key.translate(trans_5C))
+TypeError: character mapping must return integer, None or unicode
+2013-01-11 17:56:03,026 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 17:56:03,032 [ERROR] NMTK_server.decorators.authentication: Failed to locate NMTK Tool with public_key of 55d9d5eae69e4a7084b1af6469ecb8e5
+Traceback (most recent call last):
+  File "/home/student/NMTK/NMTK_apps/NMTK_server/decorators/authentication.py", line 43, in function_wrapper
+    print "----%s" % request.raw_http_content
+AttributeError: 'WSGIRequest' object has no attribute 'raw_http_content'
+2013-01-11 17:56:26,752 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 17:56:26,763 [ERROR] NMTK_server.decorators.authentication: Failed to locate NMTK Tool with public_key of 55d9d5eae69e4a7084b1af6469ecb8e5
+Traceback (most recent call last):
+  File "/home/student/NMTK/NMTK_apps/NMTK_server/decorators/authentication.py", line 48, in function_wrapper
+    hashlib.sha1)
+  File "/usr/lib/python2.6/hmac.py", line 133, in new
+    return HMAC(key, msg, digestmod)
+  File "/usr/lib/python2.6/hmac.py", line 72, in __init__
+    self.outer.update(key.translate(trans_5C))
+TypeError: character mapping must return integer, None or unicode
+2013-01-11 17:58:53,451 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 17:58:53,457 [ERROR] NMTK_server.decorators.authentication: Failed to locate NMTK Tool with public_key of 55d9d5eae69e4a7084b1af6469ecb8e5
+Traceback (most recent call last):
+  File "/home/student/NMTK/NMTK_apps/NMTK_server/decorators/authentication.py", line 45, in function_wrapper
+    hashlib.sha1)
+  File "/usr/lib/python2.6/hmac.py", line 133, in new
+    return HMAC(key, msg, digestmod)
+  File "/usr/lib/python2.6/hmac.py", line 72, in __init__
+    self.outer.update(key.translate(trans_5C))
+TypeError: character mapping must return integer, None or unicode
+2013-01-11 17:58:59,525 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 17:58:59,530 [ERROR] NMTK_server.decorators.authentication: Failed to locate NMTK Tool with public_key of 55d9d5eae69e4a7084b1af6469ecb8e5
+Traceback (most recent call last):
+  File "/home/student/NMTK/NMTK_apps/NMTK_server/decorators/authentication.py", line 45, in function_wrapper
+    hashlib.sha1)
+  File "/usr/lib/python2.6/hmac.py", line 133, in new
+    return HMAC(key, msg, digestmod)
+  File "/usr/lib/python2.6/hmac.py", line 72, in __init__
+    self.outer.update(key.translate(trans_5C))
+TypeError: character mapping must return integer, None or unicode
+2013-01-11 17:59:11,622 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 17:59:11,628 [ERROR] NMTK_server.decorators.authentication: Failed to locate NMTK Tool with public_key of 55d9d5eae69e4a7084b1af6469ecb8e5
+Traceback (most recent call last):
+  File "/home/student/NMTK/NMTK_apps/NMTK_server/decorators/authentication.py", line 45, in function_wrapper
+    hashlib.sha1)
+  File "/usr/lib/python2.6/hmac.py", line 133, in new
+    return HMAC(key, msg, digestmod)
+  File "/usr/lib/python2.6/hmac.py", line 72, in __init__
+    self.outer.update(key.translate(trans_5C))
+TypeError: character mapping must return integer, None or unicode
+2013-01-11 17:59:29,121 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 17:59:29,127 [ERROR] NMTK_server.decorators.authentication: Failed to locate NMTK Tool with public_key of 55d9d5eae69e4a7084b1af6469ecb8e5
+Traceback (most recent call last):
+  File "/home/student/NMTK/NMTK_apps/NMTK_server/decorators/authentication.py", line 45, in function_wrapper
+    hashlib.sha1)
+  File "/usr/lib/python2.6/hmac.py", line 133, in new
+    return HMAC(key, msg, digestmod)
+  File "/usr/lib/python2.6/hmac.py", line 72, in __init__
+    self.outer.update(key.translate(trans_5C))
+TypeError: character mapping must return integer, None or unicode
+2013-01-11 17:59:51,363 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 17:59:51,368 [ERROR] NMTK_server.decorators.authentication: Failed to locate NMTK Tool with public_key of 55d9d5eae69e4a7084b1af6469ecb8e5
+Traceback (most recent call last):
+  File "/home/student/NMTK/NMTK_apps/NMTK_server/decorators/authentication.py", line 46, in function_wrapper
+    hashlib.sha1)
+  File "/usr/lib/python2.6/hmac.py", line 133, in new
+    return HMAC(key, msg, digestmod)
+  File "/usr/lib/python2.6/hmac.py", line 72, in __init__
+    self.outer.update(key.translate(trans_5C))
+TypeError: character mapping must return integer, None or unicode
+2013-01-11 18:00:11,988 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 18:00:11,992 [ERROR] NMTK_server.decorators.authentication: Failed to locate NMTK Tool with public_key of 55d9d5eae69e4a7084b1af6469ecb8e5
+Traceback (most recent call last):
+  File "/home/student/NMTK/NMTK_apps/NMTK_server/decorators/authentication.py", line 46, in function_wrapper
+    hashlib.sha1)
+  File "/usr/lib/python2.6/hmac.py", line 133, in new
+    return HMAC(key, msg, digestmod)
+  File "/usr/lib/python2.6/hmac.py", line 72, in __init__
+    self.outer.update(key.translate(trans_5C))
+TypeError: character mapping must return integer, None or unicode
+2013-01-11 18:00:37,384 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 18:00:37,390 [ERROR] NMTK_server.decorators.authentication: Failed to locate NMTK Tool with public_key of 55d9d5eae69e4a7084b1af6469ecb8e5
+Traceback (most recent call last):
+  File "/home/student/NMTK/NMTK_apps/NMTK_server/decorators/authentication.py", line 47, in function_wrapper
+    hashlib.sha1)
+  File "/usr/lib/python2.6/hmac.py", line 133, in new
+    return HMAC(key, msg, digestmod)
+  File "/usr/lib/python2.6/hmac.py", line 72, in __init__
+    self.outer.update(key.translate(trans_5C))
+TypeError: character mapping must return integer, None or unicode
+2013-01-11 18:01:33,398 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 18:01:33,403 [ERROR] NMTK_server.decorators.authentication: Failed to locate NMTK Tool with public_key of 55d9d5eae69e4a7084b1af6469ecb8e5
+Traceback (most recent call last):
+  File "/home/student/NMTK/NMTK_apps/NMTK_server/decorators/authentication.py", line 49, in function_wrapper
+    if request.META['Authorization'] == digest:
+KeyError: 'Authorization'
+2013-01-11 18:01:55,935 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 18:01:55,940 [ERROR] NMTK_server.decorators.authentication: Failed to locate NMTK Tool with public_key of 55d9d5eae69e4a7084b1af6469ecb8e5
+Traceback (most recent call last):
+  File "/home/student/NMTK/NMTK_apps/NMTK_server/decorators/authentication.py", line 47, in function_wrapper
+    hashlib.sha1)
+  File "/usr/lib/python2.6/hmac.py", line 133, in new
+    return HMAC(key, msg, digestmod)
+  File "/usr/lib/python2.6/hmac.py", line 72, in __init__
+    self.outer.update(key.translate(trans_5C))
+TypeError: character mapping must return integer, None or unicode
+2013-01-11 18:02:10,874 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 18:02:10,879 [ERROR] NMTK_server.decorators.authentication: Failed to locate NMTK Tool with public_key of 55d9d5eae69e4a7084b1af6469ecb8e5
+Traceback (most recent call last):
+  File "/home/student/NMTK/NMTK_apps/NMTK_server/decorators/authentication.py", line 47, in function_wrapper
+    hashlib.sha1)
+  File "/usr/lib/python2.6/hmac.py", line 133, in new
+    return HMAC(key, msg, digestmod)
+  File "/usr/lib/python2.6/hmac.py", line 72, in __init__
+    self.outer.update(key.translate(trans_5C))
+TypeError: character mapping must return integer, None or unicode
+2013-01-11 18:02:13,911 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 18:02:13,917 [ERROR] NMTK_server.decorators.authentication: Failed to locate NMTK Tool with public_key of 55d9d5eae69e4a7084b1af6469ecb8e5
+Traceback (most recent call last):
+  File "/home/student/NMTK/NMTK_apps/NMTK_server/decorators/authentication.py", line 47, in function_wrapper
+    hashlib.sha1)
+  File "/usr/lib/python2.6/hmac.py", line 133, in new
+    return HMAC(key, msg, digestmod)
+  File "/usr/lib/python2.6/hmac.py", line 72, in __init__
+    self.outer.update(key.translate(trans_5C))
+TypeError: character mapping must return integer, None or unicode
+2013-01-11 18:02:39,498 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 18:02:39,504 [ERROR] NMTK_server.decorators.authentication: Failed to locate NMTK Tool with public_key of 55d9d5eae69e4a7084b1af6469ecb8e5
+Traceback (most recent call last):
+  File "/home/student/NMTK/NMTK_apps/NMTK_server/decorators/authentication.py", line 49, in function_wrapper
+    if request.META['Authorization'] == digest:
+KeyError: 'Authorization'
+2013-01-11 18:03:02,824 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 18:03:02,830 [ERROR] NMTK_server.decorators.authentication: Computed signature was 353b6bb2e46c9337a0b90e9ebbb70f7a96958e7d, received 7cb06305aae64e080860b06d42c90c859831ca5e
+2013-01-11 18:03:26,116 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 18:03:26,122 [ERROR] NMTK_server.decorators.authentication: Failed to locate NMTK Tool with public_key of 55d9d5eae69e4a7084b1af6469ecb8e5
+Traceback (most recent call last):
+  File "/home/student/NMTK/NMTK_apps/NMTK_server/decorators/authentication.py", line 47, in function_wrapper
+    hashlib.sha1)
+  File "/usr/lib/python2.6/hmac.py", line 133, in new
+    return HMAC(key, msg, digestmod)
+  File "/usr/lib/python2.6/hmac.py", line 72, in __init__
+    self.outer.update(key.translate(trans_5C))
+TypeError: character mapping must return integer, None or unicode
+2013-01-11 18:03:55,581 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-11 18:03:55,587 [ERROR] NMTK_server.decorators.authentication: Failed to locate NMTK Tool with public_key of 55d9d5eae69e4a7084b1af6469ecb8e5
+Traceback (most recent call last):
+  File "/home/student/NMTK/NMTK_apps/NMTK_server/decorators/authentication.py", line 47, in function_wrapper
+    hashlib.sha1)
+  File "/usr/lib/python2.6/hmac.py", line 133, in new
+    return HMAC(key, msg, digestmod)
+  File "/usr/lib/python2.6/hmac.py", line 72, in __init__
+    self.outer.update(key.translate(trans_5C))
+TypeError: character mapping must return integer, None or unicode
+2013-01-11 18:09:37,932 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-14 10:39:54,132 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
+2013-01-14 10:39:58,228 [INFO] requests.packages.urllib3.connectionpool: Starting new HTTP connection (1): localhost
