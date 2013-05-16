@@ -36,4 +36,3 @@ as some knowledge surrounding configuring a web server (such as Apache.)
    python manage.py syncdb
 
 #.  Verify that you can access things via the web - and add new tools, etc.
-
