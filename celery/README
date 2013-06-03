@@ -1,0 +1,24 @@
+The two files in this directory (celeryd-nmtk.init and celeryd-nmtk.default)
+need to be modified and copied into /etc/init.d and /etc/default, respectively.
+
+Modify celeryd-nmtk.init so that the "provides" line matches the name of
+the init script.  For example, if the script is called celeryd-mytest
+then the provides line should contain 'celeryd-mytest' .  This is required,
+especially if you intend to run more than a single celery server on a single
+host.
+
+Next, modify the celeryd-nmtk.default file so that it contains
+the appropriate location for your vhost.
+
+Lastly, copy both files to their respective locations, as noted above.  Make 
+sure that:
+
+ 1.  Both files start with celeryd-
+ 3.  The portion of the filename *after* celeryd- are the same.
+
+For example, you can use the following names:
+
+   celeryd-nmtk.init     --> /etc/init.d/celeryd-myserver
+   celeryd-nmtk.default  --> /etc/default/celeryd-myserver
+
+

@@ -1,8 +1,13 @@
-NMTK_DIR=/var/www/vhosts/nmtk1.otg-nc.com
+#
+# This file should go in /etc/defaults/  
+# it's name should match the name of the init script, and there should
+# be no extension (i.e., /etc/defaults/celeryd-nmtk)
+#
+NMTK_DIR=/var/www/vhosts/nmtk.otg-nc.com
 LOG_DIR=$NMTK_DIR/logs
-CELERYD_NODES=nmtk1
+CELERYD_NODES=nmtk
 CELERYD_CONCURRENCY=2
-SITE_ID=nmtk1
+SITE_ID=nmtk
 # Where to chdir at start.
 CELERYD_CHDIR="$NMTK_DIR/NMTK_apps"
 

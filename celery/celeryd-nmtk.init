@@ -1,4 +1,6 @@
 #!/bin/sh -e
+# This script should go in /etc/init.d/ and be named
+# the same as the corresponding config file in /etc/defaults
 # ============================================
 #  celeryd - Starts the Celery worker daemon.
 # ============================================
@@ -10,7 +12,7 @@
 
 
 ### BEGIN INIT INFO
-# Provides:          celeryd-nmtk1
+# Provides:          celeryd-nmtk
 # Required-Start:    $network $local_fs $remote_fs 
 # Required-Stop:     $network $local_fs $remote_fs 
 # Default-Start:     2 3 4 5
