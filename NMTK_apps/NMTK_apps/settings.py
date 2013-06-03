@@ -220,10 +220,8 @@ NMTK_KEYS={'MN_Model': {'public_key': 'd0461b9536eb483d9f23c157e809af35',
 # The new config specification supports multiple NMTK servers.
 # This means we identify the server and shared secret via the
 # public key information that's part of the payload.
-NMTK_SERVERS={'d0461b9536eb483d9f23c157e809af35': {'url': 'http://nmtk1.otg-nc.com/nmtk/server',
+NMTK_SERVERS={'d0461b9536eb483d9f23c157e809af35': {'url': 'http://nmtk.otg-nc.com/nmtk/server',
                                                    'secret': '''yq@5u058y312%ebmyi85ytpfwjm9zv)1u2wu-m1s)%cngrvf_^''' },
-              'b17b46d6-763f-4292-bdc6-6a631883ee50': {'url': 'http://mutant.cgclientx.com:7878/',
-                                                       'secret': '''$2a$10$/k4M0R1GGW0J6SFzobQKMe/jc/YUX0/JQ3ppBbr1NPQTTZsj1nU36''' },                                    
               }
 
 BROKER_URL = 'django://'

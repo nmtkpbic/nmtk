@@ -50,7 +50,7 @@ def performModel(data_file,
     logger.debug('Parameters dictionary is %s', parameters)
     logger.debug('Mapping dictionary is %s', property_map)
     if failures:
-        client.updateResults(payload={'status': 'FAILED',
+        client.updateResults(data={'status': 'FAILED',
                                       'errors': failures})
     client.updateStatus('Parameter validation complete.')
     productSet=namedtuple('OLSSet', ['value','coefficient', 'parameter'])
@@ -68,7 +68,7 @@ def performModel(data_file,
                                     key)
                 if data_set.coefficient:
                     sets.append(data_set)
-            result=sum([s.value*s.coefficient for s in sets])
+            result=sum([decimal.Decimal(s.value)*decimal.Decimal(s.coefficient) for s in sets])
             if perform_exp: # The binomial model
                 result=math.exp(result)
             logger.debug("Data set is %s (Result: %s)", sets, result) 
@@ -76,7 +76,7 @@ def performModel(data_file,
     except Exception, e:
         # if anything goes wrong we'll send over a failure status.
         logger.exception('Job Failed!')
-        client.updateResults(payload={'status': '%s' % (e,) }, 
+        client.updateResults(data={'status': '%s' % (e,) }, 
                              failure=True)
     # Since we are updating the data as we go along, we just need to return
     # the data with the new column (results) which contains the result of the 
