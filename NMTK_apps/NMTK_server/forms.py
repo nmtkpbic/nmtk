@@ -22,7 +22,7 @@ class JobSubmissionForm(forms.ModelForm):
     
     class Meta:
         model=models.Job
-        fields=('tool','file')
+        fields=('tool','data_file')
       
 class ToolConfigForm(forms.Form):
     '''

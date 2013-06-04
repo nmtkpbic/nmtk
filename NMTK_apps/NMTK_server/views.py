@@ -13,22 +13,26 @@ from django.core.files.base import ContentFile
 import datetime
 import tempfile
 from django.core.servers.basehttp import FileWrapper
+from django.contrib.auth.decorators import login_required
 
 logger=logging.getLogger(__name__)
 
-
+@login_required
 def downloadResults(request, job_id):
     try:
-        job=models.Job.objects.get(job_id=job_id)
+        job=models.Job.objects.get(job_id=job_id,
+                                   user=request.user)
     except:
         raise Http404
     response = HttpResponse(job.results.file, content_type='application/json')
     response['Content-Disposition'] = 'attachment; filename=result.geojson'
     return response
 
+@login_required
 def viewResults(request, job_id):
     try:
-        job=models.Job.objects.get(job_id=job_id)
+        job=models.Job.objects.get(job_id=job_id,
+                                   user=request.user)
     except:
         raise Http404
     result=json.loads(job.results.read())
@@ -47,9 +51,11 @@ def viewResults(request, job_id):
                   {'table': table,
                    'job_id': job_id })
 
+@login_required
 def refreshStatus(request, job_id):
     try:
-        m=models.JobStatus.objects.filter(job=job_id)[0]
+        m=models.JobStatus.objects.filter(job=job_id,
+                                          user=request.user)[0]
     except:
         logger.debug('No status reports received yet.')
         fakeStatus=collections.namedtuple('FakeStatus',['message',
@@ -60,7 +66,7 @@ def refreshStatus(request, job_id):
     return HttpResponse(json.dumps(result),
                         content_type='application/json')
 
-
+@login_required
 def configureJob(request, job=None):
     '''
     Build a form that can be used to configure a job to be sent to the 
@@ -77,7 +83,8 @@ def configureJob(request, job=None):
     '''
     if request.POST.has_key('job_id'):
         try:
-            job=models.Job.objects.get(pk=request.POST['job_id'])
+            job=models.Job.objects.get(pk=request.POST['job_id'],
+                                       user=request.user)
             logger.debug('Retrieved job %s from form data.', job.pk)
         except:
             raise Http404
@@ -91,6 +98,7 @@ def configureJob(request, job=None):
             logger.debug('HOORAY - form is valid!!!')
             job.config=form.cleaned_data
             job.status='A'
+            job.user=request.user
             job.save()
             return render(request, "NMTK_server/result.html",
                           {'job_id': job.pk})
@@ -98,17 +106,24 @@ def configureJob(request, job=None):
     return render(request, 'NMTK_server/job_config.html',
                   { 'job': job,
                     'form': form, })
-
+@login_required
 def submitJob(request):
     if request.method == 'POST':
-        form=forms.JobSubmissionForm(request.POST,request.FILES)
+        form=forms.JobSubmissionForm(request.POST, request.FILES)
         if form.is_valid():
-            job=form.save(commit=True)
+            job=form.save(commit=False)
+            job.user=request.user
+            job.save()
             return configureJob(request, job)
     else:
         form=forms.JobSubmissionForm()
     return render(request, 'NMTK_server/submitjob.html',
                   {'form': form })
+    
+    
+# Methods below are methods that are called by the tool to send results
+# back to the server.  As a result, they are not user-facing, and do not
+# need things like the login_required decorator.
     
 @csrf_exempt
 @authentication.requireValidAuthToken

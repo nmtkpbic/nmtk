@@ -58,22 +58,31 @@ as some knowledge surrounding configuring a web server (such as Apache.)
     pip install --no-download GDAL
     popd
 
- 6.  Install the celery and Apache components, configuration files exist for these in the "celery" and "conf" directories (celery and apache, respectively)
+ 6.  Install the celery and Apache components, configuration files exist for 
+ these in the "celery" and "conf" directories (celery and apache, respectively)
  
- 7.  Change to the NMTK_apps subdirectory and initialize the database, and generate static media::
+ 7.  By default, files for the NMTK server will go in the nmtk_files subdirectory,
+ create this directory if it does not exist, and ensure that you have write access to it.
+ 
+ 8.  Change to the NMTK_apps subdirectory and initialize the database, and generate static media::
 
    pushd NMTK_apps
    python manage.py syncdb
    python manage.py collectstatic
    popd
 
- 8.  Change the database and log locations so that the apache user will be able to access/write to them::
+ 9.  Change the nmtk_files subdirectory so that it, and all it's subdirectories,
+ are writeable by the www-data user (or whatever user the web server runs as.)::
+ 
+   chown -R nmtk_files www-data.www-data
+
+ 10.  Change the database and log locations so that the apache user will be able to access/write to them::
 
   sudo chown -R www-data logs
   sudo chmod g+rwxs logs
   sudo g+rw logs/*
 
- 9.  Now ensure that the sample fixture data is correct - you need not load this,
+ 11.  Now ensure that the sample fixture data is correct - you need not load this,
      and it will probably go away eventually, but it provides a "default" config
      for the purposes of having a server communicate with the default client.
      
@@ -81,9 +90,9 @@ as some knowledge surrounding configuring a web server (such as Apache.)
   
     - in particular, ensure the host name there is correct.
      
- 10.  Restart your apache server
+ 12.  Restart your apache server
  
- 11.  Run the discover_tools command to discover new tools, and remove no-longer
+ 13.  Run the discover_tools command to discover new tools, and remove no-longer
       valid/published tools::
     
      python manage.py discover_tools   

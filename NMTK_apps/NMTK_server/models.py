@@ -6,8 +6,10 @@ from django.conf import settings
 from django.contrib.auth.models import User
 import os
 from django.core.files.storage import FileSystemStorage
+from django.conf import settings
 
-fs = FileSystemStorage(location=os.path.join(settings.BASE_PATH,'..', 'NMTK_server', 'files'))
+
+fs = FileSystemStorage(location=os.path.join(settings.FILES_PATH,'..', 'NMTK_server', 'files'))
 
 class ToolServer(models.Model):
     name=models.CharField(max_length=64,
@@ -23,7 +25,7 @@ class ToolServer(models.Model):
     last_modified=models.DateTimeField(auto_now=True)
     server_url=models.URLField()
     date_created=models.DateTimeField(auto_now_add=True)
-    created_by=models.ForeignKey(User)
+    created_by=models.ForeignKey(settings.AUTH_USER_MODEL)
     
 # Create your models here.       
 class Tool(models.Model):
@@ -73,13 +75,15 @@ class Job(models.Model):
     status=models.CharField(max_length=32, choices=STATUS_CHOICES, default='U')
     #file=models.FileField(storage=fs, upload_to=lambda instance, filename: 'data_files/%s.geojson' % (instance.job_id,))
     data_file=models.ForeignKey('DataFiles', null=False)
-    results=models.FileField(storage=fs, upload_to=lambda instance, filename: 'results/%s.results' % (instance.job_id,),
+    results=models.FileField(storage=fs, 
+                             upload_to=lambda instance, filename: 'results/%s/%s.results' % (instance.user.pk,
+                                                                                             instance.job_id,),
                              blank=True, null=True)
     # This will contain the config data to be sent along with the job, in 
     # a JSON format of a multi-post operation.
     config=JSONField(null=True)
     # The user that created the job (used to restrict who can view the job.)
-    user=models.ForeignKey(User, null=False)
+    user=models.ForeignKey(settings.AUTH_USER_MODEL, null=False)
     def delete(self):
         '''
         Ensure files are deleted when the model instance is removed.
@@ -93,9 +97,10 @@ class Job(models.Model):
         ordering=['-date_created']
     
 class DataFiles(models.Model):
-    file=models.FileField(storage=fs, upload_to=lambda instance, filename: 'data_files/%s.geojson' % (instance.job_id,))
-    date_created=models.DataTimeField(auto_now_add=True)
-    user=models.ForeignKey(User, null=False)
+    file=models.FileField(storage=fs, upload_to=lambda instance, filename: 'data_files/%s/%s.geojson' % (instance.user.pk,
+                                                                                                         instance.job_id,))
+    date_created=models.DateTimeField(auto_now_add=True)
+    user=models.ForeignKey(settings.AUTH_USER_MODEL, null=False)
     def delete(self):
         '''
         Ensure files are deleted when the model instance is removed.
