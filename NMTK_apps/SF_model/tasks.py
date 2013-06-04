@@ -4,6 +4,8 @@ import datetime
 from collections import namedtuple
 import decimal
 import math
+from django.core.serializers.json import DjangoJSONEncoder
+
 
 @task(ignore_result=False)
 def performModel(data_file, 
@@ -81,4 +83,5 @@ def performModel(data_file,
     # Since we are updating the data as we go along, we just need to return
     # the data with the new column (results) which contains the result of the 
     # model.
-    client.updateResults(json.dumps(data_file))
+    client.updateResults(json.dumps(data_file,
+                                    cls=DjangoJSONEncoder))
