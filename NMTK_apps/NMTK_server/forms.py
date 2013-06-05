@@ -5,13 +5,13 @@ import json
 import logging
 logger=logging.getLogger(__name__)
 
-class JobSubmissionForm(forms.ModelForm):
-    def __init__(self, *pargs,**kwargs):
-        super(JobSubmissionForm, self).__init__(*pargs, **kwargs)
-        self.fields["tool"].queryset=models.Tool.objects.filter(active=True)
-    
+class DataFileForm(forms.ModelForm):
+    class Meta:
+        model=models.DataFile
+        fields=('file',)
+        
     def clean(self):
-        cleaned_data=super(JobSubmissionForm, self).clean()
+        cleaned_data=super(DataFileForm, self).clean()
         if cleaned_data.has_key('file'):
             try:
                 json.loads(cleaned_data.get('file').read())
@@ -19,7 +19,12 @@ class JobSubmissionForm(forms.ModelForm):
                 self._errors["file"] = self.error_class(["JSON file Data is not valid: %s" % e])
                 del cleaned_data['file']
         return cleaned_data
+
+class JobSubmissionForm(forms.ModelForm):
     
+    def __init__(self, *pargs,**kwargs):
+        super(JobSubmissionForm, self).__init__(*pargs, **kwargs)
+        self.fields["tool"].queryset=models.Tool.objects.filter(active=True)    
     class Meta:
         model=models.Job
         fields=('tool','data_file')

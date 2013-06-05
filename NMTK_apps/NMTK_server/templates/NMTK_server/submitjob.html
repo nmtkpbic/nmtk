@@ -4,7 +4,8 @@
 <body>
 <form enctype="multipart/form-data" method="POST" action="{% url 'submitJob' %}">
 {% csrf_token %}
-{{form.as_p}}
+{{job_form.as_p}}
+{{datafile_form.as_p}}
 <input type="submit" value="Submit" />
 </form>
 

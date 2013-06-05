@@ -96,3 +96,6 @@ as some knowledge surrounding configuring a web server (such as Apache.)
       valid/published tools::
     
      python manage.py discover_tools   
+     
+ 14.  Edit NMTK_apps/NMTK_apps/settings.py and change the SECRET_KEY and any
+ references to hostnames (based on the virtual hostname of your system.)

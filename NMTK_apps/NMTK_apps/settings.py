@@ -7,7 +7,7 @@ BASE_PATH=os.path.dirname(__file__)
 FILES_PATH=os.path.abspath(os.path.join(BASE_PATH, '..','..','nmtk_files'))
 
 LOGFILE_PATH=os.path.abspath(os.path.join(BASE_PATH, '..','..','logs'))
-DEBUG = False
+DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 djcelery.setup_loader()
 
@@ -17,7 +17,7 @@ ADMINS = (
 )
 
 MANAGERS = ADMINS
-
+ALLOWED_HOSTS=['nmtk.otg-nc.com',]
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
@@ -110,11 +110,14 @@ ROOT_URLCONF = 'NMTK_apps.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'NMTK_apps.wsgi.application'
-
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
+    
+    # This directory adds the templates that are stored in the NMTK_apps directory,
+    # Which is not an app - but the underpinnings for everything else.
+    os.path.join(BASE_PATH,'templates'),
 )
 
 INSTALLED_APPS = (
@@ -140,6 +143,9 @@ INSTALLED_APPS = (
 # various tasks in the GeoJSON format.
 SERIALIZATION_MODULES = { 'geojson' : 'NMTK_apps.serializers.geojson' }
 
+
+# The URL Used for logins
+LOGIN_URL='/nmtk/server/login'
 
 # if you want to change the logging (to disable debug) do it here..
 MIN_LOG_LEVEL='DEBUG' # 'INFO' for non-debug, 'DEBUG' for debugging

@@ -14,6 +14,7 @@ import datetime
 import tempfile
 from django.core.servers.basehttp import FileWrapper
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import logout
 
 logger=logging.getLogger(__name__)
 
@@ -108,17 +109,29 @@ def configureJob(request, job=None):
                     'form': form, })
 @login_required
 def submitJob(request):
+    datafile=None
+    initial={}
     if request.method == 'POST':
-        form=forms.JobSubmissionForm(request.POST, request.FILES)
-        if form.is_valid():
-            job=form.save(commit=False)
+        datafile_form=forms.DataFileForm(request.POST,request.FILES)
+        # We aren't too concerned about this file..
+        if datafile_form.is_valid():
+            datafile=datafile_form.save(commit=False)
+            datafile.user=request.user
+            datafile.save()
+            initial={'data_file': datafile}
+        job_form=forms.JobSubmissionForm(request.POST, 
+                                         initial=initial)
+        if job_form.is_valid():
+            job=job_form.save(commit=False)
             job.user=request.user
             job.save()
-            return configureJob(request, job)
+            return configureJob(request, job)            
     else:
-        form=forms.JobSubmissionForm()
+        job_form=forms.JobSubmissionForm()
+        datafile_form=forms.DataFileForm()
     return render(request, 'NMTK_server/submitjob.html',
-                  {'form': form })
+                  {'job_form': job_form,
+                   'datafile_form': datafile_form })
     
     
 # Methods below are methods that are called by the tool to send results
@@ -170,3 +183,10 @@ def processResults(request):
                      job=request.NMTK_JOB).save()
     return HttpResponse(json.dumps({'status': 'Results saved'}),
                         content_type='application/json')    
+    
+def logout_page(request):
+    """
+    Log users out and re-direct them to the main page.
+    """
+    logout(request)
+    return HttpResponseRedirect('/')

@@ -9,7 +9,7 @@ from django.core.files.storage import FileSystemStorage
 from django.conf import settings
 
 
-fs = FileSystemStorage(location=os.path.join(settings.FILES_PATH,'..', 'NMTK_server', 'files'))
+fs = FileSystemStorage(location=os.path.join(settings.FILES_PATH, 'NMTK_server', 'files'))
 
 class ToolServer(models.Model):
     name=models.CharField(max_length=64,
@@ -74,10 +74,11 @@ class Job(models.Model):
     date_created=models.DateTimeField(auto_now_add=True)
     status=models.CharField(max_length=32, choices=STATUS_CHOICES, default='U')
     #file=models.FileField(storage=fs, upload_to=lambda instance, filename: 'data_files/%s.geojson' % (instance.job_id,))
-    data_file=models.ForeignKey('DataFiles', null=False)
+    data_file=models.ForeignKey('DataFile', null=False, 
+                                blank=True)
     results=models.FileField(storage=fs, 
                              upload_to=lambda instance, filename: 'results/%s/%s.results' % (instance.user.pk,
-                                                                                             instance.job_id,),
+                                                                                             instance.pk,),
                              blank=True, null=True)
     # This will contain the config data to be sent along with the job, in 
     # a JSON format of a multi-post operation.
@@ -96,9 +97,9 @@ class Job(models.Model):
     class Meta:
         ordering=['-date_created']
     
-class DataFiles(models.Model):
-    file=models.FileField(storage=fs, upload_to=lambda instance, filename: 'data_files/%s/%s.geojson' % (instance.user.pk,
-                                                                                                         instance.job_id,))
+class DataFile(models.Model):
+    file=models.FileField(storage=fs, upload_to=lambda instance, filename: 'data_files/%s/%s' % (instance.user.pk,
+                                                                                                 filename,))
     date_created=models.DateTimeField(auto_now_add=True)
     user=models.ForeignKey(settings.AUTH_USER_MODEL, null=False)
     def delete(self):

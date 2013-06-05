@@ -6,14 +6,14 @@
   WSGIProcessGroup nmtk
   WSGIPassAuthorization On
     
-  WSGIScriptAlias /nmtk /var/www/vhosts/nmtk.otg-nc.com/NMTK_apps/NMTK_apps/wsgi.py
+  WSGIScriptAlias / /var/www/vhosts/nmtk.otg-nc.com/NMTK_apps/NMTK_apps/wsgi.py
   DirectoryIndex index.html
   DocumentRoot /var/www/vhosts/nmtk.otg-nc.com/htdocs
   <Directory />
     Options FollowSymLinks
     AllowOverride None
   </Directory>
-  <Directory /var/www/vhosts/nmtk.otg-nc.com/htdocs>
+  <Directory /var/www/vhosts/nmtk.otg-nc.com/htdocs/static>
     Options Indexes FollowSymLinks MultiViews
     AllowOverride None
     Order allow,deny

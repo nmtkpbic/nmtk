@@ -27,7 +27,8 @@ def toolIndex(request):
         except:
             logger.debug('App %s has no tool config', module)
     for pattern in urls.urlpatterns:
-        if not hasattr(pattern,'urlconf_name'):
+        if not hasattr(pattern,'urlconf_name') or not \
+               hasattr(pattern.urlconf_name, '__name__'):
             continue
         app_name=getattr(pattern, 'urlconf_name').__name__.rsplit('.urls',1)[0]
         logger.debug('App Name is %s', app_name)
