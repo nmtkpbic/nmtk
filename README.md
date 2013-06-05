@@ -21,6 +21,7 @@ these pre-reqs (and their install packages) translate easily (try google) to num
  * libgdal1-dev gdal-dev libgdal1
  * r-base
  * libapache2-mod-wsgi
+ * libxslt-dev libxml2-dev
 
 
 Installation Instructions

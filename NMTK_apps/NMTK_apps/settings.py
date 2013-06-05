@@ -134,6 +134,8 @@ INSTALLED_APPS = (
     'NMTK_tools', # An app used to generate a list of tools.
     'MN_model', # The tool for the Minnesota pedestrian/cycle models
     'SF_model', # The tool for the SF pedestrian model
+    # Comment out the line below to disable the NMTK_server and make this
+    # serve up only tools
     'NMTK_server', # A test NMTK server for NMTK validating tools locally.
     'djcelery',
     'kombu.transport.django',
@@ -207,28 +209,20 @@ LOGGING = {
 }
 
 # This dictionary is used by NMTK tools to interact with the NMTK server
-# In particular, it stores the public/private keys for each tool, with the 
-# expectation that the tool knows what it's "tool name" is (the outermost
-# keys of the dictionary.)
-#
-# For the purposes of convenience here, the tool names match the app name
-# in question.  That also makes things easier for the decorators, which
-# rely on matches between the tool name and app name here.
+# In particular, it stores the public/private keys for each tool server.
 #
 # Note: by design if you are using the NMTK_server app (which is a 
-# virtual NMTK server used for development) it won't use this data - it's for
-# tools only.  The Server app will use it's database records for managing this.
-# However, it's important to note that what's here, and what's in the DB should
-# match or requests to/from the server will fail.
+# client-interface to NMTK tools that provides data management, among other
+# things) it won't use this data - it's for tools only.  The Server app will
+# use it's database records for managing this.  However, it's important to
+# note that what's here, and what's in the DB should match or requests to/from
+# the server will fail.
 
-NMTK_KEYS={'MN_Model': {'public_key': 'd0461b9536eb483d9f23c157e809af35',
-                        'private_key': '''yq@5u058y312%ebmyi85ytpfwjm9zv)1u2wu-m1s)%cngrvf_^'''},
-           }
-
-
-# The new config specification supports multiple NMTK servers.
-# This means we identify the server and shared secret via the
-# public key information that's part of the payload.
+# In the case below, the key is the public key that the server has assigned 
+# to this tool.  The url is the URL for the server, and the secret is the
+# shared secret key used for signing requests.  Note that the client identifies
+# the server using the public key - which is included in any dialog between 
+# the client and the server.
 NMTK_SERVERS={'d0461b9536eb483d9f23c157e809af35': {'url': 'http://nmtk.otg-nc.com/nmtk/server',
                                                    'secret': '''yq@5u058y312%ebmyi85ytpfwjm9zv)1u2wu-m1s)%cngrvf_^''' },
               }

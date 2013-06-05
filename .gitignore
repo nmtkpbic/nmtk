@@ -12,3 +12,6 @@ logs/*
 
 # Ignore static media, which is collected by django
 htdocs/static
+
+# Ignore the nmtk_files dir and it's contents
+nmtk_files/*
