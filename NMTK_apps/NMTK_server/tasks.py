@@ -35,7 +35,7 @@ def submitJob(job):
     digest=digest_maker.hexdigest()
     
     files= {'config': ('config', config_data),
-            'data': (job.file.name, job.file) }
+            'data': (job.data_file.name, job.data_file.file) }
     r=requests.post(job.tool.analyze_url, files=files,
                     headers={'Authorization': digest })
     logger.debug("Submitted job to %s tool, response was %s", 

@@ -3,7 +3,7 @@ from django.shortcuts import render
 from NMTK_server import forms
 from NMTK_server import models
 from NMTK_server.decorators import authentication
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
 import requests
 import json
@@ -13,12 +13,13 @@ from django.core.files.base import ContentFile
 import datetime
 import tempfile
 from django.core.servers.basehttp import FileWrapper
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import logout
 
 logger=logging.getLogger(__name__)
 
 @login_required
+@user_passes_test(lambda u: u.is_active)
 def downloadResults(request, job_id):
     try:
         job=models.Job.objects.get(job_id=job_id,
@@ -30,6 +31,7 @@ def downloadResults(request, job_id):
     return response
 
 @login_required
+@user_passes_test(lambda u: u.is_active)
 def viewResults(request, job_id):
     try:
         job=models.Job.objects.get(job_id=job_id,
@@ -53,6 +55,7 @@ def viewResults(request, job_id):
                    'job_id': job_id })
 
 @login_required
+@user_passes_test(lambda u: u.is_active)
 def refreshStatus(request, job_id):
     try:
         m=models.JobStatus.objects.filter(job=job_id,
@@ -68,6 +71,7 @@ def refreshStatus(request, job_id):
                         content_type='application/json')
 
 @login_required
+@user_passes_test(lambda u: u.is_active)
 def configureJob(request, job=None):
     '''
     Build a form that can be used to configure a job to be sent to the 
@@ -108,26 +112,33 @@ def configureJob(request, job=None):
                   { 'job': job,
                     'form': form, })
 @login_required
+@user_passes_test(lambda u: u.is_active)
 def submitJob(request):
     datafile=None
     initial={}
     if request.method == 'POST':
         datafile_form=forms.DataFileForm(request.POST,request.FILES)
-        # We aren't too concerned about this file..
+        # We aren't too concerned about this file..if they provide a file,
+        # we can save it here.
         if datafile_form.is_valid():
             datafile=datafile_form.save(commit=False)
+            datafile.name=request.FILES['file'].name
+            datafile.content_type=request.FILES['file'].content_type
             datafile.user=request.user
             datafile.save()
-            initial={'data_file': datafile}
-        job_form=forms.JobSubmissionForm(request.POST, 
-                                         initial=initial)
+            job_form=forms.JobSubmissionFormTool(request.user, request.POST)
+        else:
+            job_form=forms.JobSubmissionForm(request.user,
+                                             request.POST)
         if job_form.is_valid():
             job=job_form.save(commit=False)
+            if 'data_file' not in job_form.cleaned_data:
+                job.data_file=datafile
             job.user=request.user
             job.save()
             return configureJob(request, job)            
     else:
-        job_form=forms.JobSubmissionForm()
+        job_form=forms.JobSubmissionForm(request.user)
         datafile_form=forms.DataFileForm()
     return render(request, 'NMTK_server/submitjob.html',
                   {'job_form': job_form,
@@ -174,9 +185,9 @@ def processResults(request):
     data=ContentFile(request.FILES['data'].read())
     request.NMTK_JOB.results.save('results', data)
     if config['status'] == 'results':
-        request.NMTK_JOB.status='C'
+        request.NMTK_JOB.status=request.NMTK_JOB.COMPLETE
     elif config['status'] == 'error':
-        request.NMTK_JOB.status='F'
+        request.NMTK_JOB.status=request.NMTK_JOB.FAILED
     request.NMTK_JOB.save()
     models.JobStatus(message='COMPLETE',
                      timestamp=datetime.datetime.now(),

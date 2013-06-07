@@ -61,10 +61,14 @@ class ToolConfig(models.Model):
     json_config=JSONField()
     
 class Job(models.Model):
-    STATUS_CHOICES=(('U','Not Yet Configured'),
-                    ('A','Active',),
-                    ('F','Failed',),
-                    ('C','Complete'),
+    UNCONFIGURED='U'
+    ACTIVE='A'
+    FAILED='F'
+    COMPLETE='C'
+    STATUS_CHOICES=((UNCONFIGURED,'Not Yet Configured'),
+                    (ACTIVE,'Active',),
+                    (FAILED,'Failed',),
+                    (COMPLETE,'Complete'),
                     )
     def __init__(self, *args, **kwargs):
         super(Job, self).__init__(*args, **kwargs)
@@ -72,10 +76,10 @@ class Job(models.Model):
     job_id=UUIDField(auto=True, primary_key=True)
     tool=models.ForeignKey(Tool)
     date_created=models.DateTimeField(auto_now_add=True)
-    status=models.CharField(max_length=32, choices=STATUS_CHOICES, default='U')
+    status=models.CharField(max_length=32, choices=STATUS_CHOICES, default=UNCONFIGURED)
     #file=models.FileField(storage=fs, upload_to=lambda instance, filename: 'data_files/%s.geojson' % (instance.job_id,))
     data_file=models.ForeignKey('DataFile', null=False, 
-                                blank=True)
+                                blank=False)
     results=models.FileField(storage=fs, 
                              upload_to=lambda instance, filename: 'results/%s/%s.results' % (instance.user.pk,
                                                                                              instance.pk,),
@@ -100,6 +104,9 @@ class Job(models.Model):
 class DataFile(models.Model):
     file=models.FileField(storage=fs, upload_to=lambda instance, filename: 'data_files/%s/%s' % (instance.user.pk,
                                                                                                  filename,))
+    name=models.CharField(max_length=64)
+    description=models.TextField(null=True, blank=True)
+    content_type=models.CharField(max_length=128)
     date_created=models.DateTimeField(auto_now_add=True)
     user=models.ForeignKey(settings.AUTH_USER_MODEL, null=False)
     def delete(self):
@@ -110,11 +117,18 @@ class DataFile(models.Model):
         if self.file:
             self.file.delete()
         return r
+    def __str__(self):
+        return '%s' % (self.name,)
     class Meta:
         ordering=['-date_created']
     
 class JobStatus(models.Model):
-    job=models.ForeignKey(Job)
+    '''
+    This model holds status updates that are returned by the tool.  It can
+    probably be removed at some point after the job completes (or at least
+    all but the most recent one can be removed.)
+    '''
+    job=models.OneToOneField(Job)
     timestamp=models.DateTimeField(auto_now_add=True)
     message=models.CharField(max_length=1024)
     class Meta:

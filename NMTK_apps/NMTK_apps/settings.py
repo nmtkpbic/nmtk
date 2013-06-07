@@ -101,7 +101,8 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    #'django.contrib.messages.middleware.MessageMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'NMTK_server.middleware.StrictAuthentication',
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
@@ -125,7 +126,7 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     #'django.contrib.sites',
-    #'django.contrib.messages',
+    'django.contrib.messages',
     'django.contrib.staticfiles',
     # Uncomment the next line to enable the admin:
     'django.contrib.admin',
@@ -139,6 +140,7 @@ INSTALLED_APPS = (
     'NMTK_server', # A test NMTK server for NMTK validating tools locally.
     'djcelery',
     'kombu.transport.django',
+    'tastypie',
 )
 
 # Define a GeoJSON serializer so we can serialize and return results of
@@ -147,7 +149,7 @@ SERIALIZATION_MODULES = { 'geojson' : 'NMTK_apps.serializers.geojson' }
 
 
 # The URL Used for logins
-LOGIN_URL='/nmtk/server/login'
+LOGIN_URL='/server/login'
 
 # if you want to change the logging (to disable debug) do it here..
 MIN_LOG_LEVEL='DEBUG' # 'INFO' for non-debug, 'DEBUG' for debugging
