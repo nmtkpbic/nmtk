@@ -225,7 +225,7 @@ LOGGING = {
 # shared secret key used for signing requests.  Note that the client identifies
 # the server using the public key - which is included in any dialog between 
 # the client and the server.
-NMTK_SERVERS={'d0461b9536eb483d9f23c157e809af35': {'url': 'http://nmtk.otg-nc.com/nmtk/server',
+NMTK_SERVERS={'d0461b9536eb483d9f23c157e809af35': {'url': 'http://nmtk.otg-nc.com/server',
                                                    'secret': '''yq@5u058y312%ebmyi85ytpfwjm9zv)1u2wu-m1s)%cngrvf_^''' },
               }
 

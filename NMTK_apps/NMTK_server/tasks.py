@@ -5,7 +5,7 @@ import requests
 import hmac
 import hashlib
 import uuid
-from datetime import datetime
+from django.utils import timezone
 import logging
 from django.core.serializers.json import DjangoJSONEncoder
 logger=logging.getLogger(__name__)
@@ -27,7 +27,7 @@ def submitJob(job):
     configuration={'analysis settings': job.config }
     configuration['job']= {'tool_server_id': "%s" % (job.tool.tool_server.tool_server_id,),
                            'job_id': str(job.job_id),
-                           'timestamp': datetime.now().isoformat() }
+                           'timestamp': timezone.now().isoformat() }
     config_data=json.dumps(configuration, cls=DjangoJSONEncoder)
     digest_maker =hmac.new(str(job.tool.tool_server.auth_token), 
                            config_data, 

@@ -10,11 +10,12 @@ import json
 import logging
 import collections
 from django.core.files.base import ContentFile
-import datetime
 import tempfile
 from django.core.servers.basehttp import FileWrapper
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import logout
+from django.utils import timezone
+
 
 logger=logging.getLogger(__name__)
 
@@ -59,12 +60,12 @@ def viewResults(request, job_id):
 def refreshStatus(request, job_id):
     try:
         m=models.JobStatus.objects.filter(job=job_id,
-                                          user=request.user)[0]
+                                          job__user=request.user)[0]
     except:
         logger.debug('No status reports received yet.')
         fakeStatus=collections.namedtuple('FakeStatus',['message',
                                                         'timestamp'])
-        m=fakeStatus('Pending',datetime.datetime.now())
+        m=fakeStatus('Pending',timezone.now())
     result={'status': m.message,
             'timestamp': m.timestamp.isoformat()}
     return HttpResponse(json.dumps(result),
@@ -161,11 +162,12 @@ def updateStatus(request):
      - status - a status message (max length 1024 bytes) to use to 
                 update the job status.
     '''
-    logger.debug('Updating status for job id %s', request.NMTK_JOB)
+    logger.debug('Updating status for job id %s', request.NMTK_JOB.pk)
     data=request.FILES['data'].read()
+    logger.debug('Read updated status of %s', data)
     
     status_m=models.JobStatus(message=data,
-                              timestamp=datetime.datetime.now(),
+                              timestamp=timezone.now(),
                               job=request.NMTK_JOB)
     status_m.save()
     return HttpResponse(json.dumps({'status': 'Status added with key of %s' % (status_m.pk)}),
@@ -190,7 +192,7 @@ def processResults(request):
         request.NMTK_JOB.status=request.NMTK_JOB.FAILED
     request.NMTK_JOB.save()
     models.JobStatus(message='COMPLETE',
-                     timestamp=datetime.datetime.now(),
+                     timestamp=timezone.now(),
                      job=request.NMTK_JOB).save()
     return HttpResponse(json.dumps({'status': 'Results saved'}),
                         content_type='application/json')    

@@ -52,7 +52,7 @@ def performModel(data_file,
     logger.debug('Mapping dictionary is %s', property_map)
     if failures:
         client.updateResults(data={'status': 'FAILED',
-                                      'errors': failures})
+                                   'errors': failures})
     client.updateStatus('Parameter validation complete.')
     productSet=namedtuple('OLSSet', ['value','coefficient', 'parameter'])
     try:
