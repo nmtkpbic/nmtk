@@ -10,7 +10,6 @@ urlpatterns = patterns('',
     url(r'^index/?$', 'NMTK_tools.views.toolIndex', {}, name='tool_index'),
     url(r'^MN_model/', include('MN_model.urls')),
     url(r'^SF_model/', include('SF_model.urls')),
-    
 )
 
 # If the NMTK_server app is installed, then we need to include this

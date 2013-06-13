@@ -5,11 +5,16 @@ from random import choice
 from django.conf import settings
 from django.contrib.auth.models import User
 import os
+from django.core.urlresolvers import reverse
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
+from django.utils.safestring import mark_safe
 
-
-fs = FileSystemStorage(location=os.path.join(settings.FILES_PATH, 'NMTK_server', 'files'))
+class NMTKFileSystemStorage(FileSystemStorage):
+    def url(*args):
+        raise NotImplementedError
+        
+fs = NMTKFileSystemStorage(location=os.path.join(settings.FILES_PATH, 'NMTK_server', 'files'))
 
 class ToolServer(models.Model):
     name=models.CharField(max_length=64,
@@ -26,6 +31,12 @@ class ToolServer(models.Model):
     server_url=models.URLField()
     date_created=models.DateTimeField(auto_now_add=True)
     created_by=models.ForeignKey(settings.AUTH_USER_MODEL)
+    def __str__(self):
+        return "%s" % (self.name,)
+    
+    class Meta:
+        verbose_name='Tool Server'
+        verbose_name_plural='Tool Servers'
     
 # Create your models here.       
 class Tool(models.Model):
@@ -52,6 +63,10 @@ class Tool(models.Model):
     def __unicode__(self):
         return self.name
     
+    class Meta:
+        verbose_name='Tool'
+        verbose_name_plural='Tools'
+    
 class ToolConfig(models.Model):
     '''
     Each tool has a single configuration, which is stored as a configuration
@@ -60,6 +75,10 @@ class ToolConfig(models.Model):
     tool=models.OneToOneField(Tool)
     json_config=JSONField()
     
+    class Meta:
+        verbose_name='Tool Configuration'
+        verbose_name_plural='Tool Configurations'
+        
 class Job(models.Model):
     UNCONFIGURED='U'
     ACTIVE='A'
@@ -98,8 +117,17 @@ class Job(models.Model):
             self.results.delete()
         return r
     
+    @property
+    def results_link(self):
+        return reverse('viewResults', kwargs={'job_id': self.job_id})
+    
+    def __str__(self):
+        return "%s for %s" % (self.pk, self.user.username)
+    
     class Meta:
         ordering=['-date_created']
+        verbose_name='Job'
+        verbose_name_plural='Jobs'
     
 class DataFile(models.Model):
     file=models.FileField(storage=fs, upload_to=lambda instance, filename: 'data_files/%s/%s' % (instance.user.pk,
@@ -117,10 +145,17 @@ class DataFile(models.Model):
         if self.file:
             self.file.delete()
         return r
+    
+    def url(self):
+        return reverse('NMTK_server.download_datafile', 
+                       kwargs={'file_id': self.pk})
+    
     def __str__(self):
         return '%s' % (self.name,)
     class Meta:
         ordering=['-date_created']
+        verbose_name='Data File'
+        verbose_name_plural='Data Files'
     
 class JobStatus(models.Model):
     '''
@@ -132,5 +167,7 @@ class JobStatus(models.Model):
     timestamp=models.DateTimeField(auto_now_add=True)
     message=models.CharField(max_length=1024)
     class Meta:
-        ordering=['-timestamp']
+        ordering=['job__pk','-timestamp']
+        verbose_name='Job Status'
+        verbose_name_plural='Job Status'
     
