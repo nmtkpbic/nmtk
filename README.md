@@ -99,6 +99,7 @@ as some knowledge surrounding configuring a web server (such as Apache.)
      
      pushd nmtk_files
      spatialite nmtk.sqlite  "SELECT InitSpatialMetaData();"
+     # Note: Ignore the "table spatial_ref_sys already exists error"
      chown www-data nmtk.sqlite
  
  8.  Change to the NMTK_apps subdirectory and initialize the database, and generate static media::

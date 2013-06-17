@@ -2,7 +2,6 @@ from django.core.management.base import BaseCommand, CommandError
 from NMTK_server import models
 from optparse import make_option
 import datetime
-from NMTK_server import signals
 
 class Command(BaseCommand):
     help = 'Go out to the NMTK servers and discover new tools, update configs.'

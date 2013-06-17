@@ -1,6 +1,5 @@
 from django.conf.urls import patterns, include, url
 
-from NMTK_server import signals
 from NMTK_server import api
 from tastypie.api import Api
 # Uncomment the next two lines to enable the admin:

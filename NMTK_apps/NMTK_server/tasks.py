@@ -8,6 +8,7 @@ import uuid
 from django.utils import timezone
 import logging
 import os
+from django.core.exceptions import ObjectDoesNotExist
 from NMTK_server import load_data
 from django.core.files import File
 from django.contrib.gis.geos import Polygon
