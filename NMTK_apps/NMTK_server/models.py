@@ -11,6 +11,7 @@ from django.conf import settings
 from django.utils.safestring import mark_safe
 from osgeo import ogr
 from NMTK_server import tasks
+from NMTK_server import signals
 import logging
 logger=logging.getLogger(__name__)
 
@@ -218,18 +219,19 @@ class DataFile(models.Model):
     user=models.ForeignKey(settings.AUTH_USER_MODEL, null=False)
     objects=models.GeoManager()
     
-    def delete(self):
-        '''
-        Ensure files are deleted when the model instance is removed.
-        '''
-        r=super(DataFiles, self).delete()
-        if self.file:
-            self.file.delete()
-        return r
-    
+    @property
     def url(self):
         return reverse('NMTK_server.download_datafile', 
                        kwargs={'file_id': self.pk})
+    
+    @property
+    def geojson_url(self):
+        return reverse('NMTK_server.download_geojson_datafile', 
+                       kwargs={'file_id': self.pk})
+    
+    @property
+    def geojson_name(self):
+        return '%s.geojson' % (os.path.splitext(self.name)[0],)
     
     def save(self, *args, **kwargs):
         '''
@@ -246,11 +248,13 @@ class DataFile(models.Model):
             If the file was just uploaded (status PENDING) then we kick off
             the job to import the file (and set the status to PROCESSING)
             '''
+            logger.debug('Dispatching task for %s', self.pk)
             tasks.importDataFile.delay(self)
         return result
         
     def __str__(self):
         return '%s' % (self.name,)
+    
     class Meta:
         ordering=['-date_created']
         verbose_name='Data File'

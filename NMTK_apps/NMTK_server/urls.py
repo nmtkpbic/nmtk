@@ -24,6 +24,7 @@ urlpatterns = patterns('',
    url('^results/(?P<job_id>[^/]*)$', 'NMTK_server.views.viewResults', {}, name='viewResults'),   
    url('^downloadResults/(?P<job_id>[^/]*)$', 'NMTK_server.views.downloadResults', {}, name='downloadResults'),   
    url('^downloadDataFile/(?P<file_id>[^/]*)$', 'NMTK_server.views.downloadDataFile', {}, name='NMTK_server.download_datafile'),
+   url('^downloadGeoJsonFile/(?P<file_id>[^/]*)$', 'NMTK_server.views.downloadGeoJsonFile', {}, name='NMTK_server.download_geojson_datafile'),
    url(r'^login/$', 'django.contrib.auth.views.login', name='login_page'),
    url(r'^logout/$', 'NMTK_server.views.logout_page', name='logout'),
    # Uncomment the admin/doc line below to enable admin documentation:

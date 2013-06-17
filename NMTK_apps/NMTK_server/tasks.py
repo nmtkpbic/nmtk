@@ -9,7 +9,7 @@ from django.utils import timezone
 import logging
 import os
 from django.core.exceptions import ObjectDoesNotExist
-from NMTK_server import load_data
+from NMTK_server import geo_loader
 from django.core.files import File
 from django.contrib.gis.geos import Polygon
 
@@ -66,7 +66,7 @@ def submitJob(job):
     digest=digest_maker.hexdigest()
     
     files= {'config': ('config', config_data),
-            'data': (job.data_file.name, job.data_file.file) }
+            'data': (job.data_file.name, job.data_file.processed_file) }
     r=requests.post(job.tool.analyze_url, files=files,
                     headers={'Authorization': digest })
     logger.debug("Submitted job to %s tool, response was %s", 
@@ -93,7 +93,7 @@ def updateToolConfig(tool):
 @task(ignore_result=False)
 def importDataFile(datafile):
     try:
-        geoloader=load_data.GeoDataLoader(datafile.file.path)
+        geoloader=geo_loader.GeoDataLoader(datafile.file.path)
         datafile.srid=geoloader.info.srid
         datafile.extent=Polygon.from_bbox(geoloader.info.extent)
         datafile.srs=geoloader.info.srs

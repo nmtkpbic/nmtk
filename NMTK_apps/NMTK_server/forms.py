@@ -67,7 +67,7 @@ class ToolConfigForm(forms.Form):
             args=args[1:]
         super(ToolConfigForm, self).__init__(*args, **kwargs)
         config=job.tool.toolconfig.json_config
-        data=json.loads(job.data_file.file.read())
+        data=json.loads(job.data_file.processed_file.read())
         source_fields=data['features'][0]['properties'].keys()
 #        logger.debug('Fields are %s', source_fields)
         # build choices so the user can choose the mapping(s)

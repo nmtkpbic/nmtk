@@ -38,6 +38,7 @@ class GeoDataLoader(object):
         self.working_dir=tempfile.mkdtemp()
         self.data=None
         self._process_file(filename, srid)
+        self.geojson_file=None
         
     def __del__(self):
         shutil.rmtree(self.working_dir,
@@ -157,6 +158,8 @@ class GeoDataLoader(object):
     
     @property
     def geojson(self):
+        if self.geojson_file:
+            return self.geojson_file
         if not self.data:
             raise Exception('Unable to generate a GeoJSON file without ' +
                             'having already processed an input file.')
@@ -175,11 +178,19 @@ class GeoDataLoader(object):
         layer=datasource.CreateLayer('GeoJSON',
                                      geom_type=self.data.type,
                                      srs=srs)
+        self.data.layer.ResetReading()
         while True:
             feature=self.data.layer.GetNextFeature()
             if not feature: break
 #            feature.GetGeometryRef().AssignSpatialReference(srs)
             layer.CreateFeature(feature)
+        
+        layer.SyncToDisk()
+        datasource.SyncToDisk()
+        del datasource
+        del layer
+        logger.error('Saved data to disk (sync) and remove objects!')
+        self.geojson_file=tempfn
         return tempfn
         
         

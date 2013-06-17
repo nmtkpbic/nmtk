@@ -42,6 +42,18 @@ def downloadDataFile(request, file_id):
     response['Content-Disposition'] = 'attachment; filename=%s' % (datafile.name,)
     return response
 
+def downloadGeoJsonFile(request, file_id):
+    try:
+        datafile=models.DataFile.objects.get(pk=file_id,
+                                             user=request.user)
+    except:
+        raise Http404
+    response = HttpResponse(datafile.processed_file, 
+                            content_type='application/json')
+    response['Content-Disposition'] = 'attachment; filename=%s' % (
+                                            datafile.geojson_name,)
+    return response
+
 @login_required
 @user_passes_test(lambda u: u.is_active)
 def viewResults(request, job_id):

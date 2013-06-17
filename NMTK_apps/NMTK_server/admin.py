@@ -58,12 +58,17 @@ class DataFileAdmin(admin.ModelAdmin):
         '''
         Used by the admin to provide a nice download URL.
         '''
-        return mark_safe('''<a href="%s">%s</a>''' % (obj.url(),
+        return mark_safe('''<a href="%s">%s</a>''' % (obj.url,
                                                       obj.name))
+        
+    def data_file_geojson(self, obj):
+        return mark_safe('''<a href="%s">%s</a>''' % (obj.geojson_url,
+                                                      obj.geojson_name))
     list_display=['id','user','data_file','date_created',
                   'feature_count','status']
     list_filter=['user']
-    fields=['user','date_created','data_file','content_type',
+    fields=['user','date_created','data_file','data_file_geojson',
+            'content_type',
             'name',
             'status','status_message','srid','srs','feature_count',
             'extent','geom_type',
