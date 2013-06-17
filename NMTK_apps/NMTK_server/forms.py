@@ -34,7 +34,8 @@ class JobSubmissionForm(forms.ModelForm):
     def __init__(self, user, *pargs,**kwargs):
         super(JobSubmissionForm, self).__init__(*pargs, **kwargs)
         self.fields["tool"].queryset=models.Tool.objects.filter(active=True)
-        self.fields["data_file"].queryset=models.DataFile.objects.filter(user=user) 
+        self.fields["data_file"].queryset=models.DataFile.objects.filter(user=user,
+                                                                         status=models.DataFile.IMPORTED) 
            
     class Meta:
         model=models.Job

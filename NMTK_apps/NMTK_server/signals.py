@@ -7,24 +7,6 @@ import requests
 from django.core.exceptions import ObjectDoesNotExist
 logger=logging.getLogger(__name__)
 
-@receiver(post_save, sender=models.Job)
-def sendJobToTool(sender, instance, **kwargs):
-    '''
-    Rather than have the view code have to submit the job, we'll just 
-    monitor the job table.  Whenever a job gets configured, the
-    state change from unconfigured to configured will trigger 
-    sending the job to the client - so we have a single entry point
-    for sending jobs to the client.
-    
-    In the interest of speed, the job execution work (which might take 
-    some time to submit) is passed off as a celery task, so the client gets
-    it's response(s) back immediately.
-    '''
-    if instance._old_status == 'U' and instance.status == 'A':
-        logger.debug('Detected a state change from Unconfigured to Active.')
-        logger.debug('Sending job to tool for processing.')
-        # Submit the task to the client, passing in the job identifier.
-        tasks.submitJob.delay(instance)
 
 @receiver(post_save, sender=models.ToolServer)
 def updateTools(sender, instance, **kwargs):

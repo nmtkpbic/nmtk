@@ -18,10 +18,21 @@ these pre-reqs (and their install packages) translate easily (try google) to num
  * python-dev
  * python-setuptools
  * python-virtualenv
- * libgdal1-dev gdal-dev libgdal1
  * r-base
  * libapache2-mod-wsgi
  * libxslt-dev libxml2-dev
+ * libspatialite3 libspatialite-dev spatialite-bin
+
+You must also download, compile, and install (from source) GDAL version 1.10 or greater.  GDAL v1.10 added
+support for CRS values in GeoJSON files - which are a requirement for NMTK.  Also, please note
+that when compiling, be sure to provide the --with-python argument.
+
+These directions assume that you install GDAL source in /usr/local/src/gdal-1.10.0 (you may need to change
+the directions below if you installed the source elsewhere.)
+
+These directions also assume that you have placed the GDAL components in /usr/local/lib , if not, you will need
+to modify NMTK_apps/manage.py and NMTK_apps/NMTK_apps/wsgi.py with the appropriate locations, otherwise GDAL
+specific operations will fail (due to the library not being found.)
 
 
 Installation Instructions
@@ -47,23 +58,48 @@ as some knowledge surrounding configuring a web server (such as Apache.)
 
    pip install -r requirements.txt
 
-
   Note::
   
   Sometimes the GDAL installation will fail because pip gets the bindings, but not the entire GDAL library (which GDALs setup requires.)  This
   can be handled using the following procedure::
     
-    pip install --no-install GDAL
+    pip install --no-install $(grep GDAL requirements.txt)
     pushd venv/build/GDAL
-    python setup.py build_ext --include-dirs=/usr/include/gdal
+    python setup.py build_ext --include-dirs=/usr/local/include --library-dirs=/usr/local/lib
     pip install --no-download GDAL
     popd
+    sudo sh -c 'echo "/usr/local/lib" >> /etc/ld.so.conf' # Add the path to gdal libs to system
+    sudo ldconfig
+    
+   Note::
+   
+   The PySqlite Library requires some special handling::
+   
+     pip uninstall pysqlite # Answer yes when prompted
+     pip install --no-install $(grep pysqlite requirements.txt)
+     pushd venv/build/pysqlite/
+     vi setup.cfg # Comment out the line that contains define=SQLITE_OMIT_LOAD_EXTENSION
+                  # By putting a # at the start of the line
+     pip install --no-download pysqlite
+     
+     
 
  6.  Install the celery and Apache components, configuration files exist for 
  these in the "celery" and "conf" directories (celery and apache, respectively)
  
  7.  By default, files for the NMTK server will go in the nmtk_files subdirectory,
- create this directory if it does not exist, and ensure that you have write access to it.
+ create this directory if it does not exist, and ensure that you have write access to it::
+ 
+     mkdir nmtk_files
+     chown www-data.${USER} nmtk_files
+     chmod g+rwxs nmtk_files
+     
+ 
+ 7a. Create the initial spatialite database::
+     
+     pushd nmtk_files
+     spatialite nmtk.sqlite  "SELECT InitSpatialMetaData();"
+     chown www-data nmtk.sqlite
  
  8.  Change to the NMTK_apps subdirectory and initialize the database, and generate static media::
 
