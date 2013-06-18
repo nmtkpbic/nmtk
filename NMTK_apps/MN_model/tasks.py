@@ -85,3 +85,5 @@ def performModel(data_file,
     # model.
     client.updateResults(json.dumps(data_file,
                                     cls=DjangoJSONEncoder))
+    for f in [data_file, job_config]:
+        os.path.unlink(f)

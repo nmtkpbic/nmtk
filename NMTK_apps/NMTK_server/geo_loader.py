@@ -187,14 +187,6 @@ class GeoDataLoader(object):
         
         layer.SyncToDisk()
         datasource.SyncToDisk()
-        del datasource
-        del layer
         logger.error('Saved data to disk (sync) and remove objects!')
         self.geojson_file=tempfn
         return tempfn
-        
-        
-        
-            
-            
-        
