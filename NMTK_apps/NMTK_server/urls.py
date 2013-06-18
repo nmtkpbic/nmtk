@@ -17,6 +17,7 @@ v1_api.register(api.JobStatusResource())
 
 urlpatterns = patterns('',
    url('^$', 'NMTK_server.views.submitJob', {}, name='submitJob'),
+   url(r'^index/', 'NMTK_server.views.nmtk_server', name='index'),
    url('^tools/result$', 'NMTK_server.views.processResults', {}, name='processSuccessResults'),
    url('^tools/update$', 'NMTK_server.views.updateStatus', {}, name='updateStatus'),
    url('^submit-job-to-tool$', 'NMTK_server.views.configureJob', {}, name='configureJob'),

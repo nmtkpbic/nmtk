@@ -4,7 +4,7 @@ from NMTK_server import forms
 from NMTK_server import models
 from NMTK_server.decorators import authentication
 from django.http import HttpResponse, Http404, HttpResponseRedirect
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 import requests
 import json
 import logging
@@ -168,7 +168,13 @@ def submitJob(request):
                   {'job_form': job_form,
                    'datafile_form': datafile_form })
     
-    
+@user_passes_test(lambda u: u.is_active)
+@ensure_csrf_cookie
+def nmtk_server(request):
+    return render(request, 'NMTK_server/server.html')
+
+
+
 # Methods below are methods that are called by the tool to send results
 # back to the server.  As a result, they are not user-facing, and do not
 # need things like the login_required decorator.
