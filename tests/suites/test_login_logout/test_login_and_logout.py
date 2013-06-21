@@ -12,12 +12,24 @@ class TestLoginAndLogout(NMTKTestCase):
         
         
     def test_login_verify(self):
+        '''
+        Verify we can successfully log into the site.
+        Tests that the client works properly, sets the right CSRF headers,
+        and that the server accepts a login properly.
+        '''
         client=NMTKClient(self.site_url)
         result=client.login(self.username, self.password)
         # Verify that we logged in successfully by checking the status code
         self.assertEqual(result.status_code, 302)
         
     def test_logout_verify(self):
+        '''
+        Verify that we can log out successfully.
+        Verifies that logout functionality works, and that the server
+        properly invalidates the session when logout is requested.  Verify
+        that the correct redirect URL is provided for login after a user has
+        logged out.
+        '''
         client=NMTKClient(self.site_url)
         result=client.login(self.username, self.password)
         self.assertEqual(result.status_code, 302)
