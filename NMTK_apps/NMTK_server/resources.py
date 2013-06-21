@@ -70,6 +70,7 @@ class ModelResource(TastyPieModelResource):
         that allows for fields like user ownership by (which are generally read only)
         to be updated before saving based on bundle data.
         '''
+        bundle=self.pre_save(bundle)
         self.is_valid(bundle)
 
         if bundle.errors and not skip_errors:
@@ -87,7 +88,7 @@ class ModelResource(TastyPieModelResource):
         # Save the main object.
         # the pre-save hook allows for modifications to the object prior to
         # saving it.
-        bundle=self.pre_save(bundle)
+        
         bundle.obj.save()
         bundle.objects_saved.add(self.create_identifier(bundle.obj))
 

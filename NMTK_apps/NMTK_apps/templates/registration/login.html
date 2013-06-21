@@ -31,7 +31,7 @@
       {% if next %}
         <input type="hidden" name="next" value="{{ next }}" />
       {% else %}
-        <input type="hidden" name="next" value="{% url submitJob %}" />
+        <input type="hidden" name="next" value="{% url 'submitJob' %}" />
       {% endif %}
       <input type="submit" value="login" />
     </form>

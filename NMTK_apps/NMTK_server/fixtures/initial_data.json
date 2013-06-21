@@ -1,4 +1,15 @@
-[{"pk": "d0461b9536eb483d9f23c157e809af35", 
+[{"pk": "1", 
+  "model": "auth.User", 
+  "fields": {"username": "disabled_user", 
+             "password": "DISABLED", 
+             "email": "http://nmtk.otg-nc.com/", 
+             "first_name": "Disabled", 
+             "last_name": "User", 
+             "is_active": false, 
+             "is_staff": false,
+             "is_superuser": false}
+ },
+ {"pk": "d0461b9536eb483d9f23c157e809af35", 
   "model": "NMTK_server.toolserver", 
   "fields": {"name": "Sample tool server", 
              "auth_token": "yq@5u058y312%ebmyi85ytpfwjm9zv)1u2wu-m1s)%cngrvf_^", 
@@ -9,3 +20,4 @@
              "created_by": 1,
              "remote_ip": null}
  }]
+ 

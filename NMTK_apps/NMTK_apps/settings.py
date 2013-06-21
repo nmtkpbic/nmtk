@@ -163,7 +163,7 @@ SERIALIZATION_MODULES = { 'geojson' : 'NMTK_apps.serializers.geojson' }
 
 
 # The URL Used for logins
-LOGIN_URL='/server/login'
+LOGIN_URL='/server/login/'
 
 # if you want to change the logging (to disable debug) do it here..
 MIN_LOG_LEVEL='DEBUG' # 'INFO' for non-debug, 'DEBUG' for debugging
