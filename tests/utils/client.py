@@ -1,6 +1,6 @@
 import requests
 import logging
-logger=logging.getLogger('__name__')
+logger=logging.getLogger(__name__)
 
 class NMTKClientException(Exception): pass
 
@@ -26,14 +26,25 @@ class NMTKClient(object):
         named_urls={'login': 'login/',
                     'logout': 'logout/',
                     'api': 'api/v1/'}
-        if named_url:
-            url='%s%s%s' % (self.site_url, base_url, named_urls.get(named_url))
-        elif path is not None and not path.startswith('/'):
-            url='%s%s%s' % (self.site_url, base_url, path)
-        elif path is not None:
+        if path is not None and path.startswith('/'):
+            if named_url:
+                logger.warning('Named URLs (%s) are ignored when used in ' +
+                               'in conjunction with an absolute path (%s)',
+                                named_url, path)
             url='%s%s' % (self.site_url, path)
+        elif named_url and path is None:
+            url='%s%s%s' % (self.site_url, base_url, 
+                            named_urls.get(named_url))
+        elif named_url and path is not None:
+            url='%s%s%s%s' % (self.site_url, base_url, 
+                              named_urls.get(named_url),
+                              path)
+        elif path is not None:
+            url='%s%s%s' % (self.site_url, base_url, path)
         else:
             raise NMTKClientException('No path or named url provided')
+        if not url.endswith('/'):
+            url='%s/' % (url,)
         logger.debug('Returning requested URL: %s', url)
         return url
         

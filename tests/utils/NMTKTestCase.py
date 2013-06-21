@@ -7,8 +7,7 @@ import simplejson as json
 base_path=os.path.abspath(os.path.join(os.path.dirname(__file__),
                                        '../..'))
 nmtk_path=os.environ.setdefault('NMTK_PATH', base_path)
-settings_command=os.path.join(nmtk_path, 
-                              'NMTK_apps/manage.py')
+
 config_file=os.path.join(nmtk_path, 'tests/config.json')
 
 class NMTKTestCase(unittest.TestCase):
@@ -18,6 +17,8 @@ class NMTKTestCase(unittest.TestCase):
         self.site_url=config['site_url']
         self.username=config['username']
         self.password=config['password']
+        self.settings_command=os.path.join(nmtk_path, 
+                                           'NMTK_apps/manage.py')
         
         
 if __name__ == '__main__':

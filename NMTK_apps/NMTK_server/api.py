@@ -1,12 +1,27 @@
-from NMTK_server.resources import ModelResource
+from NMTK_server.resources import ModelResource, ALL, ALL_WITH_RELATIONS
 from NMTK_server import models
+from tastypie.exceptions import Unauthorized
 from tastypie.authentication import SessionAuthentication
 from tastypie import fields, utils
 from django.contrib.auth.models import User
 from tastypie.authorization import Authorization
 from django.forms.models import model_to_dict
 from NMTK_server import forms
+from tastypie.validation import Validation
 
+class UserResourceValidation(Validation):
+    def is_valid(self, bundle, request=None):
+        errors = {}
+        if bundle.request.method == 'POST':
+            if not bundle.data:
+                return {'__all__': 'Invalid Data'}
+    
+    
+            if bundle.data.has_key('username'):
+                count=models.User.objects.filter(username=bundle.data['username']).count()
+            if count > 0:
+                errors['username']='Sorry, that username is not available'
+        return errors
 
 class UserResourceAuthorization(Authorization):
     def read_list(self, object_list, bundle):
@@ -38,7 +53,7 @@ class UserResourceAuthorization(Authorization):
         '''
         if bundle.request.user.is_superuser:
             return True
-        elif bundle.obj.pj <> bundle.request.user.pk:
+        elif bundle.obj.pk <> bundle.request.user.pk:
             raise Unauthorized('You lack the privilege to access this resource')
         return True
 
@@ -107,23 +122,16 @@ class UserResource(ModelResource):
         results_name='user'
         authentication=SessionAuthentication()
         authorization=UserResourceAuthorization()
+        validation=UserResourceValidation()
         excludes=('password',)
+        filtering= {'username': ALL,
+                    'email': ALL}
         
-    def obj_create(self, bundle, **kwargs):
-        """
-        A ORM-specific implementation of ``obj_create``.
-        """
-        bundle.obj = self._meta.object_class()
-
-        for key, value in kwargs.items():
-            if key == 'password':
-                bundle.obj.set_password('password')
-            else:
-                setattr(bundle.obj, key, value)
-
-        self.authorized_create_detail(self.get_object_list(bundle.request), bundle)
-        bundle = self.full_hydrate(bundle)
-        return self.save(bundle)
+    def pre_save(self,bundle):
+        bundle=super(UserResource,self).pre_save(bundle)
+        if bundle.data.has_key('password'):
+            bundle.obj.set_password(bundle.data['password'])
+        return bundle
     
     def obj_delete_list(self, bundle, **kwargs):
         """
@@ -163,33 +171,33 @@ class UserResource(ModelResource):
         bundle.obj.is_active=False
         bundle.obj.set_unusable_password()
         bundle.obj.save()
-                    
-    def obj_update(self, bundle, skip_errors=False, **kwargs):
-        """
-        A ORM-specific implementation of ``obj_update``.
-        """
-        if not bundle.obj or not self.get_bundle_detail_data(bundle):
-            try:
-                lookup_kwargs = self.lookup_kwargs_with_identifiers(bundle, kwargs)
-            except:
-                # if there is trouble hydrating the data, fall back to just
-                # using kwargs by itself (usually it only contains a "pk" key
-                # and this will work fine.
-                lookup_kwargs = kwargs
-
-            try:
-                bundle.obj = self.obj_get(bundle=bundle, **lookup_kwargs)
-            except ObjectDoesNotExist:
-                raise NotFound("A model instance matching the provided arguments could not be found.")
-            
-        if bundle.data.get('password'):
-            bundle.obj.set_password(bundle.data['password'])
-        # if the user is not a superuser, only the password can be changed.
-        if not bundle.request.user.is_superuser:
-            bundle.data=model_to_dict(bundle.obj)
-        bundle = self.full_hydrate(bundle)
-        
-        return self.save(bundle, skip_errors=skip_errors)
+#                     
+#     def obj_update(self, bundle, skip_errors=False, **kwargs):
+#         """
+#         A ORM-specific implementation of ``obj_update``.
+#         """
+#         if not bundle.obj or not self.get_bundle_detail_data(bundle):
+#             try:
+#                 lookup_kwargs = self.lookup_kwargs_with_identifiers(bundle, kwargs)
+#             except:
+#                 # if there is trouble hydrating the data, fall back to just
+#                 # using kwargs by itself (usually it only contains a "pk" key
+#                 # and this will work fine.
+#                 lookup_kwargs = kwargs
+# 
+#             try:
+#                 bundle.obj = self.obj_get(bundle=bundle, **lookup_kwargs)
+#             except ObjectDoesNotExist:
+#                 raise NotFound("A model instance matching the provided arguments could not be found.")
+#             
+#         if bundle.data.get('password'):
+#             bundle.obj.set_password(bundle.data['password'])
+#         # if the user is not a superuser, only the password can be changed.
+#         if not bundle.request.user.is_superuser:
+#             bundle.data=model_to_dict(bundle.obj)
+#         bundle = self.full_hydrate(bundle)
+#         
+#         return self.save(bundle, skip_errors=skip_errors)
 
 class DataFileResourceAuthorization(Authorization):
     def read_list(self, object_list, bundle):

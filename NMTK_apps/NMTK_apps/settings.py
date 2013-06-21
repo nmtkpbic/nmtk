@@ -8,7 +8,7 @@ FILES_PATH=os.path.abspath(os.path.join(BASE_PATH, '..','..','nmtk_files'))
 
 LOGFILE_PATH=os.path.abspath(os.path.join(BASE_PATH, '..','..','logs'))
 DEBUG = True
-TEMPLATE_DEBUG = DEBUG
+TEMPLATE_DEBUG = TASTYPIE_DEBUG = DEBUG
 djcelery.setup_loader()
 
 
