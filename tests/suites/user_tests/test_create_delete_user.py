@@ -252,7 +252,9 @@ class TestAPIUserManagement(NMTKTestCase):
         # Just in case
         self.delusers.append('test_new_username')
         response=client.put(user_uri, data=json.dumps(user_data))
-        self.assertEqual
+        self.assertEqual(response.status_code, 401,
+                         'Response to change username should be 401, not %s' %
+                         (response.status_code,))
         
         
         
