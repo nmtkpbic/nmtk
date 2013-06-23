@@ -8,6 +8,8 @@ from tastypie.authorization import Authorization
 from django.forms.models import model_to_dict
 from NMTK_server import forms
 from tastypie.validation import Validation
+import logging
+logger=logging.getLogger(__name__)
 
 class UserResourceValidation(Validation):
     def is_valid(self, bundle, request=None):
@@ -101,7 +103,10 @@ class UserResourceAuthorization(Authorization):
         if bundle.request.user.is_superuser:
             return True
         elif bundle.obj.pk == bundle.request.user.pk:
-            return True
+            if bundle.data.has_key('password'):
+                return True
+            else:
+                raise Unauthorized('You may only change your own password')
         
         raise Unauthorized('You lack the privilege to access this resource')
 
@@ -117,13 +122,15 @@ class UserResourceAuthorization(Authorization):
         raise Unauthorized('You lack the privilege to access this resource')
 
 class UserResource(ModelResource):
+    date_joined=fields.DateTimeField('date_joined',readonly=True)
+    last_login=fields.DateTimeField('last_login',readonly=True)
     class Meta:
         queryset=User.objects.filter(is_active=True)
         results_name='user'
         authentication=SessionAuthentication()
         authorization=UserResourceAuthorization()
         validation=UserResourceValidation()
-        excludes=('password',)
+        excludes=('password','groups',)
         filtering= {'username': ALL,
                     'email': ALL}
         
@@ -198,6 +205,16 @@ class UserResource(ModelResource):
 #         bundle = self.full_hydrate(bundle)
 #         
 #         return self.save(bundle, skip_errors=skip_errors)
+
+    def hydrate(self, bundle):
+        if not bundle.request.user.is_superuser:
+            logger.debug(model_to_dict(bundle.obj))
+            if bundle.obj.pk:
+                data=model_to_dict(bundle.obj)
+                del data['password']
+                bundle.data.update(data)
+
+        return super(UserResource, self).hydrate(bundle)
 
 class DataFileResourceAuthorization(Authorization):
     def read_list(self, object_list, bundle):

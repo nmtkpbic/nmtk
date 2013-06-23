@@ -252,15 +252,10 @@ class TestAPIUserManagement(NMTKTestCase):
         # Just in case
         self.delusers.append('test_new_username')
         response=client.put(user_uri, data=json.dumps(user_data))
+        logger.debug(response.text)
         self.assertEqual(response.status_code, 401,
-                         'Response to change username should be 401, not %s' %
+                         'Response to change username should be 400, not %s' %
                          (response.status_code,))
-        
-        
-        
-        
-            
-        self.fail('INCOMPLETE TEST CASE')
     
     def test_verify_nonprivileged_user_cannot_create_users(self):
         '''
