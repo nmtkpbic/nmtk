@@ -178,37 +178,10 @@ class UserResource(ModelResource):
         bundle.obj.is_active=False
         bundle.obj.set_unusable_password()
         bundle.obj.save()
-#                     
-#     def obj_update(self, bundle, skip_errors=False, **kwargs):
-#         """
-#         A ORM-specific implementation of ``obj_update``.
-#         """
-#         if not bundle.obj or not self.get_bundle_detail_data(bundle):
-#             try:
-#                 lookup_kwargs = self.lookup_kwargs_with_identifiers(bundle, kwargs)
-#             except:
-#                 # if there is trouble hydrating the data, fall back to just
-#                 # using kwargs by itself (usually it only contains a "pk" key
-#                 # and this will work fine.
-#                 lookup_kwargs = kwargs
-# 
-#             try:
-#                 bundle.obj = self.obj_get(bundle=bundle, **lookup_kwargs)
-#             except ObjectDoesNotExist:
-#                 raise NotFound("A model instance matching the provided arguments could not be found.")
-#             
-#         if bundle.data.get('password'):
-#             bundle.obj.set_password(bundle.data['password'])
-#         # if the user is not a superuser, only the password can be changed.
-#         if not bundle.request.user.is_superuser:
-#             bundle.data=model_to_dict(bundle.obj)
-#         bundle = self.full_hydrate(bundle)
-#         
-#         return self.save(bundle, skip_errors=skip_errors)
 
     def hydrate(self, bundle):
         if not bundle.request.user.is_superuser:
-            logger.debug(model_to_dict(bundle.obj))
+#             logger.debug(model_to_dict(bundle.obj))
             if bundle.obj.pk:
                 data=model_to_dict(bundle.obj)
                 del data['password']
