@@ -129,7 +129,7 @@ class Job(models.Model):
     data_file=models.ForeignKey('DataFile', null=False, 
                                 blank=False)
     results=models.FileField(storage=fs, 
-                             upload_to=lambda instance, filename: 'results/%s/%s.results' % (instance.user.pk,
+                             upload_to=lambda instance, filename: '%s/results/%s.results' % (instance.user.pk,
                                                                                              instance.pk,),
                              blank=True, null=True)
     # This will contain the config data to be sent along with the job, in 
@@ -202,9 +202,9 @@ class DataFile(models.Model):
                 (ogr.wkbMultiLineString, 'MULTILINESTRING'),
                 )
     file=models.FileField(storage=fs, 
-                          upload_to=lambda instance, filename: 'data_files/%s/%s' % (instance.user.pk, filename,))
+                          upload_to=lambda instance, filename: '%s/data_files/%s' % (instance.user.pk, filename,))
     processed_file=models.FileField(storage=fs, 
-                                    upload_to=lambda instance, filename: 'data_files/%s/converted/%s' % (instance.user.pk, filename,))
+                                    upload_to=lambda instance, filename: '%s/data_files/converted/%s' % (instance.user.pk, filename,))
     name=models.CharField(max_length=64)
     status=models.IntegerField(choices=STATUSES, default=PENDING)
     status_message=models.TextField(blank=True, null=True)

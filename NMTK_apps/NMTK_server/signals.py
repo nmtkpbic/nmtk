@@ -1,11 +1,34 @@
 import os
 import logging
+from django.conf import settings
 from django.db import models
 from django.db.models.signals import pre_save, post_delete
 from django.db.models.loading import cache
 from django.core.files.storage import get_storage_class
+from django.contrib.auth.models import User
+from django.dispatch import receiver
+import shutil
+
 
 logger = logging.getLogger(__name__)
+
+
+@receiver(post_delete, sender=User)
+def delete_user_data(sender, instance, **kwargs):
+    '''
+    When a user is removed, we must remove all their data files and results as
+    well, since it's possible the UID for the user could get assigned to another
+    user (depending on the backend used.)  Generally, inactivating a user is
+    a better strategy than removing the user.
+    '''
+    logger.debug('Got post delete for user %s (%s)', instance.username,
+                 instance.pk)
+    user_file_path=os.path.join(settings.FILES_PATH, 'NMTK_server', 'files',
+                                str(instance.pk))
+    logger.debug('Removing all files for user %s (%s)', instance.pk,
+                 user_file_path)
+    shutil.rmtree(user_file_path, ignore_errors=True)
+
 
 def find_models_with_filefield(): 
     result = []
