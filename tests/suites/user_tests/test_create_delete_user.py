@@ -180,15 +180,40 @@ class TestAPIUserManagement(NMTKTestCase):
         client_data=client.get(user_url).json()
         client2_data=client2.get(user2_url).json()
         
-        # user changes his own password
+        # user changes his own password, but fails to supply old password
         client_data['password']='%s_1' % (password,)
-        client.put(user_url, data=json.dumps(client_data))
+        response=client.put(user_url, data=json.dumps(client_data))
+        self.assertEqual(response.status_code, 400,
+                         'Without old password password change should fail')
+        
+        # login with new password
+        client_a=NMTKClient(self.site_url)
+        response=client_a.login(username, client_data['password'])
+        self.assertEqual(response.status_code, 200,
+                         'Redirect not expected after unsuccessful login (pw not changed)') 
+          
+        # user changes his own password, but supplys bad old password
+        client_data['old_password']='%s_1' % (password,)
+        response=client.put(user_url, data=json.dumps(client_data))
+        self.assertEqual(response.status_code, 400,
+                         'Without old password password change should fail')
+        
+        # login with new password
+        client_a=NMTKClient(self.site_url)
+        response=client_a.login(username, client_data['password'])
+        self.assertEqual(response.status_code, 200,
+                         'Redirect not expected after unsuccessful login (pw not changed)')   
+                
+        # user changes his own password, but fails to supply old password
+        client_data['old_password']=password
+        client.put(user_url, data=json.dumps(client_data))    
         
         # login with new password
         client_a=NMTKClient(self.site_url)
         response=client_a.login(username, client_data['password'])
         self.assertEqual(response.status_code, 302,
-                         'Redirect expected after successful login')
+                         'Redirect expected after successful login')        
+
         
         # Verify old password no longer works
         response=client_a.login(username, password)
