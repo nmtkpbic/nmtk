@@ -10,7 +10,7 @@ class TestAPIUserManagement(NMTKTestCase):
 
     def test_retrieve_users(self):
         '''
-        Verify that the API can be used to 
+        Verify that the API can be used to retrieve a list of users
         '''
         payload={'format': 'json' }
         result=self.client.get(self.api_user_url, params=payload)

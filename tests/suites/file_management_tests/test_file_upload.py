@@ -86,7 +86,42 @@ class TestFileUpload(NMTKTestCase):
                          'Import Complete',
                          'Expected import to successfully complete within 120 seconds')
 
+    def test_post_upload_delete_of_datafile(self):
+        '''
+        Test the ability to delete an uploaded file
+        '''
+        json_file=open(self.get_support_file('odd_srid_shapefile.zip'),'r')
+        username, password=self.getUsernamePassword()
+        user_uri=self._create_user(username,password)
+        client=NMTKClient(self.site_url)
+        client.login(username=username,
+                     password=password)
+        files=[('file', ('shapefile.zip', json_file, 'application/zip')),]
+        response=client.post(self.api_file_url, files=files)
+        logger.debug('Response from POST was %s', response)
+        self.assertEqual(response.status_code, 201)
+        data_file_url=response.headers['location']
+        logger.debug('Response was %s', response.status_code)
+        logger.debug('Location of data file is %s', data_file_url)
         
+        end=time.time() + 60*2 # 2 minutes for processing
+        while time.time() < end :
+            response=client.get(data_file_url,
+                                params={'format': 'json'})
+            if response.json()['status'] == 'Import Complete':
+                break
+            time.sleep(1)
+        self.assertEqual(response.json()['status'],
+                         'Import Complete',
+                         'Expected import to successfully complete within 120 seconds')    
+        response=client.delete(data_file_url)
+        logger.debug('Delete of file returned %s', response.status_code)
+        self.assertEqual(response.status_code, 204,
+                         'Expected response code of 204, not %s' % (response.status_code))
+        
+        response=client.get(data_file_url)
+        self.assertEqual(response.status_code, 404,
+                         'Expected response code of 404, not %s' % (response.status_code))
        
     def test_basic_json_upload(self):
         '''
