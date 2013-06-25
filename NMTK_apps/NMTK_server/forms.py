@@ -10,15 +10,6 @@ class DataFileForm(forms.ModelForm):
         model=models.DataFile
         fields=('file',)
         
-    def clean(self):
-        cleaned_data=super(DataFileForm, self).clean()
-        if cleaned_data.has_key('file'):
-            try:
-                json.loads(cleaned_data.get('file').read())
-            except ValueError, e:
-                self._errors["file"] = self.error_class(["JSON file Data is not valid: %s" % e])
-                del cleaned_data['file']
-        return cleaned_data
 
 class JobSubmissionFormTool(forms.ModelForm):
     def __init__(self, user, *pargs,**kwargs):
