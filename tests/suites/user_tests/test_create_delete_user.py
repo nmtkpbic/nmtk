@@ -32,8 +32,7 @@ class TestAPIUserManagement(NMTKTestCase):
         response=self.client.get(self.api_user_url, params=payload)
         user_count=response.json()['meta']['total_count']
         # Create the user
-        username='test_user'
-        password='test_password123'
+        username, password=self.getUsernamePassword()
         response=self._create_user(username, password)
         self.assertEqual(201, response.status_code,
                          'Expected status code of 201, not %s' % 
@@ -120,13 +119,11 @@ class TestAPIUserManagement(NMTKTestCase):
         response=self.client.get(self.api_user_url, params=payload)
         
         # Create the user
-        username='test_user'
-        password='test_password123'
+        username, password=self.getUsernamePassword()
         response=self._create_user(username, password)
         user_url=response.headers['location']
         # Create the user
-        username2='test_user2'
-        password2='test_password1234'
+        username2, password2=self.getUsernamePassword()
         response=self._create_user(username2, password2)
         user2_url=response.headers['location']
         
@@ -222,8 +219,7 @@ class TestAPIUserManagement(NMTKTestCase):
         response=self.client.get(self.api_user_url, params=payload)
         
         # Create the user
-        username='test_user'
-        password='test_password123'
+        username, password=self.getUsernamePassword()
         response=self._create_user(username, password)
         user_uri=response.headers['location']
         
@@ -249,8 +245,7 @@ class TestAPIUserManagement(NMTKTestCase):
         response=self.client.get(self.api_user_url, params=payload)
         
         # Create the user
-        username='test_user1'
-        password='test_password123'
+        username, password=self.getUsernamePassword()
         response=self._create_user(username, password)
         self.assertEqual(201, response.status_code,
                          'Expected status code of 201, not %s' % 

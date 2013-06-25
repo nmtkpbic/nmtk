@@ -4,6 +4,8 @@ import simplejson as json
 from tests.utils.client import NMTKClient
 import logging
 import subprocess
+import string
+import random
 logger=logging.getLogger(__name__)
 
 
@@ -15,6 +17,14 @@ nmtk_path=os.environ.setdefault('NMTK_PATH', base_path)
 
 
 class NMTKTestCase(unittest.TestCase):
+    def _id_generator(self, size=6, 
+                      chars=(string.ascii_lowercase + 
+                             string.ascii_uppercase + 
+                             string.digits)):
+        return ''.join(random.choice(chars) for x in range(size))
+    
+    def getUsernamePassword(self):
+        return (self._id_generator(), self._id_generator())
     
     def _getSiteConfigDynamic(self):
         try:

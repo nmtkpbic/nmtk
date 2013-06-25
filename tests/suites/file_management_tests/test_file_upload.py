@@ -33,8 +33,7 @@ class TestFileUpload(NMTKTestCase):
         Test the upload and processing of a large zipped shapefile
         '''
         json_file=open(self.get_support_file('large_shapefile.zip'),'r')
-        username='bob'
-        password='bob123'
+        username, password=self.getUsernamePassword()
         user_uri=self._create_user(username,password)
         client=NMTKClient(self.site_url)
         client.login(username=username,
@@ -63,8 +62,7 @@ class TestFileUpload(NMTKTestCase):
         Test the upload and processing of a non standard shapefile (different EPSG)
         '''
         json_file=open(self.get_support_file('odd_srid_shapefile.zip'),'r')
-        username='bob'
-        password='bob123'
+        username, password=self.getUsernamePassword()
         user_uri=self._create_user(username,password)
         client=NMTKClient(self.site_url)
         client.login(username=username,
@@ -95,8 +93,7 @@ class TestFileUpload(NMTKTestCase):
         Test the upload and processing of a basic json file
         '''
         json_file=open(self.get_support_file('test1.geojson'),'r')
-        username='bob'
-        password='bob123'
+        username, password=self.getUsernamePassword()
         user_uri=self._create_user(username,password)
         client=NMTKClient(self.site_url)
         client.login(username=username,
@@ -124,8 +121,7 @@ class TestFileUpload(NMTKTestCase):
         '''
         Verify that files can be uploaded with a description
         '''
-        username='bob'
-        password='bob123'
+        username, password=self.getUsernamePassword()
         user_uri=self._create_user(username,password)
         client=NMTKClient(self.site_url)
         client.login(username=username,
@@ -147,8 +143,7 @@ class TestFileUpload(NMTKTestCase):
         '''
         Verify that files can be uploaded with an SRID
         '''
-        username='bob'
-        password='bob123'
+        username, password=self.getUsernamePassword()
         user_uri=self._create_user(username,password)
         client=NMTKClient(self.site_url)
         client.login(username=username,
