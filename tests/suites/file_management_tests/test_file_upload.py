@@ -27,7 +27,69 @@ class TestFileUpload(NMTKTestCase):
         response=client.post(self.api_file_url, data=payload, 
                              files=files)
         return response
+    
+    def test_basic_large_zipped_shapefile_upload(self):
+        '''
+        Test the upload and processing of a large zipped shapefile
+        '''
+        json_file=open(self.get_support_file('large_shapefile.zip'),'r')
+        username='bob'
+        password='bob123'
+        user_uri=self._create_user(username,password)
+        client=NMTKClient(self.site_url)
+        client.login(username=username,
+                     password=password)
+        files=[('file', ('test1.json', json_file, 'application/json')),]
+        response=client.post(self.api_file_url, files=files)
+        logger.debug('Response from POST was %s', response)
+        self.assertEqual(response.status_code, 201)
+        data_file_url=response.headers['location']
+        logger.debug('Response was %s', response.status_code)
+        logger.debug('Location of data file is %s', data_file_url)
         
+        end=time.time() + 60*2 # 2 minutes for processing
+        while time.time() < end :
+            response=client.get(data_file_url,
+                                params={'format': 'json'})
+            if response.json()['status'] == 'Import Complete':
+                break
+            time.sleep(1)
+        self.assertEqual(response.json()['status'],
+                         'Import Complete',
+                         'Expected import to successfully complete within 120 seconds')
+
+    def test_basic_different_srid_shapefile_upload(self):
+        '''
+        Test the upload and processing of a non standard shapefile (different EPSG)
+        '''
+        json_file=open(self.get_support_file('odd_srid_shapefile.zip'),'r')
+        username='bob'
+        password='bob123'
+        user_uri=self._create_user(username,password)
+        client=NMTKClient(self.site_url)
+        client.login(username=username,
+                     password=password)
+        files=[('file', ('test1.json', json_file, 'application/json')),]
+        response=client.post(self.api_file_url, files=files)
+        logger.debug('Response from POST was %s', response)
+        self.assertEqual(response.status_code, 201)
+        data_file_url=response.headers['location']
+        logger.debug('Response was %s', response.status_code)
+        logger.debug('Location of data file is %s', data_file_url)
+        
+        end=time.time() + 60*2 # 2 minutes for processing
+        while time.time() < end :
+            response=client.get(data_file_url,
+                                params={'format': 'json'})
+            if response.json()['status'] == 'Import Complete':
+                break
+            time.sleep(1)
+        self.assertEqual(response.json()['status'],
+                         'Import Complete',
+                         'Expected import to successfully complete within 120 seconds')
+
+        
+       
     def test_basic_json_upload(self):
         '''
         Test the upload and processing of a basic json file
