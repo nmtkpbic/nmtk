@@ -12,23 +12,58 @@ base_path=os.path.abspath(os.path.join(os.path.dirname(__file__),
                                        '../..'))
 nmtk_path=os.environ.setdefault('NMTK_PATH', base_path)
 
-config_file=os.path.join(nmtk_path, 'tests/config.json')
+
 
 class NMTKTestCase(unittest.TestCase):
     
+    def _getSiteConfigDynamic(self):
+        try:
+            command=['python',
+                     self.settings_command,
+                     'create_config']
+            proc=subprocess.Popen(command, stdout=subprocess.PIPE, 
+                                  stderr=subprocess.PIPE)
+            out,err=proc.communicate()
+            config=json.loads(err)
+            self.delusers.append(config['username'])
+            # Stderr contains the config output.
+            return config
+        except Exception, e:
+            logger.exception('Failed to get dynamic config!')
+            
+        return None
+        
+    def _getSiteConfigStatic(self):
+        config_file=os.path.join(nmtk_path, 'tests/config.json')
+        if os.path.exists(config_file):
+            try:
+                config=json.loads(open(config_file).read())
+                return config
+            except:
+                pass
+        return None
+    
+    def _getSiteConfig(self):
+        config=self._getSiteConfigDynamic() or self._getSiteConfigStatic()
+        if config:
+            return config
+        raise Exception('No valid config found (tried both dynamic and static')
+        
     def setUp(self):
-        config=json.loads(open(config_file).read())
+        self.settings_command=os.path.join(nmtk_path, 
+                                           'NMTK_apps/manage.py')
+        self.delusers=[]
+        config=self._getSiteConfig()
+        
         self.support_files=os.path.join(nmtk_path,'tests/support_files')
         self.site_url=config['site_url']
         self.username=config['username']
         self.password=config['password']
-        self.settings_command=os.path.join(nmtk_path, 
-                                           'NMTK_apps/manage.py')
         self.client=NMTKClient(self.site_url)
         self.client.login(self.username, self.password)
         self.api_user_url=self.client.getURL('api','user/')
         self.api_file_url=self.client.getURL('api','datafile/')
-        self.delusers=[]
+        
         
     def get_support_file(self, fn):
         return os.path.join(self.support_files, fn)

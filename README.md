@@ -101,26 +101,30 @@ as some knowledge surrounding configuring a web server (such as Apache.)
      spatialite nmtk.sqlite  "SELECT InitSpatialMetaData();"
      # Note: Ignore the "table spatial_ref_sys already exists error"
      chown www-data nmtk.sqlite
+    
+      
+ 8.  Edit NMTK_apps/NMTK_apps/settings.py and change the SECRET_KEY, SITE_DOMAIN and any
+ references to hostnames (based on the virtual hostname of your system.)
  
- 8.  Change to the NMTK_apps subdirectory and initialize the database, and generate static media::
+ 9.  Change to the NMTK_apps subdirectory and initialize the database, and generate static media::
 
    pushd NMTK_apps
    python manage.py syncdb
    python manage.py collectstatic
    popd
 
- 9.  Change the nmtk_files subdirectory so that it, and all it's subdirectories,
+ 10.  Change the nmtk_files subdirectory so that it, and all it's subdirectories,
  are writeable by the www-data user (or whatever user the web server runs as.)::
  
    chown -R nmtk_files www-data.www-data
 
- 10.  Change the database and log locations so that the apache user will be able to access/write to them::
+ 11.  Change the database and log locations so that the apache user will be able to access/write to them::
 
   sudo chown -R www-data logs
   sudo chmod g+rwxs logs
   sudo g+rw logs/*
 
- 11.  Now ensure that the sample fixture data is correct - you need not load this,
+ 12.  Now ensure that the sample fixture data is correct - you need not load this,
      and it will probably go away eventually, but it provides a "default" config
      for the purposes of having a server communicate with the default client.
      
@@ -128,12 +132,9 @@ as some knowledge surrounding configuring a web server (such as Apache.)
   
     - in particular, ensure the host name there is correct.
      
- 12.  Restart your apache server
+ 13.  Restart your apache server
  
- 13.  Run the discover_tools command to discover new tools, and remove no-longer
+ 14.  Run the discover_tools command to discover new tools, and remove no-longer
       valid/published tools::
     
      python manage.py discover_tools   
-     
- 14.  Edit NMTK_apps/NMTK_apps/settings.py and change the SECRET_KEY and any
- references to hostnames (based on the virtual hostname of your system.)

@@ -1,8 +1,8 @@
-[{"pk": "1", 
+[{"pk": "0", 
   "model": "auth.User", 
   "fields": {"username": "disabled_user", 
              "password": "DISABLED", 
-             "email": "http://nmtk.otg-nc.com/", 
+             "email": "nobody@nmtk.server", 
              "first_name": "Disabled", 
              "last_name": "User", 
              "is_active": false, 
@@ -17,7 +17,7 @@
              "last_modified": "2013-01-15T19:26:31.332Z", 
              "date_created": "2013-01-15T19:26:31.332Z", 
              "active": true, 
-             "created_by": 1,
+             "created_by": 0,
              "remote_ip": null}
  }]
  

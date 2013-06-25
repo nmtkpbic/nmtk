@@ -7,6 +7,9 @@ BASE_PATH=os.path.dirname(__file__)
 FILES_PATH=os.path.abspath(os.path.join(BASE_PATH, '..','..','nmtk_files'))
 
 LOGFILE_PATH=os.path.abspath(os.path.join(BASE_PATH, '..','..','logs'))
+
+# Used to initialize the sites model (see: NMTK_server/management/__init__.py)
+SITE_DOMAIN='nmtk.otg-nc.com'
 DEBUG = True
 TEMPLATE_DEBUG = TASTYPIE_DEBUG = DEBUG
 djcelery.setup_loader()
@@ -17,7 +20,7 @@ ADMINS = (
 )
 
 MANAGERS = ADMINS
-ALLOWED_HOSTS=['nmtk.otg-nc.com',]
+ALLOWED_HOSTS=[SITE_DOMAIN,]
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.spatialite', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
@@ -138,7 +141,7 @@ INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
-    #'django.contrib.sites',
+    'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # Uncomment the next line to enable the admin:
