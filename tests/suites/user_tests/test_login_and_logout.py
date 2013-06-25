@@ -7,9 +7,7 @@ from tests.utils.NMTKTestCase import NMTKTestCase
 from tests.utils.client import NMTKClient
 
 class TestLoginAndLogout(NMTKTestCase):
-    def setUp(self):
-        super(TestLoginAndLogout, self).setUp()
-        
+
     def test_login_verify(self):
         '''
         Verify we can successfully log into the site.

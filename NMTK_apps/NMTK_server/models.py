@@ -16,11 +16,29 @@ import logging
 logger=logging.getLogger(__name__)
 
 
-class NMTKFileSystemStorage(FileSystemStorage):
-    def url(*args):
+class NMTKDataFileSystemStorage(FileSystemStorage):
+    def url(name):
         raise NotImplementedError
+        return reverse('NMTK_server.download_datafile',
+                       kwargs={'file_id': name})
         
-fs = NMTKFileSystemStorage(location=os.path.join(settings.FILES_PATH, 'NMTK_server', 'files'))
+class NMTKGeoJSONFileSystemStorage(FileSystemStorage):
+    def url(name):
+        raise NotImplementedError
+        return reverse('NMTK_server.download_geojson_datafile',
+                       kwargs={'file_id': name})
+        
+class NMTKResultsFileSystemStorage(FileSystemStorage):
+    def url(name):
+        raise NotImplementedError
+        return reverse('downloadResults',
+                       kwargs={'file_id': name})
+        
+location=os.path.join(settings.FILES_PATH, 'NMTK_server', 'files')
+fs = NMTKDataFileSystemStorage(location=location)
+fs_geojson = NMTKGeoJSONFileSystemStorage(location=location)
+fs_results = NMTKResultsFileSystemStorage(location=location)
+
 
 class ToolServer(models.Model):
     name=models.CharField(max_length=64,
@@ -128,7 +146,7 @@ class Job(models.Model):
     #file=models.FileField(storage=fs, upload_to=lambda instance, filename: 'data_files/%s.geojson' % (instance.job_id,))
     data_file=models.ForeignKey('DataFile', null=False, 
                                 blank=False)
-    results=models.FileField(storage=fs, 
+    results=models.FileField(storage=fs_results, 
                              upload_to=lambda instance, filename: '%s/results/%s.results' % (instance.user.pk,
                                                                                              instance.pk,),
                              blank=True, null=True)
@@ -203,7 +221,7 @@ class DataFile(models.Model):
                 )
     file=models.FileField(storage=fs, 
                           upload_to=lambda instance, filename: '%s/data_files/%s' % (instance.user.pk, filename,))
-    processed_file=models.FileField(storage=fs, 
+    processed_file=models.FileField(storage=fs_geojson, 
                                     upload_to=lambda instance, filename: '%s/data_files/converted/%s' % (instance.user.pk, filename,))
     name=models.CharField(max_length=64)
     status=models.IntegerField(choices=STATUSES, default=PENDING)
@@ -221,13 +239,19 @@ class DataFile(models.Model):
     
     @property
     def url(self):
-        return reverse('NMTK_server.download_datafile', 
-                       kwargs={'file_id': self.pk})
+        if self.file:
+            return reverse('NMTK_server.download_datafile', 
+                           kwargs={'file_id': self.pk})
+        else:
+            return ''
     
     @property
     def geojson_url(self):
-        return reverse('NMTK_server.download_geojson_datafile', 
-                       kwargs={'file_id': self.pk})
+        if self.processed_file:
+            return reverse('NMTK_server.download_geojson_datafile', 
+                           kwargs={'file_id': self.pk})
+        else:
+            return ''
     
     @property
     def geojson_name(self):

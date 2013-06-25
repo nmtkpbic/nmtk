@@ -11,7 +11,8 @@ class NMTKClient(object):
     module, but should be fairly straightforward to implement in a number of 
     different languages.
     '''
-    
+    default_request_args={'allow_redirects': False,
+                          'verify': False, }
     def getURL(self, named_url=None, path=None):
         '''
         Given a URL by name, retrieve the full URL for that partictular view.
@@ -63,7 +64,9 @@ class NMTKClient(object):
         return self.request.put(*args, **kwargs)
     
     def get(self, *args, **kwargs):
-        return self.request.get(*args, **kwargs)
+        default_args=self.default_request_args.copy()
+        default_args.update(kwargs)
+        return self.request.get(*args, **default_args)
     
     def delete(self, *args, **kwargs):
         return self.request.delete(*args, **kwargs)

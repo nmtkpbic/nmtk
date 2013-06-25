@@ -7,47 +7,6 @@ import os
 logger=logging.getLogger(__name__)
 
 class TestAPIUserManagement(NMTKTestCase):
-    def setUp(self):
-        super(TestAPIUserManagement, self).setUp()
-        self.client=NMTKClient(self.site_url)
-        self.client.login(self.username, self.password)
-        self.api_user_url=self.client.getURL('api','user/')
-        self.delusers=[]
-    
-    def tearDown(self):
-        '''
-        Use the management purge_users command to purge the users created
-        during testing from the database.
-        '''
-        if self.delusers:
-            command=['python',
-                     self.settings_command,
-                     'purge_users'] + self.delusers
-            with open(os.devnull, "w") as fnull:
-                subprocess.call(command, stdout=fnull, stderr=fnull)
-        
-    def _create_user(self, username, password, **kwargs):
-        '''
-        A helper method to create a new user, given a password and userid
-        '''
-        data={'username': username,
-              'password': password}
-        data.update(kwargs)
-        response=self.client.post(self.api_user_url,
-                                  data=json.dumps(data),
-                                  headers={'Content-Type': 'application/json',})
-        logger.debug('Response from create user request was %s', 
-                     response.status_code)
-        # Status code of 201 means it got created.
-        logger.debug('HTTP Result was %s', response.headers.get('location'))
-        self.delusers.append(username)
-        return response
-        
-    def _delete_user(self, url):
-        response=self.client.delete(url)
-        logger.debug('Deleted %s with status code of %s',
-                     url, response.status_code)
-        return response
 
     def test_retrieve_users(self):
         '''

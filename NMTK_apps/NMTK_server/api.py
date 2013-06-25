@@ -4,6 +4,7 @@ from tastypie.exceptions import Unauthorized
 from tastypie.authentication import SessionAuthentication
 from tastypie import fields, utils
 from django.contrib.auth.models import User
+from django.core.urlresolvers import reverse
 from tastypie.authorization import Authorization
 from django.forms.models import model_to_dict
 from NMTK_server import forms
@@ -288,19 +289,72 @@ class DataFileResourceAuthorization(Authorization):
             return True
         raise Unauthorized('You lack the privilege to access this resource')
 
+class DataFileResourceValidation(Validation):
+    def is_valid(self, bundle, request=None):
+        errors = {}
+        if (bundle.data.get('srid', False) and
+            bundle.obj.status not in 
+            (bundle.obj.IMPORT_FAILED,bundle.obj.PENDING)):
+            errors['srid']='SRID can only be provided initially, ' + \
+                           'or after a failed import'
+        return errors
 
 class DataFileResource(ModelResource):
+    id=fields.IntegerField('id', readonly=True)
+    status_message=fields.CharField('status_message', readonly=True,
+                                    null=True)
+    feature_count=fields.IntegerField('feature_count', readonly=True,
+                                      null=True)
+    content_type=fields.CharField('content_type', readonly=True,
+                                  null=True)
+    date_created=fields.DateTimeField('date_created', readonly=True,
+                                      null=True)
+    extent=fields.CharField('extent', readonly=True, null=True)
+    srs=fields.CharField('srs', readonly=True, null=True)
+    status=fields.CharField('status', readonly=True, null=True)
+    geom_type=fields.CharField('geom_type', readonly=True, null=True)
+    file=fields.CharField('file', readonly=True, null=True)
+    geojson_file=fields.CharField('geojson_file', readonly=True, null=True)
     class Meta:
         queryset = models.DataFile.objects.all()
         authorization=DataFileResourceAuthorization()
         resource_name = 'datafile'
         allowed_methods=['get','post','delete',]
+        excludes=['file','processed_file','status', 'geom_type']
         authentication=SessionAuthentication()
+        validation=DataFileResourceValidation()
 
     def pre_save(self, bundle):
+        '''
+        Ensure that we properly store the user information when the object
+        is created, and allow for the optional SRID parameter, but only when
+        the import is PENDING (new) or has failed in the past.
+        '''
         bundle.obj.user=bundle.request.user
+        if bundle.request.FILES.has_key('file'):
+            bundle.obj.file=bundle.request.FILES['file']
+            if not bundle.obj.content_type:
+                bundle.obj.content_type=bundle.request.FILES['file'].content_type
+        if bundle.data.get('srid', False):
+            logging.debug('SRID provided for import, storing')
+            bundle.obj.srid=bundle.data['srid']
+            bundle.obj.status=bundle.obj.PENDING
+            
         return bundle
+    
     def dehydrate(self,bundle):
+        '''
+        Provide data for some fields that we return back to the user, making 
+        things a bit more usable than the default TastyPie implementation allows.
+        Note: These are all read-only fields, so we don't need to worry about  
+        them during the hydrate cycle...
+        '''
+        if bundle.obj.file:
+            bundle.data['file']=bundle.request.build_absolute_uri(bundle.obj.url)
+        if bundle.obj.processed_file:
+            bundle.data['geojson_file']=bundle.request.build_absolute_uri(bundle.obj.geojson_url)
+        bundle.data['status']=bundle.obj.get_status_display()
+        bundle.data['geom_type']=bundle.obj.get_geom_type_display()
         bundle.data['user'] = bundle.obj.user.username
         return bundle
 

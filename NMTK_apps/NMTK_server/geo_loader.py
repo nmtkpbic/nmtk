@@ -116,11 +116,16 @@ class GeoDataLoader(object):
         if geom_type not in self.types:
             raise FormatException('Unsupported Geometry Type (%s)' % (geom_type,))
         spatial_ref=layer.GetSpatialRef()
-        if spatial_ref:
+        if spatial_ref and not srid:
             spatial_ref.AutoIdentifyEPSG()
             geom_srid=srid or spatial_ref.GetAuthorityCode(None)
-        else:
+        elif srid:
             geom_srid=srid
+            srs=osr.SpatialReference()
+            epsg=str('EPSG:%s' % (geom_srid,))
+            logger.debug('Setting output SRID to %s (%s)', 
+                         epsg, type(epsg))
+            srs.SetFromUserInput(epsg)
         if geom_srid <= 0 or geom_srid is None:
             raise FormatException('Unable to determine valid SRID ' + 
                                   'for this data')
@@ -168,8 +173,8 @@ class GeoDataLoader(object):
         # Get a file for the data source:
         tempfn=tempfile.NamedTemporaryFile(suffix='.geojson',
                                            dir=self.working_dir).name
-        srs=osr.SpatialReference()
-        srs.SetFromUserInput('EPSG:%s' % (self.data.srid,))
+#         srs=osr.SpatialReference()
+#         srs.SetFromUserInput('EPSG:%s' % (self.data.srid,))
         # Cannot use the method below, since we need to ensure that
         # the CRS Information is properly set in the GeoJSON output.
 #        datasource=driver.CopyDataSource(self.data.ogr, tempfn,
@@ -177,7 +182,7 @@ class GeoDataLoader(object):
         datasource = driver.CreateDataSource(tempfn)
         layer=datasource.CreateLayer('GeoJSON',
                                      geom_type=self.data.type,
-                                     srs=srs)
+                                     srs=self.data.srs)
         self.data.layer.ResetReading()
         while True:
             feature=self.data.layer.GetNextFeature()

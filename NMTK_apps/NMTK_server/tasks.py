@@ -93,7 +93,8 @@ def updateToolConfig(tool):
 @task(ignore_result=False)
 def importDataFile(datafile):
     try:
-        geoloader=geo_loader.GeoDataLoader(datafile.file.path)
+        geoloader=geo_loader.GeoDataLoader(datafile.file.path,
+                                           srid=datafile.srid)
         datafile.srid=geoloader.info.srid
         datafile.extent=Polygon.from_bbox(geoloader.info.extent)
         datafile.srs=geoloader.info.srs
