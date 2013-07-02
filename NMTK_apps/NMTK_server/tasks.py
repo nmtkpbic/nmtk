@@ -12,10 +12,27 @@ from django.core.exceptions import ObjectDoesNotExist
 from NMTK_server import geo_loader
 from django.core.files import File
 from django.contrib.gis.geos import Polygon
+from django.contrib.auth.models import User
+from django.core.management.base import BaseCommand, CommandError
 
 #from django.core.serializers.json import DjangoJSONEncoder
 logger=logging.getLogger(__name__)
 
+
+@task(ignore_result=False)
+def add_toolserver(name, url, username, remote_ip=None):
+    from NMTK_server import models
+    try:
+        user=User.objects.get(username=username)
+    except Exception, e:
+        raise CommandError('Username specified (%s) not found!' % 
+                           username)
+    m=models.ToolServer(name=name,
+                        server_url=url,
+                        remote_ip=remote_ip,
+                        created_by=user)
+    m.save()
+    return m
 
 @task(ignore_result=False)
 def discover_tools(toolserver):

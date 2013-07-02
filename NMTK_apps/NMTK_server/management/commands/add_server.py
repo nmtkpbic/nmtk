@@ -1,8 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
-from NMTK_server import models
 from optparse import make_option
 import datetime
-from django.contrib.auth.models import User
+from NMTK_server import tasks
 
 class Command(BaseCommand):
     help = 'Add a new tool server for use by the NMTK API.'
@@ -33,16 +32,16 @@ class Command(BaseCommand):
             raise CommandError('Please provide the --url option and a server URL')
         if not options['username']:
             raise CommandError('Please provide the --username option and a username')
-        try:
-            user=User.objects.get(username=options['username'])
-        except Exception, e:
-            raise CommandError('Username specified (%s) not found!' % 
-                               options['username'])
-        m=models.ToolServer(name=args[0],
-                            server_url=options['url'],
-                            remote_ip=options['ip'],
-                            created_by=user)
-        m.save()
+#        try:
+#            user=User.objects.get(username=options['username'])
+#        except Exception, e:
+#            raise CommandError('Username specified (%s) not found!' % 
+#                               options['username'])
+        task=tasks.add_toolserver.delay(name=args[0],
+                                        url=options['url'],
+                                        remote_ip=options['ip'],
+                                        username=options['username'])
+        m=task.get()
         print "Tool information has been saved with an tool id (public key) of %s" % (m.pk,)
         print "Tool has a auth_key (private key) of '%s' (not including the surrounding single quotes.)" % (m.auth_token,)
         print "Please provide the tool id and auth_key to the maintainers of %s" % (m.name,)
