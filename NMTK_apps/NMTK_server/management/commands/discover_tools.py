@@ -2,6 +2,8 @@ from django.core.management.base import BaseCommand, CommandError
 from NMTK_server import models
 from optparse import make_option
 import datetime
+from NMTK_server import tasks
+
 
 class Command(BaseCommand):
     help = 'Go out to the NMTK servers and discover new tools, update configs.'
@@ -20,5 +22,7 @@ class Command(BaseCommand):
         '''
         qs=models.ToolServer.objects.all()
         for m in qs:
-            self.stdout.write('Saving ToolServer record for %s' % m.name)
-            m.save()
+            self.stdout.write('Updating ToolServer record for %s' % m.name)
+#            m.save()
+            tasks.discover_tools.delay(m)
+
