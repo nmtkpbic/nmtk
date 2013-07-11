@@ -3,6 +3,12 @@ from NMTK_server import models
 from django.core.urlresolvers import reverse_lazy
 import json
 import logging
+import re
+import collections
+from django.utils.html import conditional_escape, format_html
+from django.utils.encoding import smart_text, force_text, python_2_unicode_compatible
+from django.utils import six
+from django.utils.safestring import mark_safe
 logger=logging.getLogger(__name__)
 
 class DataFileForm(forms.ModelForm):
@@ -56,6 +62,12 @@ class ToolConfigForm(forms.Form):
         else:
             job=args[0]
             args=args[1:]
+        # Populate the parameters list with those fields that contain 
+        # user-settable parameters.  Populate data_fields with those
+        # fields that should be mapped over from the fields in the source
+        # data file.
+        self.data_fields=[]
+        self.parameters=[]
         super(ToolConfigForm, self).__init__(*args, **kwargs)
         config=job.tool.toolconfig.json_config
         data=json.loads(job.data_file.processed_file.read())
@@ -75,6 +87,7 @@ class ToolConfigForm(forms.Form):
                 if data.has_key('default'):
                     fargs['initial']=data['default']
                 self.fields[field_name]=fieldObj(**fargs)
+                self.parameters.append(field_name)
             # These are the fields that need to come from the data source.
             elif data['type'] == 'property':
                 fargs={'choices': dataChoices,
@@ -82,5 +95,53 @@ class ToolConfigForm(forms.Form):
                 if field_name in source_fields:
                     fargs['initial']=field_name
                 self.fields[field_name]=forms.ChoiceField(**fargs)
+                self.data_fields.append(field_name)
             
+    def as_json(self):
+        '''
+        A method that outputs the form fields as a set of categorized JSON
+        data structures rather that a simple <p> list.
         
+        def _html_output(self, normal_row, error_row, row_ender, help_text_html, errors_on_separate_row):
+
+        '''    
+        top_errors = self.non_field_errors() # Errors that should be displayed above all fields.
+        output, hidden_fields = [], []
+        output={'errors': [],
+                'fields': {}}
+        for name, field in self.fields.items():
+            result=output['fields'][name]={}
+            if name in self.parameters:
+                result['type']='parameter'
+            elif name in self.data_fields:
+                result['type']='choice'
+            html_class_attr = ''
+            bf = self[name]
+            bf_errors = self.error_class([conditional_escape(error) for error in bf.errors]) # Escape and cache in local variable.
+            if bf.is_hidden:
+                # Indicate if the field is hidden, so we don't show it.
+                result['hidden']= True
+            css_classes = bf.css_classes()
+            if css_classes:
+                result['classes']='%s' % css_classes
+            else:
+                result['classes']=None
+            if bf.label:
+                label = conditional_escape(force_text(bf.label))
+                # Only add the suffix if the label does not end in
+                # punctuation.
+                if self.label_suffix:
+                    if label[-1] not in ':?.!':
+                        label = format_html('{0}{1}', label, self.label_suffix)
+                label = bf.label_tag(label) or ''
+            else:
+                label = ''
+            
+            result['help_text']=force_text(field.help_text or '')
+            result['errors']=force_text(bf_errors)
+            result['label']=force_text(label)
+            result['html_class_attr']=html_class_attr
+            result['field']=six.text_type(bf)
+        if top_errors:
+            output['errors'].append(error_row % force_text(top_errors))
+        return output

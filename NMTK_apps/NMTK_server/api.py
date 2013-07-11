@@ -359,21 +359,31 @@ class DataFileResource(ModelResource):
         return bundle
 
 class ToolResource(ModelResource):
+    last_modified=fields.DateTimeField('last_modified', readonly=True,
+                                       null=True)
+    tool_server=fields.CharField('tool_server',readonly=True,
+                                 null=True)
+    config=fields.CharField(readonly=True, null=True,
+                            help_text='Tool Configuration (as JSON)')
     class Meta:
         queryset = models.Tool.objects.filter(active=True)
         resource_name = 'tool'
         authentication=SessionAuthentication()
-        fields=['name']
+        fields=['name', 'last_modified']
         allowed_methods=['get',]
+        
+    def dehydrate(self, bundle):
+        bundle.data['config']=bundle.obj.toolconfig.json_config
+        return bundle
 
         
-class ToolConfigResource(ModelResource):
-    class Meta:
-        queryset = models.ToolConfig.objects.all()
-        resource_name = 'tool_config'
-        authentication=SessionAuthentication()
-        fields=['json_config']
-        allowed_methods=['get',]
+#class ToolConfigResource(ModelResource):
+#    class Meta:
+#        queryset = models.ToolConfig.objects.all()
+#        resource_name = 'tool_config'
+#        authentication=SessionAuthentication()
+#        fields=['json_config']
+#        allowed_methods=['get',]
 
 class JobResourceAuthorization(Authorization):
     def read_list(self, object_list, bundle):
@@ -468,12 +478,11 @@ class JobResourceAuthorization(Authorization):
         elif bundle.obj.user == bundle.request.user:
             return True
         raise Unauthorized('You lack the privilege to access this resource')
-    
-    
+        
 class JobResource(ModelResource):
     tool=fields.ToOneField(ToolResource, 'tool')
-    status=fields.ToOneField('JobStatusResource', 'jobstatus_set',
-                             null=True, readonly=True)
+    data_file=fields.ToOneField(DataFileResource,'data_file',
+                                null=False)
     class Meta:
         queryset = models.Job.objects.all()
         authorization=JobResourceAuthorization()
@@ -490,8 +499,8 @@ class JobResource(ModelResource):
             kwargs={}
             if bundle.obj.config:
                 kwargs={'initial': bundle.obj.config }
-            bundle.data['form']='%s' % forms.ToolConfigForm(bundle.obj, 
-                                                            **kwargs).as_p()
+            bundle.data['form']=forms.ToolConfigForm(bundle.obj, 
+                                                     **kwargs).as_json()
         bundle.data['user'] = bundle.obj.user.username
         return bundle
 

@@ -1,8 +1,14 @@
 import requests
+import simplejson as json
 import logging
+import os
+import time
+import urlparse
+import mimetypes
 logger=logging.getLogger(__name__)
 
 class NMTKClientException(Exception): pass
+
 
 class NMTKClient(object):
     '''
@@ -54,6 +60,8 @@ class NMTKClient(object):
             self.site_url=site_url[:-1]
         else:
             self.site_url=site_url
+        parts=urlparse.urlparse(self.site_url)
+        self.base_url=urlparse.urlunparse((parts[0],parts[1],'','','',''))
         # Store a session so we can persist things.
         self.request=requests.Session()
         
@@ -85,9 +93,76 @@ class NMTKClient(object):
                                        'password': password,
                                        'next': self.getURL(path='')})
         
+    def uploadData(self, filename, description=None,
+                   srid=None, timeout=None):
+        '''
+        Upload data into NMTK via the API using the provided description
+        and/or SRID data.  If timeout is 0/None then wait forever for completion.
+        If timeout is -1, return the location of the new resource immediately.
+        If timeout is any other integer value, then wait that long for the 
+        file to be uploaded.
+        '''
+        payload={}
+        file_data=open(filename,'r')
+        if description is not None:
+            payload['description']=description
+        if srid is not None:
+            payload['srid']=srid
+        fn=os.path.basename(filename)
+        content_type=mimetypes.guess_type(fn)[0]
+        files=[('file', (fn, file_data, content_type)),]
+        api_file_url=self.getURL('api', 'datafile/')
+        response=self.post(api_file_url, data=payload, 
+                           files=files)
+        if response.status_code <> 201:
+            raise NMTKClientException('File upload failed: %s',
+                                      response.text)
+        upload_uri=response.headers['location']
+        if timeout == -1:
+            return upload_uri
+        end=time.time() + (timeout or 0) # 2 minutes for processing
+        while (not timeout) or (time.time() < end) :
+            response=self.get(upload_uri,
+                              params={'format': 'json'})
+            if response.json()['status'] == 'Import Complete':
+                break
+            time.sleep(.5)
+        else:
+            raise NMTKClientException('Upload failed to complete: %s',
+                                      upload_uri, response.status_code)
+        
+        return upload_uri
+    
+    def neuter_url(self, url):
+        '''
+        given a full URL (with http, etc.) return just the portion that would
+        represent the path to the URI
+        '''
+        if url.startswith(self.base_url):
+            return url[len(self.base_url):]
+        return url
+    
     def logout(self):
         return self.request.get(self.getURL('logout'),
                                 allow_redirects=False,)
+        
+    def create_user(self, username, password, **kwargs):
+        '''
+        A helper method to create a new user, given a password and userid
+        '''
+        data={'username': username,
+              'password': password}
+        data.update(kwargs)
+        response=self.post(self.getURL('api','user/'),
+                           data=json.dumps(data),
+                           headers={'Content-Type': 'application/json',})
+        logger.debug('Response from create user request was %s', 
+                     response.status_code)
+        if response.status_code <> 201:
+            logger.debug('Response from user create was %s', response.text)
+        # Status code of 201 means it got created.
+        logger.debug('HTTP Result was %s', response.headers.get('location'))
+        return response
 
 if __name__ == '__main__':
     import sys

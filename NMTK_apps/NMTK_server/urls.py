@@ -10,7 +10,7 @@ v1_api = Api(api_name='v1')
 v1_api.register(api.DataFileResource())
 v1_api.register(api.UserResource())
 v1_api.register(api.ToolResource())
-v1_api.register(api.ToolConfigResource())
+#v1_api.register(api.ToolConfigResource())
 v1_api.register(api.JobResource())
 v1_api.register(api.JobStatusResource())
     

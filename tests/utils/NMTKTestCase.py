@@ -90,23 +90,18 @@ class NMTKTestCase(unittest.TestCase):
             with open(os.devnull, "w") as fnull:
                 subprocess.call(command, stdout=fnull, stderr=fnull)
         
-    def _create_user(self, username, password, **kwargs):
+    def _create_user(self, *args, **kwargs):
         '''
         A helper method to create a new user, given a password and userid
         '''
-        data={'username': username,
-              'password': password}
-        data.update(kwargs)
-        response=self.client.post(self.api_user_url,
-                                  data=json.dumps(data),
-                                  headers={'Content-Type': 'application/json',})
-        logger.debug('Response from create user request was %s', 
-                     response.status_code)
-        if response.status_code <> 201:
-            logger.debug('Response from user create was %s', response.text)
-        # Status code of 201 means it got created.
-        logger.debug('HTTP Result was %s', response.headers.get('location'))
-        self.delusers.append(username)
+        if len(args) == 2:
+            kwargs['username']=args[0]
+            kwargs['password']=args[1]
+        for key in ('username','password'):
+            kwargs.setdefault(key, self._id_generator())
+        
+        response=self.client.create_user(**kwargs)
+        self.delusers.append(kwargs['username'])
         return response
         
     def _delete_user(self, url):
