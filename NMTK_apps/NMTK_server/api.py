@@ -10,6 +10,7 @@ from django.forms.models import model_to_dict
 from NMTK_server import forms
 from tastypie.validation import Validation
 import logging
+import re
 logger=logging.getLogger(__name__)
 
 class UserResourceValidation(Validation):
@@ -479,13 +480,60 @@ class JobResourceAuthorization(Authorization):
             return True
         raise Unauthorized('You lack the privilege to access this resource')
         
+class JobResourceValidation(Validation):
+    def is_valid(self, bundle, request=None):
+        '''
+        Once we have a job there are a few rules, you cannot change the
+        tool or the file once the job is created, since doing so would
+        end up possibly invalidating the configuration.  You cannot change the
+        status, since it advances on it's own, and changing things once the 
+        status has moved to active (for example) wouldn't make sense, so once it
+        is active, we'll prevent changes.
+        the validation will update the status to active once you send over
+        a configuration that seems valid.  Then it's up to the tool to do the
+        rest of the work in terms of processing/generating errors.
+        '''
+        kwargs={}
+        kwargs['job']=bundle.obj
+        errors={}
+        
+        if bundle.obj.pk:
+            for field in ['data_file','tool']:
+                if (getattr(bundle.obj, '_old_%s' % (field,)) != 
+                    getattr(bundle.obj, field)):
+                    errors[field]=('This field cannot be changed, ' +
+                                   'please create a new job instead')
+        if bundle.obj.status != 'U':
+            errors['status']= ('Cannot update a job once it has been ' +
+                               'configured, please create a new job instead')  
+        elif bundle.data.get('config', None):
+            if bundle.obj.config:
+                kwargs['initial']=bundle.obj.config
+            form=forms.ToolConfigForm(bundle.data.get('config'), 
+                                      **kwargs)
+            if form.is_valid():
+                bundle.obj.config=form.cleaned_data
+                bundle.obj.status=bundle.obj.ACTIVE
+                return errors
+            errors['config']=form.errors
+            return errors
+        return errors
+         
+
 class JobResource(ModelResource):
+    job_id=fields.CharField('job_id',
+                            readonly=True)
     tool=fields.ToOneField(ToolResource, 'tool')
     data_file=fields.ToOneField(DataFileResource,'data_file',
                                 null=False)
+    form=fields.CharField(readonly=True,
+                          help_text='JavaScript Representation of form')
+    status=fields.CharField('status', readonly=True, null=True)
+    config=fields.CharField('config', readonly=True, null=True)
     class Meta:
         queryset = models.Job.objects.all()
         authorization=JobResourceAuthorization()
+        validation=JobResourceValidation()
         resource_name = 'job'
         authentication=SessionAuthentication()
         allowed_methods=['get','put','post','delete']
@@ -499,7 +547,7 @@ class JobResource(ModelResource):
             kwargs={}
             if bundle.obj.config:
                 kwargs={'initial': bundle.obj.config }
-            bundle.data['form']=forms.ToolConfigForm(bundle.obj, 
+            bundle.data['form']=forms.ToolConfigForm(job=bundle.obj, 
                                                      **kwargs).as_json()
         bundle.data['user'] = bundle.obj.user.username
         return bundle

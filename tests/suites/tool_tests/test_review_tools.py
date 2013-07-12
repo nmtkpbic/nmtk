@@ -15,6 +15,9 @@ class TestToolList(NMTKTestCase):
         super(TestToolList, self).tearDown()
         
     def test_list_tools(self):
+        '''
+        Verify that a logged-in user can retrieve a list of tools.
+        '''
         username, password=self.getUsernamePassword()
         user_uri=self._create_user(username,password)
         client=NMTKClient(self.site_url)

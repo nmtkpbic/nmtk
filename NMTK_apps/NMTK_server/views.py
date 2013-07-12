@@ -126,7 +126,7 @@ def configureJob(request, job=None):
         if form.is_valid():
             logger.debug('HOORAY - form is valid!!!')
             job.config=form.cleaned_data
-            job.status='A'
+            job.status=job.ACTIVE
             job.user=request.user
             job.save()
             return render(request, "NMTK_server/result.html",

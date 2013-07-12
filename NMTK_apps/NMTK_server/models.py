@@ -139,6 +139,8 @@ class Job(models.Model):
     def __init__(self, *args, **kwargs):
         super(Job, self).__init__(*args, **kwargs)
         self._old_status=self.status
+        self._old_data_file=self.data_file if hasattr(self,'data_file') else None
+        self._old_tool=self.tool if hasattr(self,'tool') else None
     job_id=UUIDField(auto=True, primary_key=True)
     tool=models.ForeignKey(Tool)
     date_created=models.DateTimeField(auto_now_add=True)
