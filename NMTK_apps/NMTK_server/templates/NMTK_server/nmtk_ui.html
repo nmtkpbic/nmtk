@@ -1,0 +1,491 @@
+{% extends "NMTK_server/base.html" %}
+{% load static %}
+{% load url from future %}
+{% block title %}Non-Motorized Transportation Toolkit{% endblock %}
+        
+
+				<ul class="nav pull-right">
+					{% block right_nav %}
+					<li class="dropdown">
+						
+						<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+							<i class="icon-cog"></i>
+							Settings
+							<b class="caret"></b>
+						</a>
+						
+						<ul class="dropdown-menu">
+							<li><a href="javascript:;">Account Settings</a></li>
+							<li><a href="javascript:;">Privacy Settings</a></li>
+							<li class="divider"></li>
+							<li><a href="javascript:;">Help</a></li>
+						</ul>
+						
+					</li>
+			
+					<li class="dropdown">
+						
+						<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+							Chander Ganesan
+							<b class="caret"></b>
+						</a>
+						
+						<ul class="dropdown-menu">
+							<li><a href="javascript:;">My Profile</a></li>
+							<li><a href="javascript:;">My Groups</a></li>
+							<li class="divider"></li>
+							<li><a href="{% url 'auth_logout' %}">Logout</a></li>
+						</ul>
+						
+					</li>
+					{% endblock %}
+				</ul>
+				{% block navbar_extras %}
+				<form class="navbar-search pull-right">
+					<input type="text" class="search-query" placeholder="Search">
+				</form>
+				{% endblock %}
+			</div><!--/.nav-collapse -->	
+	
+		</div> <!-- /container -->
+		
+	</div> <!-- /navbar-inner -->
+	
+</div> <!-- /navbar -->
+    
+
+
+{% block navbars %}
+    
+<div class="subnavbar">
+
+	<div class="subnavbar-inner">
+	
+		<div class="container">
+			
+			<a class="btn-subnavbar collapsed" data-toggle="collapse" data-target=".subnav-collapse">
+				<i class="icon-reorder"></i>
+			</a>
+
+			<div class="subnav-collapse collapse">
+				<ul class="mainnav">
+				
+					<li class="active">
+						<a href="./index.html">
+							<i class="icon-home"></i>
+							<span>Home</span>
+						</a>	    				
+					</li>
+					
+					<li class="dropdown">					
+						<a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown">
+							<i class="icon-copy"></i>
+							<span>Future Link?</span>
+							<b class="caret"></b>
+						</a>	    
+					
+						<ul class="dropdown-menu">
+							<li><a href="#">Sub link?</a></li>
+							<li><a href="#">Sub link?</a></li>
+							<li><a href="#">Sub link?</a></li>
+						</ul> 				
+					</li>
+					
+					<li class="dropdown">					
+						<a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown">
+							<i class="icon-external-link"></i>
+							<span>Future Link?</span>
+							<b class="caret"></b>
+						</a>	    
+					
+						<ul class="dropdown-menu">
+							<li><a href="#">Sub link?</a></li>
+							<li><a href="#">Sub link?</a></li>
+							<li><a href="#">Sub link?</a></li>
+						</ul> 			
+					</li>
+					
+					<li class="dropdown">					
+						<a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown">
+							<i class="icon-th"></i>
+							<span>Future Link?</span>
+							<b class="caret"></b>
+						</a>	
+					
+						<ul class="dropdown-menu">
+							<ul class="dropdown-menu">
+							<li><a href="#">Sub link?</a></li>
+							<li><a href="#">Sub link?</a></li>
+							<li><a href="#">Sub link?</a></li>
+						</ul> 
+							<li class="dropdown-submenu">
+			                  <a tabindex="-1" href="#">Dropdown menu</a>
+			                  <ul class="dropdown-menu">
+
+							<li><a href="#">Sub link?</a></li>
+							<li><a href="#">Sub link?</a></li>
+							<li><a href="#">Sub link?</a></li>
+
+			                  </ul>
+			                </li>
+						</ul>    				
+					</li>
+				
+				</ul>
+			</div> <!-- /.subnav-collapse -->
+
+		</div> <!-- /container -->
+	
+	</div> <!-- /subnavbar-inner -->
+
+</div> <!-- /subnavbar -->
+{% endblock %}
+{% block content %}
+<div class="main">
+
+    <div class="container">
+
+      <div class="row">
+      	
+      	<div class="span6">
+      		
+      		<div class="widget stacked">
+					
+				<div class="widget-header">
+					<i class="icon-star"></i>
+					<h3>Introduction</h3>
+				</div> <!-- /widget-header -->
+				
+				<div class="widget-content">
+					<p>
+                    <h4>Welcome to {{nameofapplication}}</h4>
+					<h6>New to {{nameofapplicaiton}}? Check out the {{nameofapplicaiton}} User's Guide.</h6>
+                    </p>
+                    <br />
+                    
+					<div class="stats">
+						
+						<div class="stat">
+							<span class="stat-value">12,386</span>									
+							Data Point
+						</div> <!-- /stat -->
+						
+						<div class="stat">
+							<span class="stat-value">9,249</span>									
+							Data Point
+						</div> <!-- /stat -->
+						
+						<div class="stat">
+							<span class="stat-value">70%</span>									
+							Data Point
+						</div> <!-- /stat -->
+						
+					</div> <!-- /stats -->
+					
+	
+					
+				</div> <!-- /widget-content -->
+					
+			</div> <!-- /widget -->	
+			
+			
+		
+      		
+	    </div> <!-- /span6 -->
+      	
+      	
+      	<div class="span6">	
+      		
+      		
+      				
+			<div class="widget widget-nopad stacked">
+						
+				<div class="widget-header">
+					<i class="icon-list-alt"></i>
+					<h3>Job Status and Results</h3>
+				</div> <!-- /widget-header -->
+				
+				<div class="widget-content">
+					
+					<ul class="news-items">
+						<li>
+							
+							<div class="news-item-detail">										
+								<a href="javascript:;" class="news-item-title">Duis aute irure dolor in reprehenderit</a>
+								<p class="news-item-preview">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore.</p>
+							</div>
+							
+							<div class="news-item-date">
+								<span>
+                                <img src="{% get_static_prefix %}NMTK_server/img/notifications/alert-32.png" />
+                                <img src="{% get_static_prefix %}NMTK_server/img/map-search.png" />
+                                </span>
+							</div>
+						</li>
+						<li>
+							<div class="news-item-detail">										
+								<a href="javascript:;" class="news-item-title">Duis aute irure dolor in reprehenderit</a>
+								<p class="news-item-preview">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore.</p>
+							</div>
+							
+							<div class="news-item-date">
+								<img src="{% get_static_prefix %}NMTK_server/img/notifications/success-32.png" />
+                                <img src="{% get_static_prefix %}NMTK_server/img/map-search.png" />
+							</div>
+						</li>
+						<li>
+							<div class="news-item-detail">										
+								<a href="javascript:;" class="news-item-title">Duis aute irure dolor in reprehenderit</a>
+								<p class="news-item-preview">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore.</p>
+							</div>
+							
+							<div class="news-item-date">
+								<img src="{% get_static_prefix %}NMTK_server/img/notifications/success-32.png" />
+                                <img src="{% get_static_prefix %}NMTK_server/img/map-search.png" />
+							</div>
+						</li>
+					</ul>
+					
+				</div> <!-- /widget-content -->
+			
+			</div> <!-- /widget -->	
+      		
+      		
+		
+	      </div> <!-- /span6 -->
+      	
+      </div> <!-- /row -->
+      
+      
+       <div class="row">
+      	
+      	<div class="span12">
+      		
+      		<div class="widget stacked">
+					
+				<div class="widget-header">
+					<i class="icon-edit"></i>
+					<h3>Job Status and Results</h3>
+				</div> <!-- /widget-header -->
+				
+				<div class="widget-content">
+					
+<section id="tables">
+					<h4>Select an available tool list</h4>
+					
+					
+					
+					<table class="table table-bordered table-striped table-highlight">
+						        <thead>
+						          <tr>
+						            <th>Column#</th>
+						            <th>Column title</th>
+						            <th>Column title</th>
+						            <th>Column title</th>
+						          </tr>
+						        </thead>
+						        <tbody>
+						          <tr>
+						            <td>1</td>
+						            <td>row data</td>
+						            <td>row data</td>
+						            <td>row data</td>
+						          </tr>
+						          <tr>
+						            <td>2</td>
+						            <td>row data</td>
+						            <td>row data</td>
+						            <td>row data</td>
+						          </tr>
+						          <tr>
+						            <td>3</td>
+						            <td>row data</td>
+						            <td>row data</td>
+						            <td>row data</td>
+						          </tr>
+						          <tr>
+						            <td>4</td>
+						            <td>row data</td>
+						            <td>row data</td>
+						            <td>row data</td>
+						          </tr>
+						          <tr>
+						            <td>5</td>
+						            <td>row data</td>
+						            <td>row data</td>
+						            <td>row data</td>
+						          </tr>
+						        </tbody>
+						      </table>
+                              
+                              
+				<section id="paginations">
+					<div class="pagination">
+					  <ul>
+					    <li><a href="javascript:;">Prev</a></li>
+					    <li class="active">
+					      <a href="javascript:;">1</a>
+					    </li>
+					    <li><a href="javascript:;">2</a></li>
+					    <li><a href="javascript:;">3</a></li>
+					    <li><a href="javascript:;">4</a></li>
+					    <li><a href="javascript:;">Next</a></li>
+					  </ul>
+					</div>
+						      
+						</section>
+
+				<br />
+				<br />
+				<br />
+						      
+						      
+						      <h4>Select a file from the list below</h4>
+						      
+						      
+					<table class="table table-bordered table-striped">
+						        <thead>
+						          <tr>
+						            <th>Column#</th>
+						            <th>Column title</th>
+						            <th>Column title</th>
+						            <th>Column title</th>
+                                    <th>actions</th>
+						          </tr>
+						        </thead>
+						        <tbody>
+						          <tr>
+						            <td>1</td>
+						            <td>row data</td>
+						            <td>row data</td>
+						            <td>row data</td>
+                                    <td class="td-actions">
+									<a href="javascript:;" class="btn btn-small btn-warning">
+										<i class="btn-icon-only icon-ok"></i>										
+									</a>
+									
+									<a href="javascript:;" class="btn btn-small">
+										<i class="btn-icon-only icon-remove"></i>										
+									</a>
+								</td>
+						          </tr>
+						          <tr>
+						            <td>2</td>
+						            <td>row data</td>
+						            <td>row data</td>
+						            <td>row data</td>
+                                    <td class="td-actions">
+									<a href="javascript:;" class="btn btn-small btn-warning">
+										<i class="btn-icon-only icon-ok"></i>										
+									</a>
+									
+									<a href="javascript:;" class="btn btn-small">
+										<i class="btn-icon-only icon-remove"></i>										
+									</a>
+								</td>
+						          </tr>
+						          <tr>
+						            <td>3</td>
+						            <td>row data</td>
+						            <td>row data</td>
+						            <td>row data</td>
+                                    <td class="td-actions">
+									<a href="javascript:;" class="btn btn-small btn-warning">
+										<i class="btn-icon-only icon-ok"></i>										
+									</a>
+									
+									<a href="javascript:;" class="btn btn-small">
+										<i class="btn-icon-only icon-remove"></i>										
+									</a>
+								</td>
+						          </tr>
+						          <tr>
+						            <td>4</td>
+						            <td>row data</td>
+						            <td>row data</td>
+						            <td>row data</td>
+                                    <td class="td-actions">
+									<a href="javascript:;" class="btn btn-small btn-warning">
+										<i class="btn-icon-only icon-ok"></i>										
+									</a>
+									
+									<a href="javascript:;" class="btn btn-small">
+										<i class="btn-icon-only icon-remove"></i>										
+									</a>
+								</td>
+						          </tr>
+						          <tr>
+						            <td>5</td>
+						            <td>row data</td>
+						            <td>row data</td>
+						            <td>row data</td>
+                                    <td class="td-actions">
+									<a href="javascript:;" class="btn btn-small btn-warning">
+										<i class="btn-icon-only icon-ok"></i>										
+									</a>
+									
+									<a href="javascript:;" class="btn btn-small">
+										<i class="btn-icon-only icon-remove"></i>										
+									</a>
+								</td>
+						          </tr>
+						        </tbody>
+						      </table>
+						      
+						      
+						
+				<section id="paginations">
+					<div class="pagination">
+					  <ul>
+					    <li><a href="javascript:;">Prev</a></li>
+					    <li class="active">
+					      <a href="javascript:;">1</a>
+					    </li>
+					    <li><a href="javascript:;">2</a></li>
+					    <li><a href="javascript:;">3</a></li>
+					    <li><a href="javascript:;">4</a></li>
+					    <li><a href="javascript:;">Next</a></li>
+					  </ul>
+					</div>
+						      
+						</section>
+
+				<br />
+				<section id="buttons">
+
+					<a href="javascript:;" class="btn btn-large">Clear Selected</a>
+					<a href="javascript:;" class="btn btn-large btn-primary">Create a new job</a>&nbsp;&nbsp;&nbsp;
+						      
+						</section>
+						
+						
+						      
+						</section>
+					
+				</div> <!-- /widget-content -->
+					
+			</div> <!-- /widget -->					
+			
+	    </div> <!-- /span12 -->     	
+      	
+      	
+      </div> <!-- /row -->
+
+    </div> <!-- /container -->
+    
+</div> <!-- /main -->
+{% endblock %}
+
+
+{% block javascript_extra %}
+
+
+<script src="{% get_static_prefix %}NMTK_server/js/plugins/flot/jquery.flot.js"></script>
+<script src="{% get_static_prefix %}NMTK_server/js/plugins/flot/jquery.flot.pie.js"></script>
+<script src="{% get_static_prefix %}NMTK_server/js/plugins/flot/jquery.flot.resize.js"></script>
+
+<script src="{% get_static_prefix %}NMTK_server/js/charts/area.js"></script>
+<script src="{% get_static_prefix %}NMTK_server/js/charts/donut.js"></script>
+{% endblock %}
+  </body>
+</html>

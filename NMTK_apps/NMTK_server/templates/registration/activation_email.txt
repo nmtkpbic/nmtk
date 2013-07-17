@@ -1,0 +1,7 @@
+{% load url from future %}{% load static %}{% load widget_tweaks %}
+Please activate your NMTK Account within {{expiration_days}} days.
+
+Please copy and past the following URL into your browser to activate 
+your account
+
+http://{{site.domain}}{% url 'registration_activate' activation_key=activation_key %}

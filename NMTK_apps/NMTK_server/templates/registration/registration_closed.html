@@ -1,0 +1,47 @@
+{% extends "NMTK_server/base.html" %}{% load url from future %}{% load static %}{% load widget_tweaks %}
+{% block title %}Account Registration :: Registration Closed{% endblock%}
+{% block css_extra %}
+    <link href="{% get_static_prefix %}NMTK_server/css/pages/signin.css" rel="stylesheet" type="text/css">
+{% endblock %}
+{% block right_nav %}
+					
+					<li class="">						
+						<a href="{% url 'auth_login' %}" class="">
+							Login
+						</a>
+						
+					</li>
+					
+					<li class="">						
+						<a href="{% url 'nmtk_server_nmtk_index' %}" class="">
+							<i class="icon-chevron-left"></i>
+							Back to Homepage
+						</a>
+						
+					</li>
+{% endblock %}	
+{% block content %}
+
+<div class="account-container stacked">
+	
+	<div class="content clearfix">
+
+			<h1>Registration Closed</h1>		
+			
+			<div class="login-fields">
+				
+				<p>Registration is currently closed.  Please check back later.</p>
+				
+			</div> <!-- /login-fields -->
+			
+	</div> <!-- /content -->
+	
+</div> <!-- /account-container -->
+{% endblock %}
+{% block javascript_extra %}
+<!--<script src="{% get_static_prefix %}NMTK_server/js/signin.js"></script>
+
+-->
+{% endblock %}
+</body>
+</html>

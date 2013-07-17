@@ -1,0 +1,46 @@
+{% extends "NMTK_server/base.html" %}{% load url from future %}{% load static %}{% load widget_tweaks %}
+{% block title %}Registration Complete :: Non-Motorized Transportation Toolkit{% endblock%}
+
+{% block right_nav %}
+	{% if user.is_active %}
+		<li class="">		
+			<a href="{% url 'nmtk_server_nmtk_ui' %}" class="">
+				
+				NMTK Console
+				<i class="icon-chevron-right"></i>
+			</a>
+		</li>
+	{% else %}
+		<li class="">								
+			<a href="{% url 'login' %}" class="">	
+				Login
+			</a>
+		</li>
+	{% endif %}
+	
+</li>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+	
+	<div class="row">
+		
+		<div class="span12">
+			
+			<div class="error-container">
+				
+				<div class="error-details">
+					Registration Complete - Please check your email to complete the account activation process.
+					
+				</div> <!-- /error-details -->
+										
+			</div> <!-- /error-container -->			
+			
+		</div> <!-- /span12 -->
+		
+	</div> <!-- /row -->
+	
+</div> <!-- /container -->
+
+{% endblock %}

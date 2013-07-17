@@ -9,6 +9,8 @@
   WSGIScriptAlias / /var/www/vhosts/nmtk.otg-nc.com/NMTK_apps/NMTK_apps/wsgi.py
   DirectoryIndex index.html
   DocumentRoot /var/www/vhosts/nmtk.otg-nc.com/htdocs
+  Alias /static/ /var/www/vhosts/nmtk.otg-nc.com/htdocs/static/
+  
   <Directory />
     Options FollowSymLinks
     AllowOverride None

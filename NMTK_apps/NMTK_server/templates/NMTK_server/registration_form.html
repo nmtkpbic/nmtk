@@ -1,0 +1,105 @@
+{% extends "NMTK_server/base.html" %}{% load url from future %}{% load static %}{% load widget_tweaks %}
+{% block title %}Create an Account :: Registration{% endblock%}
+{% block css_extra %}
+    <link href="{% get_static_prefix %}NMTK_server/css/pages/signin.css" rel="stylesheet" type="text/css">
+{% endblock %}
+{% block right_nav %}
+
+					
+					<li class="">						
+						<a href="{% url 'login' %}" class="">
+							Login
+						</a>
+						
+					</li>
+					
+					<li class="">						
+						<a href="{% url 'nmtk_server_nmtk_index' %}" class="">
+							<i class="icon-chevron-left"></i>
+							Back to Homepage
+						</a>
+						
+					</li>
+{% endblock %}
+				
+
+{% block content %}
+<div class="account-container register stacked">
+	
+	<div class="content clearfix">
+		
+		<form action="." method="post">
+		{% csrf_token %}
+			<h1>Create Your Account</h1>			
+			
+			
+			
+			<div class="login-fields">
+				
+				<p>Please provide your account information:</p>
+				
+				<div class="field">
+					{{ form.username.label_tag }}
+					{% render_field form.username placeholder="Username" class="login" %}
+					{{form.username.errors}}
+				</div> <!-- /field -->
+				<div class="field">
+					{{ form.first_name.label_tag }}
+					{% render_field form.first_name placeholder="First Name" class="login" %}
+					{{form.first_name.errors}}
+				</div> <!-- /field -->
+				<div class="field">
+					{{ form.last_name.label_tag }}
+					{% render_field form.last_name placeholder="Last Name" class="login" %}
+					{{form.last_name.errors}}
+				</div> <!-- /field -->
+				
+				<div class="field">
+					{{ form.email.label_tag }}
+					{% render_field form.email placeholder="Email Address" class="login" %}
+					{{form.email.errors}}
+				</div> <!-- /field -->
+				
+				<div class="field">
+					{{ form.password1.label_tag }}
+					{% render_field form.password1 placeholder="Password" class="login" %}
+					{{form.password1.errors}}
+				</div> <!-- /field -->
+				
+				<div class="field">
+					{{ form.password2.label_tag }}
+					{% render_field form.password2 placeholder="Password confirmation" class="login" %}
+					{{form.password2.errors}}
+				</div> <!-- /field -->
+				
+			</div> <!-- /login-fields -->
+			
+			<div class="login-actions">
+				
+				<span class="login-checkbox">
+					{% render_field form.tos class="field login-checkbox" tabindex="4" %}
+					{{ form.tos.label_tag }} <!--  need class="choice" here? -->
+					{{ form.tos.errors }}
+				</span>
+									
+				<button class="button btn btn-primary btn-large">Register</button>
+				
+			</div> <!-- .actions -->
+			
+		</form>
+		
+	</div> <!-- /content -->
+	
+</div> <!-- /account-container -->
+<!-- Text Under Box -->
+<div class="login-extra">
+	Already have an account? <a href="{% url 'login' %}">Login</a>
+</div> <!-- /login-extra -->
+{% endblock %}
+
+{% block javascript_extra %}
+
+<!--<script src="{% get_static_prefix %}NMTK_server/js/signin.js"></script>
+
+-->
+{% endblock %}
