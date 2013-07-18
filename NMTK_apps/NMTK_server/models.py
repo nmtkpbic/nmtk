@@ -163,6 +163,7 @@ class Job(models.Model):
     config=JSONField(null=True)
     # The user that created the job (used to restrict who can view the job.)
     user=models.ForeignKey(settings.AUTH_USER_MODEL, null=False)
+    email=models.BooleanField(default=False, help_text='Email user upon job completion')
     objects=models.GeoManager()
 
     def delete(self):
@@ -200,6 +201,9 @@ class Job(models.Model):
             logger.debug('Sending job to tool for processing.')
             # Submit the task to the client, passing in the job identifier.
             tasks.submitJob.delay(self)
+        if (self.email and self._old_status <> self.status and
+            self.status in (self.FAILED, self.COMPLETE, self.TOOL_FAILED,)):
+            tasks.email_user_job_complete.delay(self)
         return result
     
     class Meta:
@@ -246,21 +250,21 @@ class DataFile(models.Model):
     user=models.ForeignKey(settings.AUTH_USER_MODEL, null=False)
     objects=models.GeoManager()
     
-    @property
-    def url(self):
-        if self.file:
-            return reverse('NMTK_server.download_datafile', 
-                           kwargs={'file_id': self.pk})
-        else:
-            return ''
+#    @property
+#    def url(self):
+#        if self.file:
+#            return reverse('api_datafile_download_detail', 
+#                           kwargs={'pk': self.pk,}) 
+#        else:
+#            return ''
     
-    @property
-    def geojson_url(self):
-        if self.processed_file:
-            return reverse('NMTK_server.download_geojson_datafile', 
-                           kwargs={'file_id': self.pk})
-        else:
-            return ''
+#    @property
+#    def geojson_url(self):
+#        if self.processed_file:
+#            return reverse('NMTK_server.download_geojson_datafile', 
+#                           kwargs={'file_id': self.pk})
+#        else:
+#            return ''
     
     @property
     def geojson_name(self):

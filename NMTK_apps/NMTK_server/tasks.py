@@ -6,6 +6,7 @@ import hmac
 import hashlib
 import uuid
 from django.utils import timezone
+from django.conf import settings
 import logging
 import os
 from django.core.exceptions import ObjectDoesNotExist
@@ -13,11 +14,29 @@ from NMTK_server import geo_loader
 from django.core.files import File
 from django.contrib.gis.geos import Polygon
 from django.contrib.auth.models import User
+from django.contrib.sites.models import Site
 from django.core.management.base import BaseCommand, CommandError
-
+from django.template.loader import render_to_string
+from django.core.mail import send_mail
 #from django.core.serializers.json import DjangoJSONEncoder
 logger=logging.getLogger(__name__)
 
+@task(ignore_result=True)
+def email_user_job_complete(job):
+#    from NMTK_server import models
+#    job=models.Job.objects.select_related('user','tool').get(pk=job_id)
+    context={'job': job,
+             'user': job.user,
+             'tool': job.tool,
+             'site': Site.objects.get_current()}
+    logger.debug('Job complete (%s), sending email to %s', 
+                 job.tool.name, job.user.email)
+    subject=render_to_string('NMTK_server/job_finished_subject.txt',
+                             context).strip().replace('\n',' ')
+    message=render_to_string('NMTK_server/job_finished_message.txt',
+                             context)
+    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL,
+              [job.user.email,])
 
 @task(ignore_result=False)
 def add_toolserver(name, url, username, remote_ip=None):

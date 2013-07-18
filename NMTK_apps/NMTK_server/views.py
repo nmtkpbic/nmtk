@@ -52,40 +52,40 @@ def registerUser(request):
                   {'form': userform,
                    'site': site })
 
-@login_required
-@user_passes_test(lambda u: u.is_active)
-def downloadResults(request, job_id):
-    try:
-        job=models.Job.objects.get(job_id=job_id,
-                                   user=request.user)
-    except:
-        raise Http404
-    response = HttpResponse(job.results.file, content_type='application/json')
-    response['Content-Disposition'] = 'attachment; filename=result.geojson'
-    return response
-
-def downloadDataFile(request, file_id):
-    try:
-        datafile=models.DataFile.objects.get(pk=file_id,
-                                             user=request.user)
-    except:
-        raise Http404
-    response = HttpResponse(datafile.file, 
-                            content_type=datafile.content_type)
-    response['Content-Disposition'] = 'attachment; filename=%s' % (datafile.name,)
-    return response
-
-def downloadGeoJsonFile(request, file_id):
-    try:
-        datafile=models.DataFile.objects.get(pk=file_id,
-                                             user=request.user)
-    except:
-        raise Http404
-    response = HttpResponse(datafile.processed_file, 
-                            content_type='application/json')
-    response['Content-Disposition'] = 'attachment; filename=%s' % (
-                                            datafile.geojson_name,)
-    return response
+#@login_required
+#@user_passes_test(lambda u: u.is_active)
+#def downloadResults(request, job_id):
+#    try:
+#        job=models.Job.objects.get(job_id=job_id,
+#                                   user=request.user)
+#    except:
+#        raise Http404
+#    response = HttpResponse(job.results.file, content_type='application/json')
+#    response['Content-Disposition'] = 'attachment; filename=result.geojson'
+#    return response
+#
+#def downloadDataFile(request, file_id):
+#    try:
+#        datafile=models.DataFile.objects.get(pk=file_id,
+#                                             user=request.user)
+#    except:
+#        raise Http404
+#    response = HttpResponse(datafile.file, 
+#                            content_type=datafile.content_type)
+#    response['Content-Disposition'] = 'attachment; filename=%s' % (datafile.name,)
+#    return response
+#
+#def downloadGeoJsonFile(request, file_id):
+#    try:
+#        datafile=models.DataFile.objects.get(pk=file_id,
+#                                             user=request.user)
+#    except:
+#        raise Http404
+#    response = HttpResponse(datafile.processed_file, 
+#                            content_type='application/json')
+#    response['Content-Disposition'] = 'attachment; filename=%s' % (
+#                                            datafile.geojson_name,)
+#    return response
 
 @login_required
 @user_passes_test(lambda u: u.is_active)

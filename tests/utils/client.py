@@ -151,7 +151,8 @@ class NMTKClient(object):
         A helper method to create a new user, given a password and userid
         '''
         data={'username': username,
-              'password': password}
+              'password': password,
+              'email': 'test@nmtk.otg-nc.com'}
         data.update(kwargs)
         response=self.post(self.getURL('api','user/'),
                            data=json.dumps(data),

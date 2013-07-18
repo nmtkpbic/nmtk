@@ -1,0 +1,31 @@
+{% load url from future %}{% load static %}{% load widget_tweaks %}
+You recently submitted a job using the NMTK server at http://{{site.domain}}{% url 'nmtk_server_nmtk_index' %}.
+
+We are pleased to report that your job was submitted to the "{{tool.name}}"
+and a response indicating the job has completed was returned by the tool!  
+
+The final response from the tool was "{{job.get_status_display}}".
+
+Please note that the NMTK Server submits your job to the tool, which performs
+the requested processing, and returns a result.  Generally, responses returned
+by the tool fall into one of several categories:
+
+  * Tool Failed to Accept Job - This indicates that the tool server was 
+    unavailable (offline), or it suffered from some error that resulted in
+    it not being able to accept the job.  You might try contacting the tool 
+    maintainer, or simply try again at a later date.
+
+  * Failed - The tool accepted the job, but returned a response indicating 
+    that processing of the job failed.  In some cases, the status (available
+    via the NMTK server) will indicate what went wrong.  This can often be due
+    to a set of invalid parameters that were sent, or some internal issue with
+    the tool itself.
+    
+  * Completed - The tool accepted the job, processed it, and returned a 
+    well-formated result back to the NMTK server.  You can view the results on
+    the NMTK server itself (using the link in this email) by logging into your
+    account.
+    
+If the result is not "Completed", you should review the response returned by the
+tool (in the case of Failed) and correct your data (if possible.) or contact the
+maintainer of the "{{tool.name}}" tool to figure out what might be wrong.

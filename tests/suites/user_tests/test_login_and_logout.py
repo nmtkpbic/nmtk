@@ -32,7 +32,7 @@ class TestLoginAndLogout(NMTKTestCase):
         self.assertEqual(result.status_code, 302)
         result=client.logout()
         self.assertEqual(result.status_code, 302)
-        result=client.get(client.getURL(path='/server/'),
+        result=client.get(client.getURL(path='/server/ui/'),
                           allow_redirects=False)
         login_url=client.getURL('login')[:-1]
         if not result.headers['location'].startswith(login_url):

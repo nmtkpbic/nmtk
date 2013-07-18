@@ -1,0 +1,1 @@
+Your NMTK Job {{tool.name}} has completed ({{job.get_status_display}})

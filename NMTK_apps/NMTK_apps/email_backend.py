@@ -4,6 +4,8 @@
 from django.conf import settings
 from django.core.mail.backends.base import BaseEmailBackend
 from subprocess import Popen,PIPE
+import logging
+logger=logging.getLogger(__name__)
 
 class EmailBackend(BaseEmailBackend):
     def __init__(self, fail_silently=False, **kwargs):
@@ -34,8 +36,12 @@ class EmailBackend(BaseEmailBackend):
         if not email_message.recipients():
             return False
         try:
+#            logger.debug('Sending email: %s',
+#                         ["/usr/sbin/sendmail"]+list(email_message.recipients()))
             ps = Popen(["/usr/sbin/sendmail"]+list(email_message.recipients()), \
                        stdin=PIPE)
+#            logger.debug('Writing message to pipe: %s', 
+#                         email_message.message().as_string())
             ps.stdin.write(email_message.message().as_string())
             ps.stdin.flush()
             ps.stdin.close()

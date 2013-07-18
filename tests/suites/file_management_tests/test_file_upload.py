@@ -215,6 +215,7 @@ class TestFileUpload(NMTKTestCase):
         # preserved.
         response=client.get(data_file_url, params={'format': 'json'})
         json_data=response.json()
+        logger.debug('Response was %s', json_data)
         self.assertEqual(json_data['description'],description,
                          'Expected uploaded description to be present')
         self.assertEqual(json_data['srid'], srid,
