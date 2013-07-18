@@ -7,7 +7,7 @@ import os
 logger=logging.getLogger(__name__)
 
 class TestAPIUserManagement(NMTKTestCase):
-
+    protected_url='/server/ui/'
     def test_retrieve_users(self):
         '''
         Verify that the API can be used to retrieve a list of users
@@ -19,7 +19,8 @@ class TestAPIUserManagement(NMTKTestCase):
         self.assertGreaterEqual(response['meta']['total_count'], 1)
         # Verify that the object count matches the metadata
         self.assertEqual(len(response['objects']), 
-                         response['meta']['total_count'])
+                         min(response['meta']['total_count'], 
+                             response['meta']['limit']))
                              
     def test_create_delete_user(self):
         '''
@@ -93,7 +94,7 @@ class TestAPIUserManagement(NMTKTestCase):
         self.assertEqual(204, response.status_code)
         
         # Try to access a protected URL
-        response=client.get(client.getURL(path=''),
+        response=client.get(client.getURL(path=self.protected_url),
                             allow_redirects=False)
         self.assertEqual(302, response.status_code,
                          'Deleted user should not be able to access a' +
@@ -105,7 +106,7 @@ class TestAPIUserManagement(NMTKTestCase):
         self.assertEqual(200, response.status_code,
                          'Login for deleted user should fail')
         
-        response=client.get(client.getURL(path=''),
+        response=client.get(client.getURL(path=self.protected_url),
                             allow_redirects=False)
         self.assertEqual(302, response.status_code,
                          'Deleted user should not be able to access a' +

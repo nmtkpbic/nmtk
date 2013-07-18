@@ -1,5 +1,6 @@
 from NMTK_server.resources import ModelResource, ALL, ALL_WITH_RELATIONS
 from NMTK_server import models
+from django.conf.urls import patterns, include, url
 from tastypie.exceptions import Unauthorized
 from tastypie.authentication import SessionAuthentication
 from tastypie import fields, utils
@@ -7,10 +8,15 @@ from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from tastypie.authorization import Authorization
 from django.forms.models import model_to_dict
+from tastypie.utils import trailing_slash
+from django.core.servers.basehttp import FileWrapper
+from django.core.exceptions import ObjectDoesNotExist
+from django.http import HttpResponse, Http404
 from NMTK_server import forms
 from tastypie.validation import Validation
 import logging
 import re
+import os
 logger=logging.getLogger(__name__)
 
 class UserResourceValidation(Validation):
@@ -293,6 +299,9 @@ class DataFileResourceAuthorization(Authorization):
 class DataFileResourceValidation(Validation):
     def is_valid(self, bundle, request=None):
         errors = {}
+        if (not bundle.obj.pk and 
+            not bundle.request.FILES.has_key('file')):
+            errors['file']='A file must be provided when creating this resource'
         if (bundle.data.get('srid', False) and
             bundle.obj.status not in 
             (bundle.obj.IMPORT_FAILED,bundle.obj.PENDING)):
@@ -315,7 +324,86 @@ class DataFileResource(ModelResource):
     status=fields.CharField('status', readonly=True, null=True)
     geom_type=fields.CharField('geom_type', readonly=True, null=True)
     file=fields.CharField('file', readonly=True, null=True)
-    geojson_file=fields.CharField('geojson_file', readonly=True, null=True)
+    geojson=fields.CharField('geojson_file', readonly=True, null=True)
+
+
+    def prepend_urls(self):
+        return [
+            url(r"^(?P<resource_name>%s)/(?P<pk>\w[\w/-]*)/download%s$" % (self._meta.resource_name, 
+                                                                           trailing_slash()), 
+                                                                           self.wrap_view('download_detail_file'), 
+                name="api_%s_download_detail" % (self._meta.resource_name,)),
+            url(r"^(?P<resource_name>%s)/(?P<pk>\w[\w/-]*)/geojson%s$" % (self._meta.resource_name, 
+                                                                           trailing_slash()), 
+                                                                           self.wrap_view('download_detail_geojson'), 
+                name="api_%s_download_detail_geojson" % (self._meta.resource_name,)),
+            ]
+    def download_detail_geojson(self, request, **kwargs):
+        """
+        Send a file through TastyPie without loading the whole file into
+        memory at once. The FileWrapper will turn the file object into an
+        iterator for chunks of 8KB.
+
+        No need to build a bundle here only to return a file, lets look into the DB directly
+        """
+        allow_download=False
+        logger.debug('In download_detail_geojson with %s', kwargs)
+        try:
+            if request.user.is_superuser:
+                rec = self._meta.queryset.get(pk=kwargs['pk'])
+            else:
+                rec = self._meta.queryset.get(pk=kwargs['pk'],
+                                              user=request.user)
+        except ObjectDoesNotExist:
+            raise Http404
+        if rec.results:
+            # if there are results, then they can download them
+            allow_download=True
+        if not rec.processed_file:
+            raise Http404
+        
+        if allow_download:
+            wrapper = FileWrapper(open(rec.processed_file.path,'rb'))
+            response = HttpResponse(wrapper, content_type='application/json') #or whatever type you want there
+            response['Content-Length'] = rec.processed_file.size
+            response['Content-Disposition'] = ('attachment; ' +
+                                               'filename="data.geojson"')
+            return response        
+        else:
+            raise Unauthorized('You lack the privileges required to download this file')
+
+    def download_detail_file(self, request, **kwargs):
+        """
+        Send a file through TastyPie without loading the whole file into
+        memory at once. The FileWrapper will turn the file object into an
+        iterator for chunks of 8KB.
+
+        No need to build a bundle here only to return a file, lets look into the DB directly
+        """
+        allow_download=False
+        logger.debug('In download_detail_file with %s', kwargs)
+        try:
+            if request.user.is_superuser:
+                rec = self._meta.queryset.get(pk=kwargs['pk'])
+            else:
+                rec = self._meta.queryset.get(pk=kwargs['pk'],
+                                              user=request.user)
+        except ObjectDoesNotExist:
+            raise Http404
+        if rec.results:
+            # if there are results, then they can download them
+            allow_download=True
+            
+        if allow_download:
+            wrapper = FileWrapper(open(rec.file.path,'rb'))
+            response = HttpResponse(wrapper, content_type=rec.content_type) #or whatever type you want there
+            response['Content-Length'] = rec.file.size
+            response['Content-Disposition'] = ('attachment; filename="%s"' % 
+                                               (os.path.basename(rec.file.name)))
+            return response        
+        else:
+            raise Unauthorized('You lack the privileges required to download this file')
+        
     class Meta:
         queryset = models.DataFile.objects.all()
         authorization=DataFileResourceAuthorization()
@@ -340,6 +428,8 @@ class DataFileResource(ModelResource):
             logging.debug('SRID provided for import, storing')
             bundle.obj.srid=bundle.data['srid']
             bundle.obj.status=bundle.obj.PENDING
+        if not bundle.obj.name:
+            bundle.obj.name=os.path.basename(bundle.obj.file.name)
             
         return bundle
     
@@ -351,9 +441,9 @@ class DataFileResource(ModelResource):
         them during the hydrate cycle...
         '''
         if bundle.obj.file:
-            bundle.data['file']=bundle.request.build_absolute_uri(bundle.obj.url)
+            bundle.data['file']="%sresults/" % (bundle.data['resource_uri'],)
         if bundle.obj.processed_file:
-            bundle.data['geojson_file']=bundle.request.build_absolute_uri(bundle.obj.geojson_url)
+            bundle.data['geojson']="%sgeojson/" % (bundle.data['resource_uri'],)
         bundle.data['status']=bundle.obj.get_status_display()
         bundle.data['geom_type']=bundle.obj.get_geom_type_display()
         bundle.data['user'] = bundle.obj.user.username
@@ -530,6 +620,8 @@ class JobResource(ModelResource):
                           help_text='JavaScript Representation of form')
     status=fields.CharField('status', readonly=True, null=True)
     config=fields.CharField('config', readonly=True, null=True)
+    results=fields.CharField('results',readonly=True, null=True,
+                             help_text='URL to download results')
     class Meta:
         queryset = models.Job.objects.all()
         authorization=JobResourceAuthorization()
@@ -550,7 +642,54 @@ class JobResource(ModelResource):
             bundle.data['form']=forms.ToolConfigForm(job=bundle.obj, 
                                                      **kwargs).as_json()
         bundle.data['user'] = bundle.obj.user.username
+        bundle.data['status']=bundle.obj.get_status_display()
+        if bundle.obj.status == bundle.obj.COMPLETE:
+            bundle.data['results']="%sresults/" % (bundle.data['resource_uri'],)
+            # This should work, but doesn't ?!?
+#            bundle.data['results']=reverse('api_%s_download_detail' % (self._meta.resource_name,),
+#                                           kwargs={'resource_name': self._meta.resource_name,
+#                                                   'pk': str(bundle.obj.pk) })
         return bundle
+    
+    def prepend_urls(self):
+        return [
+            url(r"^(?P<resource_name>%s)/(?P<pk>\w[\w/-]*)/results%s$" % (self._meta.resource_name, 
+                                                                           trailing_slash()), 
+                                                                           self.wrap_view('download_detail'), 
+                name="api_%s_download_detail" % (self._meta.resource_name,)),
+            ]
+
+    def download_detail(self, request, **kwargs):
+        """
+        Send a file through TastyPie without loading the whole file into
+        memory at once. The FileWrapper will turn the file object into an
+        iterator for chunks of 8KB.
+
+        No need to build a bundle here only to return a file, lets look into the DB directly
+        """
+        allow_download=False
+        logger.debug('In download_detail with %s', kwargs)
+        try:
+            if request.user.is_superuser:
+                rec = self._meta.queryset.get(pk=kwargs['pk'])
+            else:
+                rec = self._meta.queryset.get(pk=kwargs['pk'],
+                                              user=request.user)
+        except ObjectDoesNotExist:
+            raise Http404
+        if rec.results:
+            # if there are results, then they can download them
+            allow_download=True
+            
+        if allow_download:
+            wrapper = FileWrapper(open(rec.results.path,'rb'))
+            response = HttpResponse(wrapper, content_type='application/json') #or whatever type you want there
+            response['Content-Length'] = rec.results.size
+            response['Content-Disposition'] = 'attachment; ' + \
+                                              'filename="result.geojson"'
+            return response        
+        else:
+            raise Unauthorized('You lack the privileges required to download this file')
 
 class JobStatusResourceAuthorization(Authorization):
     def read_list(self, object_list, bundle):
@@ -587,7 +726,7 @@ class JobStatusResourceAuthorization(Authorization):
         return True
 
 class JobStatusResource(ModelResource):
-    job=fields.ToOneField(JobResource, 'tool')
+    job=fields.ToOneField(JobResource, 'job')
 
     class Meta:
         queryset = models.JobStatus.objects.all()
@@ -595,4 +734,5 @@ class JobStatusResource(ModelResource):
         resource_name = 'job_status'
         authentication=SessionAuthentication()
         allowed_methods=['get',]
-        
+        filtering= {'job': ALL,
+                    'job_id': ALL}

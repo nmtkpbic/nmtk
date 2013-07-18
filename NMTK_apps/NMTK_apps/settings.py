@@ -10,14 +10,27 @@ LOGFILE_PATH=os.path.abspath(os.path.join(BASE_PATH, '..','..','logs'))
 
 # Used to initialize the sites model (see: NMTK_server/management/__init__.py)
 SITE_DOMAIN='nmtk.otg-nc.com'
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = TASTYPIE_DEBUG = DEBUG
 djcelery.setup_loader()
 
-
+ACCOUNT_ACTIVATION_DAYS=3
+REGISTRATION_OPEN=False
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
 )
+
+SERVER_EMAIL=DEFAULT_FROM_EMAIL='nmtk@otg-nc.com'
+EMAIL_BACKEND='NMTK_apps.email_backend.EmailBackend'
+# If you wish to have django connect to a remote SMTP server, use these
+# settings.  The default config assumes you have sendmail (locally) setup 
+# properly.  The author has ssmtp (apt-get install ssmtp) setup to do this - 
+# which prevents him
+# from having to have a password in his checked-in configs.
+#EMAIL_USE_TLS = True 
+#EMAIL_HOST='smtp.gmail.com'
+#EMAIL_PORT = 587
+#EMAIL_HOST_PASSWORD = None
 
 MANAGERS = ADMINS
 ALLOWED_HOSTS=[SITE_DOMAIN,]
@@ -144,8 +157,11 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'registration',
+    'widget_tweaks',
     # Uncomment the next line to enable the admin:
 #    'django_admin_bootstrapped',
+    'NMTK_server', # A test NMTK server for NMTK validating tools locally.
     'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
@@ -154,7 +170,6 @@ INSTALLED_APPS = (
     'SF_model', # The tool for the SF pedestrian model
     # Comment out the line below to disable the NMTK_server and make this
     # serve up only tools
-    'NMTK_server', # A test NMTK server for NMTK validating tools locally.
     'djcelery',
     'kombu.transport.django',
     'tastypie',

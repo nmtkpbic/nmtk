@@ -4,6 +4,7 @@ import datetime
 from collections import namedtuple
 import decimal
 import math
+import os
 from django.core.serializers.json import DjangoJSONEncoder
 
 
@@ -29,9 +30,9 @@ def performModel(data_file,
     '''
     logger=performModel.get_logger()
     
-    job_config=json.loads(open(job_config).read())['analysis settings']
-    logger.debug(job_config)
-    data_file=json.loads(open(data_file).read())
+    job_config_loaded=json.loads(open(job_config).read())['analysis settings']
+    logger.debug(job_config_loaded)
+    data_file_loaded=json.loads(open(data_file).read())
     tool_props=tool_config['input']['properties']
     property_map={}
     parameters={}
@@ -39,13 +40,13 @@ def performModel(data_file,
 
     for field, fprops in tool_props.iteritems():
         if fprops['type'] == 'property':
-            if job_config.has_key(field):
-                property_map[field] = job_config[field]
+            if job_config_loaded.has_key(field):
+                property_map[field] = job_config_loaded[field]
             elif fprops.get('required',False):
                 failures.append(('The field %s (required) was not ' + 
                                 'provided.') % (field,))
         else: # These are the non-property types
-            parameters[field]=job_config.get(field, 
+            parameters[field]=job_config_loaded.get(field, 
                                              fprops.get('default', None))
             if parameters[field] is None and fprops.get('required',False):
                 failures.append('A value for %s is required' % (field,))
@@ -57,10 +58,10 @@ def performModel(data_file,
     client.updateStatus('Parameter validation complete.')
     productSet=namedtuple('OLSSet', ['value','coefficient', 'parameter'])
     try:
-        for row in data_file['features']:
+        for row in data_file_loaded['features']:
             props=row['properties']
-            sets=[productSet(job_config.get('constant', 
-                                            tool_props['constant']['default']),
+            sets=[productSet(job_config_loaded.get('constant', 
+                                                   tool_props['constant']['default']),
                              1,
                              'constant')]
             
@@ -83,7 +84,7 @@ def performModel(data_file,
     # Since we are updating the data as we go along, we just need to return
     # the data with the new column (results) which contains the result of the 
     # model.
-    client.updateResults(json.dumps(data_file,
+    client.updateResults(json.dumps(data_file_loaded,
                                     cls=DjangoJSONEncoder))
-    for f in [data_file, job_config]:
-        os.path.unlink(f)
+    for f in [data_file,    ]:
+        os.unlink(f)

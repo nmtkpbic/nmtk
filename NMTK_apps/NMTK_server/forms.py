@@ -10,6 +10,43 @@ from django.utils.encoding import smart_text, force_text, python_2_unicode_compa
 from django.utils import six
 from django.utils.safestring import mark_safe
 logger=logging.getLogger(__name__)
+from django.contrib.auth.forms import UserCreationForm
+from django.utils.translation import ugettext, ugettext_lazy as _
+from django.contrib.auth.models import User
+
+class NMTKRegistrationForm(UserCreationForm):
+    error_messages = {
+        'duplicate_username': _("A user with that username already exists."),
+        'password_mismatch': _("The two password fields didn't match."),
+        'duplicate_email': _("An user with that email address already exists."),
+    }
+    tos = forms.BooleanField(widget=forms.CheckboxInput,
+                             label=_(u'I have read and agree to the Terms of Service'),
+                             error_messages={'required': _("You must agree to the terms to register")})
+    def clean_email(self):
+        # Since User.username is unique, this check is redundant,
+        # but it sets a nicer error message than the ORM. See #13147.
+        email = self.cleaned_data["email"]
+        try:
+            User._default_manager.get(email__iexact=email)
+        except User.DoesNotExist:
+            return email
+        raise forms.ValidationError(self.error_messages['duplicate_email'])
+    
+    class Meta:
+        model=User
+        fields=('first_name','last_name','email','username')
+    
+    def save(self, commit=True):
+        '''
+        Force active to false and superuser to false for the user object.
+        '''
+        user=super(NMTKRegistrationForm,self).save(commit=False)
+        user.is_active=False
+        user.is_superuser=False
+        if commit:
+            user.save()
+        return user
 
 class DataFileForm(forms.ModelForm):
     class Meta:

@@ -1,5 +1,7 @@
 from django.conf.urls import patterns, include, url
-
+from django.core.urlresolvers import reverse
+import registration.backends.default.urls
+import django.contrib.auth.urls
 from NMTK_server import api
 from tastypie.api import Api
 # Uncomment the next two lines to enable the admin:
@@ -16,21 +18,25 @@ v1_api.register(api.JobStatusResource())
     
 
 urlpatterns = patterns('',
-   url('^$', 'NMTK_server.views.submitJob', {}, name='submitJob'),
-   url(r'^index/', 'NMTK_server.views.nmtk_server', name='index'),
+   url('^ui/$', 'NMTK_server.views.nmtk_ui', {}, name='nmtk_server_nmtk_ui'),
+   url('^$', 'NMTK_server.views.nmtk_index', {}, name='nmtk_server_nmtk_index'),
    url('^tools/result$', 'NMTK_server.views.processResults', {}, name='processSuccessResults'),
    url('^tools/update$', 'NMTK_server.views.updateStatus', {}, name='updateStatus'),
-   url('^submit-job-to-tool$', 'NMTK_server.views.configureJob', {}, name='configureJob'),
-   url('^refresh-status/(?P<job_id>[^/]*)$', 'NMTK_server.views.refreshStatus', {}, name='refreshStatus'),
-   url('^results/(?P<job_id>[^/]*)$', 'NMTK_server.views.viewResults', {}, name='viewResults'),   
-   url('^downloadResults/(?P<job_id>[^/]*)$', 'NMTK_server.views.downloadResults', {}, name='downloadResults'),   
-   url('^downloadDataFile/(?P<file_id>[^/]*)$', 'NMTK_server.views.downloadDataFile', {}, name='NMTK_server.download_datafile'),
-   url('^downloadGeoJsonFile/(?P<file_id>[^/]*)$', 'NMTK_server.views.downloadGeoJsonFile', {}, name='NMTK_server.download_geojson_datafile'),
-   url(r'^login/$', 'django.contrib.auth.views.login', name='login_page'),
-   url(r'^logout/$', 'NMTK_server.views.logout_page', name='logout'),
+#   url('^submit-job-to-tool$', 'NMTK_server.views.configureJob', {}, name='configureJob'),
+#   url('^refresh-status/(?P<job_id>[^/]*)$', 'NMTK_server.views.refreshStatus', {}, name='refreshStatus'),
+#   url('^results/(?P<job_id>[^/]*)$', 'NMTK_server.views.viewResults', {}, name='viewResults'),   
+#   url('^download_results/(?P<job_id>[^/]*)$', 'NMTK_server.views.downloadResults', {}, name='downloadResults'),   
+#   url('^downloadDataFile/(?P<file_id>[^/]*)$', 'NMTK_server.views.downloadDataFile', {}, name='NMTK_server.download_datafile'),
+#   url('^downloadGeoJsonFile/(?P<file_id>[^/]*)$', 'NMTK_server.views.downloadGeoJsonFile', {}, name='NMTK_server.download_geojson_datafile'),
    # Uncomment the admin/doc line below to enable admin documentation:
    # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
    # Uncomment the next line to enable the admin:
+#   url(r'^login/$', 'django.contrib.auth.views.login'),
+   url(r'^logout/$', 'django.contrib.auth.views.logout',
+       {'next_page': '/server/'}, name='auth_logout'), # This needs to match the nmtk_server_nmtk_index URL 
+   url(r'^register/$', 'NMTK_server.views.registerUser', {}, name='nmtk_register'),
    url(r'^admin/', include(admin.site.urls)),
    url(r'^api/', include(v1_api.urls)),
+   url(r'', include(django.contrib.auth.urls)),
+   url(r'', include(registration.backends.default.urls))
 )

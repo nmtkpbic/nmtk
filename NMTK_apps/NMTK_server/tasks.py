@@ -67,6 +67,7 @@ def submitJob(job):
     This causes this task (a celery task) to run, and submit
     the job to the tool.
     '''
+    from NMTK_server import models
     # Get a logger to log status for this task.
     logger=submitJob.get_logger()
     logger.debug('Submitting job %s to tool %s for processing', job.pk,
@@ -81,13 +82,22 @@ def submitJob(job):
                            config_data, 
                            hashlib.sha1)
     digest=digest_maker.hexdigest()
-    
+    logger.debug('Processed file is %s', job.data_file.processed_file)
     files= {'config': ('config', config_data),
-            'data': (job.data_file.name, job.data_file.processed_file) }
+            'data': (job.data_file.processed_file.name, job.data_file.processed_file) }
+    logger.debug('Files for job are %s', files)
     r=requests.post(job.tool.analyze_url, files=files,
                     headers={'Authorization': digest })
-    logger.debug("Submitted job to %s tool, response was %s", 
-                 job.tool, r.content)
+    logger.debug("Submitted job to %s tool, response was %s (%s)", 
+                 job.tool, r.text, r.status_code)
+    if r.status_code <> 200:
+        job.status=job.TOOL_FAILED
+        js=models.JobStatus(job=job,
+                            message=('Tool failed to accept ' + 
+                                     'job (return code %s)') % (r.status_code,))
+        js.save()
+        job.save()
+        
     
 @task(ignore_result=False)
 def updateToolConfig(tool):

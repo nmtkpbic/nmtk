@@ -14,6 +14,9 @@ class TestJobConfiguration(NMTKTestCase):
         super(TestJobConfiguration, self).setUp()
         
     def tearDown(self):
+        '''
+        TearDown
+        '''
         super(TestJobConfiguration, self).tearDown()
         
     def test_setup_job(self):
@@ -64,7 +67,8 @@ class TestJobConfiguration(NMTKTestCase):
     def test_submit_job(self):
         '''
         Verify that we can properly submit a job (form) via the API and \
-get back the (eventual) results and status of the running job.
+get back the (eventual) results and status of the running job.  Also ensure other \
+users cannot download results.
         '''
         username, password=self.getUsernamePassword()
         user_uri=self._create_user(username,password)
@@ -101,7 +105,7 @@ get back the (eventual) results and status of the running job.
         # submit it back to the user.
         response=client.get(job_uri, params={'format': 'json'}).json()
 #        logger.debug(response['form']['fields'])
-        
+        job_id=response['job_id']
         form = '<form method="POST" action="%s/configure/">' % (job_uri,)
         form +='\n'.join([field['field'] for field_name, field in 
                         response['form']['fields'].iteritems()])
@@ -121,15 +125,65 @@ get back the (eventual) results and status of the running job.
         
         response=client.put(job_uri, headers={'Content-Type': 'application/json',},
                             data=json.dumps(response))
-        logger.debug('Response from job update was %s', response.text)
+        logger.debug('Response from job update was %s', response.status_code)
         self.assertEqual(response.status_code, 204,
-                         'Expected a return code of 204 with valid data provided')
+                         'Expected a return code of 204 with valid ' + 
+                         'data provided got (%s)' % (response.status_code))
+
+        # Now check the status to wait for completion
+        timeout=time.time() + 120
+        status_url=client.getURL('api','job_status/')
+        params={'job': job_id,
+                'format': 'json',
+                'limit': 1 }
+        steps=['Parameter validation complete.','COMPLETE']
+        prev_response=''
+        while time.time() < timeout:
+            response=client.get(status_url, params=params)
+            self.assertEqual(response.status_code, 200,
+                             'Expected to get valid response back')
+            if len(response.text):
+                json_data=response.json()
+                if prev_response <> response.text:
+                    logger.debug('Reponse changed to %s', response.text)
+                prev_response=response.text
+                if json_data['meta']['total_count']:
+                    if json_data['objects'][0]['message'] in steps:
+                        steps.remove(json_data['objects'][0]['message'])
+                    if json_data['objects'][0]['message']=='COMPLETE':
+                        break
+            time.sleep(.1)
+        self.assertEqual(len(steps),0, 
+                         'Did not get expected message(s) %s' % (steps,))
         
+        response=client.get(job_uri, params={'format': 'json'})
+        json_response=response.json()
+        self.assertEqual(json_response['status'], 'Complete',
+                         'Expected a status of Complete, not %s' % (json_response['status']))
         
-        self.fail('INCOMPLETE TEST')
-            
+        # Try to see if another user can download this job or results..
+        username2, password2=self.getUsernamePassword()
+        user_uri=self._create_user(username2,password2)
+        client2=NMTKClient(self.site_url)
+        client2.login(username=username2,
+                      password=password2)
+        response=client2.get(job_uri, params={'format': 'json'})
+        self.assertEqual(response.status_code, 401,
+                         ('Expected 401 forbidden when ' +
+                          'another user tried to get result (not %s)') % (response.status_code,))
+        response=client2.get('%sresults/' % (job_uri,), 
+                             params={'format': 'json'})
+        self.assertEqual(response.status_code, 404,
+                         ('Expected 401 forbidden when ' +
+                          'another user tried to get result (not %s)') % (response.status_code,))
         
-        
+        response=client.get('%sresults/' % (job_uri,), 
+                            params={'format': 'json'})
+        self.assertEqual(response.status_code, 200,
+                         'Status code expected was 200, not %s' % (response.status_code,))
+        logger.debug('Header is %s', response.headers)
+
+        data=json.loads(response.content)
     
     def test_prevent_user_from_using_other_user_data(self):
         '''

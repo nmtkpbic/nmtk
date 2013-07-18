@@ -5,19 +5,52 @@ from NMTK_server import models
 from NMTK_server.decorators import authentication
 from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
+from django.contrib.sites.models import get_current_site
 import requests
 import json
 import logging
 import collections
 from django.core.files.base import ContentFile
+from django.core.urlresolvers import reverse
 import tempfile
 from django.core.servers.basehttp import FileWrapper
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import logout
 from django.utils import timezone
-
+from django.conf import settings
+import hashlib
+import random
+from registration import models as registration_models
 
 logger=logging.getLogger(__name__)
+
+def registerUser(request):
+    if settings.REGISTRATION_OPEN==False:
+        return HttpResponseRedirect(reverse('registration_disallowed'))
+        return render(request, 
+                      'NMTK_server/registration_closed.html')
+    template='NMTK_server/registration_form.html'
+    site=get_current_site(request) 
+    if request.method == 'POST':
+        userform=forms.NMTKRegistrationForm(request.POST)
+        if userform.is_valid():
+            user=userform.save()
+            salt=hashlib.sha1(str(random.random())).hexdigest()[:5]
+            username=user.username
+            if isinstance(user.username, unicode):
+                username=username.encode('utf-8')
+            activation_key=hashlib.sha1(salt+username).hexdigest()
+            profile=registration_models.RegistrationProfile(user=user,
+                                                            activation_key=activation_key)
+            profile.save()
+            profile.send_activation_email(site)
+            return render(request, 
+                          'NMTK_server/registration_complete.html')
+    else:
+        userform=forms.NMTKRegistrationForm()
+    return render(request, template,
+                  {'form': userform,
+                   'site': site })
 
 @login_required
 @user_passes_test(lambda u: u.is_active)
@@ -168,12 +201,15 @@ def submitJob(request):
                   {'job_form': job_form,
                    'datafile_form': datafile_form })
     
+
+def nmtk_index(request):
+    return render(request, 'NMTK_server/index.html',
+                  {'registration_open': settings.REGISTRATION_OPEN})
+
 @user_passes_test(lambda u: u.is_active)
 @ensure_csrf_cookie
-def nmtk_server(request):
-    return render(request, 'NMTK_server/server.html')
-
-
+def nmtk_ui(request):
+    return render(request, 'NMTK_server/nmtk_ui.html')
 
 # Methods below are methods that are called by the tool to send results
 # back to the server.  As a result, they are not user-facing, and do not

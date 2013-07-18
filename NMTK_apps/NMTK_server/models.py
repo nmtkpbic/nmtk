@@ -17,22 +17,26 @@ logger=logging.getLogger(__name__)
 
 
 class NMTKDataFileSystemStorage(FileSystemStorage):
-    def url(name):
+    def url(self, name):
         raise NotImplementedError
         return reverse('NMTK_server.download_datafile',
                        kwargs={'file_id': name})
         
 class NMTKGeoJSONFileSystemStorage(FileSystemStorage):
-    def url(name):
+    def url(self, name):
         raise NotImplementedError
         return reverse('NMTK_server.download_geojson_datafile',
                        kwargs={'file_id': name})
         
 class NMTKResultsFileSystemStorage(FileSystemStorage):
-    def url(name):
-        raise NotImplementedError
+    '''
+    Kind of hokey here, but we will use the filename to determine the job
+    id, and thereby figure out how to generate the download link.
+    '''
+    def url(self, name):
+#        raise NotImplementedError
         return reverse('downloadResults',
-                       kwargs={'file_id': name})
+                       kwargs={'job_id': name.rsplit('/',2)[-1].split('.')[0]})
         
 location=os.path.join(settings.FILES_PATH, 'NMTK_server', 'files')
 fs = NMTKDataFileSystemStorage(location=location)
@@ -130,9 +134,11 @@ class Job(models.Model):
     ACTIVE='A'
     FAILED='F'
     COMPLETE='C'
+    TOOL_FAILED='TF'
     STATUS_CHOICES=((UNCONFIGURED,'Not Yet Configured'),
                     (ACTIVE,'Active',),
                     (FAILED,'Failed',),
+                    (TOOL_FAILED,'Tool Failed to Accept Job',),
                     (COMPLETE,'Complete'),
                     )
     
@@ -189,7 +195,8 @@ class Job(models.Model):
         '''
         result=super(Job, self).save(*args, **kwargs)
         if self._old_status == 'U' and self.status == 'A':
-            logger.debug('Detected a state change from Unconfigured to Active.')
+            logger.debug('Detected a state change from Unconfigured to ' + 
+                         'Active for job (%s.)', self.pk)
             logger.debug('Sending job to tool for processing.')
             # Submit the task to the client, passing in the job identifier.
             tasks.submitJob.delay(self)
@@ -292,7 +299,7 @@ class JobStatus(models.Model):
     probably be removed at some point after the job completes (or at least
     all but the most recent one can be removed.)
     '''
-    job=models.OneToOneField(Job)
+    job=models.ForeignKey(Job)
     timestamp=models.DateTimeField(auto_now_add=True)
     message=models.CharField(max_length=1024)
     objects=models.GeoManager()

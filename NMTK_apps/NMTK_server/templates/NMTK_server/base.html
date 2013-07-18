@@ -1,34 +1,121 @@
-{% load url from future %}
-{% load static %}
-<html>
-<head><title>View Results from NMTK Tool Run</title></head>
-<script src="{% get_static_prefix %}NMTK_server/js/jquery-1.9.0.min.js" type="text/javascript" language="javascript"></script>
-
-<script type="text/javascript" charset="utf-8">
-function loadResult() {
-	var url='{% url 'refreshStatus' job_id=job_id %}';
-	var results='{% url 'viewResults' job_id=job_id %}';
-	$.ajax({url: url, 
-		    cache: false,
-		    success: function(data) {
-					  if (data.status == 'COMPLETE') {
-						  window.location.replace(results);
-					  } else {
-						  $('#status').html(data.status);
-						  $('#message').hide();
-						  setTimeout(loadResult,1000)
-					  } 
-					},
-			error: function () { setTimeout(loadResult,1000); }
-	});
+{% load url from future %}{% load static %}{% load widget_tweaks %}<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+    <title>{% block title %}Login :: Base Admin{% endblock%}</title>
+    
+    {% block meta %}
+	<meta charset="utf-8">	
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes"> 
+    {% endblock %}
+    {% block meta_extra %}{% endblock %}
+    {% block css %}
+	<link href="{% get_static_prefix %}NMTK_server/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+	<link href="{% get_static_prefix %}NMTK_server/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
 	
-}
-$(document).ready(function() {	
-	loadResult();
-});
-</script>
+	<link href="{% get_static_prefix %}NMTK_server/css/font-awesome.min.css" rel="stylesheet">
+    <link href="http://fonts.googleapis.com/css?family=Open+Sans:400italic,600italic,400,600" rel="stylesheet">
+    
+    <link href="{% get_static_prefix %}NMTK_server/css/ui-lightness/jquery-ui-1.10.0.custom.min.css" rel="stylesheet">    
+    
+    <link href="{% get_static_prefix %}NMTK_server/css/base-admin-2.css" rel="stylesheet">
+    <link href="{% get_static_prefix %}NMTK_server/css/base-admin-2-responsive.css" rel="stylesheet">
+	
+    <link href="{% get_static_prefix %}NMTK_server/css/custom.css" rel="stylesheet">
+    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+	{% endblock %}
+	{% block css_extra %}
+	{% endblock %}
+</head>
+
 <body>
-<div id="status"></div>
-<div id="message">Waiting for a response from the tool.</div>
+	
+	<div class="navbar navbar-inverse navbar-fixed-top">
+	
+	<div class="navbar-inner">
+		
+		<div class="container">
+			
+			<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+				<i class="icon-cog"></i>
+			</a>
+			
+				
+			<a class="brand" href="{% url 'nmtk_server_nmtk_index' %}">
+				nmtk <sup>beta</sup>
+			</a>
+			<div class="nav-collapse">
+				<ul class="nav pull-right">
+					{% block right_nav %}
+					<li class="">						
+						<a href="{% url 'registration_register' %}" class="">
+							Create an Account
+						</a>
+						
+					</li>
+					
+					<li class="">						
+						<a href="{% url 'nmtk_server_nmtk_index' %}" class="">
+							<i class="icon-chevron-left"></i>
+							Back to Homepage
+						</a>
+						
+					</li>
+					{% endblock %}
+				</ul>
+				{% block navbar_extras %}
+				{% endblock %}
+				
+			</div><!--/.nav-collapse -->	
+	
+		</div> <!-- /container -->
+		
+	</div> <!-- /navbar-inner -->
+	
+</div> <!-- /navbar -->
+{% block navbars %}
+{% endblock %}
+{% block content %}
+
+{% endblock %}
+
+{% block footer %}
+<div class="footer">
+		
+	<div class="container">
+		
+		<div class="row">
+			
+			<div id="footer-copyright" class="span6">
+				&copy; 2012-{% now "Y" %} <a href="http://www.fhwa.dot.gov/">US Federal Highway Administration</a>
+			</div> <!-- /span6 -->
+			
+			
+			
+		</div> <!-- /row -->
+		
+	</div> <!-- /container -->
+	
+</div> <!-- /footer -->
+{% endblock %}
+
+{% block javascript %}
+
+<!-- Le javascript
+================================================== -->
+
+<script src="{% get_static_prefix %}NMTK_server/js/libs/jquery-1.8.3.min.js"></script>
+<script src="{% get_static_prefix %}NMTK_server/js/libs/jquery-ui-1.10.0.custom.min.js"></script>
+<script src="{% get_static_prefix %}NMTK_server/js/libs/bootstrap.min.js"></script>
+
+<script src="{% get_static_prefix %}NMTK_server/js/Application.js"></script>
+{% endblock %}
+{% block javascript_extra %}
+{% endblock %}
 </body>
+
 </html>

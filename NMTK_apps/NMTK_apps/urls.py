@@ -7,7 +7,7 @@ from django.views.generic import RedirectView
 
 urlpatterns = patterns('',
     # This one is used to generate the tool index for this tool server.
-    url(r'^index/?$', 'NMTK_tools.views.toolIndex', {}, name='tool_index'),
+    url(r'^index/$', 'NMTK_tools.views.toolIndex', {}, name='tool_index'),
     url(r'^MN_model/', include('MN_model.urls')),
     url(r'^SF_model/', include('SF_model.urls')),
 )

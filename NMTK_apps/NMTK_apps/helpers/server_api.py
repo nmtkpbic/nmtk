@@ -89,6 +89,7 @@ class NMTKClient(object):
             payload={'status': 'error' }
         else:
             payload={'status': 'results' }
+
         result=self._generate_request(url, payload, "post", data=data)
         return result['status']
     
@@ -101,6 +102,9 @@ class NMTKClient(object):
         '''
         url="%s/%s" % (self.url, "tools/update",)
         payload={'status': 'status' }
+        logger.debug("Logging result to %s", url)
+        logger.debug('Payload is %s', payload)
+        logger.debug('Status is %s', status)
         result=self._generate_request(url, payload, "post", data=status)
         logger.debug('Response from status update is %s', result)
         return result['status']

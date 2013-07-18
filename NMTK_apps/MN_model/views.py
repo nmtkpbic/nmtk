@@ -80,6 +80,7 @@ def runModel(request, tool_name):
     # So we expect there to be two keys for the uploaded files here,
     # config - for the config object
     # data - for the data object.
+    logger.debug('Keys in request.FILES are %s', request.FILES)
     logger.debug('config in request.FILES: %s', 'config' in request.FILES)
     logger.debug('data in request.FILES: %s', 'data' in request.FILES)
     if not ('config' in request.FILES and 'data' in request.FILES):
