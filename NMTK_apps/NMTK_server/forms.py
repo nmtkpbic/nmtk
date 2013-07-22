@@ -107,6 +107,7 @@ class ToolConfigForm(forms.Form):
         self.parameters=[]
         super(ToolConfigForm, self).__init__(*args, **kwargs)
         config=job.tool.toolconfig.json_config
+        job.data_file.processed_file.seek(0)
         data=json.loads(job.data_file.processed_file.read())
         source_fields=data['features'][0]['properties'].keys()
 #        logger.debug('Fields are %s', source_fields)

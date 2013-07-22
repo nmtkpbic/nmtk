@@ -13,6 +13,7 @@ from django.core.servers.basehttp import FileWrapper
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse, Http404
 from NMTK_server import forms
+import simplejson as json
 from tastypie.validation import Validation
 import logging
 import re
@@ -630,7 +631,7 @@ class JobResource(ModelResource):
         queryset = models.Job.objects.all()
         authorization=JobResourceAuthorization()
         validation=JobResourceValidation()
-#        always_return_data = True
+        always_return_data = True
         resource_name = 'job'
         authentication=SessionAuthentication()
         allowed_methods=['get','put','post','delete']

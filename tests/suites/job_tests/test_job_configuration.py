@@ -17,7 +17,7 @@ class TestJobConfiguration(NMTKTestCase):
         '''
         TearDown
         '''
-        super(TestJobConfiguration, self).tearDown()
+        #super(TestJobConfiguration, self).tearDown()
         
     def test_setup_job(self):
         '''
@@ -126,10 +126,9 @@ users cannot download results.
                             headers={'Content-Type': 'application/json',},
                             data=json.dumps(response))
         logger.debug('Response from job update was %s', response.text)
-        self.assertEqual(response.status_code, 204,
+        self.assertTrue(response.status_code in (204,202),
                          'Expected a return code of 204 with valid ' + 
                          'data provided got (%s)' % (response.status_code))
-
         # Now check the status to wait for completion
         timeout=time.time() + 120
         status_url=client.getURL('api','job_status/')
