@@ -1,5 +1,5 @@
 {% extends "NMTK_server/base.html" %}{% load url from future %}{% load static %}{% load widget_tweaks %}
-{% block title %}Non-Motorized Transportation Toolkit :: NMTK{% endblock%}
+{% block title %}{% comment %}Non-Motorized Transportation Toolkit :: NMTK{% endcomment %}{% endblock%}
 
 {% block right_nav %}
 	{% if user.is_active %}
@@ -36,6 +36,7 @@
 			<div class="error-container">
 				
 				<div class="error-details">
+				{% comment %}
 					<p>The US Federal Highway Administration Non-Motorized Toolkit (NMTK) is a
 					tool designed to facilitate the planning of non motorized forms of transportation
 					through the implementation and application of transportation models using region
@@ -49,7 +50,7 @@
 					This product is currently in development, and is not currently available to the 
 					public.
 					</p>
-					
+				{% endcomment %}
 				</div> <!-- /error-details -->
 										
 			</div> <!-- /error-container -->			

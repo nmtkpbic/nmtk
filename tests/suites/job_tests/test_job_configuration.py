@@ -96,7 +96,7 @@ users cannot download results.
         response=client.post(job_url, 
                              data=json.dumps(data),
                              headers={'Content-Type': 'application/json',})
-        logger.debug('Result from post was %s', response.text)
+        #logger.debug('Result from post was %s', response.text)
         self.assertEqual(response.status_code, 201,
                          ('Expected job to be created - ' +
                           'got back %s instead') % (response.status_code,))
@@ -114,16 +114,17 @@ users cannot download results.
         
         mform=ParseFile(StringIO.StringIO(form), job_uri,
                         backwards_compat=False)
-        logger.debug('Parsed form was %s', mform[0])
+        #logger.debug('Parsed form was %s', mform[0])
 
         post_dict=dict([(f.name, f.value) for f in mform[0].controls])
         for k, v in post_dict.iteritems():
             if isinstance(v, (list, tuple)) and len(v) == 1:
                 post_dict[k]=v[0]
-        logger.debug('Form parsed is %s', post_dict)
+        #logger.debug('Form parsed is %s', post_dict)
         response['config']=post_dict
         
-        response=client.put(job_uri, headers={'Content-Type': 'application/json',},
+        response=client.put(job_uri, 
+                            headers={'Content-Type': 'application/json',},
                             data=json.dumps(response))
         logger.debug('Response from job update was %s', response.status_code)
         self.assertEqual(response.status_code, 204,

@@ -1,0 +1,40 @@
+     	<div class="span6">	
+      		<div class="widget stacked">
+				<div class="widget-header">
+					<i class="icon-list-alt"></i>
+					<h3>Jobs</h3>
+				</div> <!-- /widget-header -->
+				<div class="widget-content">
+				<section id="tables">
+				<% if (meta.total_count > 0) { %>
+				<h4>Displaying Jobs <%= meta.offset+1 %> - <%= meta.offset+jobs.length %> (of <%= meta.total_count %> jobs.)</h4>	
+							  <table class="table table-bordered table-striped table-highlight"> 
+						        <thead>
+						          <tr>
+						            <th>Tool Name</th>
+						            <th>Create Date</th>
+						            <th>Status</th>
+						          </tr>
+						        </thead>
+						        <tbody>
+						        <% _.each(jobs, function(job) { %>
+						          <tr>
+						            <td><%= job.get("tool_name") %></td>
+						            <td><%= Date(job.get("date_created")) %></td>
+						     		<td><%= job.get("status") %></a></td>
+						          </tr>
+						         <% }); %>
+						          
+						        </tbody>
+						      </table>
+						      <%= pagertemplate %>
+		        <% } else { %>
+		        <h4>There are no jobs running, or results, available.</h4>
+		        <% } %>
+				</div> <!-- /widget-content -->
+			
+			</div> <!-- /widget -->	
+      		
+      		
+		
+	      </div> <!-- /span12 -->

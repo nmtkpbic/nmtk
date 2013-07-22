@@ -22,7 +22,8 @@ sudo rm -rf nmtk_files/*
 source venv/bin/activate
 pushd NMTK_apps
 python manage.py syncdb --noinput
-python manage.py collectstatic --noinput
+# Use the -l argument for development, otherwise js/css changes require recopying
+python manage.py collectstatic --noinput -l
 python manage.py createsuperuser --noinput --email=$EMAIL --username=$USERNAME
 echo "from django.contrib.auth.models import User; u = User.objects.get(username__exact='$USERNAME'); u.set_password('$PASSWORD'); u.first_name='$FIRSTNAME'; u.last_name='$LASTNAME'; u.save()"|python manage.py shell
 python manage.py discover_tools

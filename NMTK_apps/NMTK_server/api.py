@@ -142,6 +142,7 @@ class UserResource(ModelResource):
     class Meta:
         queryset=User.objects.filter(is_active=True)
         results_name='user'
+        always_return_data = True
         authentication=SessionAuthentication()
         authorization=UserResourceAuthorization()
         validation=UserResourceValidation()
@@ -407,6 +408,7 @@ class DataFileResource(ModelResource):
     class Meta:
         queryset = models.DataFile.objects.all()
         authorization=DataFileResourceAuthorization()
+        always_return_data = True
         resource_name = 'datafile'
         allowed_methods=['get','post','delete',]
         excludes=['file','processed_file','status', 'geom_type']
@@ -460,6 +462,7 @@ class ToolResource(ModelResource):
         queryset = models.Tool.objects.filter(active=True)
         resource_name = 'tool'
         authentication=SessionAuthentication()
+        always_return_data = True
         fields=['name', 'last_modified']
         allowed_methods=['get',]
         
@@ -619,6 +622,7 @@ class JobResource(ModelResource):
     form=fields.CharField(readonly=True,
                           help_text='JavaScript Representation of form')
     status=fields.CharField('status', readonly=True, null=True)
+    tool_name=fields.CharField('tool_name', readonly=True, null=True)
     config=fields.CharField('config', readonly=True, null=True)
     results=fields.CharField('results',readonly=True, null=True,
                              help_text='URL to download results')
@@ -626,6 +630,7 @@ class JobResource(ModelResource):
         queryset = models.Job.objects.all()
         authorization=JobResourceAuthorization()
         validation=JobResourceValidation()
+        always_return_data = True
         resource_name = 'job'
         authentication=SessionAuthentication()
         allowed_methods=['get','put','post','delete']
@@ -642,6 +647,7 @@ class JobResource(ModelResource):
             bundle.data['form']=forms.ToolConfigForm(job=bundle.obj, 
                                                      **kwargs).as_json()
         bundle.data['user'] = bundle.obj.user.username
+        bundle.data['tool_name']=bundle.obj.tool.name
         bundle.data['status']=bundle.obj.get_status_display()
         if bundle.obj.status == bundle.obj.COMPLETE:
             bundle.data['results']="%sresults/" % (bundle.data['resource_uri'],)
@@ -730,6 +736,7 @@ class JobStatusResource(ModelResource):
 
     class Meta:
         queryset = models.JobStatus.objects.all()
+        always_return_data = True
         authorization=JobStatusResourceAuthorization()
         resource_name = 'job_status'
         authentication=SessionAuthentication()

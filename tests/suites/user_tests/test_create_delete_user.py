@@ -193,7 +193,7 @@ class TestAPIUserManagement(NMTKTestCase):
         
         # Superuser tries to change user password.
         response=self.client.put(user2_url, data=json.dumps(client2_data))
-        self.assertEqual(204, response.status_code,
+        self.assertTrue(response.status_code in (202,204),
                          'Expected to get a 204 when a ' +
                          'superuser tries to change another users password')
         

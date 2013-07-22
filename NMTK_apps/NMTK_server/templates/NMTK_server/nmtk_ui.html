@@ -147,7 +147,7 @@
 <div class="main">
 
     <div class="container">
-
+{% comment %}
       <div class="row">
       	
       	<div class="span6">
@@ -156,13 +156,13 @@
 					
 				<div class="widget-header">
 					<i class="icon-star"></i>
-					<h3>Introduction</h3>
+					<h3>Recent News</h3>
 				</div> <!-- /widget-header -->
 				
 				<div class="widget-content">
 					<p>
-                    <h4>Welcome to {{nameofapplication}}</h4>
-					<h6>New to {{nameofapplicaiton}}? Check out the {{nameofapplicaiton}} User's Guide.</h6>
+                    <h4>Welcome to The Non-Motorized Toolkit (NMTK)</h4>
+					<h6>Currently there are 6 tools available.</h6>
                     </p>
                     <br />
                     
@@ -189,291 +189,19 @@
 					
 				</div> <!-- /widget-content -->
 					
-			</div> <!-- /widget -->	
-			
-			
-		
-      		
+			</div> <!-- /widget -->	      		
 	    </div> <!-- /span6 -->
-      	
-      	
-      	<div class="span6">	
-      		
-      		
-      				
-			<div class="widget widget-nopad stacked">
-						
-				<div class="widget-header">
-					<i class="icon-list-alt"></i>
-					<h3>Job Status and Results</h3>
-				</div> <!-- /widget-header -->
-				
-				<div class="widget-content">
-					
-					<ul class="news-items">
-						<li>
-							
-							<div class="news-item-detail">										
-								<a href="javascript:;" class="news-item-title">Duis aute irure dolor in reprehenderit</a>
-								<p class="news-item-preview">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore.</p>
-							</div>
-							
-							<div class="news-item-date">
-								<span>
-                                <img src="{% get_static_prefix %}NMTK_server/img/notifications/alert-32.png" />
-                                <img src="{% get_static_prefix %}NMTK_server/img/map-search.png" />
-                                </span>
-							</div>
-						</li>
-						<li>
-							<div class="news-item-detail">										
-								<a href="javascript:;" class="news-item-title">Duis aute irure dolor in reprehenderit</a>
-								<p class="news-item-preview">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore.</p>
-							</div>
-							
-							<div class="news-item-date">
-								<img src="{% get_static_prefix %}NMTK_server/img/notifications/success-32.png" />
-                                <img src="{% get_static_prefix %}NMTK_server/img/map-search.png" />
-							</div>
-						</li>
-						<li>
-							<div class="news-item-detail">										
-								<a href="javascript:;" class="news-item-title">Duis aute irure dolor in reprehenderit</a>
-								<p class="news-item-preview">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore.</p>
-							</div>
-							
-							<div class="news-item-date">
-								<img src="{% get_static_prefix %}NMTK_server/img/notifications/success-32.png" />
-                                <img src="{% get_static_prefix %}NMTK_server/img/map-search.png" />
-							</div>
-						</li>
-					</ul>
-					
-				</div> <!-- /widget-content -->
-			
-			</div> <!-- /widget -->	
-      		
-      		
-		
-	      </div> <!-- /span6 -->
-      	
+	 </div> <!--  /row -->
+{% endcomment %}
+     <div id="tools" class="row">
       </div> <!-- /row -->
       
-      
-       <div class="row">
-      	
-      	<div class="span12">
-      		
-      		<div class="widget stacked">
-					
-				<div class="widget-header">
-					<i class="icon-edit"></i>
-					<h3>Job Status and Results</h3>
-				</div> <!-- /widget-header -->
-				
-				<div class="widget-content">
-					
-<section id="tables">
-					<h4>Select an available tool list</h4>
-					
-					
-					
-					<table class="table table-bordered table-striped table-highlight">
-						        <thead>
-						          <tr>
-						            <th>Column#</th>
-						            <th>Column title</th>
-						            <th>Column title</th>
-						            <th>Column title</th>
-						          </tr>
-						        </thead>
-						        <tbody>
-						          <tr>
-						            <td>1</td>
-						            <td>row data</td>
-						            <td>row data</td>
-						            <td>row data</td>
-						          </tr>
-						          <tr>
-						            <td>2</td>
-						            <td>row data</td>
-						            <td>row data</td>
-						            <td>row data</td>
-						          </tr>
-						          <tr>
-						            <td>3</td>
-						            <td>row data</td>
-						            <td>row data</td>
-						            <td>row data</td>
-						          </tr>
-						          <tr>
-						            <td>4</td>
-						            <td>row data</td>
-						            <td>row data</td>
-						            <td>row data</td>
-						          </tr>
-						          <tr>
-						            <td>5</td>
-						            <td>row data</td>
-						            <td>row data</td>
-						            <td>row data</td>
-						          </tr>
-						        </tbody>
-						      </table>
-                              
-                              
-				<section id="paginations">
-					<div class="pagination">
-					  <ul>
-					    <li><a href="javascript:;">Prev</a></li>
-					    <li class="active">
-					      <a href="javascript:;">1</a>
-					    </li>
-					    <li><a href="javascript:;">2</a></li>
-					    <li><a href="javascript:;">3</a></li>
-					    <li><a href="javascript:;">4</a></li>
-					    <li><a href="javascript:;">Next</a></li>
-					  </ul>
-					</div>
-						      
-						</section>
-
-				<br />
-				<br />
-				<br />
-						      
-						      
-						      <h4>Select a file from the list below</h4>
-						      
-						      
-					<table class="table table-bordered table-striped">
-						        <thead>
-						          <tr>
-						            <th>Column#</th>
-						            <th>Column title</th>
-						            <th>Column title</th>
-						            <th>Column title</th>
-                                    <th>actions</th>
-						          </tr>
-						        </thead>
-						        <tbody>
-						          <tr>
-						            <td>1</td>
-						            <td>row data</td>
-						            <td>row data</td>
-						            <td>row data</td>
-                                    <td class="td-actions">
-									<a href="javascript:;" class="btn btn-small btn-warning">
-										<i class="btn-icon-only icon-ok"></i>										
-									</a>
-									
-									<a href="javascript:;" class="btn btn-small">
-										<i class="btn-icon-only icon-remove"></i>										
-									</a>
-								</td>
-						          </tr>
-						          <tr>
-						            <td>2</td>
-						            <td>row data</td>
-						            <td>row data</td>
-						            <td>row data</td>
-                                    <td class="td-actions">
-									<a href="javascript:;" class="btn btn-small btn-warning">
-										<i class="btn-icon-only icon-ok"></i>										
-									</a>
-									
-									<a href="javascript:;" class="btn btn-small">
-										<i class="btn-icon-only icon-remove"></i>										
-									</a>
-								</td>
-						          </tr>
-						          <tr>
-						            <td>3</td>
-						            <td>row data</td>
-						            <td>row data</td>
-						            <td>row data</td>
-                                    <td class="td-actions">
-									<a href="javascript:;" class="btn btn-small btn-warning">
-										<i class="btn-icon-only icon-ok"></i>										
-									</a>
-									
-									<a href="javascript:;" class="btn btn-small">
-										<i class="btn-icon-only icon-remove"></i>										
-									</a>
-								</td>
-						          </tr>
-						          <tr>
-						            <td>4</td>
-						            <td>row data</td>
-						            <td>row data</td>
-						            <td>row data</td>
-                                    <td class="td-actions">
-									<a href="javascript:;" class="btn btn-small btn-warning">
-										<i class="btn-icon-only icon-ok"></i>										
-									</a>
-									
-									<a href="javascript:;" class="btn btn-small">
-										<i class="btn-icon-only icon-remove"></i>										
-									</a>
-								</td>
-						          </tr>
-						          <tr>
-						            <td>5</td>
-						            <td>row data</td>
-						            <td>row data</td>
-						            <td>row data</td>
-                                    <td class="td-actions">
-									<a href="javascript:;" class="btn btn-small btn-warning">
-										<i class="btn-icon-only icon-ok"></i>										
-									</a>
-									
-									<a href="javascript:;" class="btn btn-small">
-										<i class="btn-icon-only icon-remove"></i>										
-									</a>
-								</td>
-						          </tr>
-						        </tbody>
-						      </table>
-						      
-						      
-						
-				<section id="paginations">
-					<div class="pagination">
-					  <ul>
-					    <li><a href="javascript:;">Prev</a></li>
-					    <li class="active">
-					      <a href="javascript:;">1</a>
-					    </li>
-					    <li><a href="javascript:;">2</a></li>
-					    <li><a href="javascript:;">3</a></li>
-					    <li><a href="javascript:;">4</a></li>
-					    <li><a href="javascript:;">Next</a></li>
-					  </ul>
-					</div>
-						      
-						</section>
-
-				<br />
-				<section id="buttons">
-
-					<a href="javascript:;" class="btn btn-large">Clear Selected</a>
-					<a href="javascript:;" class="btn btn-large btn-primary">Create a new job</a>&nbsp;&nbsp;&nbsp;
-						      
-						</section>
-						
-						
-						      
-						</section>
-					
-				</div> <!-- /widget-content -->
-					
-			</div> <!-- /widget -->					
-			
-	    </div> <!-- /span12 -->     	
-      	
-      	
+     <div id="jobs" class="row">
       </div> <!-- /row -->
-
+      
+      <div id="datafiles" class="row">
+      </div> <!-- /row -->
+  
     </div> <!-- /container -->
     
 </div> <!-- /main -->
@@ -482,13 +210,6 @@
 
 {% block javascript_extra %}
 
-
-<script src="{% get_static_prefix %}NMTK_server/js/plugins/flot/jquery.flot.js"></script>
-<script src="{% get_static_prefix %}NMTK_server/js/plugins/flot/jquery.flot.pie.js"></script>
-<script src="{% get_static_prefix %}NMTK_server/js/plugins/flot/jquery.flot.resize.js"></script>
-
-<script src="{% get_static_prefix %}NMTK_server/js/charts/area.js"></script>
-<script src="{% get_static_prefix %}NMTK_server/js/charts/donut.js"></script>
 {% endblock %}
   </body>
 </html>

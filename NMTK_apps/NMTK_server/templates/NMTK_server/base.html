@@ -5,6 +5,7 @@
     <title>{% block title %}Login :: Base Admin{% endblock%}</title>
     
     {% block meta %}
+    <div id="api" style="display: none;" data-api="{% url 'api_v1_top_level' api_name='v1' %}"></div>
 	<meta charset="utf-8">	
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes"> 
@@ -89,11 +90,11 @@
 	<div class="container">
 		
 		<div class="row">
-			
+			{% comment %}
 			<div id="footer-copyright" class="span6">
 				&copy; 2012-{% now "Y" %} <a href="http://www.fhwa.dot.gov/">US Federal Highway Administration</a>
 			</div> <!-- /span6 -->
-			
+			{% endcomment %}
 			
 			
 		</div> <!-- /row -->
@@ -108,11 +109,41 @@
 <!-- Le javascript
 ================================================== -->
 
-<script src="{% get_static_prefix %}NMTK_server/js/libs/jquery-1.8.3.min.js"></script>
-<script src="{% get_static_prefix %}NMTK_server/js/libs/jquery-ui-1.10.0.custom.min.js"></script>
-<script src="{% get_static_prefix %}NMTK_server/js/libs/bootstrap.min.js"></script>
+<script src="{% get_static_prefix %}NMTK_server/js/libs/require.js"></script>
+<script>
+require.config({
+	// Note: The line below is only for development, and should be removed
+	// before deployment.
+	// urlArgs: "bust=" +  (new Date()).getTime(),
+	baseUrl: "{% get_static_prefix %}NMTK_server/",
+	paths: {
+		"jquery": "js/libs/jquery-1.9.1.min",
+		"jquery.bootstrap": "js/libs/bootstrap.min",
+		"jquery.ui": "js/libs/jquery-ui-1.10.0.custom.min",
+		"jquery.private": "js/libs/jquery-private",
+		"backbone": "js/libs/backbone.min",
+		"underscore": "js/libs/underscore.min",
+		"Application": "js/Application",
+		"NMTK": "js/NMTK",
+		"text": "js/libs/text",
+	},
+	shim: {
+		'backbone': { deps: ['underscore','jquery'],
+		              exports: 'Backbone' },
+		'underscore': { exports: '_' },
+		'jquery.bootstrap': { deps: ['jquery'] },
+		'jquery.ui': { deps: ['jquery'] },
+	}
+});
 
-<script src="{% get_static_prefix %}NMTK_server/js/Application.js"></script>
+require(['Application','NMTK'], function(Application, NMTK) {
+	Application.initialize();
+	NMTK.initialize(); 
+});
+
+</script>
+
+
 {% endblock %}
 {% block javascript_extra %}
 {% endblock %}

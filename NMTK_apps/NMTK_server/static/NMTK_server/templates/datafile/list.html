@@ -1,0 +1,44 @@
+     	<div class="span6">	
+      		<div class="widget stacked">
+				<div class="widget-header">
+					<i class="icon-list-alt"></i>
+					<h3>Data Files</h3>
+				</div> <!-- /widget-header -->
+				<div class="widget-content">
+				<section id="tables">
+				<% if (meta.total_count > 0) { %>
+				<h4>Displaying Data Files <%= meta.offset+1 %> - <%= meta.offset+datafiles.length %> (of <%= meta.total_count %> datafiles.)</h4>	
+							  <table class="table table-bordered table-striped table-highlight"> 
+						        <thead>
+						          <tr>
+						            <th>Tool Name</th>
+						            <th>Create Date</th>
+						            <th>Features</th>
+						            <th>Status</th>
+						            <th>Operations</th>
+						          </tr>
+						        </thead>
+						        <tbody>
+						        <% _.each(datafiles, function(datafile) { %>
+						          <tr>
+						            <td><%= datafile.get("id") %></td>
+						            <td><%= Date(datafile.get("date_created")) %></td>
+						     		<td><%= datafile.get("feature_count") %></a></td>
+						     		<td><%= datafile.get("status") %></a></td>
+						     		<td>OPS HERE</a></td>
+						          </tr>
+						         <% }); %>
+						          
+						        </tbody>
+						      </table>
+						      <%= pagertemplate %>
+		        <% } else { %>
+		        <h4>You currently have no data files.</h4>
+		        <% } %>
+				</div> <!-- /widget-content -->
+			
+			</div> <!-- /widget -->	
+      		
+      		
+		
+	      </div> <!-- /span12 -->
