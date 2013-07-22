@@ -10,7 +10,7 @@ LOGFILE_PATH=os.path.abspath(os.path.join(BASE_PATH, '..','..','logs'))
 
 # Used to initialize the sites model (see: NMTK_server/management/__init__.py)
 SITE_DOMAIN='nmtk.otg-nc.com'
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = TASTYPIE_DEBUG = DEBUG
 djcelery.setup_loader()
 
