@@ -21,6 +21,9 @@ pushd $BASEDIR
 sudo rm -rf nmtk_files/*
 source venv/bin/activate
 pushd NMTK_apps
+pushd ../nmtk_files
+spatialite nmtk.sqlite  "SELECT InitSpatialMetaData();"
+popd
 python manage.py syncdb --noinput
 # Use the -l argument for development, otherwise js/css changes require recopying
 python manage.py collectstatic --noinput -l

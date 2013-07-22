@@ -122,11 +122,10 @@ users cannot download results.
                 post_dict[k]=v[0]
         #logger.debug('Form parsed is %s', post_dict)
         response['config']=post_dict
-        
         response=client.put(job_uri, 
                             headers={'Content-Type': 'application/json',},
                             data=json.dumps(response))
-        logger.debug('Response from job update was %s', response.status_code)
+        logger.debug('Response from job update was %s', response.text)
         self.assertEqual(response.status_code, 204,
                          'Expected a return code of 204 with valid ' + 
                          'data provided got (%s)' % (response.status_code))

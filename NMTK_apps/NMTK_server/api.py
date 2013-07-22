@@ -630,7 +630,7 @@ class JobResource(ModelResource):
         queryset = models.Job.objects.all()
         authorization=JobResourceAuthorization()
         validation=JobResourceValidation()
-        always_return_data = True
+#        always_return_data = True
         resource_name = 'job'
         authentication=SessionAuthentication()
         allowed_methods=['get','put','post','delete']

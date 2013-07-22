@@ -14,7 +14,16 @@ from django.conf import settings
 #    fields=('json_config_pretty',)
 
 class ToolServerAdmin(admin.ModelAdmin):
-    pass
+    readonly_fields=('created_by',)
+    list_display=['name','tool_server_id','active',]
+    def save_model(self, request, instance, form, change):
+        user = request.user 
+        if not change:
+            instance.created_by = user
+        instance = form.save(commit=False)
+        instance.save()
+        form.save_m2m()
+        return instance
 
 class ToolAdmin(admin.ModelAdmin):
     def json_configuration(self, obj):
