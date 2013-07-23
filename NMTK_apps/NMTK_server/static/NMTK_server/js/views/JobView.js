@@ -19,12 +19,10 @@ define(['jquery',
 			el: $('#jobs'),
 			initialize: function() {
 			    _.bindAll(this, 'pager');
-//			    _.bindAll(this, 'toolrefresh');
-//			    this.collection.bind('refresh', this.render);
 			},
 			events: {
-			    'click a.jobpager': 'pager',
-			    'click a.jobrefresh': 'render',
+			    'click a.pager': 'pager',
+			    'click a.refresh': 'render',
 			},
 			pager: function(item) {
 				var offset=$(item.target).data('offset');
@@ -45,7 +43,6 @@ define(['jquery',
 					               offset: offset}),
 				   success: function (tools) {
 				   		var context={'jobs': jobs.models,
-  								 	 'pagerclass': 'jobpager',
   								 	 'meta': jobs.recent_meta};
 				   		var pager=_.template(PagerTemplate, context);	
 				   		context['pagertemplate']=pager;

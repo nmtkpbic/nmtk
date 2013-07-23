@@ -4,7 +4,7 @@ define(['jquery',
         'js/views/UserView',
         'js/views/JobView',
         'js/views/ToolView',
-        'js/views/DataFileView'],
+        'js/views/DatafileView'],
         function ($, _, Backbone, UserView, JobView, ToolView, DatafileView) {
 			var NMTKRouter=Backbone.Router.extend({
 				routes: {
@@ -44,6 +44,7 @@ define(['jquery',
 				Backbone.history.start();
 				var datafileView=new DatafileView();
 				datafileView.render();
+
 			};
 			
 			return {

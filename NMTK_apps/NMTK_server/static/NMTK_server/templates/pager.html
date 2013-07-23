@@ -1,17 +1,17 @@
 <% if (meta.total_count > meta.limit) { %>
-	<section id="paginations-<%= pagerclass %>">
+	<section id="paginations-pager">
 		<div class="pagination">
 		  <ul>
 		  <% if (meta.offset >= meta.limit) { %>
-		    <li><a class="<%= pagerclass %>" data-offset="<%= meta.offset-meta.limit %>" href="#">Prev</a></li>
+		    <li><a class="pager" data-offset="<%= meta.offset-meta.limit %>" href="#">Prev</a></li>
 		    <% } %>
 		    <% for (var i=0; i < meta.total_count; i+=meta.limit) { %>
 		    <li <% if (meta.offset == i) { %>class="active"<% } %> >
-		      <a class="<%= pagerclass %>" href="#" data-offset="<%= i %>"><%= i/meta.limit+1 %></a>
+		      <a class="pager" href="#" data-offset="<%= i %>"><%= i/meta.limit+1 %></a>
 		    </li>
 		    <% } %>
 		    <% if (meta.offset+meta.limit < meta.total_count) { %>
-		    <li><a class="<%= pagerclass %>" data-offset="<%= meta.offset+meta.limit %>" href="#">Next</a></li>
+		    <li><a class="pager" data-offset="<%= meta.offset+meta.limit %>" href="#">Next</a></li>
 		    <% } %>
 		  </ul>
 		</div>

@@ -7,3 +7,7 @@ Last change:	06/3/2013
 Assigned to:	Chander or Tee
 
 -------------------------------------------------------------------*/
+.bar {
+    height: 18px;
+    background: green;
+}

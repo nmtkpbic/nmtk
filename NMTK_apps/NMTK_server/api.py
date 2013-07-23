@@ -11,6 +11,7 @@ from django.forms.models import model_to_dict
 from tastypie.utils import trailing_slash
 from django.core.servers.basehttp import FileWrapper
 from django.core.exceptions import ObjectDoesNotExist
+from tastypie.resources import csrf_exempt
 from django.http import HttpResponse, Http404
 from NMTK_server import forms
 import simplejson as json
@@ -245,6 +246,7 @@ class DataFileResourceAuthorization(Authorization):
         of this model, only superusers can create new users, so we simply return
         the empty list when they try to add objects.
         '''
+        logger.debug('Creating a new object')
         return object_list        
 
     def create_detail(self, object_list, bundle):
@@ -255,6 +257,7 @@ class DataFileResourceAuthorization(Authorization):
         can be created.  In our case, we only allow this record to be created
         when the user is an admin user.
         '''
+        logger.debug('in create_detail')
         return True
 
     def update_list(self, object_list, bundle):
@@ -340,6 +343,7 @@ class DataFileResource(ModelResource):
                                                                            self.wrap_view('download_detail_geojson'), 
                 name="api_%s_download_detail_geojson" % (self._meta.resource_name,)),
             ]
+        
     def download_detail_geojson(self, request, **kwargs):
         """
         Send a file through TastyPie without loading the whole file into

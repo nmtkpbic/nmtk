@@ -24,6 +24,13 @@ class ToolServerAdmin(admin.ModelAdmin):
         instance.save()
         form.save_m2m()
         return instance
+    
+    def add_view(self, request, form_url="", extra_context=None):
+        data = request.GET.copy()
+        data['created_by'] = request.user.id
+        request.GET = data
+        return super(ToolServerAdmin, self).add_view(request, form_url="", extra_context=extra_context)
+
 
 class ToolAdmin(admin.ModelAdmin):
     def json_configuration(self, obj):
@@ -55,8 +62,25 @@ class JobAdmin(admin.ModelAdmin):
         
     list_filter=['status','user']
     list_display=['tool','date_created','status','user', 'download_results_link']
-    fields=['tool','date_created','status','download_results_link','config']
-    readonly_fields=('tool','status','config','download_results_link','date_created',)
+    fields=['tool','date_created','status','download_results_link','config',
+            'user',]
+    readonly_fields=('tool','status','config','download_results_link','date_created',
+                     )
+    
+    def save_model(self, request, instance, form, change):
+        user = request.user 
+        if not change:
+            instance.user = user
+        instance = form.save(commit=False)
+        instance.save()
+        form.save_m2m()
+        return instance
+    def add_view(self, request, form_url="", extra_context=None):
+        data = request.GET.copy()
+        data['user'] = request.user.id
+        request.GET = data
+        return super(JobAdmin, self).add_view(request, form_url="", extra_context=extra_context)
+
 
 class JobStatusAdmin(admin.ModelAdmin):
     list_display=['job', 'timestamp', 'message']
@@ -75,7 +99,7 @@ class DataFileAdmin(admin.ModelAdmin):
 #                                                      obj.geojson_name))
     list_display=['id','user','date_created',
                   'feature_count','status']
-    list_filter=['user']
+    list_filter=['user',]
     fields=['user','date_created',
             #'data_file','data_file_geojson',
             'content_type',
@@ -84,6 +108,21 @@ class DataFileAdmin(admin.ModelAdmin):
             'extent','geom_type',
             'description']
     readonly_fields=fields[1:-1]
+    def save_model(self, request, instance, form, change):
+        user = request.user 
+        if not instance.user:
+            instance.user = user
+        instance = form.save(commit=False)
+        instance.save()
+        form.save_m2m()
+        return instance
+    
+    def add_view(self, request, form_url="", extra_context=None):
+        data = request.GET.copy()
+        data['user'] = request.user.id
+        request.GET = data
+        return super(DataFileAdmin, self).add_view(request, form_url="", extra_context=extra_context)
+
     
 
 

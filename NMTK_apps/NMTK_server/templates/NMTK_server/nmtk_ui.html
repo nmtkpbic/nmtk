@@ -31,10 +31,9 @@
 						</a>
 						
 						<ul class="dropdown-menu">
-							<!--<li><a href="javascript:;">My Profile</a></li>
-							<li><a href="javascript:;">My Groups</a></li>
+							<li><a href="#/password">Change Password</a></li>
 							<li class="divider"></li>
-							--><li><a href="{% url 'auth_logout' %}">Logout</a></li>
+							<li><a href="{% url 'auth_logout' %}">Logout</a></li>
 						</ul>
 						
 					</li>
@@ -209,7 +208,46 @@
 
 
 {% block javascript_extra %}
+<script>
+require.config({
+	// Note: The line below is only for development, and should be removed
+	// before deployment.
+	// urlArgs: "bust=" +  (new Date()).getTime(),
+	baseUrl: "{% get_static_prefix %}NMTK_server/",
+	paths: {
+		"jquery": "js/libs/jquery-1.9.1.min",
+		"jquery.bootstrap": "js/libs/bootstrap.min",
+		"jquery.ui": "js/libs/jquery-ui-1.10.0.custom.min",
+		"jquery.private": "js/libs/jquery-private",
+		"backbone": "js/libs/backbone.min",
+		"underscore": "js/libs/underscore.min",
+		"Application": "js/Application",
+		"domReady": "js/libs/domReady",
+		"NMTK": "js/NMTK",
+		"text": "js/libs/text",
+		"jquery.fileupload": "js/libs/jquery.fileupload",
+		"jquery.iframe-transport": "js/libs/jquery.iframe-transport",
+		"jquery.cookie": "js/libs/jquery.cookie"
+	},
+	shim: {
+		'backbone': { deps: ['underscore','jquery'],
+		              exports: 'Backbone' },
+		'underscore': { exports: '_' },
+		'jquery.bootstrap': { deps: ['jquery'] },
+	},
+	map: {
+		// Needed since fileupload needs widget, which is in UI
+			'*': {'jquery.ui.widget': 'jquery.ui' }
+		}
+});
 
+require(['Application','NMTK', 'jquery.bootstrap'], 
+		function(Application, NMTK) {
+	Application.initialize();
+	NMTK.initialize(); 
+});
+
+</script>
 {% endblock %}
   </body>
 </html>

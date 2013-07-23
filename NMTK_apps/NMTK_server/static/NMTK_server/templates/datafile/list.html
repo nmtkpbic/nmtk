@@ -1,19 +1,29 @@
-     	<div class="span6">	
+     	<div class="span12">	
       		<div class="widget stacked">
 				<div class="widget-header">
 					<i class="icon-list-alt"></i>
 					<h3>Data Files</h3>
 				</div> <!-- /widget-header -->
 				<div class="widget-content">
+				<div class="fileUploadView">
+				<form id="fileUpload"  method="POST" enctype="multipart/form-data">
+				Drag and drop a file here to upload..
+		      		<div id="progress">
+					    <div class="bar" style="width: 0%;"></div>
+					</div>
+				</form>
+				</div>
 				<section id="tables">
 				<% if (meta.total_count > 0) { %>
 				<h4>Displaying Data Files <%= meta.offset+1 %> - <%= meta.offset+datafiles.length %> (of <%= meta.total_count %> datafiles.)</h4>	
 							  <table class="table table-bordered table-striped table-highlight"> 
 						        <thead>
 						          <tr>
-						            <th>Tool Name</th>
-						            <th>Create Date</th>
+						            <th>File Name</th>
+						            <th>Description</th>
 						            <th>Features</th>
+						            <th>SRID</th>
+						            <th>Date Uploaded</th>
 						            <th>Status</th>
 						            <th>Operations</th>
 						          </tr>
@@ -21,11 +31,17 @@
 						        <tbody>
 						        <% _.each(datafiles, function(datafile) { %>
 						          <tr>
-						            <td><%= datafile.get("id") %></td>
+						            <td><%= datafile.get("name") %></td>
+						     		<td><%= datafile.get("description") %></td>
+						     		<td><%= datafile.get("feature_count") %></td>
+						     		<td><%= datafile.get("srid") %></td>
 						            <td><%= Date(datafile.get("date_created")) %></td>
-						     		<td><%= datafile.get("feature_count") %></a></td>
-						     		<td><%= datafile.get("status") %></a></td>
-						     		<td>OPS HERE</a></td>
+						     		<td><%= datafile.get("status") %></td>
+						     		<td>
+						     		<a href="javascript:;" class="btn btn-small">
+										<i class="btn-icon-only icon-remove"></i>										
+									</a>
+						     		</td>
 						          </tr>
 						         <% }); %>
 						          

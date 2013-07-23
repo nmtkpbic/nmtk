@@ -2,8 +2,12 @@ define(['jquery',
         'backbone',
         'underscore',
         'text!templates/datafile/list.html',
-        'text!templates/pager.html'], 
-   function ($, Backbone, _, DatafileListTemplate, PagerTemplate) {
+        'text!templates/pager.html',
+        'jquery.cookie',
+        'jquery.fileupload',
+        'jquery.iframe-transport'], 
+   function ($, Backbone, _,
+		   DatafileListTemplate, PagerTemplate) {
 		var Datafiles=Backbone.Collection.extend({
 			url: $('#api').data('api') + 'datafile/?format=json',
 			
@@ -18,20 +22,20 @@ define(['jquery',
 		var DatafileView = Backbone.View.extend({
 			el: $('#datafiles'),
 			initialize: function() {
-			    _.bindAll(this, 'pager');
-//			    _.bindAll(this, 'toolrefresh');
-//			    this.collection.bind('refresh', this.render);
+			    // add the dataTransfer property for use with the native `drop` event
+			    // to capture information about files dropped into the browser window
+			    _.bindAll(this, 'pager', 'render');
 			},
 			events: {
-			    'click a.datafilepager': 'pager',
-			    'click a.datafilerefresh': 'render',
+			    'click a.pager': 'pager',
+			    'click a.refresh': 'render',
 			},
 			pager: function(item) {
 				var offset=$(item.target).data('offset');
 			    this.render(offset);
 			    return false;
 			},
-			 
+			
 			render: function (offset) {
 			   if (typeof offset === 'undefined') {
 				   offset=0;
@@ -39,20 +43,38 @@ define(['jquery',
 			   var that=this;
 			   var datafiles=new Datafiles();
 			   // Limit sets the number of items that appear on each page
-			   var limit=2;
+			   var limit=10;
 			   datafiles.fetch({
 				   data: $.param({ limit: limit,
 					               offset: offset}),
 				   success: function (tools) {
-				   		var context={'datafiles': jobs.models,
-  								 	 'pagerclass': 'datafilepager',
-  								 	 'meta': datafiles.recent_meta};
+				   		var context={'datafiles': datafiles.models,
+  								 	 'meta': datafiles.recent_meta,
+  								 	 'url': datafiles.url };
 				   		var pager=_.template(PagerTemplate, context);	
 				   		context['pagertemplate']=pager;
 				   		var template=_.template(DatafileListTemplate,
 				   								context);
 				   		that.$el.html(template);
+				   		$('#fileUpload', that.el).fileupload();
+					    $('#fileUpload', that.el).fileupload('option', {
+					    	   url: datafiles.url,
+					    	   paramName: 'file',
+		    				   headers: {
+					    				  'X-CSRFToken': $.cookie('csrftoken')
+					    				 },
+		    				   progressall: function (e, data) {
+		    				        var progress = parseInt(data.loaded / data.total * 100, 10);
+		    				        $('#progress .bar', that.el).css(
+		    				            'width',
+		    				            progress + '%'
+		    				         );
+		    				   },
+		    				   always: function () { that.render(); }
+					    	   
+					    });
 			   		}
+			   
 			   })
 		}
 		});

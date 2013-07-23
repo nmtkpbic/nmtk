@@ -14,6 +14,7 @@
 						            <th>Tool Name</th>
 						            <th>Create Date</th>
 						            <th>Status</th>
+						            <th>Manage</th>
 						          </tr>
 						        </thead>
 						        <tbody>
@@ -21,7 +22,8 @@
 						          <tr>
 						            <td><%= job.get("tool_name") %></td>
 						            <td><%= Date(job.get("date_created")) %></td>
-						     		<td><%= job.get("status") %></a></td>
+						     		<td><%= job.get("status") %></td>
+						     		<td>Management Operations Here</td>
 						          </tr>
 						         <% }); %>
 						          
@@ -29,7 +31,7 @@
 						      </table>
 						      <%= pagertemplate %>
 		        <% } else { %>
-		        <h4>There are no jobs running, or results, available.</h4>
+		        <h4>There are no jobs running or results available.</h4>
 		        <% } %>
 				</div> <!-- /widget-content -->
 			

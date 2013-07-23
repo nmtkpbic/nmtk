@@ -110,38 +110,7 @@
 ================================================== -->
 
 <script src="{% get_static_prefix %}NMTK_server/js/libs/require.js"></script>
-<script>
-require.config({
-	// Note: The line below is only for development, and should be removed
-	// before deployment.
-	// urlArgs: "bust=" +  (new Date()).getTime(),
-	baseUrl: "{% get_static_prefix %}NMTK_server/",
-	paths: {
-		"jquery": "js/libs/jquery-1.9.1.min",
-		"jquery.bootstrap": "js/libs/bootstrap.min",
-		"jquery.ui": "js/libs/jquery-ui-1.10.0.custom.min",
-		"jquery.private": "js/libs/jquery-private",
-		"backbone": "js/libs/backbone.min",
-		"underscore": "js/libs/underscore.min",
-		"Application": "js/Application",
-		"NMTK": "js/NMTK",
-		"text": "js/libs/text",
-	},
-	shim: {
-		'backbone': { deps: ['underscore','jquery'],
-		              exports: 'Backbone' },
-		'underscore': { exports: '_' },
-		'jquery.bootstrap': { deps: ['jquery'] },
-		'jquery.ui': { deps: ['jquery'] },
-	}
-});
 
-require(['Application','NMTK'], function(Application, NMTK) {
-	Application.initialize();
-	NMTK.initialize(); 
-});
-
-</script>
 
 
 {% endblock %}

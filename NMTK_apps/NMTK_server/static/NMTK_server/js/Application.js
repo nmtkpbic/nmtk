@@ -1,7 +1,7 @@
 // Some basic Jquery UI/Bootstrap components to implement
 // simple effects on the page.
 
-define([ 'jquery', 'js/libs/domReady'], 
+define([ 'jquery', 'domReady'], 
 		function ($, domReady){		
 		
 			var initialize = function() {
