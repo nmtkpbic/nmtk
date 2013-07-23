@@ -34,7 +34,7 @@
 </head>
 
 <body>
-	
+	 <div id="wrap">
 	<div class="navbar navbar-inverse navbar-fixed-top">
 	
 	<div class="navbar-inner">
@@ -83,18 +83,19 @@
 {% block content %}
 
 {% endblock %}
-
+<div id="push"></div>
+</div>
 {% block footer %}
 <div class="footer">
 		
 	<div class="container">
 		
 		<div class="row">
-			{% comment %}
+			
 			<div id="footer-copyright" class="span6">
 				&copy; 2012-{% now "Y" %} <a href="http://www.fhwa.dot.gov/">US Federal Highway Administration</a>
 			</div> <!-- /span6 -->
-			{% endcomment %}
+			
 			
 			
 		</div> <!-- /row -->

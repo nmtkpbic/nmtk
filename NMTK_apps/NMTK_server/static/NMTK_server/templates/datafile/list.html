@@ -1,16 +1,16 @@
-     	<div class="span12">	
       		<div class="widget stacked">
 				<div class="widget-header">
 					<i class="icon-list-alt"></i>
 					<h3>Data Files</h3>
 				</div> <!-- /widget-header -->
 				<div class="widget-content">
-				<div class="fileUploadView">
+				<div class="fileUploadView well">
 				<form id="fileUpload"  method="POST" enctype="multipart/form-data">
-				Drag and drop one or more files here to upload..
-		      		<div id="progress">
+		      		<div class="progress progress-success progress-striped active" id="progress">
 					    <div class="bar" style="width: 0%;"></div>
 					</div>
+					<h4 class="text-center">Drag one or more geospatial datafiles here to add them to your list of files.</h4>
+					<p class="text-center">(Files will upload one at a time, with a progress bar reflecting upload status.)</p>
 				</form>
 				</div>
 				<section id="tables">
@@ -20,10 +20,8 @@
 						        <thead>
 						          <tr>
 						            <th>File Name</th>
-						            <th>Description</th>
 						            <th>Features</th>
 						            <th>SRID</th>
-						            <th>Date Uploaded</th>
 						            <th>Status</th>
 						            <th>Operations</th>
 						          </tr>
@@ -32,10 +30,8 @@
 						        <% _.each(datafiles, function(datafile) { %>
 						          <tr>
 						            <td><%= datafile.get("name") %></td>
-						     		<td><%= datafile.get("description") %></td>
 						     		<td><%= datafile.get("feature_count") %></td>
 						     		<td><%= datafile.get("srid") %></td>
-						            <td><%= Date(datafile.get("date_created")) %></td>
 						     		<td><%= datafile.get("status") %></td>
 						     		<td>
 						     		<a data-pk="<%= datafile.get('id') %>" class="btn btn-small remove">
@@ -62,8 +58,4 @@
 		        <% } %>
 				</div> <!-- /widget-content -->
 			
-			</div> <!-- /widget -->	
-      		
-      		
-		
-	      </div> <!-- /span12 -->
+			</div> <!-- /widget -->

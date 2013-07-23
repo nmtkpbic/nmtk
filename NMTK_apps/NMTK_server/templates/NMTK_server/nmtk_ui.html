@@ -71,67 +71,18 @@
 			<div class="subnav-collapse collapse">
 				<ul class="mainnav">
 				
-					<li class="active">
-						<a href="{% url 'nmtk_server_nmtk_ui' %}">
-							<i class="icon-home"></i>
-							<span>Home</span>
-						</a>	    				
+					<li id="dashboard-tab">
+						<a href="#">
+							<i class="icon-dashboard"></i>
+							<span>Dashboard</span>
+						</a>				
 					</li>
-					{% comment %}
-					<li class="dropdown">					
-						<a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown">
-							<i class="icon-copy"></i>
-							<span>Future Link?</span>
-							<b class="caret"></b>
+					<li id="createjob-tab">					
+						<a href="#/job/">
+							<i class="icon-magic"></i>
+							<span>Create Job</span>
 						</a>	    
-					
-						<ul class="dropdown-menu">
-							<li><a href="#">Sub link?</a></li>
-							<li><a href="#">Sub link?</a></li>
-							<li><a href="#">Sub link?</a></li>
-						</ul> 				
 					</li>
-					
-					<li class="dropdown">					
-						<a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown">
-							<i class="icon-external-link"></i>
-							<span>Future Link?</span>
-							<b class="caret"></b>
-						</a>	    
-					
-						<ul class="dropdown-menu">
-							<li><a href="#">Sub link?</a></li>
-							<li><a href="#">Sub link?</a></li>
-							<li><a href="#">Sub link?</a></li>
-						</ul> 			
-					</li>
-					
-					<li class="dropdown">					
-						<a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown">
-							<i class="icon-th"></i>
-							<span>Future Link?</span>
-							<b class="caret"></b>
-						</a>	
-					
-						<ul class="dropdown-menu">
-							<ul class="dropdown-menu">
-							<li><a href="#">Sub link?</a></li>
-							<li><a href="#">Sub link?</a></li>
-							<li><a href="#">Sub link?</a></li>
-						</ul> 
-							<li class="dropdown-submenu">
-			                  <a tabindex="-1" href="#">Dropdown menu</a>
-			                  <ul class="dropdown-menu">
-
-							<li><a href="#">Sub link?</a></li>
-							<li><a href="#">Sub link?</a></li>
-							<li><a href="#">Sub link?</a></li>
-
-			                  </ul>
-			                </li>
-						</ul>    				
-					</li>
-					{% endcomment %}
 				</ul>
 			</div> <!-- /.subnav-collapse -->
 
@@ -143,64 +94,44 @@
 
 {% endblock %}
 {% block content %}
-<div class="main">
+<div id="dashboard" class="main">
 
     <div class="container">
-{% comment %}
-      <div class="row">
-      	
-      	<div class="span6">
-      		
-      		<div class="widget stacked">
-					
-				<div class="widget-header">
-					<i class="icon-star"></i>
-					<h3>Recent News</h3>
-				</div> <!-- /widget-header -->
-				
-				<div class="widget-content">
-					<p>
-                    <h4>Welcome to The Non-Motorized Toolkit (NMTK)</h4>
-					<h6>Currently there are 6 tools available.</h6>
-                    </p>
-                    <br />
-                    
-					<div class="stats">
-						
-						<div class="stat">
-							<span class="stat-value">12,386</span>									
-							Data Point
-						</div> <!-- /stat -->
-						
-						<div class="stat">
-							<span class="stat-value">9,249</span>									
-							Data Point
-						</div> <!-- /stat -->
-						
-						<div class="stat">
-							<span class="stat-value">70%</span>									
-							Data Point
-						</div> <!-- /stat -->
-						
-					</div> <!-- /stats -->
-					
-	
-					
-				</div> <!-- /widget-content -->
-					
-			</div> <!-- /widget -->	      		
-	    </div> <!-- /span6 -->
-	 </div> <!--  /row -->
-{% endcomment %}
-     <div id="tools" class="row">
+     <div class="row">
+     <div id="datafiles" class="span6">
+     </div><!--  /span6 -->
+     <div id="jobs" class="span6">
+     </div><!--  /span6 -->
       </div> <!-- /row -->
       
-     <div id="jobs" class="row">
-      </div> <!-- /row -->
       
-      <div id="datafiles" class="row">
-      </div> <!-- /row -->
+     
   
+    </div> <!-- /container -->
+    
+</div> <!-- /main -->
+<div id="createjob" class="main">
+
+    <div class="container">
+    <div class="row">
+      <div class="span2 bs-docs-sidebar">
+        <ul class="nav nav-list bs-docs-sidenav">
+          <li><a href="#/job/#choose_tool"><i class="icon-chevron-right"></i> Choose Tool</a></li>
+          <li><a href="#/job/#choose_file"><i class="icon-chevron-right"></i> Choose File</a></li>
+          <li><a href="#/job/#configure_job"><i class="icon-chevron-right"></i> Configure Job</a></li>
+          <li><a href="#/job/#submit"><i class="icon-chevron-right"></i> Submit Job</a></li>
+        </ul>
+      </div>
+     <div class="span10">
+     	<section id="jobs_createjob">
+	     </section>
+     	<section id="tools_select">
+	     </section>
+	     <section id="datafiles_select">
+	     </section>
+	     <button id="createjob_button" class="btn btn-primary btn-large" type="button"></button>
+      </div> <!-- /span10 -->
+  </div> <!--  /row -->
     </div> <!-- /container -->
     
 </div> <!-- /main -->

@@ -62,6 +62,10 @@ class ModelResource(TastyPieModelResource):
                                                              format=format)
         
         return deserialized
+    
+    def alter_list_data_to_serialize(self, request, data):
+        data['meta']['refresh_interval']=60000
+        return data
 
     def save(self, bundle, skip_errors=False):
         '''

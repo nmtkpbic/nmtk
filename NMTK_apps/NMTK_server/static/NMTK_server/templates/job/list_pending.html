@@ -1,12 +1,12 @@
       		<div class="widget stacked">
 				<div class="widget-header">
 					<i class="icon-list-alt"></i>
-					<h3>Jobs</h3>
+					<h3>Jobs</h3><a class="text-right jobs-refresh"><i class="icon-refresh"></i></a>
 				</div> <!-- /widget-header -->
 				<div class="widget-content">
 				<section id="tables">
 				<% if (meta.total_count > 0) { %>
-				<h4>Displaying Jobs <%= meta.offset+1 %> - <%= meta.offset+jobs.length %> (of <%= meta.total_count %> jobs.)</h4>	
+				<h4>Displaying Unconfigured Jobs <%= meta.offset+1 %> - <%= meta.offset+jobs.length %> (of <%= meta.total_count %> jobs.)</h4>	
 							  <table class="table table-bordered table-striped table-highlight"> 
 						        <thead>
 						          <tr>
@@ -22,7 +22,11 @@
 						            <td><%= job.get("tool_name") %></td>
 						            <td><%= Date(job.get("date_created")) %></td>
 						     		<td><%= job.get("status") %></td>
-						     		<td>Management Operations Here</td>
+						     		<td><a data-pk="<%= job.get('job_id') %>" class="btn btn-small remove">
+										<i class="btn-icon-only icon-remove"></i>										
+									</a><a data-pk="<%= job.get('job_id') %>" class="btn btn-small edit">
+										<i class="btn-icon-only icon-edit"></i>										
+									</a></td>
 						          </tr>
 						         <% }); %>
 						          
@@ -30,7 +34,7 @@
 						      </table>
 						      <%= pagertemplate %>
 		        <% } else { %>
-		        <h4>There are no jobs running or results available.</h4>
+		        <h4>You currently have no unconfigured jobs.</h4>
 		        <% } %>
 				</div> <!-- /widget-content -->
 			

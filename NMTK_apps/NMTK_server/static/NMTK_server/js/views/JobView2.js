@@ -3,12 +3,12 @@ define(['jquery',
         'underscore',
         'js/models/JobModel',
         'js/collections/JobsCollection',
-        'text!templates/job/list.html',
+        'text!templates/job/list_pending.html',
         'text!templates/pager.html'], 
-   function ($, Backbone, _, JobModel, JobsCollection,
+   function ($, Backbone, _, JobModel, JobsCollection, 
 		     JobListTemplate, PagerTemplate) {
 		var JobView = Backbone.View.extend({
-			el: $('#jobs'),
+			el: $('#jobs_createjob'),
 			offset: 0,
 			limit: 5,
 			stopped: false,
@@ -19,14 +19,15 @@ define(['jquery',
 			    'click a.pager': 'pager',
 			    'click a.refresh': 'render',
 			    'click a.remove': 'destroy',
-			    'click a.edit': 'edit'
+			    'click a.edit': 'edit',
+			    'click a.jobs-refresh': 'render'
 			},
 			pager: function(item) {
 				var offset=$(item.currentTarget).data('offset');
 			    this.render(offset);
 			    return false;
 			},
-			 
+			
 			destroy: function(item) {
 				var id=$(item.currentTarget).data('pk');
 				var model=new JobModel({'id': id});
@@ -42,7 +43,7 @@ define(['jquery',
 				var id=$(item.currentTarget).data('pk');
 				console.log('Edit ' + id)
 			},
-			
+			 
 			render: function (offset) {
 			   if (this.stopped) { return; }
 
@@ -53,11 +54,10 @@ define(['jquery',
 			   var jobs=new JobsCollection();
 			   jobs.fetch({
 				   data: $.param({ limit: this.limit,
-					   // Get those jobs which are not unconfigured.
-					   			   status__in: 'TF,C,A,F',
+					   			   status: 'U',
 					               offset: this.offset}),
 				   success: function (jobs) {
-				   		if ((jobs.models.length == 0) &&
+				  		if ((jobs.models.length == 0) &&
 				   			(jobs.recent_meta.total_count > 0)) {
 				   			that.offset-=that.limit;
 				   			_.delay(that.render, 1);
@@ -70,7 +70,6 @@ define(['jquery',
 				   		var template=_.template(JobListTemplate,
 				   								context);
 				   		that.$el.html(template);
-				   		// Update every 30s to get any jobs that were completed
 				   		_.delay(that.render, jobs.recent_meta.refresh_interval);
 			   		}
 			   		

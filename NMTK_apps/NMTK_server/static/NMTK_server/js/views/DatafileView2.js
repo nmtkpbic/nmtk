@@ -3,49 +3,45 @@ define(['jquery',
         'underscore',
         'js/models/DatafileModel',
         'js/collections/DatafileCollection',
-        'text!templates/datafile/list.html',
+        'text!templates/datafile/list_select.html',
         'text!templates/pager.html',
         'jquery.cookie',
         'jquery.fileupload',
         'jquery.iframe-transport'], 
-   function ($, Backbone, _, DatafileModel, DatafileCollection,
-		   DatafileListTemplate, PagerTemplate) {			
+   function ($, Backbone, _,DatafileModel,DatafileCollection,
+		   DatafileListTemplate, PagerTemplate) {		
 		var DatafileView = Backbone.View.extend({
-			el: $('#datafiles'),
+			el: $('#datafiles_select'),
 			offset: 0,
 			limit: 5,
 			stopped: false,
 			initialize: function() {
 			    // add the dataTransfer property for use with the native `drop` event
 			    // to capture information about files dropped into the browser window
-			    _.bindAll(this, 'pager', 'render', 'edit','destroy');
+			    _.bindAll(this, 'pager', 'render', 'checkbox');
 			},
 			events: {
+				'click input:checkbox[name="datafile_uri"]': 'checkbox',
 			    'click a.pager': 'pager',
 			    'click a.refresh': 'render',
-			    'click a.remove': 'destroy',
-			    'click a.edit': 'edit'
 			},
+			
+			checkbox: function (elem) {
+				// Ensure only one checkbox is checked at a time.
+				var $elem=$(elem.currentTarget);
+			    if ($elem.is(":checked")) {
+			        var group = "input:checkbox[name='" + $elem.attr("name") + "']";
+			        $(group).prop("checked", false);
+			        $elem.prop("checked", true);
+			    } else {
+			        $elem.prop("checked", false);
+			    }
+			},
+			
 			pager: function(item) {
 				var offset=$(item.currentTarget).data('offset');
 			    this.render(offset);
 			    return false;
-			},
-			
-			destroy: function(item) {
-				var id=$(item.currentTarget).data('pk');
-				var model=new DatafileModel({'id': id});
-				var that=this;
-				model.destroy({
-					success: function(model, response) {
-								that.render();
-							}
-				});
-			},
-
-			edit: function(item) {
-				var id=$(item.currentTarget).data('pk');
-				console.log('Edit ' + id)
 			},
 			
 			render: function (offset) {
@@ -57,8 +53,9 @@ define(['jquery',
 			   var datafiles=new DatafileCollection();
 			   datafiles.fetch({
 				   data: $.param({ limit: this.limit,
+					               status: 3,
 					               offset: this.offset}),
-				   success: function (datafiles) {
+				   success: function (tools) {
 				   		if ((datafiles.models.length == 0) &&
 				   			(datafiles.recent_meta.total_count > 0)) {
 				   			that.offset-=that.limit;
@@ -73,23 +70,6 @@ define(['jquery',
 				   		var template=_.template(DatafileListTemplate,
 				   								context);
 				   		that.$el.html(template);
-				   		// Update every 2 seconds until the files processing
-				   		// are complete, then switch to every 60s to catch
-				   		// uploads that might have happened in other windows.
-				   		_.delay(that.render, datafiles.recent_meta.refresh_interval);
-				   		$('#fileUpload', that.el).fileupload();
-					    $('#fileUpload', that.el).fileupload('option', {
-					    	   url: datafiles.url,
-					    	   paramName: 'file',
-		    				   progressall: function (e, data) {
-		    				        var progress = parseInt(data.loaded / data.total * 100, 10);
-		    				        $('#progress .bar', that.el).css(
-		    				            'width',
-		    				            progress + '%'
-		    				         );
-		    				   },
-		    				   always: function () { that.render(); } 
-					    });
 			   		}
 			   
 			   })

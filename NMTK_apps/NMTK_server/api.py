@@ -408,6 +408,8 @@ class DataFileResource(ModelResource):
         excludes=['file','processed_file','status', 'geom_type']
         authentication=SessionAuthentication()
         validation=DataFileResourceValidation()
+        filtering= {'status': ALL,
+                    'user': ALL}
 
     def pre_save(self, bundle):
         '''
@@ -428,6 +430,22 @@ class DataFileResource(ModelResource):
             bundle.obj.name=os.path.basename(bundle.obj.file.name)
             
         return bundle
+    
+    def alter_list_data_to_serialize(self, request, data):
+        '''
+        Loop over the list of objects and count how many are currently pending,
+        this is then used to update the importing count for the UI, so it knows
+        how often to update itself (in milliseconds.)
+        '''
+        count=0
+        for item in data['objects']:
+            if item.obj.status in (item.obj.PENDING, item.obj.PROCESSING):
+                count += 1
+        if count:
+            data['meta']['refresh_interval']=3000
+        else:
+            data['meta']['refresh_interval']=60000
+        return data
     
     def dehydrate(self,bundle):
         '''
@@ -632,6 +650,8 @@ class JobResource(ModelResource):
         resource_name = 'job'
         authentication=SessionAuthentication()
         allowed_methods=['get','put','post','delete']
+        filtering= {'status': ALL,
+                    'user': ALL}
 
     def pre_save(self, bundle):
         bundle.obj.user=bundle.request.user
