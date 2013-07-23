@@ -7,7 +7,7 @@
 				<div class="widget-content">
 				<div class="fileUploadView">
 				<form id="fileUpload"  method="POST" enctype="multipart/form-data">
-				Drag and drop a file here to upload..
+				Drag and drop one or more files here to upload..
 		      		<div id="progress">
 					    <div class="bar" style="width: 0%;"></div>
 					</div>
@@ -38,8 +38,17 @@
 						            <td><%= Date(datafile.get("date_created")) %></td>
 						     		<td><%= datafile.get("status") %></td>
 						     		<td>
-						     		<a href="javascript:;" class="btn btn-small">
+						     		<a data-pk="<%= datafile.get('id') %>" class="btn btn-small remove">
 										<i class="btn-icon-only icon-remove"></i>										
+									</a>
+									<a data-pk="<%= datafile.get('id') %>" class="btn btn-small edit">
+										<i class="btn-icon-only icon-edit"></i>										
+									</a>
+									<a href="<%= datafile.get('file') %>" class="btn btn-small download">
+										<i class="btn-icon-only icon-download"></i>										
+									</a>
+									<a href="<%= datafile.get('geojson') %>" class="btn btn-small download">
+										<i class="btn-icon-only icon-map-marker"></i>										
 									</a>
 						     		</td>
 						          </tr>

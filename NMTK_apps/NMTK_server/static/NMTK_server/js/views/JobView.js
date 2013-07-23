@@ -25,7 +25,7 @@ define(['jquery',
 			    'click a.refresh': 'render',
 			},
 			pager: function(item) {
-				var offset=$(item.target).data('offset');
+				var offset=$(item.currentTarget).data('offset');
 			    this.render(offset);
 			    return false;
 			},

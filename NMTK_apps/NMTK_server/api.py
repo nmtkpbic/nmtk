@@ -352,8 +352,6 @@ class DataFileResource(ModelResource):
 
         No need to build a bundle here only to return a file, lets look into the DB directly
         """
-        allow_download=False
-        logger.debug('In download_detail_geojson with %s', kwargs)
         try:
             if request.user.is_superuser:
                 rec = self._meta.queryset.get(pk=kwargs['pk'])
@@ -362,21 +360,16 @@ class DataFileResource(ModelResource):
                                               user=request.user)
         except ObjectDoesNotExist:
             raise Http404
-        if rec.results:
-            # if there are results, then they can download them
-            allow_download=True
         if not rec.processed_file:
             raise Http404
         
-        if allow_download:
-            wrapper = FileWrapper(open(rec.processed_file.path,'rb'))
-            response = HttpResponse(wrapper, content_type='application/json') #or whatever type you want there
-            response['Content-Length'] = rec.processed_file.size
-            response['Content-Disposition'] = ('attachment; ' +
-                                               'filename="data.geojson"')
-            return response        
-        else:
-            raise Unauthorized('You lack the privileges required to download this file')
+        
+        wrapper = FileWrapper(open(rec.processed_file.path,'rb'))
+        response = HttpResponse(wrapper, content_type='application/json') #or whatever type you want there
+        response['Content-Length'] = rec.processed_file.size
+        response['Content-Disposition'] = ('attachment; ' +
+                                           'filename="data.geojson"')
+        return response        
 
     def download_detail_file(self, request, **kwargs):
         """
@@ -386,8 +379,6 @@ class DataFileResource(ModelResource):
 
         No need to build a bundle here only to return a file, lets look into the DB directly
         """
-        allow_download=False
-        logger.debug('In download_detail_file with %s', kwargs)
         try:
             if request.user.is_superuser:
                 rec = self._meta.queryset.get(pk=kwargs['pk'])
@@ -396,20 +387,18 @@ class DataFileResource(ModelResource):
                                               user=request.user)
         except ObjectDoesNotExist:
             raise Http404
-        if rec.results:
+        if not rec.file:
             # if there are results, then they can download them
-            allow_download=True
+            raise Http404
             
-        if allow_download:
-            wrapper = FileWrapper(open(rec.file.path,'rb'))
-            response = HttpResponse(wrapper, content_type=rec.content_type) #or whatever type you want there
-            response['Content-Length'] = rec.file.size
-            response['Content-Disposition'] = ('attachment; filename="%s"' % 
-                                               (os.path.basename(rec.file.name)))
-            return response        
-        else:
-            raise Unauthorized('You lack the privileges required to download this file')
         
+        wrapper = FileWrapper(open(rec.file.path,'rb'))
+        response = HttpResponse(wrapper, content_type=rec.content_type) #or whatever type you want there
+        response['Content-Length'] = rec.file.size
+        response['Content-Disposition'] = ('attachment; filename="%s"' % 
+                                           (os.path.basename(rec.file.name)))
+        return response        
+
     class Meta:
         queryset = models.DataFile.objects.all()
         authorization=DataFileResourceAuthorization()
@@ -448,7 +437,11 @@ class DataFileResource(ModelResource):
         them during the hydrate cycle...
         '''
         if bundle.obj.file:
-            bundle.data['file']="%sresults/" % (bundle.data['resource_uri'],)
+            bundle.data['file']=reverse("api_%s_download_detail" % 
+                                        (self._meta.resource_name,),
+                                        kwargs={'resource_name': self._meta.resource_name,
+                                                'pk': bundle.obj.pk,
+                                                'api_name': 'v1'})
         if bundle.obj.processed_file:
             bundle.data['geojson']="%sgeojson/" % (bundle.data['resource_uri'],)
         bundle.data['status']=bundle.obj.get_status_display()
