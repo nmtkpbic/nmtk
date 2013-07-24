@@ -29,7 +29,8 @@ define(['jquery',
 							  tool: tool
 							},{
 							success: function (job) {
-								 Backbone.history.navigate('#/configure/'+job.get("job_id")) 
+								 Backbone.history.navigate('#/configure/'+job.get("job_id"),
+											{'trigger': true});
 							}
 							});
 				}

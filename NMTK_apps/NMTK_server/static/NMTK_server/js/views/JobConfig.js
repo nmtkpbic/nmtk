@@ -3,9 +3,10 @@ define(['jquery',
         'underscore',
         'js/models/JobModel',
         'text!templates/job/configuration.html',
+        'text!templates/job/configuration_complete.html',
         'backbone.syphon',
         'json2'], 
-   function ($, Backbone, _, JobModel, JobConfigTemplate) {
+   function ($, Backbone, _, JobModel, JobConfigTemplate, JobConfigCompleteTemplate) {
 		var JobConfigView = Backbone.View.extend({
 			el: $('#job-configuration'),
 			initialize: function() {
@@ -16,9 +17,23 @@ define(['jquery',
 			},
 			
 			validate: function () {
+				var that=this;
 				var data=Backbone.Syphon.serialize($('form', this.el)[0]);
-				this.job.set("config", JSON.stringify(data, null, 2));
-				this.job.save();
+				this.job.save({"config": JSON.stringify(data, null, 2)},
+						{
+						success: function (job) {
+							JobConfigCompleteTemplate
+							var context={}
+							var template=_.template(JobConfigCompleteTemplate, 
+	   				                				context);
+							$('#configurejob-tab').data('hide', true);
+							that.$el.html(template);
+						},
+						error: function (job, xhr, options) {
+							errors=JSON.parse(xhr.responseText);
+							console.log(errors);
+						}
+				})
 			},
 			 
 			render: function (jobid) {
@@ -26,6 +41,7 @@ define(['jquery',
 			   var job=new JobModel({'job_id': jobid });
 			   var url="#/configure/"+jobid;
 			   $('#configurejob-tab').show();
+			   $('#configurejob-tab').data('hide', false);
 			   var $tab=$('#configurejob-tab a');
 			   if ((url != $tab.attr("href")) && (typeof jobid !== 'undefined')) {
 				   $tab.attr("href", url);

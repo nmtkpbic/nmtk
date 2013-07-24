@@ -35,6 +35,9 @@ define(['jquery',
 				datafileView.render();
 				
 				var switchtab=function (showtag) {
+					if ($('#configurejob-tab').data('hide')) {
+						$('#configurejob-tab').hide();
+					}
 					tags=['#dashboard','#configurejob','#createjob'];
 					for (tag in tags) {
 						if (tags[tag] != showtag) {
