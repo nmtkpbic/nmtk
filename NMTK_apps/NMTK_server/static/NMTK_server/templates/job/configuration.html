@@ -1,3 +1,4 @@
+      		<form>
       		<div class="widget stacked">
 				<div class="widget-header">
 					<i class="icon-list-alt"></i>
@@ -7,7 +8,9 @@
 				<section id="configure-parameters">
 				<% _.each(job.get("form").fields, function (val, key) { 
 				      if (val.type == "parameter") { %>
-				<%= key %>
+				<%= val.label %>
+				<%= val.field %>
+				<%= val.help_text %><br />
 				<% } }) %>
 				
 				</section>
@@ -22,12 +25,15 @@
 				<section id="configure-mappings">
 				<% _.each(job.get("form").fields, function (val, key) { 
 				      if (val.type == "choice") { %>
-				<%= key %>
+				<%= val.label %>
+				<%= val.field %>
+				<%= val.help_text %><br />
 				<% } }) %>
 				
 				</section>
 				</div>
 			</div>
+			</form>
 
 <button id="configurejob_button" class="btn btn-primary btn-large" type="button">Configure Job</button>
 

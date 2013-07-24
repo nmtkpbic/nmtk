@@ -17,7 +17,7 @@ class TestJobConfiguration(NMTKTestCase):
         '''
         TearDown
         '''
-        #super(TestJobConfiguration, self).tearDown()
+        super(TestJobConfiguration, self).tearDown()
         
     def test_setup_job(self):
         '''

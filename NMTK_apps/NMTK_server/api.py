@@ -605,7 +605,10 @@ class JobResourceValidation(Validation):
         kwargs={}
         kwargs['job']=bundle.obj
         errors={}
-        
+        # Special case with POST is that the data comes in as a unicode string.
+        # convert it to the proper PYthon object.
+        if isinstance(bundle.data.get('config'), (str, unicode)):
+            bundle.data['config']=json.loads(bundle.data['config'])
         if bundle.obj.pk:
             for field in ['data_file','tool']:
                 if (getattr(bundle.obj, '_old_%s' % (field,)) != 
@@ -616,6 +619,7 @@ class JobResourceValidation(Validation):
             errors['status']= ('Cannot update a job once it has been ' +
                                'configured, please create a new job instead')  
         elif bundle.data.get('config', None):
+            bundle.data['config']['job_id']=bundle.obj.pk
             if bundle.obj.config:
                 kwargs['initial']=bundle.obj.config
             form=forms.ToolConfigForm(bundle.data.get('config'), 
@@ -630,8 +634,7 @@ class JobResourceValidation(Validation):
          
 
 class JobResource(ModelResource):
-    job_id=fields.CharField('job_id',
-                            readonly=True)
+    job_id=fields.CharField('job_id', readonly=True)
     tool=fields.ToOneField(ToolResource, 'tool')
     data_file=fields.ToOneField(DataFileResource,'data_file',
                                 null=False)

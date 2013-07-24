@@ -100,7 +100,7 @@
 
 {% endblock %}
 {% block content %}
-<div id="dashboard" class="main">
+<div id="dashboard" class="main defaulthidden">
 
     <div class="container">
      <div class="row">
@@ -116,7 +116,7 @@
     </div> <!-- /container -->
     
 </div> <!-- /main -->
-<div id="createjob" class="main">
+<div id="createjob" class="main defaulthidden">
 
     <div class="container">
     <div class="row">
@@ -141,7 +141,7 @@
     </div> <!-- /container -->
     
 </div> <!-- /main -->
-<div id="configurejob" class="main" >
+<div id="configurejob" class="main defaulthidden" >
 
     <div class="container">
     <div class="row">
@@ -175,7 +175,9 @@ require.config({
 		"text": "js/libs/text",
 		"jquery.fileupload": "js/libs/jquery.fileupload",
 		"jquery.iframe-transport": "js/libs/jquery.iframe-transport",
-		"jquery.cookie": "js/libs/jquery.cookie"
+		"jquery.cookie": "js/libs/jquery.cookie",
+		"backbone.syphon": "js/libs/backbone.syphon.min",
+		"json2": "js/libs/json2"
 	},
 	shim: {
 		'backbone': { deps: ['underscore','jquery'],

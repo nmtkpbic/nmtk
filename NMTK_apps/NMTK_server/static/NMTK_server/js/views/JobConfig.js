@@ -2,23 +2,23 @@ define(['jquery',
         'backbone',
         'underscore',
         'js/models/JobModel',
-        'text!templates/job/configuration.html'], 
+        'text!templates/job/configuration.html',
+        'backbone.syphon',
+        'json2'], 
    function ($, Backbone, _, JobModel, JobConfigTemplate) {
 		var JobConfigView = Backbone.View.extend({
 			el: $('#job-configuration'),
 			initialize: function() {
-				_.bindAll(this, 'render');
+				_.bindAll(this, 'render', 'validate');
 			},
-
-			edit: function(item) {
-				var id=$(item.currentTarget).data('pk');
-				console.log(id);
-				job=new JobModel({'job_id': id });
-				job.fetch({
-					success: function (job) {
-						alert(job.toJSON());
-					}
-				});
+			events: {
+			    'click #configurejob_button': 'validate'
+			},
+			
+			validate: function () {
+				var data=Backbone.Syphon.serialize($('form', this.el)[0]);
+				this.job.set("config", JSON.stringify(data, null, 2));
+				this.job.save();
 			},
 			 
 			render: function (jobid) {
@@ -31,6 +31,8 @@ define(['jquery',
 				   $tab.attr("href", url);
 				   job.fetch({
 					   success: function(job) {
+					   		// Store the job to save time later.
+					   		that.job=job;
 					   		var context={'job': job}
 					   		var template=_.template(JobConfigTemplate, 
 					   				                context);
