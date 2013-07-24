@@ -29,7 +29,7 @@ define(['jquery',
 			
 			destroy: function(item) {
 				var id=$(item.currentTarget).data('pk');
-				var model=new JobModel({'id': id});
+				var model=new JobModel({'job_id': id});
 				var that=this;
 				model.destroy({
 					success: function(model, response) {

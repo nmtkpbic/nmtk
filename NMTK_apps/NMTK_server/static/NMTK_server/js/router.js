@@ -8,15 +8,17 @@ define(['jquery',
         'js/views/JobConfig',
         'js/views/DatafileView',
         'js/views/DatafileView2',
-        'js/views/CreateJobView'],
+        'js/views/CreateJobView',
+        'js/views/JobResultsView'],
         function ($, _, Backbone, UserView, JobView, JobView2, ToolView, 
         		  JobConfigView, DatafileView,
-        		  DatafileView2, CreateJobView) {
+        		  DatafileView2, CreateJobView, JobResultsView) {
 			var NMTKRouter=Backbone.Router.extend({
 				routes: {
 					'users': 'ShowUsers',
 					'job/*path': 'CreateJob',
 					'configure/*jobid': 'ConfigureJob',
+					'view/*jobid': 'ViewJob',
 					'*other': 'ShowDashboard'
 				}
 			});
@@ -30,16 +32,18 @@ define(['jquery',
 				var datafileView2=new DatafileView2();
 				var createJobView=new CreateJobView();
 				var jobConfigView=new JobConfigView();
+				var jobResultsView=new JobResultsView();
 				toolView.render();
 				jobView.render();
 				datafileView.render();
 				
 				var switchtab=function (showtag) {
-					if ($('#configurejob-tab').data('hide')) {
-						$('#configurejob-tab').hide();
-					}
-					tags=['#dashboard','#configurejob','#createjob'];
+					tags=['#dashboard','#configurejob','#createjob',
+					      '#viewjob'];
 					for (tag in tags) {
+						if ($(tags[tag]+'-tab').data('hide')) {
+							$(tags[tag]+'-tab').hide();
+						}
 						if (tags[tag] != showtag) {
 							$(tags[tag]).hide();
 							$(tags[tag] + '-tab').removeClass('active');
@@ -58,6 +62,12 @@ define(['jquery',
 					datafileView2.render();
 					jobView2.render();
 					createJobView.render();
+				});
+				nmtk_router.on('route:ViewJob', function (jobid) {
+					switchtab('#viewjob');
+					// Stop the view updates while we are on another tab
+					toolView.stopped=datafileView.stopped=jobView.stopped=true;
+					jobResultsView.render(jobid)
 				});
 				nmtk_router.on('route:ConfigureJob', function (jobid) {
 					switchtab('#configurejob');

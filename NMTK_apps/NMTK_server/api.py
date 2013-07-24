@@ -16,6 +16,7 @@ from django.http import HttpResponse, Http404
 from NMTK_server import forms
 import simplejson as json
 from tastypie.validation import Validation
+from django.contrib.gis.gdal import OGRGeometry
 import logging
 import re
 import os
@@ -344,6 +345,7 @@ class DataFileResource(ModelResource):
                 name="api_%s_download_detail_geojson" % (self._meta.resource_name,)),
             ]
         
+
     def download_detail_geojson(self, request, **kwargs):
         """
         Send a file through TastyPie without loading the whole file into
@@ -465,6 +467,8 @@ class DataFileResource(ModelResource):
         bundle.data['status']=bundle.obj.get_status_display()
         bundle.data['geom_type']=bundle.obj.get_geom_type_display()
         bundle.data['user'] = bundle.obj.user.username
+        if bundle.data['extent']:
+            bundle.data['bbox']=OGRGeometry(bundle.data['extent']).extent
         return bundle
 
 class ToolResource(ModelResource):
@@ -648,7 +652,7 @@ class JobResource(ModelResource):
     results=fields.CharField('results',readonly=True, null=True,
                              help_text='URL to download results')
     class Meta:
-        queryset = models.Job.objects.all()
+        queryset = models.Job.objects.select_related('jobstatus_set').all()
         authorization=JobResourceAuthorization()
         validation=JobResourceValidation()
         always_return_data = True
@@ -672,6 +676,12 @@ class JobResource(ModelResource):
         bundle.data['user'] = bundle.obj.user.username
         bundle.data['tool_name']=bundle.obj.tool.name
         bundle.data['status']=bundle.obj.get_status_display()
+     
+        try:
+            bundle.data['message']=bundle.obj.jobstatus_set.all()[0].message
+            bundle.data['last_status']=bundle.obj.jobstatus_set.all()[0].timestamp
+        except IndexError:
+            pass
         if bundle.obj.status == bundle.obj.COMPLETE:
             bundle.data['results']="%sresults/" % (bundle.data['resource_uri'],)
             # This should work, but doesn't ?!?
@@ -687,7 +697,23 @@ class JobResource(ModelResource):
                                                                            self.wrap_view('download_detail'), 
                 name="api_%s_download_detail" % (self._meta.resource_name,)),
             ]
-
+        
+    def alter_list_data_to_serialize(self, request, data):
+        '''
+        Loop over the list of objects and count how many are currently pending,
+        this is then used to update the importing count for the UI, so it knows
+        how often to update itself (in milliseconds.)
+        '''
+        count=0
+        for item in data['objects']:
+            if item.obj.status in (item.obj.ACTIVE,):
+                count += 1
+        if count:
+            data['meta']['refresh_interval']=3000
+        else:
+            data['meta']['refresh_interval']=60000
+        return data
+    
     def download_detail(self, request, **kwargs):
         """
         Send a file through TastyPie without loading the whole file into
@@ -753,6 +779,8 @@ class JobStatusResourceAuthorization(Authorization):
         elif bundle.obj.user.pk <> bundle.request.user.pk:
             raise Unauthorized('You lack the privilege to access this resource')
         return True
+    
+
 
 class JobStatusResource(ModelResource):
     job=fields.ToOneField(JobResource, 'job')

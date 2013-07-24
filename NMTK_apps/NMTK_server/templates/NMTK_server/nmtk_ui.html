@@ -2,7 +2,10 @@
 {% load static %}
 {% load url from future %}
 {% block title %}Non-Motorized Transportation Toolkit{% endblock %}
-        
+{% block css_extra %}
+<link rel="stylesheet" href="{% get_static_prefix %}NMTK_server/css/leaflet.css" />
+<!--[if lte IE 8]><link rel="stylesheet" href="{% get_static_prefix %}NMTK_server/css/leaflet.ie.css" /><![endif]-->
+{% endblock %}
 
 				<ul class="nav pull-right">
 					{% block right_nav %}
@@ -89,6 +92,12 @@
 							<span>Configure Job</span>
 						</a>	    
 					</li>
+					<li id="viewjob-tab" class="defaulthidden">					
+						<a href="#/view/">
+							<i class="icon-eye-open"></i>
+							<span>View Job Results</span>
+						</a>	    
+					</li>
 				</ul>
 			</div> <!-- /.subnav-collapse -->
 
@@ -152,6 +161,19 @@
     </div> <!-- /container -->
     
 </div> <!-- /main -->
+
+
+<div id="viewjob" class="main defaulthidden" >
+
+    <div class="container">
+    <div class="row">
+
+     <div id="job-view" class="span12">
+      </div> <!-- /span12 -->
+  </div> <!--  /row -->
+    </div> <!-- /container -->
+    
+</div> <!-- /main -->
 {% endblock %}
 
 
@@ -177,14 +199,16 @@ require.config({
 		"jquery.iframe-transport": "js/libs/jquery.iframe-transport",
 		"jquery.cookie": "js/libs/jquery.cookie",
 		"backbone.syphon": "js/libs/backbone.syphon.min",
-		"json2": "js/libs/json2"
+		"json2": "js/libs/json2",
+		"Leaflet": "js/libs/leaflet"
 	},
 	shim: {
 		'backbone': { deps: ['underscore','jquery'],
 		              exports: 'Backbone' },
 		'underscore': { exports: '_' },
 		'jquery.bootstrap': { deps: ['jquery'] },
-		'jquery.cookie': { deps: ['jquery'] }
+		'jquery.cookie': { deps: ['jquery'] },
+		'Leaflet': {exports: 'L' },
 	},
 	map: {
 		// Needed since fileupload needs widget, which is in UI

@@ -50,8 +50,14 @@ define(['jquery',
 					   		// Store the job to save time later.
 					   		that.job=job;
 					   		var context={'job': job}
-					   		var template=_.template(JobConfigTemplate, 
-					   				                context);
+					   		if (that.job.get("status") == "Not Yet Configured") {
+					   			var template=_.template(JobConfigTemplate, 
+		   				                	context);
+					   		} else {
+					   			$('#configurejob-tab').data('hide', true);
+					   			var template=_.template(JobConfigCompleteTemplate, 
+	   				                					context);
+					   		}
 					   		that.$el.html(template);
 				   	   }
 				   });

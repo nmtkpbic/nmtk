@@ -1,0 +1,22 @@
+      		<div class="widget stacked">
+				<div class="widget-header">
+					<i class="icon-list-alt"></i>
+					<h3><%= job.get("tool_name") %> Job Results (<%= datafile.get("name") %>)</h3>
+				</div> <!-- /widget-header -->
+				<div class="widget-content">
+				<section>
+				The status of your job is <%= job.get("status") %> <br />
+				<% if (job.get("status")=='Complete') { %>
+				
+				<% } else { %>
+					The last response received from the tool was <%= job.get("message") %>
+				<% } %>
+				
+				</section>
+				<hr />
+				<div id="map"></div>
+				</div>
+			</div>
+
+
+

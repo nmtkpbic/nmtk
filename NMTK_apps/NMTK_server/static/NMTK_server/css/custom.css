@@ -30,3 +30,7 @@ body {
 .defaulthidden {
 	display: none;
 }
+#map {
+	height: 500px;
+	width: 100%;
+}

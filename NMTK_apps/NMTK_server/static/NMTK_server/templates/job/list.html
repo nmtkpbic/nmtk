@@ -22,7 +22,14 @@
 						            <td><%= job.get("tool_name") %></td>
 						            <td><%= Date(job.get("date_created")) %></td>
 						     		<td><%= job.get("status") %></td>
-						     		<td>Management Operations Here</td>
+						     		<td>
+										<a data-pk="<%= job.get('job_id') %>" class="btn btn-small remove">
+											<i class="btn-icon-only icon-remove"></i>										
+										</a>
+										<a href="#/view/<%= job.get('job_id') %>" class="btn btn-small view">
+											<i class="btn-icon-only icon-eye-open"></i>										
+										</a>
+									</td>
 						          </tr>
 						         <% }); %>
 						          
