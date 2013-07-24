@@ -405,7 +405,7 @@ class DataFileResource(ModelResource):
         always_return_data = True
         resource_name = 'datafile'
         allowed_methods=['get','post','delete',]
-        excludes=['file','processed_file','status', 'geom_type']
+        excludes=['file','processed_file','status', 'geom_type', 'fields']
         authentication=SessionAuthentication()
         validation=DataFileResourceValidation()
         filtering= {'status': ALL,
@@ -636,7 +636,9 @@ class JobResource(ModelResource):
     data_file=fields.ToOneField(DataFileResource,'data_file',
                                 null=False)
     form=fields.CharField(readonly=True,
-                          help_text='JavaScript Representation of form')
+                          help_text=('JavaScript Representation of form' + 
+                                     ' (pass genform=1 as a GET parameter' +
+                                     ' to generate)'))
     status=fields.CharField('status', readonly=True, null=True)
     tool_name=fields.CharField('tool_name', readonly=True, null=True)
     config=fields.CharField('config', readonly=True, null=True)
@@ -657,7 +659,7 @@ class JobResource(ModelResource):
         bundle.obj.user=bundle.request.user
         return bundle
     
-    def dehydrate(self,bundle):
+    def dehydrate(self, bundle):
         if bundle.obj.data_file:
             kwargs={}
             if bundle.obj.config:

@@ -29,7 +29,7 @@ define(['jquery',
 							  tool: tool
 							},{
 							success: function (job) {
-								$('a.jobs-refresh').trigger('click');
+								 Backbone.history.navigate('#/configure/'+job.get("job_id")) 
 							}
 							});
 				}

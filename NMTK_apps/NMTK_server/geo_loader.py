@@ -129,6 +129,19 @@ class GeoDataLoader(object):
         if geom_srid <= 0 or geom_srid is None:
             raise FormatException('Unable to determine valid SRID ' + 
                                   'for this data')
+            
+        # Get fields by looping over one row of features.
+        fields=[]
+        for feat in layer:
+            logger.debug('Iterating through %s features', feat.GetFieldCount())
+            for i in range(feat.GetFieldCount()):
+                logger.debug(dir(feat))
+                field_definition=feat.GetFieldDefnRef(i)
+                fields.append(field_definition.GetNameRef ())
+            break
+        logger.debug('Fields are %s', fields)
+        # Just to be on the safe side..
+        layer.ResetReading()
         
         OGRResult=collections.namedtuple('OGRResult',
                                          ['srid',
@@ -138,7 +151,8 @@ class GeoDataLoader(object):
                                           'feature_count',
                                           'ogr',
                                           'type',
-                                          'type_text'])
+                                          'type_text',
+                                          'fields'])
         # Note that we must preserve the OGR object here (even though
         # we do not use it elsewhere), because
         # otherwise it gets garbage collected, and the OGR Layer object
@@ -150,7 +164,8 @@ class GeoDataLoader(object):
                             srs=spatial_ref,
                             feature_count=layer.GetFeatureCount(),
                             type=geom_type,
-                            type_text=self.types[geom_type])
+                            type_text=self.types[geom_type],
+                            fields=fields)
         return self.data
     
     @property

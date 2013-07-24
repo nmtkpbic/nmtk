@@ -60,7 +60,8 @@ define(['jquery',
 					               offset: this.offset}),
 				   success: function (datafiles) {
 				   		if ((datafiles.models.length == 0) &&
-				   			(datafiles.recent_meta.total_count > 0)) {
+				   			(datafiles.recent_meta.total_count > 0) &&
+				   			(datafiles.offset != 0)) {
 				   			that.offset-=that.limit;
 				   			_.delay(that.render, 1);
 				   			return;

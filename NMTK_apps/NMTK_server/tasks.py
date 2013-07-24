@@ -148,6 +148,7 @@ def importDataFile(datafile):
         datafile.geom_type=geoloader.info.type
         datafile.status=datafile.IMPORTED
         datafile.processed_file=geoloader.geojson
+        datafile.fields=geoloader.info.fields
         # Get the base name of the file (without the extension)
         # We can use that as the basis for the name of the GeoJSON file
         # that we processed.

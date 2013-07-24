@@ -5,16 +5,18 @@ define(['jquery',
         'js/views/JobView',
         'js/views/JobView2',
         'js/views/ToolView',
+        'js/views/JobConfig',
         'js/views/DatafileView',
         'js/views/DatafileView2',
         'js/views/CreateJobView'],
         function ($, _, Backbone, UserView, JobView, JobView2, ToolView, 
-        		  DatafileView,
+        		  JobConfigView, DatafileView,
         		  DatafileView2, CreateJobView) {
 			var NMTKRouter=Backbone.Router.extend({
 				routes: {
 					'users': 'ShowUsers',
 					'job/*path': 'CreateJob',
+					'configure/*jobid': 'ConfigureJob',
 					'*other': 'ShowDashboard'
 				}
 			});
@@ -27,14 +29,25 @@ define(['jquery',
 				var datafileView=new DatafileView();
 				var datafileView2=new DatafileView2();
 				var createJobView=new CreateJobView();
+				var jobConfigView=new JobConfigView();
 				toolView.render();
 				jobView.render();
 				datafileView.render();
+				
+				var switchtab=function (showtag) {
+					tags=['#dashboard','#configurejob','#createjob'];
+					for (tag in tags) {
+						if (tags[tag] != showtag) {
+							$(tags[tag]).hide();
+							$(tags[tag] + '-tab').removeClass('active');
+						} else {
+							$(tags[tag]).show();
+							$(tags[tag] + '-tab').addClass('active');
+						}
+					}
+				}
 				nmtk_router.on('route:CreateJob', function () {
-					$('#dashboard').hide();
-					$('#createjob').show();
-					$('#dashboard-tab').removeClass('active');
-					$('#createjob-tab').addClass('active');
+					switchtab('#createjob');
 					// Stop the view updates while we are on another tab
 					datafileView.stopped=jobView.stopped=true;
 					toolView.stopped=false;
@@ -43,11 +56,12 @@ define(['jquery',
 					jobView2.render();
 					createJobView.render();
 				});
+				nmtk_router.on('route:ConfigureJob', function (jobid) {
+					switchtab('#configurejob');
+					jobConfigView.render(jobid);
+				});
 				nmtk_router.on('route:ShowDashboard', function (other) {
-					$('#createjob').hide();
-					$('#dashboard').show();
-					$('#createjob-tab').removeClass('active');
-					$('#dashboard-tab').addClass('active');
+					switchtab('#dashboard');
 					// Start the view updates when we move to the relevant tab
 					datafileView.stopped=jobView.stopped=false;
 					toolView.stopped=true;

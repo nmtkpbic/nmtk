@@ -58,7 +58,8 @@ define(['jquery',
 					               offset: this.offset}),
 				   success: function (jobs) {
 				   		if ((jobs.models.length == 0) &&
-				   			(jobs.recent_meta.total_count > 0)) {
+				   			(jobs.recent_meta.total_count > 0) &&
+				   			(jobs.offset != 0)) {
 				   			that.offset-=that.limit;
 				   			_.delay(that.render, 1);
 				   			return;

@@ -248,6 +248,7 @@ class DataFile(models.Model):
     content_type=models.CharField(max_length=128)
     date_created=models.DateTimeField(auto_now_add=True)
     user=models.ForeignKey(settings.AUTH_USER_MODEL, null=False)
+    fields=JSONField(null=True, blank=True)
     objects=models.GeoManager()
     
 #    @property

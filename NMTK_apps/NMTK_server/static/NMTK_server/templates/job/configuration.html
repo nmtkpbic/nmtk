@@ -1,0 +1,33 @@
+      		<div class="widget stacked">
+				<div class="widget-header">
+					<i class="icon-list-alt"></i>
+					<h3>Configure Model Parameters</h3>
+				</div> <!-- /widget-header -->
+				<div class="widget-content">
+				<section id="configure-parameters">
+				<% _.each(job.get("form").fields, function (val, key) { 
+				      if (val.type == "parameter") { %>
+				<%= key %>
+				<% } }) %>
+				
+				</section>
+				</div>
+			</div>
+    		<div class="widget stacked">
+				<div class="widget-header">
+					<i class="icon-list-alt"></i>
+					<h3>Configure Data File Field Mappings</h3>
+				</div> <!-- /widget-header -->
+				<div class="widget-content">
+				<section id="configure-mappings">
+				<% _.each(job.get("form").fields, function (val, key) { 
+				      if (val.type == "choice") { %>
+				<%= key %>
+				<% } }) %>
+				
+				</section>
+				</div>
+			</div>
+
+<button id="configurejob_button" class="btn btn-primary btn-large" type="button">Configure Job</button>
+

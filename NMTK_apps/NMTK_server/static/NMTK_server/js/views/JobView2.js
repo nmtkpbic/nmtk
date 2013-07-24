@@ -19,7 +19,6 @@ define(['jquery',
 			    'click a.pager': 'pager',
 			    'click a.refresh': 'render',
 			    'click a.remove': 'destroy',
-			    'click a.edit': 'edit',
 			    'click a.jobs-refresh': 'render'
 			},
 			pager: function(item) {
@@ -41,7 +40,13 @@ define(['jquery',
 
 			edit: function(item) {
 				var id=$(item.currentTarget).data('pk');
-				console.log('Edit ' + id)
+				console.log(id);
+				job=new JobModel({'job_id': id });
+				job.fetch({
+					success: function (job) {
+						alert(job.toJSON());
+					}
+				});
 			},
 			 
 			render: function (offset) {
@@ -58,7 +63,8 @@ define(['jquery',
 					               offset: this.offset}),
 				   success: function (jobs) {
 				  		if ((jobs.models.length == 0) &&
-				   			(jobs.recent_meta.total_count > 0)) {
+				   			(jobs.recent_meta.total_count > 0) &&
+				   			(jobs.offset != 0)) {
 				   			that.offset-=that.limit;
 				   			_.delay(that.render, 1);
 				   			return;
