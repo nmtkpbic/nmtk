@@ -39,6 +39,9 @@ define(['jquery',
 				model.destroy({
 					success: function(model, response) {
 								that.render();
+							},
+					error: function (model, response) {
+								alert('Delete of data file failed (perhaps a job is currently using the file?)');
 							}
 				});
 			},

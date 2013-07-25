@@ -5,9 +5,10 @@ define(['jquery',
         'js/models/JobModel',
         'js/models/DatafileModel',
         'text!templates/job/view_results.html',
+        'text!templates/job/result_row.html',
         'json2'], 
    function ($, Backbone, _, L, JobModel, DatafileModel, 
-		     ViewResultTemplate) {
+		     ViewResultTemplate, ResultRowTemplate) {
 		var JobResultsView = Backbone.View.extend({
 			el: $('#job-view'),
 			initialize: function() {
@@ -17,9 +18,14 @@ define(['jquery',
 			},
 			
 			displayPopup: function (feature, layer){
-				if (feature.properties) {
-					layer.bindPopup(JSON.stringify(feature.properties, null, 2));
-				}
+				layer.on('click', function (e) {
+					$output=$('#result-row', this.$el);
+					$('#result-div', this.$el).show();
+					context={feature: feature.properties}
+					var template=_.template(ResultRowTemplate, 
+				                			context);
+					$output.html(template);
+				})
 			},
 			
 			generateMap: function () {

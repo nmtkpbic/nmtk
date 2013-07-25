@@ -26,9 +26,16 @@
 										<a data-pk="<%= job.get('job_id') %>" class="btn btn-small remove">
 											<i class="btn-icon-only icon-remove"></i>										
 										</a>
+										<% if (job.get('status') != 'Active') { %>
 										<a href="#/view/<%= job.get('job_id') %>" class="btn btn-small view">
 											<i class="btn-icon-only icon-eye-open"></i>										
 										</a>
+										<% } %>
+										<% if (job.get('status') == 'Complete') { %>
+										<a href="<%= job.get('results') %>" class="btn btn-small view">
+											<i class="btn-icon-only icon-download"></i>										
+										</a>
+										<% } %>
 									</td>
 						          </tr>
 						         <% }); %>

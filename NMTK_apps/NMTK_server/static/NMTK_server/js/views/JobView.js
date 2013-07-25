@@ -26,6 +26,8 @@ define(['jquery',
 			    this.render(offset);
 			    return false;
 			},
+
+			 
 			 
 			destroy: function(item) {
 				var id=$(item.currentTarget).data('pk');

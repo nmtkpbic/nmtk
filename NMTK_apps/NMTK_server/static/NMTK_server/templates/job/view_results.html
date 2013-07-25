@@ -9,6 +9,7 @@
 				<% if (job.get("status")=='Complete') { %>
 				
 				<% } else { %>
+					The current status of your job is <%= job.get("status") %>
 					The last response received from the tool was <%= job.get("message") %>
 				<% } %>
 				
@@ -16,7 +17,13 @@
 				<hr />
 				<div id="map"></div>
 				</div>
+				<div class="widget-content hide" id="result-div">
+				<section id="result-row">
+				
+				</section>
+				</div>
 			</div>
+			
 
 
 

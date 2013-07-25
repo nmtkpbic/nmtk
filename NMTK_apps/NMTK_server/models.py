@@ -148,12 +148,12 @@ class Job(models.Model):
         self._old_data_file=self.data_file if hasattr(self,'data_file') else None
         self._old_tool=self.tool if hasattr(self,'tool') else None
     job_id=UUIDField(auto=True, primary_key=True)
-    tool=models.ForeignKey(Tool)
+    tool=models.ForeignKey(Tool, on_delete=models.PROTECT)
     date_created=models.DateTimeField(auto_now_add=True)
     status=models.CharField(max_length=32, choices=STATUS_CHOICES, default=UNCONFIGURED)
     #file=models.FileField(storage=fs, upload_to=lambda instance, filename: 'data_files/%s.geojson' % (instance.job_id,))
     data_file=models.ForeignKey('DataFile', null=False, 
-                                blank=False)
+                                blank=False, on_delete=models.PROTECT)
     results=models.FileField(storage=fs_results, 
                              upload_to=lambda instance, filename: '%s/results/%s.results' % (instance.user.pk,
                                                                                              instance.pk,),
