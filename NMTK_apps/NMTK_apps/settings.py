@@ -259,6 +259,8 @@ LOGGING = {
 # the client and the server.
 NMTK_SERVERS={'d0461b9536eb483d9f23c157e809af35': {'url': 'http://nmtk.otg-nc.com/server',
                                                    'secret': '''yq@5u058y312%ebmyi85ytpfwjm9zv)1u2wu-m1s)%cngrvf_^''' },
+              '51d315f8f1c545dbb60505722ff85132': {'url': ' http://ec2-23-20-159-89.compute-1.amazonaws.com/demo/',
+                                                   'secret': '''1o782+$&*pyed1efg@nii7_9r&72%dxgm_2rm7v0jl((h#=4p0''' },
               }
 
 BROKER_URL = 'django://'
