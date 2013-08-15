@@ -37,7 +37,7 @@ ALLOWED_HOSTS=[SITE_DOMAIN,]
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.spatialite', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': os.path.join(FILES_PATH,'nmtk.sqlite'),                      # Or path to database file if using sqlite3.
+        'NAME': os.path.join(FILES_PATH,'nmtk.sqlite'),  # Or path to database file if using sqlite3.
         'USER': '',                      # Not used with sqlite3.
         'PASSWORD': '',                  # Not used with sqlite3.
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
@@ -131,7 +131,7 @@ TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    
+
     # This directory adds the templates that are stored in the NMTK_apps directory,
     # Which is not an app - but the underpinnings for everything else.
     os.path.join(BASE_PATH,'templates'),
@@ -168,8 +168,6 @@ INSTALLED_APPS = (
     'NMTK_tools', # An app used to generate a list of tools.
     'MN_model', # The tool for the Minnesota pedestrian/cycle models
     'SF_model', # The tool for the SF pedestrian model
-    # Comment out the line below to disable the NMTK_server and make this
-    # serve up only tools
     'djcelery',
     'kombu.transport.django',
     'tastypie',
