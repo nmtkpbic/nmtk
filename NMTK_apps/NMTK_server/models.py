@@ -135,7 +135,7 @@ class Job(models.Model):
     FAILED='F'
     COMPLETE='C'
     TOOL_FAILED='TF'
-    STATUS_CHOICES=((UNCONFIGURED,'Not Yet Configured'),
+    STATUS_CHOICES=((UNCONFIGURED,'Configuration Pending'),
                     (ACTIVE,'Active',),
                     (FAILED,'Failed',),
                     (TOOL_FAILED,'Tool Failed to Accept Job',),
@@ -161,6 +161,8 @@ class Job(models.Model):
     # This will contain the config data to be sent along with the job, in 
     # a JSON format of a multi-post operation.
     config=JSONField(null=True)
+    description=models.CharField(max_length=2048, null=True, blank=True,
+                                 help_text='A free-form description of this job')
     # The user that created the job (used to restrict who can view the job.)
     user=models.ForeignKey(settings.AUTH_USER_MODEL, null=False)
     email=models.BooleanField(default=False, help_text='Email user upon job completion')
@@ -249,6 +251,7 @@ class DataFile(models.Model):
     date_created=models.DateTimeField(auto_now_add=True)
     user=models.ForeignKey(settings.AUTH_USER_MODEL, null=False)
     fields=JSONField(null=True, blank=True)
+    deleted=models.BooleanField(default=False)
     objects=models.GeoManager()
     
 #    @property
@@ -312,4 +315,29 @@ class JobStatus(models.Model):
         ordering=['job__pk','-timestamp']
         verbose_name='Job Status'
         verbose_name_plural='Job Status'
+    
+class Feedback(models.Model):
+    CHOICES=('No Opinion', 'Works', 'Needs Help', 'No Way');
+    CHOICES=zip(CHOICES, CHOICES);
+    date_created=models.DateTimeField(auto_now_add=True)
+    user=models.ForeignKey(settings.AUTH_USER_MODEL, null=False)
+    uri=models.CharField(max_length=255, null=False, blank=False)
+    comments=models.TextField()
+    transparency=models.CharField(max_length=16, null=True, choices=CHOICES)
+    functionality=models.CharField(max_length=16, null=True, choices=CHOICES)
+    usability=models.CharField(max_length=16, null=True, choices=CHOICES)
+    performance=models.CharField(max_length=16, null=True, choices=CHOICES)
+    class Meta:
+        ordering=['-date_created']
+        verbose_name='Feedback'
+        verbose_name_plural='Feedback Items'
+
+
+class UserPreference(models.Model):
+    user=models.ForeignKey(settings.AUTH_USER_MODEL, null=False)
+    divs=models.CharField(null=True, blank=True, max_length=1024,
+                          help_text='A JSON list of divs that are "enabled" in the UI')
+    class Meta:
+        verbose_name='User Preference'
+        verbose_name_plural='User Preferences'
     

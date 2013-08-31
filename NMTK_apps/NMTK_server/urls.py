@@ -15,6 +15,8 @@ v1_api.register(api.ToolResource())
 #v1_api.register(api.ToolConfigResource())
 v1_api.register(api.JobResource())
 v1_api.register(api.JobStatusResource())
+v1_api.register(api.FeedbackResource())
+v1_api.register(api.UserPreference())
     
 
 urlpatterns = patterns('',

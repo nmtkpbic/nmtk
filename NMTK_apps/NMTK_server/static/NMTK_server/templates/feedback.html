@@ -1,0 +1,36 @@
+
+    <div class="modal-header">
+    <h3>Feedback</h3>
+    </div>
+    <div class="modal-body">
+      <div class="row">
+        <div class="span6">
+          <p>
+            The NMTK development team welcomes your feedback. Please rate your 
+            experience with this page (/demo/dashboard/) and give us any comments 
+            you feel inclined to share. You can return to this feedback form from 
+            the page you were viewing later to update your opinions (the NMTK
+            application saves and updates your comments online rather than 
+            emailing us).
+          </p>
+          <p>
+            Push the 'Cancel' button to return to the page you were viewing, 
+            or push 'Save' to update your comments and ratings.
+          </p>
+          <div class="control-group" ng-repeat="field in fields">
+             <label class="control-group" for="{{field.field}}">{{field.display_name}}</label>
+             <div ng-switch on="field.type" "class="controls">
+                <p class="help-block">{{field.help}}</p>
+                <input ng-switch-when="input" type="{{field.type}}" class="input" 
+                 name="{{field.field}}" id="{{field.field}}" ng-model="feedback[field.field]"></input>
+                <select id="{{field.field}}" ng-switch-when="select" 
+                        ng-model="feedback[field.field]" ng-options="o.value as o.label for o in field.values" >
+                
+                </select>
+             </div>
+          </div>
+        </div>
+      </div>
+      <button ng-click="close()" class="btn">Cancel</button>
+      <button ng-click="save()" class="btn btn-primary">Save</button>
+    </div>

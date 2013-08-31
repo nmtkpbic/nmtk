@@ -3,13 +3,19 @@
 {% load url from future %}
 {% block title %}Non-Motorized Transportation Toolkit{% endblock %}
 {% block css_extra %}
-<link rel="stylesheet" href="{% get_static_prefix %}NMTK_server/css/leaflet.css" />
-<!--[if lte IE 8]><link rel="stylesheet" href="{% get_static_prefix %}NMTK_server/css/leaflet.ie.css" /><![endif]-->
+
 {% endblock %}
 
 				<ul class="nav pull-right">
 					{% block right_nav %}
-					<!--<li class="dropdown">
+					<li ng-click="feedback()">
+					    <a>
+						   <i class="icon-bug"></i>
+							Feedback
+					    </a>
+					</li>
+					{% comment %}
+					<li class="dropdown">
 						
 						<a href="#" class="dropdown-toggle" data-toggle="dropdown">
 							<i class="icon-cog"></i>
@@ -25,8 +31,9 @@
 						</ul>
 						
 					</li>
+					{% endcomment %}
 			
-					--><li class="dropdown">
+					<li class="dropdown">
 						
 						<a href="#" class="dropdown-toggle" data-toggle="dropdown">
 							{{user.first_name}} {{user.last_name}}
@@ -73,31 +80,40 @@
 
 			<div class="subnav-collapse collapse">
 				<ul class="mainnav">
-				
-					<li id="dashboard-tab">
+					<li id="introduction-tab" ng-class="{'active': (activeTab == 'introduction')}">
 						<a href="#">
-							<i class="icon-dashboard"></i>
-							<span>Dashboard</span>
+							<i class="icon-home"></i>
+							<span>NMTK</span>
 						</a>				
 					</li>
-					<li id="createjob-tab">					
+					<li id="files-tab" ng-class="{'active': (activeTab == 'files')}">
+						<a href="#/files/">
+							<i ng-hide="activeTab == 'files'" class="icon-folder-close"></i>
+							<i ng-show="activeTab == 'files'" class="icon-folder-open"></i>
+							<span>My Files</span>
+						</a>				
+					</li>
+					<li id="viewjob-tab" ng-class="{'active': (activeTab == 'viewjob')}">					
 						<a href="#/job/">
 							<i class="icon-magic"></i>
-							<span>Create Job</span>
+							<span>My Jobs</span>
 						</a>	    
 					</li>
-					<li id="configurejob-tab" class="defaulthidden">					
-						<a href="#/configure/">
-							<i class="icon-cog"></i>
+					<li ng-show="working_job_id"
+					 id="configurejob-tab" ng-class="{'active': (activeTab == 'configurejob')}">				
+						<a ng-href="#/job/{% templatetag openvariable %}working_job_id{% templatetag closevariable %}/">
+							<i class="icon-gears"></i>
 							<span>Configure Job</span>
 						</a>	    
 					</li>
-					<li id="viewjob-tab" class="defaulthidden">					
-						<a href="#/view/">
-							<i class="icon-eye-open"></i>
-							<span>View Job</span>
+					<li ng-show="results_job"
+					 id="results-tab" ng-class="{'active': (activeTab == 'results')}">				
+						<a ng-href="#/results/{% templatetag openvariable %}results_job.id{% templatetag closevariable %}/">
+							<i class="icon-trophy"></i>
+							<span>Job Results</span>
 						</a>	    
 					</li>
+					
 				</ul>
 			</div> <!-- /.subnav-collapse -->
 
@@ -109,25 +125,28 @@
 
 {% endblock %}
 {% block content %}
-<div id="dashboard" class="main defaulthidden">
 
-    <div class="container">
-     <div class="row">
-     <div id="datafiles" class="span6">
-     </div><!--  /span6 -->
-     <div id="jobs" class="span6">
-     </div><!--  /span6 -->
-      </div> <!-- /row -->
-      
-      
-     
-  
-    </div> <!-- /container -->
-    
+<div ng-view></div>
+
+
+{% comment %}
+<div id="introduction" class="main defaulthidden">
+
 </div> <!-- /main -->
-<div id="createjob" class="main defaulthidden">
 
-    <div class="container">
+<div id="dashboard" class="main defaulthidden">
+   <div class="container">
+     <div class="row">
+         <div id="datafiles" class="span6">
+         </div><!--  /span6 -->
+         <div id="jobs" class="span6">
+         </div><!--  /span6 -->
+     </div> <!-- /row -->
+   </div> <!-- /container -->
+</div> <!-- /main -->
+
+<div id="createjob" class="main defaulthidden">
+  <div class="container">
     <div class="row">
       <div class="span2 bs-docs-sidebar">
         <ul class="nav nav-list bs-docs-sidenav">
@@ -136,93 +155,34 @@
           <li><a href="#/job/#configure_job"><i class="icon-chevron-right"></i> Configure Job</a></li>
           <li><a href="#/job/#submit"><i class="icon-chevron-right"></i> Submit Job</a></li>
         </ul>
-      </div>
-     <div class="span10">
-     	<section id="jobs_createjob">
-	     </section>
-     	<section id="tools_select">
-	     </section>
-	     <section id="datafiles_select">
-	     </section>
-	     <button id="createjob_button" class="btn btn-primary btn-large" type="button"></button>
+      </div> <!-- /span2 -->
+      <div class="span10">
+     	<section id="jobs_createjob"></section>
+     	<section id="tools_select"></section>
+	    <section id="datafiles_select"></section>
+	    <button id="createjob_button" class="btn btn-primary btn-large" type="button"></button>
       </div> <!-- /span10 -->
-  </div> <!--  /row -->
-    </div> <!-- /container -->
-    
+    </div> <!--  /row -->
+  </div> <!-- /container -->
 </div> <!-- /main -->
+
 <div id="configurejob" class="main defaulthidden" >
-
-    <div class="container">
+  <div class="container">
     <div class="row">
-
-     <div id="job-configuration" class="span12">
-      </div> <!-- /span12 -->
-  </div> <!--  /row -->
-    </div> <!-- /container -->
-    
+       <div id="job-configuration" class="span12"></div> <!-- /span12 -->
+    </div> <!--  /row -->
+  </div> <!-- /container -->  
 </div> <!-- /main -->
-
 
 <div id="viewjob" class="main defaulthidden" >
-
-    <div class="container">
+  <div class="container">
     <div class="row">
-
-     <div id="job-view" class="span12">
-      </div> <!-- /span12 -->
-  </div> <!--  /row -->
-    </div> <!-- /container -->
-    
+      <div id="job-view" class="span12"></div> <!-- /span12 -->
+    </div> <!--  /row -->
+  </div> <!-- /container -->  
 </div> <!-- /main -->
+{% endcomment %}
 {% endblock %}
 
-
-{% block javascript_extra %}
-<script>
-require.config({
-	// Note: The line below is only for development, and should be removed
-	// before deployment.
-	// urlArgs: "bust=" +  (new Date()).getTime(),
-	baseUrl: "{% get_static_prefix %}NMTK_server/",
-	paths: {
-		"jquery": "js/libs/jquery-1.9.1.min",
-		"jquery.bootstrap": "js/libs/bootstrap.min",
-		"jquery.ui": "js/libs/jquery-ui-1.10.0.custom.min",
-		"jquery.private": "js/libs/jquery-private",
-		"backbone": "js/libs/backbone.min",
-		"underscore": "js/libs/underscore.min",
-		"Application": "js/Application",
-		"domReady": "js/libs/domReady",
-		"NMTK": "js/NMTK",
-		"text": "js/libs/text",
-		"jquery.fileupload": "js/libs/jquery.fileupload",
-		"jquery.iframe-transport": "js/libs/jquery.iframe-transport",
-		"jquery.cookie": "js/libs/jquery.cookie",
-		"backbone.syphon": "js/libs/backbone.syphon.min",
-		"json2": "js/libs/json2",
-		"Leaflet": "js/libs/leaflet"
-	},
-	shim: {
-		'backbone': { deps: ['underscore','jquery'],
-		              exports: 'Backbone' },
-		'underscore': { exports: '_' },
-		'jquery.bootstrap': { deps: ['jquery'] },
-		'jquery.cookie': { deps: ['jquery'] },
-		'Leaflet': {exports: 'L' },
-	},
-	map: {
-		// Needed since fileupload needs widget, which is in UI
-			'*': {'jquery.ui.widget': 'jquery.ui' }
-		}
-});
-
-require(['Application','NMTK', 'jquery.bootstrap'], 
-		function(Application, NMTK) {
-	Application.initialize();
-	NMTK.initialize(); 
-});
-
-</script>
-{% endblock %}
   </body>
 </html>

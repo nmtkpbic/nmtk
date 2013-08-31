@@ -22,6 +22,13 @@ import re
 import os
 logger=logging.getLogger(__name__)
 
+
+class CSRFBypassSessionAuthentication(SessionAuthentication):
+    def is_authenticated(self, request, **kwargs):
+        request._dont_enforce_csrf_checks=True
+        return super(CSRFBypassSessionAuthentication, self).is_authenticated(request, **kwargs)
+ 
+
 class UserResourceValidation(Validation):
     def is_valid(self, bundle, request=None):
         errors = {}
@@ -208,6 +215,142 @@ class UserResource(ModelResource):
 
         return super(UserResource, self).hydrate(bundle)
 
+
+class FeedbackResourceAuthorization(Authorization):
+    def read_list(self, object_list, bundle):
+        '''
+        This gets a queryset (object_list) and returns a new one.  The key
+        here is that we are apply *additional* filters to the default 
+        queryset to restrict the output back to the user.
+        
+        In this case, we check to see if the user is a site admin, if they are
+        then they are able to see *all* the records for active users.
+        
+        If they are *not* a site admin, we restrict viewing of data to the
+        username that matches the current logged in user.  In short, you 
+        can see your information, but noone elses.
+        '''
+        return object_list
+
+    def read_detail(self, object_list, bundle):
+        '''
+        This should get a list (containing a single record).  It should
+        either return an error indicating the record is not accessible by
+        the user, or it should simply return.
+        
+        In this case, raising NotFound seems to be the only option that 
+        causes the server to continue to function without an exception.  Other
+        things (like not authorized) cause a 500
+        '''
+        if bundle.obj.user <> bundle.request.user:
+            raise Unauthorized('You lack the privilege to access this resource')
+        return True
+
+    def create_list(self, object_list, bundle):
+        '''
+        This method should, when given a list of objects, return a new list
+        of objects representing the objects that are to be created.  In the case
+        of this model, only superusers can create new users, so we simply return
+        the empty list when they try to add objects.
+        '''
+        raise Unauthorized('You lack the privilege to create this resource')
+
+    def create_detail(self, object_list, bundle):
+        '''
+        Each record being created is passed through this method, which is
+        used to determine if the object can be created - an exception means
+        that it cannot, a True (or anything else for that matter) means that it
+        can be created.  In our case, we only allow this record to be created
+        when the user is an admin user.
+        '''
+        return True
+    
+class FeedbackResource(ModelResource):
+    class Meta:
+        queryset = models.Feedback.objects.all()
+        authorization=FeedbackResourceAuthorization()
+        always_return_data = True
+        resource_name = 'feedback'
+        allowed_methods=['get','post']
+        excludes=['user']
+        authentication=SessionAuthentication()
+        validation=Validation()
+        filtering= {'uri': ALL}
+        
+    def pre_save(self, bundle):
+        bundle.obj.user=bundle.request.user
+        return bundle 
+    
+    def get_object_list(self, request):
+        '''
+        Ensure a user only sees their own feedback.
+        '''
+        return super(FeedbackResource, self).get_object_list(request).filter(user=request.user)
+
+class UserPreferenceAuthorization(Authorization):
+    def read_list(self, object_list, bundle):
+        '''
+        This gets a queryset (object_list) and returns a new one.  The key
+        here is that we are apply *additional* filters to the default 
+        queryset to restrict the output back to the user.
+        
+        In this case, we check to see if the user is a site admin, if they are
+        then they are able to see *all* the records for active users.
+        
+        If they are *not* a site admin, we restrict viewing of data to the
+        username that matches the current logged in user.  In short, you 
+        can see your information, but noone elses.
+        '''
+        return object_list
+    
+    def read_detail(self, object_list, bundle):
+        '''
+        This should get a list (containing a single record).  It should
+        either return an error indicating the record is not accessible by
+        the user, or it should simply return.
+        
+        In this case, raising NotFound seems to be the only option that 
+        causes the server to continue to function without an exception.  Other
+        things (like not authorized) cause a 500
+        '''
+        if bundle.obj.user <> bundle.request.user:
+            raise Unauthorized('You lack the privilege to access this resource')
+        return True
+    
+    def update_detail(self, object_list, bundle):
+        if bundle.obj.user <> bundle.request.user:
+            raise Unauthorized('You lack the privilege to access this resource')
+        return True
+
+    def create_list(self, object_list, bundle):
+        '''
+        This method should, when given a list of objects, return a new list
+        of objects representing the objects that are to be created.  In the case
+        of this model, only superusers can create new users, so we simply return
+        the empty list when they try to add objects.
+        '''
+        raise Unauthorized('You lack the privilege to create this resource')
+
+    create_detail=create_list
+ 
+    
+class UserPreference(ModelResource):
+    class Meta:
+        queryset = models.UserPreference.objects.all()
+        authorization=UserPreferenceAuthorization()
+        always_return_data = True
+        resource_name = 'preference'
+        allowed_methods=['get','put']
+        excludes=['user']
+        authentication=SessionAuthentication()
+        validation=Validation()
+        
+    def get_object_list(self, request):
+        '''
+        Ensure a user only sees their own feedback.
+        '''
+        return super(UserPreference, self).get_object_list(request).filter(user=request.user)
+
 class DataFileResourceAuthorization(Authorization):
     def read_list(self, object_list, bundle):
         '''
@@ -308,7 +451,8 @@ class DataFileResourceValidation(Validation):
         if (not bundle.obj.pk and 
             not bundle.request.FILES.has_key('file')):
             errors['file']='A file must be provided when creating this resource'
-        if (bundle.data.get('srid', False) and
+        if (bundle.obj.pk and bundle.data.get('srid', False) and
+            bundle.data['srid'] != bundle.obj.srid and
             bundle.obj.status not in 
             (bundle.obj.IMPORT_FAILED,bundle.obj.PENDING)):
             errors['srid']='SRID can only be provided initially, ' + \
@@ -402,13 +546,14 @@ class DataFileResource(ModelResource):
         return response        
 
     class Meta:
-        queryset = models.DataFile.objects.all()
+        queryset = models.DataFile.objects.filter(deleted=False)
         authorization=DataFileResourceAuthorization()
         always_return_data = True
         resource_name = 'datafile'
-        allowed_methods=['get','post','delete',]
-        excludes=['file','processed_file','status', 'geom_type', 'fields']
-        authentication=SessionAuthentication()
+        allowed_methods=['get','post','delete','put']
+        excludes=['file','processed_file','status', 'geom_type','fields',
+                  'deleted']
+        authentication=CSRFBypassSessionAuthentication()
         validation=DataFileResourceValidation()
         filtering= {'status': ALL,
                     'user': ALL}
@@ -424,7 +569,7 @@ class DataFileResource(ModelResource):
             bundle.obj.file=bundle.request.FILES['file']
             if not bundle.obj.content_type:
                 bundle.obj.content_type=bundle.request.FILES['file'].content_type
-        if bundle.data.get('srid', False):
+        if bundle.data.get('srid', False) and not bundle.obj.srid:
             logging.debug('SRID provided for import, storing')
             bundle.obj.srid=bundle.data['srid']
             bundle.obj.status=bundle.obj.PENDING
@@ -467,6 +612,7 @@ class DataFileResource(ModelResource):
         bundle.data['status']=bundle.obj.get_status_display()
         bundle.data['geom_type']=bundle.obj.get_geom_type_display()
         bundle.data['user'] = bundle.obj.user.username
+        bundle.data['fields']=json.dumps(bundle.obj.fields)
         if bundle.data['extent']:
             bundle.data['bbox']=OGRGeometry(bundle.data['extent']).extent
         return bundle
@@ -610,7 +756,7 @@ class JobResourceValidation(Validation):
         kwargs['job']=bundle.obj
         errors={}
         # Special case with POST is that the data comes in as a unicode string.
-        # convert it to the proper PYthon object.
+        # convert it to the proper Python object.
         if isinstance(bundle.data.get('config'), (str, unicode)):
             bundle.data['config']=json.loads(bundle.data['config'])
         if bundle.obj.pk:
@@ -621,7 +767,7 @@ class JobResourceValidation(Validation):
                                    'please create a new job instead')
         if bundle.obj.status != 'U':
             errors['status']= ('Cannot update a job once it has been ' +
-                               'configured, please create a new job instead')  
+                               'configured, please create a new job instead (%s)' % (bundle.obj.status))  
         elif bundle.data.get('config', None):
             bundle.data['config']['job_id']=bundle.obj.pk
             if bundle.obj.config:
@@ -642,10 +788,10 @@ class JobResource(ModelResource):
     tool=fields.ToOneField(ToolResource, 'tool')
     data_file=fields.ToOneField(DataFileResource,'data_file',
                                 null=False)
-    form=fields.CharField(readonly=True,
-                          help_text=('JavaScript Representation of form' + 
-                                     ' (pass genform=1 as a GET parameter' +
-                                     ' to generate)'))
+#     form=fields.CharField(readonly=True,
+#                           help_text=('JavaScript Representation of form' + 
+#                                      ' (pass genform=1 as a GET parameter' +
+#                                      ' to generate)'))
     status=fields.CharField('status', readonly=True, null=True)
     tool_name=fields.CharField('tool_name', readonly=True, null=True)
     config=fields.CharField('config', readonly=True, null=True)
@@ -660,23 +806,27 @@ class JobResource(ModelResource):
         authentication=SessionAuthentication()
         allowed_methods=['get','put','post','delete']
         filtering= {'status': ALL,
-                    'user': ALL}
+                    'user': ALL,
+                    'job_id': ALL}
 
     def pre_save(self, bundle):
         bundle.obj.user=bundle.request.user
         return bundle
     
     def dehydrate(self, bundle):
-        if bundle.obj.data_file:
-            kwargs={}
-            if bundle.obj.config:
-                kwargs={'initial': bundle.obj.config }
-            bundle.data['form']=forms.ToolConfigForm(job=bundle.obj, 
-                                                     **kwargs).as_json()
+        # Need this for Restangular, or we need to wrangle stuff.
+        bundle.data['id']=bundle.obj.job_id
+#         if bundle.obj.data_file:
+#             kwargs={}
+#             if bundle.obj.config:
+#                 kwargs={'initial': bundle.obj.config }
+#             bundle.data['form']=forms.ToolConfigForm(job=bundle.obj, 
+#                                                      **kwargs).as_json()
         bundle.data['user'] = bundle.obj.user.username
         bundle.data['tool_name']=bundle.obj.tool.name
         bundle.data['status']=bundle.obj.get_status_display()
-     
+        bundle.data['file_name']=bundle.obj.data_file.name
+        bundle.data['config']=json.dumps(bundle.obj.config);
         try:
             bundle.data['message']=bundle.obj.jobstatus_set.all()[0].message
             bundle.data['last_status']=bundle.obj.jobstatus_set.all()[0].timestamp
@@ -698,21 +848,21 @@ class JobResource(ModelResource):
                 name="api_%s_download_detail" % (self._meta.resource_name,)),
             ]
         
-    def alter_list_data_to_serialize(self, request, data):
-        '''
-        Loop over the list of objects and count how many are currently pending,
-        this is then used to update the importing count for the UI, so it knows
-        how often to update itself (in milliseconds.)
-        '''
-        count=0
-        for item in data['objects']:
-            if item.obj.status in (item.obj.ACTIVE,):
-                count += 1
-        if count:
-            data['meta']['refresh_interval']=3000
-        else:
-            data['meta']['refresh_interval']=60000
-        return data
+#     def alter_list_data_to_serialize(self, request, data):
+#         '''
+#         Loop over the list of objects and count how many are currently pending,
+#         this is then used to update the importing count for the UI, so it knows
+#         how often to update itself (in milliseconds.)
+#         '''
+#         count=0
+#         for item in data['objects']:
+#             if item.obj.status in (item.obj.ACTIVE,):
+#                 count += 1
+#         if count:
+#             data['meta']['refresh_interval']=3000
+#         else:
+#             data['meta']['refresh_interval']=60000
+#         return data
     
     def download_detail(self, request, **kwargs):
         """

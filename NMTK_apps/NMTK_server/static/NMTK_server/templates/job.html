@@ -1,0 +1,235 @@
+<script type="text/ng-template"  id="create_job.html">
+    <div class="modal-header">
+    <h3>Create Job</h3>
+    </div>
+    <div class="modal-body">
+      <div class="row">
+        <div class="span6">
+          <div class="control-group">
+             <label class="control-group" for="description">Enter a description for this job</label>
+             <div class="controls">
+                <p class="help-block">A description helps you to identify this job later.</p>
+                <input type="text" class="input" 
+                 name="description" id="description" ng-model="jobdata.description"></input>
+             </div>
+          </div>
+          <div class="control-group">
+             <label class="control-group" for="tool">Choose the tool you wish to use for this job</label>
+             <div class="controls">
+                <p class="help-block">The tool indicates the tool server used to execute this job.</p>
+                 <select id="tool" 
+                        ng-model="jobdata.tool" ng-options="o.resource_uri as o.name for o in rest.tool" >
+                </select>
+             </div>
+          </div>
+          <div class="control-group">
+             <label class="control-group" for="data_file">Choose the tool you wish to use for this job</label>
+             <div class="controls">
+                <p class="help-block">The tool indicates the tool server used to execute this job.</p>
+                 <select id="data_file" 
+                         ng-model="jobdata.data_file" 
+                         ng-options="o.resource_uri as getFileStr(o) for o in rest.datafile|filter:{'status': 'Import Complete'}" >
+                </select>
+             </div>
+          </div>
+          <!--
+          <div class="control-group">
+             <label class="control-group" for="email">Email Upon Job Completion</label>
+             <div class="controls">
+                <p class="help-block">The NMTK server can notify you via email when your job completes.</p>
+                <input type="checkbox" class="input"  value="true"
+                 name="email" id="email" ng-model="jobdata.email"></input>
+             </div>
+          </div>
+          -->
+        </div>
+      </div>
+      <button  ng-click="close()" class="btn">Cancel</button>
+      <button ng-click="save()" class="btn btn-primary">Save</button>
+    </div>
+</script>
+
+
+<script type="text/ng-template"  id="view_job.html">
+    <div class="modal-header">
+    <h3>View Job</h3>
+    </div>
+    <div class="modal-body">
+      <div class="row">
+        <div class="span6">
+          <div ng-repeat="field in fields " class="control-group">
+             <label class="control-group" for="{{field.field}}">{{field.display_name}}</label>
+             <div class="controls">
+                <p class="help-block">{{field.description}}</p>
+                <!-- <p ng-show="{{field.disabled}}">{{jobdata[field.field]}}</p> -->
+                <input ng-disabled="{{field.disabled}}" type="{{field.type}}" class="input" 
+                 name="{{field.field}}" id="{{field.field}}" ng-model="jobdata[field.field]"></input>
+             </div>
+          </div>
+        </div>
+      </div>
+      <button  ng-click="close()" class="btn">Cancel</button>
+      <button ng-click="save()" class="btn btn-primary">Save</button>
+    </div>
+</script>
+
+<script type="text/ng-template"  id="switchjob.html">
+    <div class="modal-header">
+      <h3>Switch Job?</h3>
+    </div>
+    <div class="modal-body">
+      <div class="row">
+        <div class="span6">     
+          You are currently configuring another job, discard any unsaved
+          configuration changes for that job and switch to this one?  
+        </div>
+      </div><br>
+      <button  ng-click="close()" class="btn">Cancel</button>
+      <button ng-click="switchjob()" class="btn btn-primary">Switch Job</button>
+    </div>
+</script>
+
+
+<div class="container">
+   <div class="row">   	  
+      <div class="span12">
+        <div class="widget stacked">
+          <div ng-click="toggleDiv('nmtk_jobs')" class="widget-header">
+            <i class="icon-info-sign"></i>
+            <h3>Your Jobs</h3>
+            <i ng-hide="isDivEnabled('nmtk_jobs')" class="icon-expand"></i>
+            <i ng-show="isDivEnabled('nmtk_jobs')" class="icon-collapse"></i>
+          </div> <!-- /widget-header -->
+          <div ng-show="isDivEnabled('nmtk_jobs')" class="widget-content">
+            <p>
+            Here you can create new NMTK jobs by pairing a <a href="#/files">data file</a>
+            with a <a href="#/">tool</a> and then providing some configuration parameters.
+            </p>
+            <p>
+            When a job is running, you can review it's current status, as reported by the
+            tool server - and once it completes you can view it's results (or add them
+            to your file library so you can "chain" the results into a new job.)
+            </p>
+          </div> <!-- /widget-content -->
+        </div><!-- /widget stacked -->
+      </div><!-- /span12 -->
+    </div><!-- /row -->
+    
+    <div class="row">
+      <div class="span12">
+        <div class="widget stacked">
+          <div ng-click="toggleDiv('nmtk_view_jobs')"  class="widget-header">
+            <i class="icon-road"></i>
+            <h3>Your Current Jobs</h3>
+            <button ng-click="createJob()" stop-event='click' style="z-index: 100;">Create a New Job</button>
+            <i ng-hide="isDivEnabled('nmtk_view_jobs')" class="icon-expand"></i>
+            <i ng-show="isDivEnabled('nmtk_view_jobs')" class="icon-collapse"></i>
+          </div> <!-- /widget-header -->
+          <div ng-show="isDivEnabled('nmtk_view_jobs')"  class="widget-content">
+            <h4 ng-hide="rest.job.metadata.total_count">You have no jobs at this time.</h4>
+            <section ng-show="rest.job.metadata.total_count" id="tables">
+			  <h4>Displaying Jobs {{rest.job.metadata.offset+1}} - {{rest.job.metadata.offset+rest.job.length}} (of {{rest.job.metadata.total_count}} jobs.)</h4>	
+              <table class="table table-bordered table-striped table-highlight"> 
+				  <thead>
+				   <tr>
+					  <th>Description</th>
+				  	  <th>Status</th>
+				  	  <th>Tool Reported Status</th>
+				  	  <th class="centered">Actions</th>
+				    </tr>
+				  </thead>
+				  <tbody >
+				    <tr ng-repeat="job in rest.job">
+				     <td><strong>{{job.description}}</strong>
+				     <br>Tool: <strong>{{job.tool_name}}</strong>
+				     <br>File: <strong>{{job.file_name}}</strong>
+				     </td>
+				     <td>{{job.status}}</td>
+				     <td ng-show="job.message">{{job.message}} at {{job.last_status}}
+				     </td>
+				     <td ng-hide="job.message">No Reported Status (or not yet available)</td>
+				     <td class="centered">
+				       <!-- Remove Job -->
+				       	<i tooltip="Delete job (and results)" ng-hide="(browser_name=='Explorer')" ng-click="removeFile('job',
+					    															 job.id,
+					    															 job.description,
+					    															 'Job')" 
+					    tooltip-placement="left" class="icon-trash icon-large"></i> 
+					    <a ng-show="(browser_name=='Explorer')" ng-click="removeFile('job',
+					                                                                 job.id,
+					                                                                 job.description,
+					                                                                 'Job')">[delete Job]</a>
+					    
+					    <br ng-show="(browser_name=='Explorer')" />
+					    <!-- Edit Job -->
+					    <i tooltip="View and Edit Job Details" tooltip-placement="left"
+					       ng-hide="(browser_name=='Explorer')" ng-click="openDialog(job)" 
+					    class="icon-info-sign icon-large"></i> 
+					    <a ng-show="(browser_name=='Explorer')" ng-click="openDialog(job)">[info]</a>
+					    
+					    <br ng-show="(browser_name=='Explorer')"/>
+					    
+					    <!-- Configure Job -->
+					    <i tooltip="Configure Job (or view configuration)" tooltip-placement="left"
+					       ng-hide="(browser_name=='Explorer')" ng-click="configureJob(job)" 
+					       class="icon-cogs icon-large"></i> 
+					    <a ng-show="(browser_name=='Explorer')" ng-click="configureJob(job)">[configure]</a> 
+					 
+					    <br>
+					    <span ng-show="job.results">
+					      <!-- Download Results -->
+					
+					      <i tooltip="Download results" tooltip-placement="left"
+					         ng-click="downloadJob(job)" 
+					         ng-hide="(browser_name=='Explorer')" 
+					   	     class="icon-download icon-large"></i>
+					      <a ng-show="(browser_name=='Explorer')"
+					         ng-click="downloadJob(job)">
+					          [download results]
+					      </a>
+					      
+					      <br ng-show="(browser_name=='Explorer')" />
+					      <!-- View Results -->
+					      <i ng-hide="(browser_name=='Explorer')" 
+					         tooltip="View job results" tooltip-placement="left"
+					         ng-click="viewResults(job)" 
+					         class="icon-eye-open icon-large"></i> 
+					      <a ng-show="(browser_name=='Explorer')" ng-click="viewResults(job)">[view results]</a> 
+					      
+					      <br ng-show="(browser_name=='Explorer')" />
+					   
+					      <!-- Import Results -->
+					      <i tooltip-placement="left" 
+					         tooltip="Add results to library" ng-hide="(browser_name=='Explorer')" 
+					         ng-click="importResults(job)" 
+					         class="icon-upload-alt icon-large"></i> 
+					      <a ng-show="(browser_name=='Explorer')" 
+					         ng-click="importResults(job)" >[import results]</a>    
+					    </span>        
+				       </td>
+				     </tr>
+				  </tbody>
+			    </table>
+			  </section>
+			  <section id="paginations-pager">
+				  <div class="pagination" ng-show="rest.job.metadata.total_count > rest.job.metadata.limit">
+					<ul>
+					  <li ng-click="updateData('job',rest.job.metadata.offset-rest.job.metadata.limit)" ng-show="rest.job.metadata.offset > 0">
+						<a class="pager">Prev</a>
+					  </li>
+					  <li ng-repeat="n in [] | page:rest.job.metadata" 
+					      ng-click="updateData('job',n)" ng-class="{'active': (rest.job.metadata.offset == n)}" >
+						<a class="pager">{{n/rest.job.metadata.limit+1}}</a>
+					  </li>
+					  <li ng-click="updateData('job',rest.job.metadata.offset+rest.job.metadata.limit)" 
+					      ng-show="rest.job.metadata.offset+rest.job.metadata.limit < rest.job.metadata.total_count">
+						<a class="pager">Next</a>
+					  </li>
+					</ul>
+				  </div> <!-- /pagination -->
+            </section>
+          </div> <!-- /widget-content -->
+        </div><!-- /widget stacked -->
+      </div><!-- /span12 -->
+    </div><!-- /row -->
+</div> <!-- /container -->

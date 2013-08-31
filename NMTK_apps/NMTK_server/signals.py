@@ -2,11 +2,12 @@ import os
 import logging
 from django.conf import settings
 from django.db import models
-from django.db.models.signals import pre_save, post_delete
+from django.db.models.signals import pre_save, post_delete, post_save
 from django.db.models.loading import cache
 from django.core.files.storage import get_storage_class
 from django.contrib.auth.models import User
 from django.dispatch import receiver
+import simplejson as json
 import shutil
 
 
@@ -29,6 +30,18 @@ def delete_user_data(sender, instance, **kwargs):
                  user_file_path)
     shutil.rmtree(user_file_path, ignore_errors=True)
 
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    from NMTK_server.models import UserPreference
+    if created:
+        UserPreference.objects.create(user=instance,
+                                      divs=json.dumps(["nmtk_configjob",
+                                                       "nmtk_jobs",
+                                                       "nmtk_filehelp",
+                                                       "job_result_help",
+                                                       "nmtk_fileuplad_panel",
+                                                       "nmtk_introduction"]))
 
 def find_models_with_filefield(): 
     result = []

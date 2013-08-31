@@ -1,0 +1,24 @@
+  <div class="modal-header">
+    <h3>Download Job Results</h3>
+  </div>
+  <div class="modal-body">
+    <div class="row">
+      <div class="span6">  	
+        <div class="control-group">
+          <label class="control-group" for="job">Choose your desired file format</label>
+          <div class="controls">
+            <p class="help-block">Please click one of the links below to download your
+            job results in the specified file format.</p>
+            <br>
+            <!-- <a ng-repeat"(desc, fmt) in format_types" 
+                    ng-href="{{getUrl(fmt)}}">
+                    {{desc}}</a><br> -->
+            <a ng-href="{{download_url}}?output=csv">Comma-Separated Values</a><br>   
+            <a ng-href="{{download_url}}?output=xls">Microsoft Excel (.xls)</a><br>
+            <a ng-href="{{download_url}}?output=geojson">GeoJSON Format</a><br>
+          </div>
+        </div>
+      </div>      
+    </div>
+    <button ng-click="close()" class="btn btn-primary">Close</button>
+  </div>

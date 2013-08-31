@@ -1,0 +1,182 @@
+<script type="text/ng-template" id="cloneconfig.html">
+  <div class="modal-header">
+    <h3>Clone Configuration</h3>
+  </div>
+  <div class="modal-body">
+    <div class="row">
+      <div class="span6">  	
+        <div class="control-group">
+          <label class="control-group" for="job">Choose the job whose configuration you wish to clone</label>
+          <div class="controls">
+            <p class="help-block">Choose a job, and it's configuration will be imported as the default for this job.  Please note that
+            if you choose to clone a job from a tool with different parameters, only those matching parameter values will be copied.</p>
+            <p class="help-block">If you clone an existing configuration, it will overwrite your existing configuration.  You can discard the
+            changes by scrolling to the botton, closing the configuration, and then re-opening it.</p>
+            <p class="help-block">Cloning a configuration clones both the field mappings (assuming that the source file has the same
+            field names, and the tool has the same field requirements) and the constant/tuning options for the tool</p>
+            <p class="help-block">Unconfigured jobs are not available for cloning (since they use the default job config)</p>
+            <select id="job" 
+                    ng-model="selected" 
+                    ng-options="o.config as o.description for o in rest.job|filter:{'status':'!Configuration Pending'}" >
+            </select>
+          </div>
+        </div>
+      </div>      
+    </div>
+    <button  ng-click="close()" class="btn">Cancel</button>
+    <button ng-click="clone()" class="btn btn-primary">Clone</button>
+  </div>
+</script>
+
+<script type="text/ng-template"  id="error.html">
+    <div class="modal-header">
+    <h3>Configuration Errors</h3>
+    </div>
+    <div class="modal-body">
+      <div class="row">
+        <div class="span6">
+          <div class="widget stacked">
+            <div ng-click="toggleDiv('nmtk_configjob')" class="widget-header">
+              <i class="icon-exclamation"></i>
+              <h3>The following errors were encountered.</h3>
+            </div>
+            <div class="widget-content">
+               <section>
+               <table class="table table-bordered table-striped table-highlight"> 
+				 <thead>
+				   <tr>
+				      <th>Field</th>
+					  <th>Error(s)</th>
+			       </tr>
+			     </thead>
+			     <tbody>
+			       <tr ng-repeat="(field, errors) in messages">
+			       <td>{{field}}</td>
+			       <td><span ng-repeat="error in errors">{{error}}</span></td>
+			     </tbody>
+			   </table>
+             </div>
+          </div>
+        </div>
+      </div>
+      <button  ng-click="close()" class="btn btn-primary">Close and Fix Errors</button>
+    </div>
+</script>
+
+
+<div class="container">
+   <div class="row">   	  
+      <div class="span12">
+        <div class="widget stacked">
+          <div ng-click="toggleDiv('nmtk_configjob')" class="widget-header">
+            <i class="icon-info-sign"></i>
+            <h3>Configure a Job</h3>
+            <i ng-hide="isDivEnabled('nmtk_configjob')" class="icon-expand"></i>
+            <i ng-show="isDivEnabled('nmtk_configjob')" class="icon-collapse"></i>
+          </div> <!-- /widget-header -->
+          <div ng-show="isDivEnabled('nmtk_configjob')" class="widget-content">
+            <p>
+           	  Here you can choose the parameters required, and map fields from your
+           	  input data file to the input fields required by the tool.
+            </p>
+            <p>
+              Tools may specify requirements for constant values (often used to 
+              &quot;tune&quot; the model, or for &quot;field mapping&quot; used
+              to map data from your input data set into the model.  In the case
+              where your model may not provide one or more input fields, you can
+              optionally specify a constant value to use in lieu of a mapped field.
+            </p>
+          </div> <!-- /widget-content -->
+        </div><!-- /widget stacked -->
+      </div><!-- /span12 -->
+    </div><!-- /row -->
+    <form name="job_config_form">
+    <div class="row">
+      <div class="span12" >
+        <div class="widget stacked">
+          <div ng-click="toggleSection('constants')"  class="widget-header">
+            <i class="icon-edit"></i>
+            <h3>Tool Constants for {{tool_name}}</h3>
+            <button ng-show="job_data.status=='Configuration Pending'" ng-click="cloneConfig()" stop-event='click' style="z-index: 100;">Clone existing configuration</button>
+            <i ng-hide="sections.constants" class="icon-expand" ></i>
+            <i ng-show="sections.constants" class="icon-collapse"></i>
+          </div> <!-- /widget-header -->
+          <div ng-show="sections.constants"  class="widget-content">
+            <section>
+              <h4>To alter a constant, simply modify the specified value</h4>
+              <table class="table table-bordered table-striped table-highlight"> 
+				<thead>
+				  <tr>
+				      <th>Setting</th>
+					  <th>Description</th>
+				  	  <th>Field Name</th>
+				  </tr>
+				  </thead>
+				  <tbody >
+				     <tr ng-repeat="constant in tool_config|filter:{type: 'number'}">
+				       <td>
+				         <input ng-disabled="disabled" type="text" ng-model="$parent.job_config[constant.field]" 
+				                name="{{constant.field}}" required>
+				         <span ng-repeat="error in errors[constant.field]" class="alert-error" ng-show="error">{{error}}</span>
+				       </td>
+				       <td><label for="{{constant.field}}">{{constant.description}}</label></td>
+				       <td>{{constant.display_name}}</td>
+				     </tr>
+				  </tbody>
+			  </table>
+			</section>
+          </div> <!-- /widget-content -->
+        </div><!-- /widget stacked -->
+      </div><!-- /span12 -->
+    </div><!-- /row -->
+    
+    <div class="row">
+      <div class="span12" >
+        <div class="widget stacked">
+          <div ng-click="toggleSection('properties')"  class="widget-header">
+            <i class="icon-edit"></i>
+            <h3>Data Field Mappings for {{file_name}}</h3>
+            <i ng-hide="sections.properties" class="icon-expand" ></i>
+            <i ng-show="sections.properties" class="icon-collapse"></i>
+          </div> <!-- /widget-header -->
+          <div ng-show="sections.properties"  class="widget-content">
+            <section>
+              <h4>Choose the field from the data file that you wish to use for the tool parameter</h4>
+              <table class="table table-bordered table-striped table-highlight"> 
+				<thead>
+				  <tr>
+				      <th>Setting</th>
+					  <th>Description</th>
+				  	  <th>Field Name</th>
+				  </tr>
+				  </thead>
+				  <tbody >
+				    <tr ng-repeat="property in tool_config|filter:{type: 'property'}">
+				       <td>
+				         <select ng-disabled="disabled" 
+				                 ng-model="$parent.job_config[property.field]" name="{{property.field}}" ng-options="o.value as o.label for o in property.value"></select>
+				         <span ng-repeat="error in errors[property.field]" class="alert-error" ng-show="error">{{error}}</span>
+				       </td>
+				       <td><label for="{{property.field}}">{{property.description}}</label></td>
+				       <td>{{property.display_name}}</td>
+				     </tr>
+				  </tbody>
+			  </table>
+			</section>
+          </div> <!-- /widget-content -->
+        </div><!-- /widget stacked -->
+      </div><!-- /span12 -->
+    </div><!-- /row -->
+    </form>
+    <div class="row">
+      <div class="span12">
+        <div class="widget stacked">
+          <div class="widget-content centered">
+            <button ng-show="disabled" ng-click="closeConfig()" class="btn btn-primary">Close</button>
+            <button ng-hide="disabled" ng-click="closeConfig()" class="btn">Cancel</button>
+            <button ng-hide="disabled" ng-click="submit_job()" class="btn btn-primary">Submit Job</button>
+          </div>
+        </div>
+      </div>
+    </div>
+</div> <!-- /container -->
