@@ -222,7 +222,7 @@ class Job(models.Model):
             tasks.email_user_job_complete.delay(self)
         if (self.results and not self.sqlite_db):
             # Generate the spatialite database for performance.
-            tasks.generate_spatialite_database(self)
+            tasks.generate_sqlite_database(self)
             super(Job, self).save()
         return result
     

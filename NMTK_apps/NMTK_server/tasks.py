@@ -30,7 +30,7 @@ logger=logging.getLogger(__name__)
 
 # This actually does not get done as a task - it is inline with the
 # response from the tool server.
-def generate_spatialite_database(job):
+def generate_sqlite_database(job):
     def propertymap(data):
         output={}
         used=[]
@@ -67,7 +67,7 @@ def generate_spatialite_database(job):
                 
                 job.model.save('model.py', ContentFile('\n'.join(model_content)),
                                save=False)
-                logger.debug('\n'.join(model_content))
+                #logger.debug('\n'.join(model_content))
                 job.sqlite_db.save('db', ContentFile(''), save=False)
                 settings.DATABASES[database]={'ENGINE': 'django.contrib.gis.db.backends.spatialite', 
                                               'NAME': job.sqlite_db.path }
@@ -79,10 +79,10 @@ def generate_spatialite_database(job):
                 SpatiaLiteCreation(connection).load_spatialite_sql() 
                 cursor=connection.cursor()
                 for statement in connection.creation.sql_create_model(user_model.Results, no_style())[0]:
-                    logger.debug(statement)
+                    #logger.debug(statement)
                     cursor.execute(statement)
                 for statement in connection.creation.sql_indexes_for_model(user_model.Results, no_style()):
-                    logger.debug(statement)
+                    #logger.debug(statement)
                     cursor.execute(statement)
                 
             this_row=dict((field_map[k],v) for k,v in row['properties'].iteritems())
@@ -93,8 +93,8 @@ def generate_spatialite_database(job):
         logger.exception ('Failed to create spatialite results table')
         return job
     if spatial:
-        res=render('NMTK_server/mapfile.map', {'job': job })
-        job.mapfile.save('mapfile.map', ContentFile(res.read()), save=False)
+        res=render_to_string('NMTK_server/mapfile.map', {'job': job })
+        job.mapfile.save('mapfile.map', ContentFile(res), save=False)
     return job
     
 

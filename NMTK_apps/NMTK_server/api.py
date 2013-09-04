@@ -806,7 +806,7 @@ class JobResource(ModelResource):
         always_return_data = True
         resource_name = 'job'
         authentication=SessionAuthentication()
-        excludes=['sqlite_db','mapfile']
+        excludes=['sqlite_db','mapfile', 'model']
         allowed_methods=['get','put','post','delete']
         filtering= {'status': ALL,
                     'user': ALL,
