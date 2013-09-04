@@ -379,7 +379,7 @@ function DownloadJobController($scope, $log, dialog) {
 	if (/\//.test(CONFIG.api_path)) {
 		  api_path=CONFIG.api_path.substring(0, CONFIG.api_path.length-1);
 	}
-	$scope.download_url=api_path + '/job/' + $scope.job_id + '/download/';
+	$scope.download_url=dialog.options.job.results;
 	$scope.close=function () {
 		dialog.close();
 	}

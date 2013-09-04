@@ -87,119 +87,119 @@ def registerUser(request):
 #                                            datafile.geojson_name,)
 #    return response
 
-@login_required
-@user_passes_test(lambda u: u.is_active)
-def viewResults(request, job_id):
-    try:
-        job=models.Job.objects.get(job_id=job_id,
-                                   user=request.user)
-    except:
-        raise Http404
-    result=json.loads(job.results.read())
-    table={}
-    table['headers']=result['features'][0]['properties'].keys()
-    table['rows']=[]
-    for row in result['features']:
-        this_row=[]
-        for field in table['headers']:
-            this_row.append(row['properties'][field])
-        this_row.append(','.join(map(str,row['geometry']['coordinates'])))
-        table['rows'].append(this_row)        
-    table['headers'].append('Geometry')
-    logger.debug('Done generating table structure for template.')
-    return render(request, 'NMTK_server/display_results.html',
-                  {'table': table,
-                   'job_id': job_id })
+# @login_required
+# @user_passes_test(lambda u: u.is_active)
+# def viewResults(request, job_id):
+#     try:
+#         job=models.Job.objects.get(job_id=job_id,
+#                                    user=request.user)
+#     except:
+#         raise Http404
+#     result=json.loads(job.results.read())
+#     table={}
+#     table['headers']=result['features'][0]['properties'].keys()
+#     table['rows']=[]
+#     for row in result['features']:
+#         this_row=[]
+#         for field in table['headers']:
+#             this_row.append(row['properties'][field])
+#         this_row.append(','.join(map(str,row['geometry']['coordinates'])))
+#         table['rows'].append(this_row)        
+#     table['headers'].append('Geometry')
+#     logger.debug('Done generating table structure for template.')
+#     return render(request, 'NMTK_server/display_results.html',
+#                   {'table': table,
+#                    'job_id': job_id })
 
-@login_required
-@user_passes_test(lambda u: u.is_active)
-def refreshStatus(request, job_id):
-    try:
-        m=models.JobStatus.objects.filter(job=job_id,
-                                          job__user=request.user)[0]
-    except:
-        logger.debug('No status reports received yet.')
-        fakeStatus=collections.namedtuple('FakeStatus',['message',
-                                                        'timestamp'])
-        m=fakeStatus('Pending',timezone.now())
-    result={'status': m.message,
-            'timestamp': m.timestamp.isoformat()}
-    return HttpResponse(json.dumps(result),
-                        content_type='application/json')
+# @login_required
+# @user_passes_test(lambda u: u.is_active)
+# def refreshStatus(request, job_id):
+#     try:
+#         m=models.JobStatus.objects.filter(job=job_id,
+#                                           job__user=request.user)[0]
+#     except:
+#         logger.debug('No status reports received yet.')
+#         fakeStatus=collections.namedtuple('FakeStatus',['message',
+#                                                         'timestamp'])
+#         m=fakeStatus('Pending',timezone.now())
+#     result={'status': m.message,
+#             'timestamp': m.timestamp.isoformat()}
+#     return HttpResponse(json.dumps(result),
+#                         content_type='application/json')
 
-@login_required
-@user_passes_test(lambda u: u.is_active)
-def configureJob(request, job=None):
-    '''
-    Build a form that can be used to configure a job to be sent to the 
-    NMTK tool for processing.  In this case, we need to provide the field
-    mappings, as well as the other parameters that the job requires for 
-    processing.  If the result is valid, we'll send the whole thing over 
-    to the NMTK tool for processing.
-    
-    If the form is submitted with all the parameters correctly, then
-    the result is saved into the configuration for the job (serialized
-    as json), and then the job is submitted to the tool for processing 
-    (this happens automatically when the status of the job is set to
-    Active).
-    '''
-    if request.POST.has_key('job_id'):
-        try:
-            job=models.Job.objects.get(pk=request.POST['job_id'],
-                                       user=request.user)
-            logger.debug('Retrieved job %s from form data.', job.pk)
-        except:
-            raise Http404
-    elif job:
-        form=forms.ToolConfigForm(job=job)
-        
-        
-    if request.POST.has_key('job_id'):
-        form=forms.ToolConfigForm(request.POST, job=job)
-        if form.is_valid():
-            logger.debug('HOORAY - form is valid!!!')
-            job.config=form.cleaned_data
-            job.status=job.ACTIVE
-            job.user=request.user
-            job.save()
-            return render(request, "NMTK_server/result.html",
-                          {'job_id': job.pk})
-        
-    return render(request, 'NMTK_server/job_config.html',
-                  { 'job': job,
-                    'form': form, })
-@login_required
-@user_passes_test(lambda u: u.is_active)
-def submitJob(request):
-    datafile=None
-    initial={}
-    if request.method == 'POST':
-        datafile_form=forms.DataFileForm(request.POST,request.FILES)
-        # We aren't too concerned about this file..if they provide a file,
-        # we can save it here.
-        if datafile_form.is_valid():
-            datafile=datafile_form.save(commit=False)
-            datafile.name=request.FILES['file'].name
-            datafile.content_type=request.FILES['file'].content_type
-            datafile.user=request.user
-            datafile.save()
-            job_form=forms.JobSubmissionFormTool(request.user, request.POST)
-        else:
-            job_form=forms.JobSubmissionForm(request.user,
-                                             request.POST)
-        if job_form.is_valid():
-            job=job_form.save(commit=False)
-            if 'data_file' not in job_form.cleaned_data:
-                job.data_file=datafile
-            job.user=request.user
-            job.save()
-            return configureJob(request, job)            
-    else:
-        job_form=forms.JobSubmissionForm(request.user)
-        datafile_form=forms.DataFileForm()
-    return render(request, 'NMTK_server/submitjob.html',
-                  {'job_form': job_form,
-                   'datafile_form': datafile_form })
+# @login_required
+# @user_passes_test(lambda u: u.is_active)
+# def configureJob(request, job=None):
+#     '''
+#     Build a form that can be used to configure a job to be sent to the 
+#     NMTK tool for processing.  In this case, we need to provide the field
+#     mappings, as well as the other parameters that the job requires for 
+#     processing.  If the result is valid, we'll send the whole thing over 
+#     to the NMTK tool for processing.
+#     
+#     If the form is submitted with all the parameters correctly, then
+#     the result is saved into the configuration for the job (serialized
+#     as json), and then the job is submitted to the tool for processing 
+#     (this happens automatically when the status of the job is set to
+#     Active).
+#     '''
+#     if request.POST.has_key('job_id'):
+#         try:
+#             job=models.Job.objects.get(pk=request.POST['job_id'],
+#                                        user=request.user)
+#             logger.debug('Retrieved job %s from form data.', job.pk)
+#         except:
+#             raise Http404
+#     elif job:
+#         form=forms.ToolConfigForm(job=job)
+#         
+#         
+#     if request.POST.has_key('job_id'):
+#         form=forms.ToolConfigForm(request.POST, job=job)
+#         if form.is_valid():
+#             logger.debug('HOORAY - form is valid!!!')
+#             job.config=form.cleaned_data
+#             job.status=job.ACTIVE
+#             job.user=request.user
+#             job.save()
+#             return render(request, "NMTK_server/result.html",
+#                           {'job_id': job.pk})
+#         
+#     return render(request, 'NMTK_server/job_config.html',
+#                   { 'job': job,
+#                     'form': form, })
+# @login_required
+# @user_passes_test(lambda u: u.is_active)
+# def submitJob(request):
+#     datafile=None
+#     initial={}
+#     if request.method == 'POST':
+#         datafile_form=forms.DataFileForm(request.POST,request.FILES)
+#         # We aren't too concerned about this file..if they provide a file,
+#         # we can save it here.
+#         if datafile_form.is_valid():
+#             datafile=datafile_form.save(commit=False)
+#             datafile.name=request.FILES['file'].name
+#             datafile.content_type=request.FILES['file'].content_type
+#             datafile.user=request.user
+#             datafile.save()
+#             job_form=forms.JobSubmissionFormTool(request.user, request.POST)
+#         else:
+#             job_form=forms.JobSubmissionForm(request.user,
+#                                              request.POST)
+#         if job_form.is_valid():
+#             job=job_form.save(commit=False)
+#             if 'data_file' not in job_form.cleaned_data:
+#                 job.data_file=datafile
+#             job.user=request.user
+#             job.save()
+#             return configureJob(request, job)            
+#     else:
+#         job_form=forms.JobSubmissionForm(request.user)
+#         datafile_form=forms.DataFileForm()
+#     return render(request, 'NMTK_server/submitjob.html',
+#                   {'job_form': job_form,
+#                    'datafile_form': datafile_form })
     
 
 def nmtk_index(request):
@@ -250,7 +250,8 @@ def processResults(request):
     '''
     config=json.loads(request.FILES['config'].read())
     data=ContentFile(request.FILES['data'].read())
-    request.NMTK_JOB.results.save('results', data)
+    request.NMTK_JOB.results.save('results', data,
+                                  save=False)
     if config['status'] == 'results':
         request.NMTK_JOB.status=request.NMTK_JOB.COMPLETE
     elif config['status'] == 'error':

@@ -33,10 +33,10 @@ class NMTKResultsFileSystemStorage(FileSystemStorage):
     Kind of hokey here, but we will use the filename to determine the job
     id, and thereby figure out how to generate the download link.
     '''
-    def url(self, name):
-#        raise NotImplementedError
-        return reverse('downloadResults',
-                       kwargs={'job_id': name.rsplit('/',2)[-1].split('.')[0]})
+#     def url(self, name):
+# #        raise NotImplementedError
+#         return reverse('downloadResults',
+#                        kwargs={'job_id': name.rsplit('/',2)[-1].split('.')[0]})
         
 location=os.path.join(settings.FILES_PATH, 'NMTK_server', 'files')
 fs = NMTKDataFileSystemStorage(location=location)
@@ -158,6 +158,14 @@ class Job(models.Model):
                              upload_to=lambda instance, filename: '%s/results/%s.results' % (instance.user.pk,
                                                                                              instance.pk,),
                              blank=True, null=True)
+    sqlite_db=models.FileField(storage=fs_results,
+                                   upload_to=lambda instance, filename: '%s/results/%s.spatialite' % (instance.user.pk,
+                                                                                                      instance.pk,),
+                                   blank=True, null=True)
+    model=models.FileField(storage=fs_results,
+                           upload_to=lambda instance, filename: '%s/results/%s.py' % (instance.user.pk,
+                                                                                      instance.pk,),
+                           blank=True, null=True)
     # This will contain the config data to be sent along with the job, in 
     # a JSON format of a multi-post operation.
     config=JSONField(null=True)
@@ -175,6 +183,8 @@ class Job(models.Model):
         r=super(Job, self).delete()
         if self.results:
             self.results.delete()
+        if self.spatialite_db:
+            self.spatialite_db.delete()
         return r
     
     @property
@@ -206,6 +216,10 @@ class Job(models.Model):
         if (self.email and self._old_status <> self.status and
             self.status in (self.FAILED, self.COMPLETE, self.TOOL_FAILED,)):
             tasks.email_user_job_complete.delay(self)
+        if (self.results and not self.sqlite_db):
+            # Generate the spatialite database for performance.
+            tasks.generate_spatialite_database(self)
+            super(Job, self).save()
         return result
     
     class Meta:

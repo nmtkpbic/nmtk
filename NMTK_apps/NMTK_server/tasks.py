@@ -7,19 +7,92 @@ import hashlib
 import uuid
 from django.utils import timezone
 from django.conf import settings
+from django.core.management.color import no_style
+from django.db import connections, transaction
 import logging
 import os
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.gis.db.backends.spatialite.creation import SpatiaLiteCreation 
 from NMTK_server import geo_loader
 from django.core.files import File
 from django.contrib.gis.geos import Polygon
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
 from django.core.management.base import BaseCommand, CommandError
+from django.core.management.commands import inspectdb
 from django.template.loader import render_to_string
 from django.core.mail import send_mail
+from django.core.files.base import ContentFile
+import imp
 #from django.core.serializers.json import DjangoJSONEncoder
 logger=logging.getLogger(__name__)
+
+# This actually does not get done as a task - it is inline with the
+# response from the tool server.
+def generate_spatialite_database(job):
+    def propertymap(data):
+        output={}
+        used=[]
+        c=inspectdb.Command()
+        for k in data:
+            att_name, params, notes=inspectdb.Command.normalize_col_name(c, k, used, False)
+            logger.debug('Field %s, %s', att_name, notes)
+            used.append(att_name)    
+            output[k]=att_name
+        logger.debug('Mappings are %s', output)
+        return output
+    try:
+        spatial=False
+        if job.data_file.geom_type:
+            spatial=True
+            logger.debug('Got a Spatial data set!')
+        data=json.loads(job.results.read())
+        db_created=False
+        this_model=None
+        model_content=['from django.contrib.gis.db import models']
+        for row in data.get('features',[]):
+            if not db_created:
+                db_created=True
+                database='%s'% (job.pk,)
+                field_map=propertymap(row['properties'].keys())
+                # Create the model for this data
+                model_content.append('class Results(models.Model):')
+                # Add an auto-increment field for it (the PK)
+                model_content.append('{0}nmtk_id=models.AutoField(primary_key=True)'.format(' ' * 4))
+                # Add an entry for each of the fields
+                for orig_field, new_field in field_map.iteritems():
+                    model_content.append("""{0}{1}=models.TextField(null=True, db_column='''{2}''')""".
+                                         format(' '*4, new_field, orig_field))    
+                
+                job.model.save('model.py', ContentFile('\n'.join(model_content)),
+                               save=False)
+                logger.debug('\n'.join(model_content))
+                job.sqlite_db.save('db', ContentFile(''), save=False)
+                settings.DATABASES[database]={'ENGINE': 'django.contrib.gis.db.backends.spatialite', 
+                                              'NAME': job.sqlite_db.path }
+                # Must stick .model in there 'cause django doesn't like models
+                # without a package.
+                user_model=imp.load_source('%s.models' % (job.pk,),job.model.path)
+                connection=connections[database]
+                connection.ops.spatial_version=(3,0,1)
+                SpatiaLiteCreation(connection).load_spatialite_sql() 
+                cursor=connection.cursor()
+                for statement in connection.creation.sql_create_model(user_model.Results, no_style())[0]:
+                    logger.debug(statement)
+                    cursor.execute(statement)
+                for statement in connection.creation.sql_indexes_for_model(user_model.Results, no_style()):
+                    logger.debug(statement)
+                    cursor.execute(statement)
+                
+            this_row=dict((field_map[k],v) for k,v in row['properties'].iteritems())
+            m=user_model.Results(**this_row)
+            m.save(using=database)
+#             logger.debug('Saved model with pk of %s', m.pk)
+    except Exception, e:
+        logger.exception ('Failed to create spatialite results table')
+        return job
+    return job
+    
 
 @task(ignore_result=True)
 def email_user_job_complete(job):

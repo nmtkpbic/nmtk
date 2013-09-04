@@ -14,6 +14,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from tastypie.resources import csrf_exempt
 from django.http import HttpResponse, Http404
 from NMTK_server import forms
+from NMTK_apps.helpers import data_output
 import simplejson as json
 from tastypie.validation import Validation
 from django.contrib.gis.gdal import OGRGeometry
@@ -804,6 +805,7 @@ class JobResource(ModelResource):
         always_return_data = True
         resource_name = 'job'
         authentication=SessionAuthentication()
+        excludes=['spatialite_db',]
         allowed_methods=['get','put','post','delete']
         filtering= {'status': ALL,
                     'user': ALL,
@@ -872,6 +874,7 @@ class JobResource(ModelResource):
 
         No need to build a bundle here only to return a file, lets look into the DB directly
         """
+        format=request.GET.get('format', 'geojson')
         allow_download=False
         logger.debug('In download_detail with %s', kwargs)
         try:
@@ -887,12 +890,20 @@ class JobResource(ModelResource):
             allow_download=True
             
         if allow_download:
-            wrapper = FileWrapper(open(rec.results.path,'rb'))
-            response = HttpResponse(wrapper, content_type='application/json') #or whatever type you want there
-            response['Content-Length'] = rec.results.size
-            response['Content-Disposition'] = 'attachment; ' + \
-                                              'filename="result.geojson"'
-            return response        
+            if format == 'geojson': 
+                wrapper = FileWrapper(open(rec.results.path,'rb'))
+                response = HttpResponse(wrapper, content_type='application/json') #or whatever type you want there
+                response['Content-Length'] = rec.results.size
+                response['Content-Disposition'] = 'attachment; ' + \
+                                                  'filename="result.geojson"'
+                return response
+            elif format in ('csv','xls'):
+                if format == 'csv':
+                    return data_output.stream_csv(rec)
+                elif format == 'xls':
+                    return data_output.stream_xls(rec)
+            else:
+                return HttpResponse('The format %s is not yet supported' % (format,))
         else:
             raise Unauthorized('You lack the privileges required to download this file')
 
