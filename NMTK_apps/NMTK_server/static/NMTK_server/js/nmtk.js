@@ -525,8 +525,8 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http) {
 	$scope.leaflet={'defaults': { tileLayer: 'http://{s}.tile.cloudmade.com/{key}/{styleId}/256/{z}/{x}/{y}.png',
 								  tileLayerOptions: { key: '0c9dbe8158f6482d84e3543b1a790dbb', styleId: 997 }
 								},
-					'bounds': $scope.bounds,
-			        'layers': {'baselayers': {cloudmade: { top: true,
+			        'layers': {
+			        		   'baselayers': {cloudmade: { top: true,
 											               name: 'Cloudmade (OSM Data)',
 											               type: 'xyz',
 											               url: 'http://{s}.tile.cloudmade.com/{key}/{styleId}/256/{z}/{x}/{y}.png',
@@ -540,37 +540,32 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http) {
 											               }
 											             }
 								        	 },
-							   'overlays': { },
-					'geojson': { 'data': [],
-						         style: style }
+							   'overlays': { }
 			        }
+			        
 	}
 	
-	
+	// Get the information about the input file - used to determine if this
+	// job has a spatial component to it.
 	$scope.resources['job'].one($scope.jobid).get().then(function (job_data) {
 		$scope.$parent.results_job=job_data;
 		file_id=$scope.results_job.data_file.split('/').reverse()[1];
 		$scope.input_data=$scope.resources['datafile'].one(file_id).get().then(function (input_data) {
 			if (input_data.geom_type) {
-				$scope.leaflet.bounds=getBounds(input_data.bbox);
+				$scope.bounds=getBounds(input_data.bbox);
 			}
 			$scope.input_data=input_data;
 		});
 		
-		// Get the information about the input file - used to determine if this
-		// job has a spatial component to it.
+		
 		$http.get(job_data.results).success(function(data, status) {
-			$scope.leaflet.geojson={data: data,
-									style: style,
-									resetStyleOnMouseout: true,
-									pointToLayer: function (feature, latlng) {
-								        return L.circleMarker(latlng);
-								    }
+			$scope.geojson={data: data,
+							style: style,
+							resetStyleOnMouseout: true,
+							pointToLayer: function (feature, latlng) {
+						        return L.circleMarker(latlng);
+						    }
 			};
-			$scope.data=[];
-			_.each(data.features, function (value) {
-				$scope.data.push(value.properties);
-			});
 		});
 		
 	});
