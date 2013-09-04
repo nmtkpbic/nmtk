@@ -23,6 +23,7 @@ from django.core.management.commands import inspectdb
 from django.template.loader import render_to_string
 from django.core.mail import send_mail
 from django.core.files.base import ContentFile
+from django.shortcuts import render
 import imp
 #from django.core.serializers.json import DjangoJSONEncoder
 logger=logging.getLogger(__name__)
@@ -91,6 +92,9 @@ def generate_spatialite_database(job):
     except Exception, e:
         logger.exception ('Failed to create spatialite results table')
         return job
+    if spatial:
+        res=render('NMTK_server/mapfile.map', {'job': job })
+        job.mapfile.save('mapfile.map', ContentFile(res.read()), save=False)
     return job
     
 

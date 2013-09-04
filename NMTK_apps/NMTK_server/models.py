@@ -162,6 +162,10 @@ class Job(models.Model):
                                    upload_to=lambda instance, filename: '%s/results/%s.spatialite' % (instance.user.pk,
                                                                                                       instance.pk,),
                                    blank=True, null=True)
+    mapfile=models.FileField(storage=fs_results,
+                             upload_to=lambda instance, filename: '%s/results/%s.map' % (instance.user.pk,
+                                                                                         instance.pk,),
+                             blank=True, null=True)
     model=models.FileField(storage=fs_results,
                            upload_to=lambda instance, filename: '%s/results/%s.py' % (instance.user.pk,
                                                                                       instance.pk,),

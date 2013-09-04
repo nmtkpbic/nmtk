@@ -34,8 +34,8 @@
           </div> <!-- /widget-header -->
           <div class="widget-content">
             <!-- <div id="map" class="angular-leaflet-map"></div> -->
-            <leaflet defaults="leaflet.defaults" geojson="leaflet.geojson"
-                     maxBounds="leaflet.bounds"></leaflet>
+            <leaflet defaults="leaflet.defaults" layers="leaflet.layers" geojson="leaflet.geojson"
+                     bounds="leaflet.bounds"></leaflet>
           </div> <!-- /widget-content -->
         </div><!-- /widget stacked -->
       </div><!-- /span6 -->
@@ -67,8 +67,9 @@
           <div class="widget-header">
             <i class="icon-map"></i>
             <h3>All Results</h3>
+            
             </div> <!-- /widget-header -->
-          <div class="widget-content">
+          <div style="overflow: auto;" class="widget-content">
           	<div class="gridStyle" ng-grid="gridOptions">
         	</div>
           </div>

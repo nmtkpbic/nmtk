@@ -423,8 +423,80 @@ function getBounds(bbox) {
 function ViewResultsCtrl($scope, $routeParams, $location, $log, $http) {
 	$scope.jobid=$routeParams.jobid;
 	$scope.changeTab('results');
+	$scope.filterOptions= { filterText: "",
+							userExternalFilter: true };
+	$scope.totalServerItems=0;
+	$scope.pagingOptions= {
+			pageSizes: [50, 100, 250, 500, 1000],
+			pageSize: 50,
+			currentPage: 1
+	};
+	$scope.sortInfo= { fields: ['nmtk_id'],
+					   directions: ['asc'] };
+	$scope.getPagedDataAsync=function(pageSize, offset, searchText, order){
+		if ($scope.job_data) {
+			var options={offset: offset,
+					     limit: pageSize,
+					     search: searchText,
+					     order_by: order,
+					     format: 'pager'};
+			$log.info('Making request for ', $scope.job_data.results, options);
+			$http.get($scope.job_data.results, {params: options}).success(function (data) {
+				$scope.pagingOptions.totalServerItems=data.meta.total;
+				$scope.totalServerItems=data.meta.total;
+	//			$scope.pagingOptions.currentPage=(data.meta.offset/data.meta.limit)+1
+				$scope.data=data.data;
+				if (! $scope.$$phase) {
+					$scope.$apply(); 
+				}
+			});
+		}
+	};
+	
+	$scope.resources['job'].one($scope.jobid).get().then(function (job_data) {
+		$scope.job_data=job_data;
+		$scope.getPagedDataAsync($scope.pagingOptions.pageSize, 0, '', 'nmtk_id');
+//		$scope.leaflet.layers.overlays['results']= {
+//            name: 'Tool Results',
+//            type: 'wms',
+//            visible: true,
+//            url: job_data.wms_url,
+//            layerOptions: { layers: 'results',
+//                    		format: 'image/png',
+//                    		transparent: true }
+//    	};
+	});
+	
 	$scope.gridOptions= {data: 'data',
+						 enablePaging: true,
+						 showFooter: true,
+						 multiSelect: false,
+						 totalServerItems: 'totalServerItems',
+						 sortInfo: $scope.sortInfo,
+						 pagingOptions: $scope.pagingOptions,
+						 filterOptions: $scope.filterOptions,
+						 useExternalSorting: true,
 	                     showColumnMenu: true };
+	_.each(['pagingOptions', 'filterOptions', 'sortInfo'], function (item) {
+		$scope.$watch(item, function (newVal, oldVal) {
+			$log.info('Got change to ', item, newVal, oldVal);
+			if (newVal !== oldVal) {
+				if ($scope.sortInfo.fields.length) {
+				   var sort_field=$scope.sortInfo.fields[0]
+				   if ($scope.sortInfo.directions[0] == 'asc') {
+					   sort_field='-'+sort_field;
+				   }
+				}
+				$scope.getPagedDataAsync($scope.pagingOptions.pageSize, 
+						                 ($scope.pagingOptions.currentPage-1)*$scope.pagingOptions.pageSize,
+						                 $scope.filterOptions.filterText,
+						                 sort_field);
+			}
+		}, true);
+	});
+	
+	
+	
 	/* 
 	 * The leaflet directive code is somewhat broke in that if 
 	 * bounds is specified, but set to a variable set to null, it is then 
@@ -439,28 +511,40 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http) {
 				  };
 
 	
-	
+	style=function (feature) {
+		geojsonMarkerOptions = {
+				    radius: 8,
+				    fillColor: "#ff7800",
+				    color: "#000",
+				    weight: 1,
+				    opacity: 1,
+				    fillOpacity: 0.8
+				};
+		return geojsonMarkerOptions;
+	}
 	$scope.leaflet={'defaults': { tileLayer: 'http://{s}.tile.cloudmade.com/{key}/{styleId}/256/{z}/{x}/{y}.png',
 								  tileLayerOptions: { key: '0c9dbe8158f6482d84e3543b1a790dbb', styleId: 997 }
 								},
 					'bounds': $scope.bounds,
-			        'baselayers': {
-				        	cloudmade: {
-				        		top: true,
-				                name: 'Cloudmade (OSM Data)',
-				                type: 'xyz',
-				                url: 'http://{s}.tile.cloudmade.com/{key}/{styleId}/256/{z}/{x}/{y}.png',
-				                layerParams: {
-				                    key: '0c9dbe8158f6482d84e3543b1a790dbb',
-				                    styleId: 997
-				                },
-				                layerOptions: {
-				                    subdomains: ['a', 'b', 'c'],
-				                    continuousWorld: false
-				                }
-				            }
-			        	}
-					};
+			        'layers': {'baselayers': {cloudmade: { top: true,
+											               name: 'Cloudmade (OSM Data)',
+											               type: 'xyz',
+											               url: 'http://{s}.tile.cloudmade.com/{key}/{styleId}/256/{z}/{x}/{y}.png',
+											               layerParams: {
+											                   key: '0c9dbe8158f6482d84e3543b1a790dbb',
+											                   styleId: 997
+											               },
+											               layerOptions: {
+											                   subdomains: ['a', 'b', 'c'],
+											                   continuousWorld: false
+											               }
+											             }
+								        	 },
+							   'overlays': { },
+					'geojson': { 'data': [],
+						         style: style }
+			        }
+	}
 	
 	
 	$scope.resources['job'].one($scope.jobid).get().then(function (job_data) {
@@ -472,6 +556,7 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http) {
 			}
 			$scope.input_data=input_data;
 		});
+		
 		// Get the information about the input file - used to determine if this
 		// job has a spatial component to it.
 		$http.get(job_data.results).success(function(data, status) {
@@ -490,17 +575,7 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http) {
 		
 	});
 	
-	style=function (feature) {
-		geojsonMarkerOptions = {
-				    radius: 8,
-				    fillColor: "#ff7800",
-				    color: "#000",
-				    weight: 1,
-				    opacity: 1,
-				    fillOpacity: 0.8
-				};
-		return geojsonMarkerOptions;
-	}
+	
 	
 	// Handle the case when a user moves their mouse over the GeoJSON feature.
 //	$scope.$on("leafletDirectiveMap.geojsonMouseover", function(ev, leafletEvent) {

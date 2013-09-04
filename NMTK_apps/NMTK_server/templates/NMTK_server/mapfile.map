@@ -1,0 +1,104 @@
+{% load url from future %}{% load static %}
+MAP
+  NAME Results_WMS
+  UNITS METERS
+  EXTENT -8200000 4990000 -7800000 6050000
+  STATUS ON
+  SIZE 512 512
+  IMAGECOLOR 255 255 255
+  IMAGETYPE PNG
+
+  # This is for the WMS requests
+  OUTPUTFORMAT
+    NAME PNG
+    DRIVER 'GD/PNG'
+    MIMETYPE 'image/png'
+    IMAGEMODE RGBA
+    EXTENSION "png"
+    TRANSPARENT ON
+  END
+
+  PROJECTION
+   "init=epsg:3857"
+  END
+
+  WEB
+    IMAGEPATH "/tmp/"
+    IMAGEURL "/tmp/"
+    LOG "/tmp/mapserv.log"
+
+    METADATA
+      "wms_feature_info_mime_type" "text/html"
+      "ows_feature_info_mime_type" "text/html"
+      "wms_enable_request" "*"
+      "ows_enable_request" "*"
+      "wms_include_items" "text/html"
+      OWS_ENABLE_REQUEST "*"
+      WMS_TITLE "Incidents"
+      WMS_ABSTRACT "NMTK Tool Results"
+      WMS_ACCESSCONSTRAINTS "none"
+      WMS_ONLINERESOURCE "{% url 'api_job_wms' api_name='v1' resource_name='job' pk=job.pk %}"
+      WMS_SRS "EPSG:3857"
+    END
+  END
+
+  SYMBOL
+    NAME "triangle"
+    TYPE vector
+    POINTS
+      0 4
+      1 2
+      2 0
+      3 2
+      4 4
+      0 4
+    END
+    FILLED TRUE
+  END
+
+  SYMBOL
+    NAME "circle"
+    TYPE ELLIPSE
+    POINTS
+     12 12
+    END
+    FILLED TRUE
+  END
+
+  #
+  # BEGIN LAYER DESCRIPTIONS
+  #
+
+  LAYER
+    NAME "results"
+    CONNECTIONTYPE postgis
+    PROCESSING "CLOSE_CONNECTION=DEFER"
+    CONNECTION {{job.sqlite_db.path}}
+    DATA "geometry from results using unique nmtk_id"
+    TYPE POINT
+    STATUS ON
+    DUMP TRUE
+    PROJECTION
+      "init=epsg:4326"
+    END
+    TRANSPARENCY ALPHA
+    CLASS
+      STYLE
+        COLOR 255 0 0
+  	    SYMBOL "circle"
+	    OUTLINECOLOR 0 0 0
+        ANTIALIAS TRUE
+      END # END STYLE
+    END
+
+    METADATA
+      WMS_TITLE "Results"
+      WMS_ABSTRACT "Results from NMTK Tool"
+      WMS_SRS "EPSG:4326"
+      WMS_GROUP_TITLE "Results"
+      GML_INCLUDE_ITEMS "all"
+    END
+  END
+
+END
+

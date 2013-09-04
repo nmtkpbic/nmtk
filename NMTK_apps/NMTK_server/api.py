@@ -15,6 +15,7 @@ from tastypie.resources import csrf_exempt
 from django.http import HttpResponse, Http404
 from NMTK_server import forms
 from NMTK_apps.helpers import data_output
+from NMTK_apps.helpers import wms_service
 import simplejson as json
 from tastypie.validation import Validation
 from django.contrib.gis.gdal import OGRGeometry
@@ -805,7 +806,7 @@ class JobResource(ModelResource):
         always_return_data = True
         resource_name = 'job'
         authentication=SessionAuthentication()
-        excludes=['spatialite_db',]
+        excludes=['sqlite_db','mapfile']
         allowed_methods=['get','put','post','delete']
         filtering= {'status': ALL,
                     'user': ALL,
@@ -836,6 +837,8 @@ class JobResource(ModelResource):
             pass
         if bundle.obj.status == bundle.obj.COMPLETE:
             bundle.data['results']="%sresults/" % (bundle.data['resource_uri'],)
+        if bundle.obj.mapfile:
+            bundle.data['wms_url']="%swms/" % (bundle.data['resource_uri'],)
             # This should work, but doesn't ?!?
 #            bundle.data['results']=reverse('api_%s_download_detail' % (self._meta.resource_name,),
 #                                           kwargs={'resource_name': self._meta.resource_name,
@@ -848,6 +851,10 @@ class JobResource(ModelResource):
                                                                            trailing_slash()), 
                                                                            self.wrap_view('download_detail'), 
                 name="api_%s_download_detail" % (self._meta.resource_name,)),
+            url(r"^(?P<resource_name>%s)/(?P<pk>\w[\w/-]*)/wms%s$" % (self._meta.resource_name, 
+                                                                           trailing_slash()), 
+                                                                           self.wrap_view('wms'), 
+                name="api_%s_wms" % (self._meta.resource_name,)),
             ]
         
 #     def alter_list_data_to_serialize(self, request, data):
@@ -865,6 +872,25 @@ class JobResource(ModelResource):
 #         else:
 #             data['meta']['refresh_interval']=60000
 #         return data
+    def wms(self, request, **kwargs):
+        '''
+        Act like a WMS by passing the request into mapserver using the 
+        provided data set.
+        '''
+        try:
+            if request.user.is_superuser:
+                rec = self._meta.queryset.get(pk=kwargs['pk'])
+            else:
+                rec = self._meta.queryset.get(pk=kwargs['pk'],
+                                              user=request.user)
+        except ObjectDoesNotExist:
+            raise Http404
+        if rec.mapfile:
+            return wms_service.handleWMSRequest(request, rec)
+        else:
+            raise Http404
+        
+        
     
     def download_detail(self, request, **kwargs):
         """
@@ -902,8 +928,11 @@ class JobResource(ModelResource):
                     return data_output.stream_csv(rec)
                 elif format == 'xls':
                     return data_output.stream_xls(rec)
+            elif format == 'pager':
+                return data_output.pager_output(request, rec)
+                
             else:
-                return HttpResponse('The format %s is not yet supported' % (format,))
+                return HttpResponse('The format %s is not supported' % (format,))
         else:
             raise Unauthorized('You lack the privileges required to download this file')
 
