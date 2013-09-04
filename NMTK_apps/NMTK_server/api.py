@@ -477,7 +477,7 @@ class DataFileResource(ModelResource):
     geom_type=fields.CharField('geom_type', readonly=True, null=True)
     file=fields.CharField('file', readonly=True, null=True)
     geojson=fields.CharField('geojson_file', readonly=True, null=True)
-
+    job=fields.ToOneField('JobResource', 'job', null=True, readonly=True)
 
     def prepend_urls(self):
         return [

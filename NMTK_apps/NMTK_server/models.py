@@ -152,7 +152,7 @@ class Job(models.Model):
     date_created=models.DateTimeField(auto_now_add=True)
     status=models.CharField(max_length=32, choices=STATUS_CHOICES, default=UNCONFIGURED)
     #file=models.FileField(storage=fs, upload_to=lambda instance, filename: 'data_files/%s.geojson' % (instance.job_id,))
-    data_file=models.ForeignKey('DataFile', null=False, 
+    data_file=models.ForeignKey('DataFile', null=False, related_name='data_file_job',
                                 blank=False, on_delete=models.PROTECT)
     results=models.FileField(storage=fs_results, 
                              upload_to=lambda instance, filename: '%s/results/%s.results' % (instance.user.pk,
@@ -270,6 +270,7 @@ class DataFile(models.Model):
     user=models.ForeignKey(settings.AUTH_USER_MODEL, null=False)
     fields=JSONField(null=True, blank=True)
     deleted=models.BooleanField(default=False)
+    job=models.ForeignKey(Job, null=True, blank=True, related_name='source_job')
     objects=models.GeoManager()
     
 #    @property
