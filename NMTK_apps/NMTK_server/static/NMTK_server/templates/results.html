@@ -5,7 +5,7 @@
         <div class="widget stacked">
           <div ng-click="toggleDiv('job_result_help')" class="widget-header">
             <i class="icon-info-sign"></i>
-            <h3>Job Results - {{results_job.description}}</h3>
+            <h3>Job Results - {{job_data.description}}</h3>
             <i ng-hide="isDivEnabled('job_result_help')" class="icon-expand"></i>
             <i ng-show="isDivEnabled('job_result_help')" class="icon-collapse"></i>
           </div> <!-- /widget-header -->
@@ -25,11 +25,11 @@
         </div><!-- /widget stacked -->
       </div><!-- /span12 -->
     </div><!-- /row -->
-    <div ng-show="input_data.geom_type.length > 0" class="row">
-      <div class="span6" >
+    <div  class="row">
+      <div class="span6" ng-show="input_data.geom_type.length > 0" >
         <div class="widget stacked">
           <div class="widget-header">
-            <i class="icon-map"></i>
+            <i class="icon-map-marker"></i>
             <h3>Spatial Result</h3>
           </div> <!-- /widget-header -->
           <div class="widget-content">
@@ -38,19 +38,36 @@
                      geojson="geojson" bounds="bounds"></leaflet>
           </div> <!-- /widget-content -->
         </div><!-- /widget stacked -->
+        <div class="widget stacked">
+          <div class="widget-header">
+            <i class="icon-table"></i>
+            <h3>All Results</h3>
+          </div> <!-- /widget-header -->
+          <div class="widget-content">
+            <div class="gridStyle" ng-grid="gridOptions">
+          </div> <!-- /widget-content -->
+        </div><!-- /widget stacked -->
       </div><!-- /span6 -->
-    
+    </div>
+    <div class="row">
       <div class="span6">
         <div class="widget stacked">
           <div class="widget-header">
-            <i class="icon-map"></i>
-            <h3>Selected Feature</h3>
+            <i class="icon-plus-sign"></i>
+            <h3>{{selected_features.length}} Selected Features</h3>
+            <button ng-click="clearSelection()" ng-show="selected_features.length">Clear Selection</button>
           </div> <!-- /widget-header -->
-          <div ng-show="selected_feature" class="widget-content">
-            <h4> Feature {{selected_feature.id}} has been selected.</h4>
-            <table class="table table-bordered table-striped table-highlight">
+          <div ng-repeat="selected_feature in selected_features" class="widget-content">          	
+            <h4>
+               Feature {{selected_feature.nmtk_id}} has been selected 
+               (<a ng-hide="isHidden({{selected_feature.nmtk_id}})" 
+                   ng-click="toggleHidden(selected_feature.nmtk_id)">click to hide</a><a 
+                 ng-show="isHidden({{selected_feature.nmtk_id}})" 
+                 ng-click="toggleHidden(selected_feature.nmtk_id)">click to show</a>).
+            </h4>
+            <table ng-hide="isHidden({{selected_feature.nmtk_id}})" class="table table-bordered table-striped table-highlight">
               <tbody>
-                <tr ng-repeat="(item, value) in selected_feature.properties track by item">
+                <tr ng-repeat="(item, value) in selected_feature track by item">
                   <td>{{item}}</td>
                   <td>{{value}}</td>
                 </tr>
@@ -59,23 +76,10 @@
           </div> <!-- /widget-content -->
         </div><!-- /widget stacked -->
       </div><!-- /span6 -->
+      
     </div><!-- /row -->
     
-    <div class="row">
-      <div class="span12">
-        <div class="widget stacked">
-          <div class="widget-header">
-            <i class="icon-map"></i>
-            <h3>All Results</h3>
-            
-            </div> <!-- /widget-header -->
-          <div style="overflow: auto;" class="widget-content">
-          	<div class="gridStyle" ng-grid="gridOptions">
-        	</div>
-          </div>
-        </div>
-      </div>
-    </div>
+    
           
     <div class="row">
       <div class="span12">

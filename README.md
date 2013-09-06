@@ -22,6 +22,9 @@ these pre-reqs (and their install packages) translate easily (try google) to num
  * libapache2-mod-wsgi
  * libxslt-dev libxml2-dev
  * libspatialite3 libspatialite-dev spatialite-bin
+ * libgd2-xpm-dev
+ * libproj-dev
+ * libfreetype6-dev
 
 You must also download, compile, and install (from source) GDAL version 1.10 or greater.  GDAL v1.10 added
 support for CRS values in GeoJSON files - which are a requirement for NMTK.  Also, please note
@@ -34,6 +37,17 @@ These directions also assume that you have placed the GDAL components in /usr/lo
 to modify NMTK_apps/manage.py and NMTK_apps/NMTK_apps/wsgi.py with the appropriate locations, otherwise GDAL
 specific operations will fail (due to the library not being found.)
 
+Mapserver Installation
+======================
+Please be sure to build the MapServer executable and install it on your server.  Your
+settings.py will require that you provide the fully-qualified path to this program,
+otherwise WMS services (view Geo-results) will not work.
+
+In this installation, mapserver was compiled with the following configure arguments:
+
+   ./configure  --with-postgis --with-ogr --with-proj --with-wms --with-wfs 
+                --with-png --with-jpeg --with-gif --with-zlib --with-gd 
+                --with-curl --with-geos --with-gdal --enable-python-mapscript
 
 Installation Instructions
 =========================
@@ -134,10 +148,12 @@ as some knowledge surrounding configuring a web server (such as Apache.)
       be unique for your installation.  The SECRET_KEY is used for various 
       hashing operations, and needs to be different for each site (for security
       reasons.)
+      
+ 14.  Ensure that the MAPSERV_PATH is set to the path to your Mapserver executable.
  
- 14.  Restart your apache server
+ 15.  Restart your apache server
  
- 15.  Run the discover_tools command to discover new tools, and remove no-longer
+ 16.  Run the discover_tools command to discover new tools, and remove no-longer
       valid/published tools::
     
      python manage.py discover_tools   

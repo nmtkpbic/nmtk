@@ -422,15 +422,35 @@ function getBounds(bbox) {
  */
 function ViewResultsCtrl($scope, $routeParams, $location, $log, $http) {
 	$scope.jobid=$routeParams.jobid;
+	$scope.$parent.results_job=$scope.jobid;
 	$scope.changeTab('results');
 	$scope.filterOptions= { filterText: "",
 							userExternalFilter: true };
+	// For the list of visible items, this is a list that contains those
+	// that are currently hidden, the isHidden and toggleHidden methods will
+	// check and toggle the hidden property.
+	$scope.hidden_items=[];
+	$scope.isHidden=function (item_id) {
+		return (_.indexOf($scope.hidden_items, item_id) > -1);
+	}
+	$scope.toggleHidden=function (item_id) {
+		var pos=_.indexOf($scope.hidden_items, item_id);
+		if (pos == -1) {
+			$scope.hidden_items.push(item_id)
+		} else {
+			$scope.hidden_items.splice(pos, 1);
+		}
+	}
+	
+	
 	$scope.totalServerItems=0;
+	$scope.selections=[];
 	$scope.pagingOptions= {
 			pageSizes: [50, 100, 250, 500, 1000],
 			pageSize: 50,
 			currentPage: 1
 	};
+	$scope.columnOptions=[];
 	$scope.sortInfo= { fields: ['nmtk_id'],
 					   directions: ['asc'] };
 	$scope.getPagedDataAsync=function(pageSize, offset, searchText, order){
@@ -442,48 +462,78 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http) {
 					     format: 'pager'};
 			$log.info('Making request for ', $scope.job_data.results, options);
 			$http.get($scope.job_data.results, {params: options}).success(function (data) {
-				$scope.pagingOptions.totalServerItems=data.meta.total;
 				$scope.totalServerItems=data.meta.total;
-	//			$scope.pagingOptions.currentPage=(data.meta.offset/data.meta.limit)+1
+				$scope.pagingOptions.currentPage=(data.meta.offset/data.meta.limit)+1
 				$scope.data=data.data;
-				if (! $scope.$$phase) {
-					$scope.$apply(); 
+				if ($scope.columnOptions.length == 0) {
+					$scope.columnOptions=[]
+					var visible=false;
+					var fields=JSON.parse($scope.input_data.fields);
+					_.each(data.data[0], function (col_val, col_name) {
+						if (_.indexOf(fields, col_name) == -1) {
+						
+							visible=true;
+						} else {
+							visible=false;
+						}
+						$scope.columnOptions.push({ field: col_name,
+							                        visible: visible });
+					});
+					$log.info($scope.columnOptions);
 				}
 			});
 		}
 	};
 	
-	$scope.resources['job'].one($scope.jobid).get().then(function (job_data) {
-		$scope.job_data=job_data;
-		$scope.getPagedDataAsync($scope.pagingOptions.pageSize, 0, '', 'nmtk_id');
-//		$scope.leaflet.layers.overlays['results']= {
-//            name: 'Tool Results',
-//            type: 'wms',
-//            visible: true,
-//            url: job_data.wms_url,
-//            layerOptions: { layers: 'results',
-//                    		format: 'image/png',
-//                    		transparent: true }
-//    	};
-	});
+	// Whenever a feature is selected in the table, we will match that feature in
+	// the view window...
+	$scope.$watch('selections', function () {
+		$scope.selected_features=$scope.selections;
+		$log.info('Got items selected!')
+	},true);
+	
+	// We watch reloadData to signal to ng-grid that it should reset its 
+	// selections and reload data.  This is because Ng-grid does not have a
+	// method by which we can *unselect* selected rows (easily.)
+	$scope.reloadData=1;
+	/*
+	 * When the selection is cleared, just tryncate all the lists of selected 
+	 * stuff to 0 and then reload the data for the grid (to unselect items.)
+	 */
+	$scope.clearSelection=function() {
+		$scope.selected_features.length=0;
+		$scope.selections.length=0;
+		$scope.hidden_items.length=0;
+		$scope.reloadData += 1;
+	}
+	
+	$scope.selectResultRow = function(){
+        angular.forEach($scope.myData, function(data, index){
+            if (data.nmtk_id == $scope.selected_feature.nmtk_id){
+                $scope.gridOptions.selectItem(index, true);
+            }
+        });
+    };
 	
 	$scope.gridOptions= {data: 'data',
+						 columnDefs: 'columnOptions',
 						 enablePaging: true,
 						 showFooter: true,
-						 multiSelect: false,
+						 multiSelect: true,
+						 selectedItems: $scope.selections,
 						 totalServerItems: 'totalServerItems',
 						 sortInfo: $scope.sortInfo,
 						 pagingOptions: $scope.pagingOptions,
 						 filterOptions: $scope.filterOptions,
 						 useExternalSorting: true,
 	                     showColumnMenu: true };
-	_.each(['pagingOptions', 'filterOptions', 'sortInfo'], function (item) {
+	_.each(['pagingOptions', 'filterOptions', 'sortInfo', 'reloadData'], function (item) {
 		$scope.$watch(item, function (newVal, oldVal) {
 			$log.info('Got change to ', item, newVal, oldVal);
 			if (newVal !== oldVal) {
 				if ($scope.sortInfo.fields.length) {
 				   var sort_field=$scope.sortInfo.fields[0]
-				   if ($scope.sortInfo.directions[0] == 'asc') {
+				   if ($scope.sortInfo.directions[0] == 'desc') {
 					   sort_field='-'+sort_field;
 				   }
 				}
@@ -546,55 +596,36 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http) {
 	}
 	
 	// Get the information about the input file - used to determine if this
-	// job has a spatial component to it.
+	// job has a spatial component to it and get the various URLs for data
+	// display.
 	$scope.resources['job'].one($scope.jobid).get().then(function (job_data) {
-		$scope.$parent.results_job=job_data;
-		file_id=$scope.results_job.data_file.split('/').reverse()[1];
+		// Store the job data, then get the input file data as well, so we
+		// can determine what the input file fields are, and also so we can
+		// figure out if there is a spatial component to the results.
+		$scope.job_data=job_data;
+		file_id=job_data.data_file.split('/').reverse()[1];
 		$scope.input_data=$scope.resources['datafile'].one(file_id).get().then(function (input_data) {
 			if (input_data.geom_type) {
 				$scope.bounds=getBounds(input_data.bbox);
 			}
 			$scope.input_data=input_data;
+			// Don't get the paged results until we load the datafile information,
+			// otherwise we cannot figure out the columns to display.
+			$scope.getPagedDataAsync($scope.pagingOptions.pageSize, 0, '', 'nmtk_id');
 		});
 		
+		$scope.leaflet.layers.overlays['results']= {
+            name: 'Tool Results',
+            type: 'wms',
+            visible: true,
+            url: job_data.wms_url,
+            layerOptions: { layers: 'results',
+                    		format: 'image/png',
+                    		transparent: true }
+    	};
 		
-		$http.get(job_data.results).success(function(data, status) {
-			$scope.geojson={data: data,
-							style: style,
-							resetStyleOnMouseout: true,
-							pointToLayer: function (feature, latlng) {
-						        return L.circleMarker(latlng);
-						    }
-			};
-		});
 		
 	});
-	
-	
-	
-	// Handle the case when a user moves their mouse over the GeoJSON feature.
-//	$scope.$on("leafletDirectiveMap.geojsonMouseover", function(ev, leafletEvent) {
-//         $log.info(leafletEvent);
-//         var feature_type='mouse';
-//         var feature_id=leafletEvent.layer.feature.id;
-//         var properties=leafletEvent.layer.feature.properties;
-//         $scope.selected_feature={type: feature_type,
-//        		               	  id: feature_id,
-//        		               	  properties: properties};
-//         
-//     });
-
-	// Handle the case when the user clicks on a GeoJSON feature.
-    $scope.$on("leafletDirectiveMap.geojsonClick", function(ev, featureSelected, leafletEvent) {
-         $log.info(featureSelected, leafletEvent);
-         var feature_type='click';
-         var feature_id=featureSelected.id;
-         var properties=featureSelected.properties;
-         $scope.selected_feature={type: feature_type,
-        		                  id: feature_id,
-        		                  properties: properties};
-         $log.info(properties);
-    });
      
 	$scope.close=function () {
 		$scope.$parent.results_job=undefined;
@@ -602,71 +633,6 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http) {
 	}
 	
 }
-//
-//function ViewResultsCtrl($scope, $routeParams, $location, $log, $http) {
-//	$scope.jobid=$routeParams.jobid;
-//	$scope.changeTab('results');
-//	$scope.gridOptions = { data: 'results',
-//						   showColumnMenu: true};
-//	// If someone directly loads this page, we'll need to look up the
-//	// job data, as well as the file information.  So do that here.  
-//	// Just always do it, even if a parent job id is enabled...
-//    
-//    
-//	$scope.displayPopup=function (feature, layer) {
-//		layer.on('click', function (e) {
-//			$scope.selected_feature=feature;
-//		})
-//	};
-//	$scope.pointToLayer=function (feature, latlong) {
-//		var geojsonMarkerOptions = {  radius: 8,
-//				    				  fillColor: "#ff7800",
-//				    				  color: "#000",
-//				    				  weight: 1,
-//				    				  opacity: 1,
-//				    				  fillOpacity: 0.8 };
-//		$log.info('Got Feature/latlong', feature, latlong);
-//		return L.circleMarker(latlong, geojsonMarkerOptions);
-//	};
-//	
-//	$scope.resources['job'].one($scope.jobid).get().then(function (job_data) {
-//		$scope.$parent.results_job=job_data;
-//		file_id=$scope.results_job.data_file.split('/').reverse()[1];
-//		$scope.input_data=$scope.resources['datafile'].one(file_id).get().then(function (input_data) {
-//			$scope.data=input_data;
-//			if (input_data.geom_type) {
-//				$scope.input_data=input_data;
-//				$scope.map=L.map('map');
-//				$scope.bounds=getBounds(input_data.bbox);
-//				$scope.map.fitBounds($scope.bounds);
-//				$scope.map._onResize()
-//				L.tileLayer('http://{s}.tile.cloudmade.com/{key}/{styleId}/256/{z}/{x}/{y}.png', {
-//			   	    key: '0c9dbe8158f6482d84e3543b1a790dbb',
-//			   	    styleId: 997
-//				}).addTo($scope.map);	
-//				$log.info($scope.bounds)
-//				$http.get(job_data.results).success(function (data, status) {
-//					L.geoJson(data, { pointToLayer: $scope.pointToLayer,
-//									  onEachFeature: function (feature, layer) { $scope.displayPopup(feature, layer) }
-//									}).addTo($scope.map);
-//					$scope.results=[];
-//					$scope.data=data;
-//					_.each(data.features, function (value) {
-//						$scope.results.push(value.properties);
-//					});
-//					$log.debug($scope.results)
-//				});
-//			}	
-//		});
-//	});
-//	
-//
-//	$scope.close=function () {
-//		$scope.$parent.results_job=undefined;
-//		$location.path('/job/');
-//	}
-//	
-//}
  
 function FilesCtrl($scope, $timeout, $route, $dialog, $log) {
 	$log.info('In FilesCtrl');

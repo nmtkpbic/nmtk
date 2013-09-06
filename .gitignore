@@ -15,3 +15,6 @@ htdocs/static
 
 # Ignore the nmtk_files dir and it's contents
 nmtk_files/*
+
+# Ignore the mapserv executable, which might have been copied here cgi-bin/mapserv
+cgi-bin/mapserv

@@ -20,6 +20,8 @@ ADMINS = (
     # ('Your Name', 'your_email@example.com'),
 )
 
+# The path to the MapServer executable
+MAPSERV_PATH=os.path.abspath(os.path.join(BASE_PATH, '..', '..', 'cgi-bin','mapserv'))
 SERVER_EMAIL=DEFAULT_FROM_EMAIL='nmtk@otg-nc.com'
 EMAIL_BACKEND='NMTK_apps.email_backend.EmailBackend'
 # If you wish to have django connect to a remote SMTP server, use these
