@@ -22,6 +22,9 @@ ADMINS = (
 
 # The path to the MapServer executable
 MAPSERV_PATH=os.path.abspath(os.path.join(BASE_PATH, '..', '..', 'cgi-bin','mapserv'))
+# The font used for legend text.
+LEGEND_FONT=os.path.abspath(os.path.join(BASE_PATH,'..','..','fonts','Amble-Regular.ttf'))
+MAPSERVER_TEMPLATE=os.path.abspath(os.path.join(BASE_PATH, '..','NMTK_server','templates','NMTK_server','mapserver_template.js'))
 SERVER_EMAIL=DEFAULT_FROM_EMAIL='nmtk@otg-nc.com'
 EMAIL_BACKEND='NMTK_apps.email_backend.EmailBackend'
 # If you wish to have django connect to a remote SMTP server, use these

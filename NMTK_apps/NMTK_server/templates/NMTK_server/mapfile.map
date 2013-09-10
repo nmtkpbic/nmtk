@@ -1,12 +1,13 @@
 {% load url from future %}{% load static %}
 MAP
   NAME Results_WMS
-  UNITS METERS
-  EXTENT -8200000 4990000 -7800000 6050000
+  UNITS dd
+#  EXTENT -8200000 4990000 -7800000 6050000
   STATUS ON
   SIZE 512 512
   IMAGECOLOR 255 255 255
   IMAGETYPE PNG
+  
 
   # This is for the WMS requests
   OUTPUTFORMAT
@@ -18,8 +19,15 @@ MAP
     TRANSPARENT ON
   END
 
+  OUTPUTFORMAT
+    NAME "json"
+    DRIVER "TEMPLATE"
+    FORMATOPTION "FILE={{mapserver_template}}"
+    MIMETYPE "application/json"
+  END
+
   PROJECTION
-   "init=epsg:3857"
+   "init=epsg:4326"
   END
 
   WEB
@@ -28,17 +36,17 @@ MAP
     LOG "/tmp/mapserv.log"
 
     METADATA
-      "wms_feature_info_mime_type" "text/html"
-      "ows_feature_info_mime_type" "text/html"
+      wms_feature_info_mime_type "application/json"
+      ows_feature_info_mime_type "application/json"
+      wms_include_items "application/json"
       "wms_enable_request" "*"
       "ows_enable_request" "*"
       "wms_include_items" "text/html"
-      OWS_ENABLE_REQUEST "*"
       WMS_TITLE "Incidents"
       WMS_ABSTRACT "NMTK Tool Results"
       WMS_ACCESSCONSTRAINTS "none"
       WMS_ONLINERESOURCE "{% url 'api_job_wms' api_name='v1' resource_name='job' pk=job.pk %}"
-      WMS_SRS "EPSG:3857"
+      WMS_SRS "EPSG:3857 EPSG:4326"
     END
   END
 
@@ -60,7 +68,7 @@ MAP
     NAME "circle"
     TYPE ELLIPSE
     POINTS
-     12 12
+     10 10
     END
     FILLED TRUE
   END
@@ -71,20 +79,64 @@ MAP
 
   LAYER
     NAME "results"
-    CONNECTIONTYPE postgis
-    PROCESSING "CLOSE_CONNECTION=DEFER"
-    CONNECTION {{job.sqlite_db.path}}
-    DATA "geometry from results using unique nmtk_id"
+    CONNECTIONTYPE OGR
+    CONNECTION "{{job.sqlite_db.path}}"
+    DATA "{{job.pk}}_results"
+#    DATA 'SELECT nmtk_geometry,* FROM "{{job.pk}}_results"'
     TYPE POINT
-    STATUS ON
+#    STATUS ON
+    DUMP TRUE
+    PROJECTION
+      "init=epsg:4326"
+    END
+    TOLERANCE 4
+    TRANSPARENCY ALPHA
+    TEMPLATE "results.html"
+    METADATA
+     "wms_getfeature_formatlist" "gml,json"
+      WMS_TITLE "Results"
+      WMS_ABSTRACT "Results from NMTK Tool"
+      WMS_SRS "EPSG:4326"
+      WMS_GROUP_TITLE "Results"
+      GML_INCLUDE_ITEMS "nmtk_feature_id"
+    END
+    
+    
+    {% for color in colors %}
+    CLASS
+      NAME "Results between {{color.low}} and {{color.high}}"
+      EXPRESSION ([result] >= {{color.low}} and [result] <= {{color.high}}) 
+      STYLE
+        COLOR {{color.r}} {{color.g}} {{color.b}}
+  	    SYMBOL "circle"
+	    OUTLINECOLOR 0 0 0
+        ANTIALIAS TRUE
+      END # END STYLE
+    END
+    {% endfor %}
+
+  END
+
+  LAYER
+    NAME "highlight"
+    CONNECTIONTYPE OGR
+    CONNECTION "{{job.sqlite_db.path}}"
+    # Generate a query to get those features that are requested for highlighting.
+    DATA 'SELECT geometry FROM "{{job.pk}}_results" WHERE nmtk_id in (%ids%)'
+    VALIDATION
+      "ids" "[0-9,]+"
+    END
+    TYPE POINT
+#    STATUS ON
     DUMP TRUE
     PROJECTION
       "init=epsg:4326"
     END
     TRANSPARENCY ALPHA
     CLASS
+      NAME "Selected Results"
       STYLE
-        COLOR 255 0 0
+        COLOR 0 0 0
   	    SYMBOL "circle"
 	    OUTLINECOLOR 0 0 0
         ANTIALIAS TRUE
@@ -92,10 +144,10 @@ MAP
     END
 
     METADATA
-      WMS_TITLE "Results"
-      WMS_ABSTRACT "Results from NMTK Tool"
+      WMS_TITLE "Highlights"
+      WMS_ABSTRACT "Selected results"
       WMS_SRS "EPSG:4326"
-      WMS_GROUP_TITLE "Results"
+      WMS_GROUP_TITLE "Highlights"
       GML_INCLUDE_ITEMS "all"
     END
   END

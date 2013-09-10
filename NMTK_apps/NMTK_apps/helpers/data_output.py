@@ -27,7 +27,8 @@ def stream_csv(job):
     qs=getQuerySet(job)
     row=qs[0]
     db_map=[(field.db_column or field.name, field.name) for
-             field in row._meta.fields]
+             field in row._meta.fields if field.name ]
+    
     
     def read_and_flush():
         csvfile.seek(0)
@@ -86,7 +87,7 @@ def pager_output(request, job):
     except: 
         offset=0
     try:
-        limit=int(request.GET.get('limit', 20))
+        limit=int(request.GET.get('limit', 0))
     except: 
         limit=20
     order=request.GET.get('order_by', 'nmtk_id')
@@ -121,11 +122,15 @@ def pager_output(request, job):
                      'order': order,
                      'search': sstring}
             }
-    qs=qs[offset:limit+offset]
+    if limit:
+        qs=qs[offset:limit+offset]
+    else:
+        qs=qs[offset:]
     for row in qs:
         data={}
         for db_col, col in db_map:
-            data[db_col]=getattr(row, col)
+            if col != 'nmtk_geometry':
+                data[db_col]=getattr(row, col)
         result['data'].append(data)
         
     return HttpResponse(json.dumps(result), mimetype='application/json')

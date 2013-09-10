@@ -806,7 +806,7 @@ class JobResource(ModelResource):
         always_return_data = True
         resource_name = 'job'
         authentication=SessionAuthentication()
-        excludes=['sqlite_db','mapfile', 'model']
+        excludes=['sqlite_db','mapfile', 'model', 'legendgraphic']
         allowed_methods=['get','put','post','delete']
         filtering= {'status': ALL,
                     'user': ALL,
@@ -839,6 +839,8 @@ class JobResource(ModelResource):
             bundle.data['results']="%sresults/" % (bundle.data['resource_uri'],)
         if bundle.obj.mapfile:
             bundle.data['wms_url']="%swms/" % (bundle.data['resource_uri'],)
+            bundle.data['layer']='results'
+            bundle.data['legend']="{0}legend/".format(bundle.data['resource_uri'])
             # This should work, but doesn't ?!?
 #            bundle.data['results']=reverse('api_%s_download_detail' % (self._meta.resource_name,),
 #                                           kwargs={'resource_name': self._meta.resource_name,
@@ -855,6 +857,10 @@ class JobResource(ModelResource):
                                                                            trailing_slash()), 
                                                                            self.wrap_view('wms'), 
                 name="api_%s_wms" % (self._meta.resource_name,)),
+            url(r"^(?P<resource_name>%s)/(?P<pk>\w[\w/-]*)/legend%s$" % (self._meta.resource_name, 
+                                                                         trailing_slash()), 
+                                                                         self.wrap_view('legend'), 
+                name="api_%s_legend" % (self._meta.resource_name,)),
             ]
         
 #     def alter_list_data_to_serialize(self, request, data):
@@ -872,6 +878,21 @@ class JobResource(ModelResource):
 #         else:
 #             data['meta']['refresh_interval']=60000
 #         return data
+
+    def legend(self, request, **kwargs):
+        try:
+            if request.user.is_superuser:
+                rec = self._meta.queryset.get(pk=kwargs['pk'])
+            else:
+                rec = self._meta.queryset.get(pk=kwargs['pk'],
+                                              user=request.user)
+        except ObjectDoesNotExist:
+            raise Http404
+        if rec.legendgraphic:
+            response = HttpResponse(rec.legendgraphic, content_type='image/png')
+            return response
+        else:
+            raise Http404
     def wms(self, request, **kwargs):
         '''
         Act like a WMS by passing the request into mapserver using the 
@@ -886,6 +907,7 @@ class JobResource(ModelResource):
         except ObjectDoesNotExist:
             raise Http404
         if rec.mapfile:
+#             logger.debug('Mapfile is at %s',rec.mapfile.path)
             return wms_service.handleWMSRequest(request, rec)
         else:
             raise Http404

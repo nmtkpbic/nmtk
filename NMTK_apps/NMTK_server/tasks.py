@@ -15,7 +15,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.gis.db.backends.spatialite.creation import SpatiaLiteCreation 
 from NMTK_server import geo_loader
 from django.core.files import File
-from django.contrib.gis.geos import Polygon
+from django.contrib.gis import geos
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
 from django.core.management.base import BaseCommand, CommandError
@@ -24,9 +24,73 @@ from django.template.loader import render_to_string
 from django.core.mail import send_mail
 from django.core.files.base import ContentFile
 from django.shortcuts import render
+from osgeo import ogr
 import imp
+import math
+import colorsys
+from PIL import Image, ImageDraw, ImageFont
+
 #from django.core.serializers.json import DjangoJSONEncoder
 logger=logging.getLogger(__name__)
+
+geomodel_mappings={ ogr.wkbPoint: ('models.PointField', geos.Point),
+                    ogr.wkbGeometryCollection: ('models.GeometryField', geos.GEOSGeometry),
+                    ogr.wkbLineString:  ('models.LineStringField', geos.LineString),
+                    ogr.wkbMultiPoint: ('models.MultiPointField', geos.MultiPoint),
+                    ogr.wkbMultiPolygon: ('models.MultiPolygonField', geos.MultiPolygon),
+                    ogr.wkbPolygon: ('models.PolygonField', geos.Polygon),
+                    ogr.wkbMultiLineString: ('models.MultiLineStringField', geos.MultiLineString),
+                   }
+# Given a min and max value, and a value (somewhere in the middle)
+# return a suitable pseudo-color to match.
+def pseudocolor(val, minval=0, maxval=255):
+    h=float(val-minval)/(maxval-minval)*120
+    g,r,b=colorsys.hsv_to_rgb(h/360,1.0,1.0)
+    return int(r*255),int(g*255),int(b*255)
+
+def generateColorRampLegendGraphic(min_text, max_text, height=16, width=258, border=1):
+    im=Image.new('RGB', (width, height), "black")
+    draw=ImageDraw.Draw(im)
+    start=border
+    stop=height-border*2
+    for i in range(border, width-border*2):
+        color="rgb({0},{1},{2})".format(*pseudocolor(i, minval=0, 
+                                                     maxval=width-(border*2)))
+        draw.line((i, start, i, stop), fill=color)
+    del draw
+    
+    # Generate the legend text under the image
+    font=ImageFont.truetype(settings.LEGEND_FONT,12)
+    min_text_width, min_text_height = font.getsize(min_text)
+    max_text_width, max_text_height = font.getsize(max_text)
+    text_height=max(min_text_height, max_text_height)+2
+    final_width=max(width, max_text_width, min_text_width)
+    im2=Image.new('RGB', (final_width, height+text_height), "white")
+    im2.paste(im, (int((final_width-width)/2),0))
+    text_pos=height+1
+    draw=ImageDraw.Draw(im2)
+    draw.text((1, text_pos),
+              min_text,
+              "black",
+              font=font)
+    draw.text((final_width-(max_text_width+1), text_pos), 
+              max_text, 
+              "black", 
+              font=font)
+    del draw
+    return im2
+            
+            
+
+# for i in range(1,256):
+#   print '''
+#      CLASS
+#         EXPRESSION "%s"
+#         STYLE
+#           COLOR %s %s %s
+#         END
+#      END
+# ''' % ((i,) + pseudocolor(i))
 
 # This actually does not get done as a task - it is inline with the
 # response from the tool server.
@@ -37,33 +101,43 @@ def generate_sqlite_database(job):
         c=inspectdb.Command()
         for k in data:
             att_name, params, notes=inspectdb.Command.normalize_col_name(c, k, used, False)
-            logger.debug('Field %s, %s', att_name, notes)
+#             logger.debug('Field %s, %s', att_name, notes)
             used.append(att_name)    
             output[k]=att_name
-        logger.debug('Mappings are %s', output)
+#         logger.debug('Mappings are %s', output)
         return output
     try:
         spatial=False
+        result_field='result'
         if job.data_file.geom_type:
             spatial=True
             logger.debug('Got a Spatial data set!')
         data=json.loads(job.results.read())
         db_created=False
         this_model=None
+        colors=[]
         model_content=['from django.contrib.gis.db import models']
+        feature_id=1
         for row in data.get('features',[]):
             if not db_created:
                 db_created=True
+                min_result=max_result=float(row['properties'][result_field])
                 database='%s'% (job.pk,)
                 field_map=propertymap(row['properties'].keys())
                 # Create the model for this data
                 model_content.append('class Results(models.Model):')
                 # Add an auto-increment field for it (the PK)
-                model_content.append('{0}nmtk_id=models.AutoField(primary_key=True)'.format(' ' * 4))
+                model_content.append('{0}nmtk_id=models.IntegerField(primary_key=True)'.format(' ' * 4))
+                model_content.append('{0}nmtk_feature_id=models.IntegerField()'.format(' '*4))
                 # Add an entry for each of the fields
                 for orig_field, new_field in field_map.iteritems():
                     model_content.append("""{0}{1}=models.TextField(null=True, db_column='''{2}''')""".
                                          format(' '*4, new_field, orig_field))    
+                if spatial:
+                    model_type, geos_func=geomodel_mappings[job.data_file.geom_type]
+                    model_content.append('''{0}nmtk_geometry={1}(null=True, srid=4326)'''.
+                                         format(' '*4, model_type))
+                model_content.append('''{0}objects=models.GeoManager()'''.format(' '*4,))
                 
                 job.model.save('model.py', ContentFile('\n'.join(model_content)),
                                save=False)
@@ -84,17 +158,53 @@ def generate_sqlite_database(job):
                 for statement in connection.creation.sql_indexes_for_model(user_model.Results, no_style()):
                     #logger.debug(statement)
                     cursor.execute(statement)
-                
+            
             this_row=dict((field_map[k],v) for k,v in row['properties'].iteritems())
+            this_row['nmtk_id']=feature_id
+            this_row['nmtk_feature_id']=feature_id
+            feature_id += 1
+            if spatial:
+                geos_data=geos_func(row['geometry']['coordinates'])
+                this_row['nmtk_geometry']=geos_data
+            min_result=min(float(this_row[result_field]), min_result)
+            max_result=max(float(this_row[result_field]), max_result)
             m=user_model.Results(**this_row)
             m.save(using=database)
 #             logger.debug('Saved model with pk of %s', m.pk)
+        logger.debug('Completing transferring results to sqlite database %s', job.pk,)
+        if spatial:
+            logger.debug('Spatial result generating styles (%s-%s)', min_result, max_result)
+            step=math.fabs((max_result-min_result)/256)
+            colors=[]
+            low=min_result
+            v=min_result
+            while v <= max_result:
+                #logger.debug('Value is now %s', v)
+                r,g,b=pseudocolor(v, min_result, max_result)
+                colors.append({'r': r,
+                               'g': g,
+                               'b': b,
+                               'low': low ,
+                               'high': v})
+                low=v
+                v += step
+            res=render_to_string('NMTK_server/mapfile.map', {'job': job,
+                                                             'min': min_result,
+                                                             'max': max_result,
+                                                             'colors': colors,
+                                                             'mapserver_template': settings.MAPSERVER_TEMPLATE })
+            job.mapfile.save('mapfile.map', ContentFile(res), save=False)
+            job.legendgraphic.save('legend.png', ContentFile(''), save=False)
+            
+            logger.debug('Creating a new legend graphic image %s', job.legendgraphic.path)
+            im=generateColorRampLegendGraphic(min_text='{0}'.format(round(min_result,2)),
+                                              max_text='{0}'.format(round(max_result,2)))
+            im.save(job.legendgraphic.path, 'png')
+            logger.debug('Image saved at %s', job.legendgraphic.path)
     except Exception, e:
         logger.exception ('Failed to create spatialite results table')
         return job
-    if spatial:
-        res=render_to_string('NMTK_server/mapfile.map', {'job': job })
-        job.mapfile.save('mapfile.map', ContentFile(res), save=False)
+    logger.debug('About to return job back to caller - %s', job.pk)
     return job
     
 
@@ -219,7 +329,7 @@ def importDataFile(datafile):
         geoloader=geo_loader.GeoDataLoader(datafile.file.path,
                                            srid=datafile.srid)
         datafile.srid=geoloader.info.srid
-        datafile.extent=Polygon.from_bbox(geoloader.info.extent)
+        datafile.extent=geos.Polygon.from_bbox(geoloader.info.extent)
         datafile.srs=geoloader.info.srs
         datafile.feature_count=geoloader.info.feature_count
         datafile.geom_type=geoloader.info.type

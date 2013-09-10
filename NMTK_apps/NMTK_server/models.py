@@ -43,7 +43,6 @@ fs = NMTKDataFileSystemStorage(location=location)
 fs_geojson = NMTKGeoJSONFileSystemStorage(location=location)
 fs_results = NMTKResultsFileSystemStorage(location=location)
 
-
 class ToolServer(models.Model):
     name=models.CharField(max_length=64,
                           help_text='A descriptive name for this tool server.')
@@ -166,6 +165,9 @@ class Job(models.Model):
                              upload_to=lambda instance, filename: '%s/results/%s.map' % (instance.user.pk,
                                                                                          instance.pk,),
                              blank=True, null=True)
+    legendgraphic=models.FileField(storage=fs_results,
+                                   upload_to=lambda instance, filename: '%s/results/%s_legend.png' % (instance.user.pk,
+                                                                                                      instance.pk))
     model=models.FileField(storage=fs_results,
                            upload_to=lambda instance, filename: '%s/results/%s.py' % (instance.user.pk,
                                                                                       instance.pk,),
@@ -185,10 +187,13 @@ class Job(models.Model):
         Ensure files are deleted when the model instance is removed.
         '''
         r=super(Job, self).delete()
-        if self.results:
-            self.results.delete()
-        if self.spatialite_db:
-            self.spatialite_db.delete()
+        for field in ['results','sqlite_db','mapfile', 'model', 'legendgraphic']:
+            if getattr(self, field, None):
+                os.unlink(getattr(self, field).path)
+                if field == 'model':
+                    compiled_module="{0}s".format(self.model.path)
+                    if os.path.exists(compiled_module):
+                        os.unlink(compiled_module)
         return r
     
     @property
@@ -221,8 +226,13 @@ class Job(models.Model):
             self.status in (self.FAILED, self.COMPLETE, self.TOOL_FAILED,)):
             tasks.email_user_job_complete.delay(self)
         if (self.results and not self.sqlite_db):
+            logger.debug('Generating SQLITE database for results management (%s)',
+                         self.pk)
             # Generate the spatialite database for performance.
             tasks.generate_sqlite_database(self)
+            logger.debug('Saving %s,%s,%s,%s', 
+                         self.results, self.sqlite_db, self.mapfile,
+                         self.model)
             super(Job, self).save()
         return result
     

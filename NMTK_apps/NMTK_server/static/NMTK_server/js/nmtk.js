@@ -420,7 +420,7 @@ function getBounds(bbox) {
  * A variant of the ViewResults Controller that uses leaflet-directive 
  * rather than leaflet directly.
  */
-function ViewResultsCtrl($scope, $routeParams, $location, $log, $http) {
+function ViewResultsCtrl($scope, $routeParams, $location, $log, $http, $timeout) {
 	$scope.jobid=$routeParams.jobid;
 	$scope.$parent.results_job=$scope.jobid;
 	$scope.changeTab('results');
@@ -446,9 +446,6 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http) {
 	$scope.totalServerItems=0;
 	$scope.selections=[];
 	$scope.pagingOptions= {
-			pageSizes: [50, 100, 250, 500, 1000],
-			pageSize: 50,
-			currentPage: 1
 	};
 	$scope.columnOptions=[];
 	$scope.sortInfo= { fields: ['nmtk_id'],
@@ -469,9 +466,9 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http) {
 					$scope.columnOptions=[]
 					var visible=false;
 					var fields=JSON.parse($scope.input_data.fields);
+					fields.push('nmtk_feature_id');
 					_.each(data.data[0], function (col_val, col_name) {
 						if (_.indexOf(fields, col_name) == -1) {
-						
 							visible=true;
 						} else {
 							visible=false;
@@ -484,12 +481,34 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http) {
 			});
 		}
 	};
-	
+	$scope.olcount=0;
 	// Whenever a feature is selected in the table, we will match that feature in
 	// the view window...
 	$scope.$watch('selections', function () {
-		$scope.selected_features=$scope.selections;
-		$log.info('Got items selected!')
+		if ($scope.selections) {
+			$scope.selected_features=$scope.selections;
+			var ids=[];
+			_.each($scope.selections, function (data) {
+				ids.push(data.nmtk_id);
+			});
+			if ($scope.leaflet.layers.overlays['highlight' + $scope.olcount]) {
+				delete $scope.leaflet.layers.overlays['highlight'+$scope.olcount];
+			}
+			$scope.olcount += 1;
+			if (ids.length) {
+					$scope.leaflet.layers.overlays['highlight'+$scope.olcount]= {
+				            name: 'Selected Layers',
+				            type: 'wms',
+				            visible: true,
+				            url: $scope.job_data.wms_url,
+				            layerOptions: { layers: "highlight",
+				            	            ids: ids.join(','),
+				                    		format: 'image/png',
+				                    		transparent: true }
+				    }
+				}
+			$log.info('Got items selected!');
+		}
 	},true);
 	
 	// We watch reloadData to signal to ng-grid that it should reset its 
@@ -497,33 +516,70 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http) {
 	// method by which we can *unselect* selected rows (easily.)
 	$scope.reloadData=1;
 	/*
-	 * When the selection is cleared, just tryncate all the lists of selected 
+	 * When the selection is cleared, just truncate all the lists of selected 
 	 * stuff to 0 and then reload the data for the grid (to unselect items.)
 	 */
 	$scope.clearSelection=function() {
 		$scope.selected_features.length=0;
 		$scope.selections.length=0;
 		$scope.hidden_items.length=0;
+//		if ($scope.leaflet.layers.overlays['highlight' + $scope.olcount]) {
+//			delete $scope.leaflet.layers.overlays['highlight'+$scope.olcount];
+//		}
+//		$scope.olcount += 1;
 		$scope.reloadData += 1;
 	}
 	
-	$scope.selectResultRow = function(){
-        angular.forEach($scope.myData, function(data, index){
-            if (data.nmtk_id == $scope.selected_feature.nmtk_id){
-                $scope.gridOptions.selectItem(index, true);
-            }
+	
+	$scope.$on('leafletDirectiveMap.click', function(ev, e) {
+		$log.info(e.leafletMap.mouseEventToContainerPoint(e.leafletEvent));
+		config={params: { SERVICE: 'wms',
+						  VERSION: '1.1.1',
+						  REQUEST: 'GetFeatureInfo',
+						  LAYERS: $scope.job_data.layer,
+						  QUERY_LAYERS: $scope.job_data.layer,
+						  BBOX: e.leafletMap.getBounds().toBBoxString(),
+						  FEATURE_COUNT: 999,
+						  HEIGHT: e.leafletMap.getSize().x,
+						  WIDTH: e.leafletMap.getSize().y,
+					  	  FORMAT: "image/png",
+						  INFO_FORMAT: "application/json",
+						  SRS: "EPSG:4326",
+						  X: e.leafletEvent.containerPoint.x,
+						  Y: e.leafletEvent.containerPoint.y}
+			};
+        $scope.clearSelection();
+        $http.get($scope.job_data.wms_url, config).success(function (data) {
+        	//$scope.selectResultRow(data['results']);
+        	if (data) {
+        		var ids=[];
+        		_.each(data['results'], function (v) {
+        			ids.push(v['nmtk_id']);
+        		});
+        		$scope.selectResultRow(ids);
+        	}
         });
+    });
+	
+	$scope.selectResultRow = function(features){
+        angular.forEach($scope.data, function(data, index){
+        	angular.forEach(features, function (feature) {
+        		if (data.nmtk_id == feature){
+                	$scope.gridOptions.selectItem(index, true);
+        		}
+        	});
+    	});
     };
 	
 	$scope.gridOptions= {data: 'data',
 						 columnDefs: 'columnOptions',
-						 enablePaging: true,
+//						 enablePaging: true,
 						 showFooter: true,
 						 multiSelect: true,
 						 selectedItems: $scope.selections,
-						 totalServerItems: 'totalServerItems',
+//						 totalServerItems: 'totalServerItems',
 						 sortInfo: $scope.sortInfo,
-						 pagingOptions: $scope.pagingOptions,
+//						 pagingOptions: $scope.pagingOptions,
 						 filterOptions: $scope.filterOptions,
 						 useExternalSorting: true,
 	                     showColumnMenu: true };
@@ -618,14 +674,20 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http) {
             name: 'Tool Results',
             type: 'wms',
             visible: true,
-            url: job_data.wms_url,
-            layerOptions: { layers: 'results',
+            url: $scope.job_data.wms_url,
+            layerOptions: { layers: $scope.job_data.layer,
                     		format: 'image/png',
                     		transparent: true }
     	};
 		
 		
+		
 	});
+	
+	
+	// Handle the case when a user clicks on a spot on the map, we need to then
+	// fire off a GetFeatureInfo requests against the WMS.
+	
      
 	$scope.close=function () {
 		$scope.$parent.results_job=undefined;
