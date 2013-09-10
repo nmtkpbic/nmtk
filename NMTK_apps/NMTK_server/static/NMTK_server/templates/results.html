@@ -67,17 +67,15 @@
             <h3>{{selected_features.length}} Selected Features</h3>
             <button ng-click="clearSelection()" ng-show="selected_features.length">Clear Selection</button>
           </div> <!-- /widget-header -->
-          <div ng-repeat="selected_feature in selected_features" class="widget-content">          	
-            <h4>
-               Feature {{selected_feature.nmtk_id}} has been selected 
-               (<a ng-hide="isHidden({{selected_feature.nmtk_id}})" 
-                   ng-click="toggleHidden(selected_feature.nmtk_id)">click to hide</a><a 
-                 ng-show="isHidden({{selected_feature.nmtk_id}})" 
-                 ng-click="toggleHidden(selected_feature.nmtk_id)">click to show</a>).
+          <div ng-show="selected_features.length" class="widget-content">  
+            <div ng-show="selected_features.length" style="height: 200px;" class="gridStyle" ng-grid="gridOptions2"></div>
+            <hr ng-show="selected_selected.length" />
+            <h4 ng-show="selected_selected.length">
+               Displaying feature {{selected_selected[0].nmtk_id}}  
             </h4>
-            <table ng-hide="isHidden({{selected_feature.nmtk_id}})" class="table table-bordered table-striped table-highlight">
+            <table class="table table-bordered table-striped table-highlight">
               <tbody>
-                <tr ng-repeat="(item, value) in selected_feature track by item">
+                <tr ng-repeat="(item, value) in selected_selected[0] track by item">
                   <td>{{item}}</td>
                   <td>{{value}}</td>
                 </tr>

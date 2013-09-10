@@ -33,13 +33,13 @@ from PIL import Image, ImageDraw, ImageFont
 #from django.core.serializers.json import DjangoJSONEncoder
 logger=logging.getLogger(__name__)
 
-geomodel_mappings={ ogr.wkbPoint: ('models.PointField', geos.Point),
-                    ogr.wkbGeometryCollection: ('models.GeometryField', geos.GEOSGeometry),
-                    ogr.wkbLineString:  ('models.LineStringField', geos.LineString),
-                    ogr.wkbMultiPoint: ('models.MultiPointField', geos.MultiPoint),
-                    ogr.wkbMultiPolygon: ('models.MultiPolygonField', geos.MultiPolygon),
-                    ogr.wkbPolygon: ('models.PolygonField', geos.Polygon),
-                    ogr.wkbMultiLineString: ('models.MultiLineStringField', geos.MultiLineString),
+geomodel_mappings={ ogr.wkbPoint: ('models.PointField', geos.Point, 'point'),
+                    ogr.wkbGeometryCollection: ('models.GeometryField', geos.GEOSGeometry, 'point'),
+                    ogr.wkbLineString:  ('models.LineStringField', geos.LineString, 'line'),
+                    ogr.wkbMultiPoint: ('models.MultiPointField', geos.MultiPoint,'point'),
+                    ogr.wkbMultiPolygon: ('models.MultiPolygonField', geos.MultiPolygon,'polygon'),
+                    ogr.wkbPolygon: ('models.PolygonField', geos.Polygon,'polygon'),
+                    ogr.wkbMultiLineString: ('models.MultiLineStringField', geos.MultiLineString,'line'),
                    }
 # Given a min and max value, and a value (somewhere in the middle)
 # return a suitable pseudo-color to match.
@@ -107,23 +107,24 @@ def generate_sqlite_database(job):
 #         logger.debug('Mappings are %s', output)
         return output
     try:
-        spatial=False
-        result_field='result'
-        if job.data_file.geom_type:
+        geoloader=geo_loader.GeoDataLoader(job.results.path,
+                                           srid=job.data_file.srid)
+        if geoloader.info.srid:
             spatial=True
-            logger.debug('Got a Spatial data set!')
-        data=json.loads(job.results.read())
+            geom_type=geoloader.info.type
+            model_type, geos_func, mapfile_type=geomodel_mappings[geom_type]
+        result_field='result'
         db_created=False
         this_model=None
         colors=[]
         model_content=['from django.contrib.gis.db import models']
         feature_id=1
-        for row in data.get('features',[]):
+        for (row, geometry) in geoloader:
             if not db_created:
                 db_created=True
-                min_result=max_result=float(row['properties'][result_field])
+                min_result=max_result=float(row[result_field])
                 database='%s'% (job.pk,)
-                field_map=propertymap(row['properties'].keys())
+                field_map=propertymap(row.keys())
                 # Create the model for this data
                 model_content.append('class Results(models.Model):')
                 # Add an auto-increment field for it (the PK)
@@ -134,7 +135,6 @@ def generate_sqlite_database(job):
                     model_content.append("""{0}{1}=models.TextField(null=True, db_column='''{2}''')""".
                                          format(' '*4, new_field, orig_field))    
                 if spatial:
-                    model_type, geos_func=geomodel_mappings[job.data_file.geom_type]
                     model_content.append('''{0}nmtk_geometry={1}(null=True, srid=4326)'''.
                                          format(' '*4, model_type))
                 model_content.append('''{0}objects=models.GeoManager()'''.format(' '*4,))
@@ -159,13 +159,12 @@ def generate_sqlite_database(job):
                     #logger.debug(statement)
                     cursor.execute(statement)
             
-            this_row=dict((field_map[k],v) for k,v in row['properties'].iteritems())
+            this_row=dict((field_map[k],v) for k,v in row.iteritems())
             this_row['nmtk_id']=feature_id
             this_row['nmtk_feature_id']=feature_id
             feature_id += 1
             if spatial:
-                geos_data=geos_func(row['geometry']['coordinates'])
-                this_row['nmtk_geometry']=geos_data
+                this_row['nmtk_geometry']=geometry
             min_result=min(float(this_row[result_field]), min_result)
             max_result=max(float(this_row[result_field]), max_result)
             m=user_model.Results(**this_row)
@@ -188,11 +187,12 @@ def generate_sqlite_database(job):
                                'high': v})
                 low=v
                 v += step
-            res=render_to_string('NMTK_server/mapfile.map', {'job': job,
-                                                             'min': min_result,
-                                                             'max': max_result,
-                                                             'colors': colors,
-                                                             'mapserver_template': settings.MAPSERVER_TEMPLATE })
+            res=render_to_string('NMTK_server/mapfile_{0}.map'.format(mapfile_type), 
+                                 {'job': job,
+                                  'min': min_result,
+                                  'max': max_result,
+                                  'colors': colors,
+                                  'mapserver_template': settings.MAPSERVER_TEMPLATE })
             job.mapfile.save('mapfile.map', ContentFile(res), save=False)
             job.legendgraphic.save('legend.png', ContentFile(''), save=False)
             

@@ -215,17 +215,18 @@ class Job(models.Model):
         some time to submit) is passed off as a celery task, so the client gets
         it's response(s) back immediately.
         '''
-        result=super(Job, self).save(*args, **kwargs)
+        
         if self._old_status == 'U' and self.status == 'A':
             logger.debug('Detected a state change from Unconfigured to ' + 
                          'Active for job (%s.)', self.pk)
             logger.debug('Sending job to tool for processing.')
             # Submit the task to the client, passing in the job identifier.
+            result=super(Job, self).save(*args, **kwargs)
             tasks.submitJob.delay(self)
-        if (self.email and self._old_status <> self.status and
-            self.status in (self.FAILED, self.COMPLETE, self.TOOL_FAILED,)):
-            tasks.email_user_job_complete.delay(self)
-        if (self.results and not self.sqlite_db):
+        elif (self.email and self._old_status <> self.status and
+            self.status in (self.FAILED, self.TOOL_FAILED,)):
+            result=super(Job, self).save(*args, **kwargs)  
+        elif (self.results and not self.sqlite_db):
             logger.debug('Generating SQLITE database for results management (%s)',
                          self.pk)
             # Generate the spatialite database for performance.
@@ -233,7 +234,11 @@ class Job(models.Model):
             logger.debug('Saving %s,%s,%s,%s', 
                          self.results, self.sqlite_db, self.mapfile,
                          self.model)
-            super(Job, self).save()
+            result=super(Job, self).save(*args, **kwargs)
+            if self.email and self.status == self.COMPLETE:
+                tasks.email_user_job_complete.delay(self)
+        else:
+            result=super(Job, self).save(*args, **kwargs)  
         return result
     
     class Meta:

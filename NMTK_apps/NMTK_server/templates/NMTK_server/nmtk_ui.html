@@ -86,6 +86,12 @@
 							<span>NMTK</span>
 						</a>				
 					</li>
+					<li id="toolexplorer-tab" ng-class="{'active': (activeTab == 'toolexplorer')}">
+						<a ng-href="#/tool-explorer/{% templatetag openvariable %}current_tool_id{% templatetag closevariable %}">
+							<i class="icon-wrench"></i>
+							<span>Tool Explorer</span>
+						</a>				
+					</li>
 					<li id="files-tab" ng-class="{'active': (activeTab == 'files')}">
 						<a href="#/files/">
 							<i ng-hide="activeTab == 'files'" class="icon-folder-close"></i>
@@ -108,7 +114,7 @@
 					</li>
 					<li ng-show="results_job"
 					 id="results-tab" ng-class="{'active': (activeTab == 'results')}">				
-						<a ng-href="#/results/{% templatetag openvariable %}results_job.id{% templatetag closevariable %}/">
+						<a ng-href="#/results/{% templatetag openvariable %}results_job{% templatetag closevariable %}/">
 							<i class="icon-trophy"></i>
 							<span>Job Results</span>
 						</a>	    

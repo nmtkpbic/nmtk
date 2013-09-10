@@ -41,6 +41,7 @@ def create_user_profile(sender, instance, created, **kwargs):
                                                        "nmtk_filehelp",
                                                        "job_result_help",
                                                        "nmtk_view_jobs",
+                                                       "toolexplorer_intro",
                                                        "nmtk_fileuplad_panel",
                                                        "nmtk_introduction"]))
 

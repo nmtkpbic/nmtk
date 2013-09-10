@@ -50,7 +50,28 @@ function getCookie(name) {
 $.ajaxSetup({
     headers: {'X-CSRFToken': getCookie('csrftoken') }
   });
+function ngGridLayoutPlugin () {
+    var self = this;
+    this.grid = null;
+    this.scope = null;
+    this.init = function(scope, grid, services) {
+        self.domUtilityService = services.DomUtilityService;
+        self.grid = grid;
+        self.scope = scope;
+    };
 
+    this.updateGridLayout = function () {
+        if (!self.scope.$$phase) {
+            self.scope.$apply(function(){
+                self.domUtilityService.RebuildGrid(self.scope, self.grid);
+            });
+        }
+        else {
+            // $digest or $apply already in progress
+            self.domUtilityService.RebuildGrid(self.scope, self.grid);
+        }
+    };
+}
 
 
 
@@ -97,6 +118,8 @@ angular.module('nmtk', ['ui.bootstrap', 'restangular', 'ngGrid',
 	    	  			  templateUrl:CONFIG.template_path+'files.html'}).
 	      when('/job/:jobid/', {controller:ConfigureCtrl,
 	    	  				    templateUrl:CONFIG.template_path+'configure.html'}).
+	      when('/tool-explorer/:toolid', {controller:ToolExplorerCtrl,
+	    	    	  			  templateUrl:CONFIG.template_path+'tool_explorer.html'}).
 	      when('/', {controller:IntroCtrl, 
 	    		     templateUrl:CONFIG.template_path+'intro.html'}).
 	      otherwise({redirectTo:'/'});
@@ -395,8 +418,45 @@ function SwitchJobController($scope, dialog) {
 
 function IntroCtrl($scope, $log) {
 	$log.info('In IntroCtrl');
-	$scope.enableRefresh(['tool']);
+//	$scope.enableRefresh(['tool']);
 	$scope.changeTab('introduction');
+}
+
+function ToolExplorerCtrl($scope, $routeParams, $log, $location) {
+	$log.info('In Tool Explorer');
+	$scope.changeTab('toolexplorer');
+	$log.info($scope.resources.tool);
+	$scope.selections = [];
+	$scope.gridOptions= {
+			 data: 'rest.tool',
+			 showFooter: false,
+			 enableColumnResize: false,
+			 multiSelect: false,
+			 selectedItems: $scope.selections,
+			 columnDefs: [{field: 'name',
+				           displayName: 'Tool Name'}],
+			 showColumnMenu: false };
+	$scope.$watch('selections', function () {
+		if ($scope.selections.length) {
+			$log.info('Setting tool id');
+			$scope.$parent.current_tool_id=$scope.selections[0]['id'];
+		}
+	}, true);
+	if ($routeParams.toolid) {
+		$log.info('Toolid is ', $routeParams.toolid)
+		$scope.$on('ngGridEventRows', function () {
+			$log.info('Got event!');
+			$scope.rest.tool.then(function (tool_data) {
+				angular.forEach(tool_data, function(data, index){
+			         if (data.id == $routeParams.toolid){
+			        	 $log.info('Selecting', data, index);
+			             $scope.gridOptions.selectItem(index, true);
+			         }
+				});
+			});
+		});
+	}	
+	
 }
 
 /*
@@ -487,6 +547,7 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http, $timeout)
 	$scope.$watch('selections', function () {
 		if ($scope.selections) {
 			$scope.selected_features=$scope.selections;
+			$scope.gridOptions2.selectItem(0, true);
 			var ids=[];
 			_.each($scope.selections, function (data) {
 				ids.push(data.nmtk_id);
@@ -521,6 +582,7 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http, $timeout)
 	 */
 	$scope.clearSelection=function() {
 		$scope.selected_features.length=0;
+		$scope.selected_selected.length=0;
 		$scope.selections.length=0;
 		$scope.hidden_items.length=0;
 //		if ($scope.leaflet.layers.overlays['highlight' + $scope.olcount]) {
@@ -570,7 +632,22 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http, $timeout)
         	});
     	});
     };
-	
+	$scope.selected_selected=[];
+	var layoutPlugin = new ngGridLayoutPlugin();
+	$scope.updateLayout = function(){
+	      layoutPlugin.updateGridLayout();
+	    };
+    $scope.$watch('selected_selected', function () {
+    	$log.info($scope.selected_selected);
+    }, true);
+    $scope.gridOptions2={data: 'selected_features',
+    		             showColumnMenu: false,
+    		             plugins: [layoutPlugin],
+    		             multiSelect: false,
+    		             columnDefs: 'columnOptions',
+    		             showFooter: false,
+    		             selectedItems: $scope.selected_selected}
+    
 	$scope.gridOptions= {data: 'data',
 						 columnDefs: 'columnOptions',
 //						 enablePaging: true,
@@ -582,7 +659,7 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http, $timeout)
 //						 pagingOptions: $scope.pagingOptions,
 						 filterOptions: $scope.filterOptions,
 						 useExternalSorting: true,
-	                     showColumnMenu: true };
+	                     showColumnMenu: false };
 	_.each(['pagingOptions', 'filterOptions', 'sortInfo', 'reloadData'], function (item) {
 		$scope.$watch(item, function (newVal, oldVal) {
 			$log.info('Got change to ', item, newVal, oldVal);
@@ -629,7 +706,8 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http, $timeout)
 		return geojsonMarkerOptions;
 	}
 	$scope.leaflet={'defaults': { tileLayer: 'http://{s}.tile.cloudmade.com/{key}/{styleId}/256/{z}/{x}/{y}.png',
-								  tileLayerOptions: { key: '0c9dbe8158f6482d84e3543b1a790dbb', styleId: 997 }
+								  tileLayerOptions: { key: '0c9dbe8158f6482d84e3543b1a790dbb', styleId: 997 },
+								  maxZoom: 18
 								},
 			        'layers': {
 			        		   'baselayers': {cloudmade: { top: true,
@@ -642,7 +720,8 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http, $timeout)
 											               },
 											               layerOptions: {
 											                   subdomains: ['a', 'b', 'c'],
-											                   continuousWorld: false
+											                   continuousWorld: false,
+												               opacity: .5,
 											               }
 											             }
 								        	 },
@@ -930,8 +1009,9 @@ function ConfigureCtrl($scope, $routeParams, $location, $dialog, $log) {
 		var d=$dialog.dialog(clone_opts);
 		d.open().then(function (job_config) {
 			if (job_config) {
-//			   $log.info('Selected to clone', job_config);
+			   $log.info('Selected to clone', job_config);
 //			   $log.info('Current config',$scope.$parent.job_config);
+				
 			   $scope.$parent.job_config=JSON.parse(job_config);
 			}
 		});

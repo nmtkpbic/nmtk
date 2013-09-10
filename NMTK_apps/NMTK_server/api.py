@@ -636,6 +636,7 @@ class ToolResource(ModelResource):
         
     def dehydrate(self, bundle):
         bundle.data['config']=bundle.obj.toolconfig.json_config
+        bundle.data['id']=bundle.obj.pk
         return bundle
 
         

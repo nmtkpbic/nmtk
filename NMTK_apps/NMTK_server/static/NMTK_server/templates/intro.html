@@ -69,20 +69,14 @@
 				  <thead>
 				   <tr>
 					  <th>Tool Name</th>
-					  <th>Description</th>
-					  <th>Documentation Links</th>
-				  	  <th>Sample Data</th>
+					  <th>Explore</th>
 				    </tr>
 				  </thead>
 				  <tbody>
 					<tr ng-repeat="tool in rest.tool">						            
 					  <td>{{ tool.config.info.name }}</td>
-					  <td>{{ tool.config.info.text }}</td>
 					  <td>
-						<a ng-repeat="(key, value) in tool.config.documentation.links" href="{{value}}">documentation</a>
-					  </td>
-					  <td>
-					    <a ng-repeat="(key, value) in tool.config.samples.links" href="{{value}}"><i class="icon-download"></i>{{key}}
+						<a ng-href="#/tool-explorer/{{tool.id}}/">Explore</a>
 					  </td>
 				    </tr>						          
 				  </tbody>

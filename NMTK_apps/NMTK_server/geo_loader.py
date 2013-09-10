@@ -133,13 +133,11 @@ class GeoDataLoader(object):
         # Get fields by looping over one row of features.
         fields=[]
         for feat in layer:
-            logger.debug('Iterating through %s features', feat.GetFieldCount())
             for i in range(feat.GetFieldCount()):
-                logger.debug(dir(feat))
                 field_definition=feat.GetFieldDefnRef(i)
                 fields.append(field_definition.GetNameRef ())
             break
-        logger.debug('Fields are %s', fields)
+#         logger.debug('Fields are %s', fields)
         # Just to be on the safe side..
         layer.ResetReading()
         
@@ -175,6 +173,18 @@ class GeoDataLoader(object):
         we were able to determine about this particular datafile.
         '''
         return self.data
+    
+    def __iter__(self):
+        self.layer.ResetReading()
+        return self
+    
+    def next(self):
+        feature=self.data.layer.GetNextFeature()
+        if not feature:
+            raise StopIteration
+        else:
+            data=dict((field, getattr(feature, field)) for field in self.data.fields)
+            return (data, str(feature.geometry()))
     
     @property
     def geojson(self):
