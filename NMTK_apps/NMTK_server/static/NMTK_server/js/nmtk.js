@@ -422,7 +422,7 @@ function IntroCtrl($scope, $log) {
 	$scope.changeTab('introduction');
 }
 
-function ToolExplorerCtrl($scope, $routeParams, $log, $location) {
+function ToolExplorerCtrl($scope, $routeParams, $log, $location, $dialog) {
 	$log.info('In Tool Explorer');
 	$scope.changeTab('toolexplorer');
 	$log.info($scope.resources.tool);
@@ -456,6 +456,30 @@ function ToolExplorerCtrl($scope, $routeParams, $log, $location) {
 			});
 		});
 	}	
+	
+	$scope.create_job_opts = {
+			backdrop: true,
+			keyboard: true,
+			backdropClick: true,
+			templateUrl:  CONFIG.template_path+'create_job_template.html', // OR: templateUrl: 'path/to/view.html',
+			controller: 'CreateJobController'
+	};
+
+	$scope.createJob=function (tool_uri) {
+		$scope.create_job_opts.tool=tool_uri;
+		var d=$dialog.dialog($scope.create_job_opts);
+		d.open().then(function(result) {
+			if (result) {
+				$scope.refreshData(['job']);
+				$scope.resources['job'].post(result).then(function (api_result) {
+					$scope.refreshData('job');
+					$location.path('/job/' +
+							       api_result.resource_uri.split('/').reverse()[1] + '/');
+				});				
+			}
+		});
+		$log.info('Creating a new job!');
+	};
 	
 }
 
@@ -560,9 +584,10 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http, $timeout,
 	$scope.olcount=0;
 	// Whenever a feature is selected in the table, we will match that feature in
 	// the view window...
-	$scope.$watch('selections', function () {
-		if ($scope.selections) {
-			$scope.selected_features=$scope.selections;
+	$scope.$watch('selections', function (newVal, oldVal) {
+		$log.info('Got selections!')
+		
+			$scope.selected_features=newVal;
 			var ids=[];
 			_.each($scope.selections, function (data) {
 				ids.push(data.nmtk_id);
@@ -584,8 +609,11 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http, $timeout,
 				    }
 				}
 			$log.info('Got items selected!');
-			$scope.gridOptions2.selectItem(0, true);
-		}
+			// If nothing is selected, select the first item
+			if ($scope.selected_selected.length == 0) {
+				$scope.gridOptions2.selectItem(0, true);
+			}
+		
 	},true);
 	
 	// We watch reloadData to signal to ng-grid that it should reset its 
@@ -597,34 +625,38 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http, $timeout,
 	 * stuff to 0 and then reload the data for the grid (to unselect items.)
 	 */
 	$scope.clearSelection=function() {
-		$scope.selected_features.length=0;
-		$scope.selected_selected=[];
-		$scope.selections.length=0;
-//		$scope.hidden_items.length=0;
-//		if ($scope.leaflet.layers.overlays['highlight' + $scope.olcount]) {
-//			delete $scope.leaflet.layers.overlays['highlight'+$scope.olcount];
-//		}
-//		$scope.olcount += 1;
-		$scope.reloadData += 1;
+		
+		_.each($scope.selected_features, function (v, index) {
+			$scope.gridOptions2.selectItem(index, false);
+		});
+		_.each($scope.data, function (v, index) {
+			$scope.gridOptions.selectItem(index, false);
+		});
+		$timeout(function () {
+			$scope.selected_features.length=0;
+			$scope.selected_selected.length=0;
+			$scope.selections.length=0;
+		}, 350);
 	}
 	
 	
 	$scope.$on('leafletDirectiveMap.click', function(ev, e) {
-		config={params: { SERVICE: 'wms',
-						  VERSION: '1.1.1',
-						  REQUEST: 'GetFeatureInfo',
-						  LAYERS: $scope.job_data.layer,
-						  QUERY_LAYERS: $scope.job_data.layer,
-						  BBOX: e.leafletMap.getBounds().toBBoxString(),
-						  FEATURE_COUNT: 999,
-						  HEIGHT: e.leafletMap.getSize().x,
-						  WIDTH: e.leafletMap.getSize().y,
-					  	  FORMAT: "image/png",
-						  INFO_FORMAT: "application/json",
-						  SRS: "EPSG:4326",
-						  X: e.leafletEvent.containerPoint.x,
-						  Y: e.leafletEvent.containerPoint.y}
+		var config={params: { SERVICE: 'wms',
+							  VERSION: '1.1.1',
+							  REQUEST: 'GetFeatureInfo',
+							  LAYERS: $scope.job_data.layer,
+							  QUERY_LAYERS: $scope.job_data.layer,
+							  BBOX: e.leafletMap.getBounds().toBBoxString(),
+							  FEATURE_COUNT: 999,
+							  HEIGHT: e.leafletMap.getSize().x,
+							  WIDTH: e.leafletMap.getSize().y,
+						  	  FORMAT: "image/png",
+							  INFO_FORMAT: "application/json",
+							  SRS: "EPSG:4326",
+							  X: e.leafletEvent.containerPoint.x,
+							  Y: e.leafletEvent.containerPoint.y}
 			};
+		
         $scope.clearSelection();
         $http.get($scope.job_data.wms_url, config).success(function (data) {
         	//$scope.selectResultRow(data['results']);
@@ -675,7 +707,7 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http, $timeout,
 						 filterOptions: $scope.filterOptions,
 						 useExternalSorting: true,
 	                     showColumnMenu: false };
-	_.each(['filterOptions', 'sortInfo', 'reloadData'], function (item) {
+	_.each(['filterOptions', 'sortInfo'], function (item) {
 		$scope.$watch(item, function (newVal, oldVal) {
 			$log.info('Got change to ', item, newVal, oldVal);
 			if (newVal !== oldVal) {
@@ -1057,7 +1089,7 @@ function JobCtrl($scope, $routeParams, $dialog, $position, $location, $log) {
 		backdrop: true,
 		keyboard: true,
 		backdropClick: true,
-		templateUrl:  'create_job.html', // OR: templateUrl: 'path/to/view.html',
+		templateUrl:  CONFIG.template_path+'create_job_template.html', // OR: templateUrl: 'path/to/view.html',
 		controller: 'CreateJobController'
 	};
 	$scope.view_job_opts = {
@@ -1142,10 +1174,11 @@ function ViewJobController($scope, dialog, $log) {
  * job configuration form.
  */
 
-function CreateJobController($scope, dialog, $log) {
+function CreateJobController($scope, dialog, $log, $rootScope) {
 	$scope.jobdata={};
-	var tool_values=dialog.options;
-	var file_values=dialog.options;
+	if (dialog.options.tool) {
+		$scope.jobdata['tool']=dialog.options.tool
+	}
 	$scope.getFileStr=function (o) {
 		if (o.descripton) {
 			return o.name + ': ' + o.description;
@@ -1158,22 +1191,7 @@ function CreateJobController($scope, dialog, $log) {
 	}
 	$scope.save=function () {
 		dialog.close($scope.jobdata);
-	}
-	$scope.fields=[{'display_name': 'Job Description',
-			        'field': 'description',
-			        'description':'A description for the new job',
-			        'type': 'input'},
-			       {'display_name': 'Tool',
-			        'field': 'status_message',
-			        'description': 'Select the tool to use for this job.',
-			        'type': 'select',
-			        'values': tool_values},
-			       {'display_name': 'File',
-			        'field': 'description',
-			        'description':'Choose a file to use for this job.',
-			        'type': 'select',
-			        'values': file_values}];
-	
+	}	
 }
 
 
