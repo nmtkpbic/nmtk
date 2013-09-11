@@ -480,7 +480,7 @@ function getBounds(bbox) {
  * A variant of the ViewResults Controller that uses leaflet-directive 
  * rather than leaflet directly.
  */
-function ViewResultsCtrl($scope, $routeParams, $location, $log, $http, $timeout) {
+function ViewResultsCtrl($scope, $routeParams, $location, $log, $http, $timeout, $rootScope) {
 	$scope.jobid=$routeParams.jobid;
 	$scope.$parent.results_job=$scope.jobid;
 	$scope.changeTab('results');
@@ -489,28 +489,38 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http, $timeout)
 	// For the list of visible items, this is a list that contains those
 	// that are currently hidden, the isHidden and toggleHidden methods will
 	// check and toggle the hidden property.
-	$scope.hidden_items=[];
-	$scope.isHidden=function (item_id) {
-		return (_.indexOf($scope.hidden_items, item_id) > -1);
-	}
-	$scope.toggleHidden=function (item_id) {
-		var pos=_.indexOf($scope.hidden_items, item_id);
-		if (pos == -1) {
-			$scope.hidden_items.push(item_id)
-		} else {
-			$scope.hidden_items.splice(pos, 1);
-		}
-	}
+//	$scope.hidden_items=[];
+//	$scope.isHidden=function (item_id) {
+//		return (_.indexOf($scope.hidden_items, item_id) > -1);
+//	}
+//	$scope.toggleHidden=function (item_id) {
+//		var pos=_.indexOf($scope.hidden_items, item_id);
+//		if (pos == -1) {
+//			$scope.hidden_items.push(item_id)
+//		} else {
+//			$scope.hidden_items.splice(pos, 1);
+//		}
+//	}
 	
 	
 	$scope.totalServerItems=0;
 	$scope.selections=[];
+	$scope.page_size=100;
 	$scope.pagingOptions= {
 	};
 	$scope.columnOptions=[];
 	$scope.sortInfo= { fields: ['nmtk_id'],
 					   directions: ['asc'] };
+	
+	$scope.$on('ngGridEventScroll', function (e) {
+		$log.info('Got paging event', e);
+		$scope.getPagedDataAsync($scope.page_size, $scope.paging_offset+$scope.page_size,
+				                 $scope.filterOptions.filterText,$scope.sort_field);
+	});
+            				
+	
 	$scope.getPagedDataAsync=function(pageSize, offset, searchText, order){
+		$scope.paging_offset=offset;
 		if ($scope.job_data) {
 			var options={offset: offset,
 					     limit: pageSize,
@@ -521,7 +531,13 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http, $timeout)
 			$http.get($scope.job_data.results, {params: options}).success(function (data) {
 				$scope.totalServerItems=data.meta.total;
 				$scope.pagingOptions.currentPage=(data.meta.offset/data.meta.limit)+1
-				$scope.data=data.data;
+				if ($scope.paging_offset > 0) {
+					$log.info('Concatenating!')
+					$scope.data= $scope.data.concat(data.data);
+//					$scope.data.push.apply($scope.data, data.data);
+				} else {
+					$scope.data=data.data;
+				}
 				if ($scope.columnOptions.length == 0) {
 					$scope.columnOptions=[]
 					var visible=false;
@@ -547,7 +563,6 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http, $timeout)
 	$scope.$watch('selections', function () {
 		if ($scope.selections) {
 			$scope.selected_features=$scope.selections;
-			$scope.gridOptions2.selectItem(0, true);
 			var ids=[];
 			_.each($scope.selections, function (data) {
 				ids.push(data.nmtk_id);
@@ -569,6 +584,7 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http, $timeout)
 				    }
 				}
 			$log.info('Got items selected!');
+			$scope.gridOptions2.selectItem(0, true);
 		}
 	},true);
 	
@@ -582,9 +598,9 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http, $timeout)
 	 */
 	$scope.clearSelection=function() {
 		$scope.selected_features.length=0;
-		$scope.selected_selected.length=0;
+		$scope.selected_selected=[];
 		$scope.selections.length=0;
-		$scope.hidden_items.length=0;
+//		$scope.hidden_items.length=0;
 //		if ($scope.leaflet.layers.overlays['highlight' + $scope.olcount]) {
 //			delete $scope.leaflet.layers.overlays['highlight'+$scope.olcount];
 //		}
@@ -594,7 +610,6 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http, $timeout)
 	
 	
 	$scope.$on('leafletDirectiveMap.click', function(ev, e) {
-		$log.info(e.leafletMap.mouseEventToContainerPoint(e.leafletEvent));
 		config={params: { SERVICE: 'wms',
 						  VERSION: '1.1.1',
 						  REQUEST: 'GetFeatureInfo',
@@ -618,20 +633,20 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http, $timeout)
         		_.each(data['results'], function (v) {
         			ids.push(v['nmtk_id']);
         		});
-        		$scope.selectResultRow(ids);
+//        		$scope.selectResultRow(ids);
         	}
         });
     });
 	
-	$scope.selectResultRow = function(features){
-        angular.forEach($scope.data, function(data, index){
-        	angular.forEach(features, function (feature) {
-        		if (data.nmtk_id == feature){
-                	$scope.gridOptions.selectItem(index, true);
-        		}
-        	});
-    	});
-    };
+//	$scope.selectResultRow = function(features){
+//        angular.forEach($scope.data, function(data, index){
+//        	angular.forEach(features, function (feature) {
+//        		if (data.nmtk_id == feature){
+//                	$scope.gridOptions.selectItem(index, true);
+//        		}
+//        	});
+//    	});
+//    };
 	$scope.selected_selected=[];
 	var layoutPlugin = new ngGridLayoutPlugin();
 	$scope.updateLayout = function(){
@@ -654,29 +669,30 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http, $timeout)
 						 showFooter: true,
 						 multiSelect: true,
 						 selectedItems: $scope.selections,
-//						 totalServerItems: 'totalServerItems',
+						 totalServerItems: 'totalServerItems',
 						 sortInfo: $scope.sortInfo,
 //						 pagingOptions: $scope.pagingOptions,
 						 filterOptions: $scope.filterOptions,
 						 useExternalSorting: true,
 	                     showColumnMenu: false };
-	_.each(['pagingOptions', 'filterOptions', 'sortInfo', 'reloadData'], function (item) {
+	_.each(['filterOptions', 'sortInfo', 'reloadData'], function (item) {
 		$scope.$watch(item, function (newVal, oldVal) {
 			$log.info('Got change to ', item, newVal, oldVal);
 			if (newVal !== oldVal) {
 				if ($scope.sortInfo.fields.length) {
-				   var sort_field=$scope.sortInfo.fields[0]
+				   $scope.sort_field=$scope.sortInfo.fields[0]
 				   if ($scope.sortInfo.directions[0] == 'desc') {
-					   sort_field='-'+sort_field;
+					   $scope.sort_field='-'+$scope.sort_field;
 				   }
 				}
-				$scope.getPagedDataAsync($scope.pagingOptions.pageSize, 
-						                 ($scope.pagingOptions.currentPage-1)*$scope.pagingOptions.pageSize,
+				$scope.getPagedDataAsync($scope.page_size, 
+						                 0,
 						                 $scope.filterOptions.filterText,
-						                 sort_field);
+						                 $scope.sort_field);
 			}
 		}, true);
 	});
+	
 	
 	
 	
@@ -746,7 +762,7 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http, $timeout)
 			$scope.input_data=input_data;
 			// Don't get the paged results until we load the datafile information,
 			// otherwise we cannot figure out the columns to display.
-			$scope.getPagedDataAsync($scope.pagingOptions.pageSize, 0, '', 'nmtk_id');
+			$scope.getPagedDataAsync($scope.page_size, 0, '', 'nmtk_id');
 		});
 		
 		$scope.leaflet.layers.overlays['results']= {

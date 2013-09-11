@@ -70,6 +70,7 @@ td.centered, th.centered, div.centered {
 
 .angular-leaflet-map {
   height: 400px;
+  cursor: pointer!important;
 }
 .gridStyle {
     border: 1px solid rgb(212,212,212);
