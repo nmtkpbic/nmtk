@@ -34,6 +34,12 @@ class GeoDataLoader(object):
            ogr.wkbPolygon: 'POLYGON',
            ogr.wkbMultiLineString: 'MULTILINESTRING',}
     
+    # if we get one of these types, we will convert them over to their 
+    # mapped types
+    type_conversions={ogr.wkbPoint: (ogr.wkbMultiPoint,ogr.ForceToMultiPoint),
+                      ogr.wkbLineString: (ogr.wkbMultiLineString,ogr.ForceToMultiLineString),
+                      ogr.wkbPolygon: (ogr.wkbMultiPolygon,ogr.ForceToMultiPolygon)}
+    
     def __init__(self, filename, srid=None):
         self.working_dir=tempfile.mkdtemp()
         self.data=None
@@ -155,6 +161,13 @@ class GeoDataLoader(object):
         # we do not use it elsewhere), because
         # otherwise it gets garbage collected, and the OGR Layer object
         # will break.
+        if geom_type in self.type_conversions:
+            logger.debug('Converting geometry from %s to %s (geom_type upgrade)',
+                         geom_type, self.type_conversions[geom_type][0])
+            geom_type, self.geomTransform=self.type_conversions[geom_type]
+        else:
+            self.geomTransform=lambda a: a
+            
         self.data=OGRResult(srid=geom_srid,
                             extent=geom_extent,
                             ogr=ogr_obj,
@@ -205,6 +218,7 @@ class GeoDataLoader(object):
 #        datasource=driver.CopyDataSource(self.data.ogr, tempfn,
 #                                         options=('a_srs', self.data.srid))
         datasource = driver.CreateDataSource(tempfn)
+        
         layer=datasource.CreateLayer('GeoJSON',
                                      geom_type=self.data.type,
                                      srs=self.data.srs)
@@ -213,6 +227,8 @@ class GeoDataLoader(object):
             feature=self.data.layer.GetNextFeature()
             if not feature: break
 #            feature.GetGeometryRef().AssignSpatialReference(srs)
+            self.geomTransform(feature.GetGeometryRef())
+            feature.SetGeometryDirectly(self.geomTransform(feature.GetGeometryRef()))
             layer.CreateFeature(feature)
         
         layer.SyncToDisk()
