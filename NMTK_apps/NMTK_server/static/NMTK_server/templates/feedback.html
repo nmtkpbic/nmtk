@@ -23,12 +23,15 @@
                 <p class="help-block">{{field.help}}</p>
                 <input ng-switch-when="input" type="{{field.type}}" class="input" 
                  name="{{field.field}}" id="{{field.field}}" ng-model="feedback[field.field]"></input>
+                
                 <select id="{{field.field}}" ng-switch-when="select" 
                         ng-model="feedback[field.field]" ng-options="o.value as o.label for o in field.values" >
                 
                 </select>
+                <textarea ng-switch-when="textarea" ng-model="feedback[field.field]"></textarea>
              </div>
           </div>
+          
         </div>
       </div>
       <button ng-click="close()" class="btn">Cancel</button>

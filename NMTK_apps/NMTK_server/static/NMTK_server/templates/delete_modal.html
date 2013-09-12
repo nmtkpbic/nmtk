@@ -1,0 +1,13 @@
+
+    <div class="modal-header">
+      <h3>Delete {{type}}</h3>
+    </div>
+    <div class="modal-body">
+      <div class="row">
+        <div class="span6">     
+          Are you sure you wish to delete the {{type}} {{name}}?
+        </div>
+      </div><br>
+      <button  ng-click="close()" class="btn">Cancel</button>
+      <button ng-click="delete()" class="btn btn-primary">Delete</button>
+    </div>

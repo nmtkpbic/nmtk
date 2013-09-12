@@ -22,9 +22,9 @@
              </div>
           </div>
           <div class="control-group">
-             <label class="control-group" for="data_file">Choose the tool you wish to use for this job</label>
+             <label class="control-group" for="data_file">Choose the data file you wish to use for this job</label>
              <div class="controls">
-                <p class="help-block">The tool indicates the tool server used to execute this job.</p>
+                <p class="help-block">The data file will be used as the file input for the job (note: only files that have a status of "Import Complete" are shown here.)</p>
                  <select id="data_file" 
                          ng-model="jobdata.data_file" 
                          ng-options="o.resource_uri as getFileStr(o) for o in rest.datafile|filter:{'status': 'Import Complete'}" >

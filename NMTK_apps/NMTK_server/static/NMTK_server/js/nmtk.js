@@ -154,7 +154,7 @@ angular.module('nmtk', ['ui.bootstrap', 'restangular', 'ngGrid',
  * other controllers.  It also handles the auto-reloading of things like jobs 
  * in progress and uploads, etc. 
  */
-function NMTKCtrl($scope, Restangular, $timeout, $dialog, $location,
+function NMTKCtrl($scope, Restangular, $timeout, $modal, $location,
 				  $rootScope, $log) {	
 	// A Function used to update data via a rest call to an API interface,
 	// since it seems like we will refresh far more often than we don't, might
@@ -220,27 +220,40 @@ function NMTKCtrl($scope, Restangular, $timeout, $dialog, $location,
 	$rootScope.deleteData=function (api, id) {
 		var rest=$rootScope.resources[api];
 		rest.one(id).remove().then(function (r) {
-			$log.info('Refreshing data...');
 			$rootScope.refreshData(api);
 		});
 	}
 	
-	// Set the delete_candidate, which un-hides the modal confirm dialog.	
-	$rootScope.removeFile = function(api, id, name, type){
-	    var title = 'Confirm delete of ' + type;
-	    var msg = 'Are you sure you wish to delete ' + name +'?';
-	    var btns = [{result:'cancel', label: 'Cancel'}, 
-	                {result:'delete', label: 'Delete', cssClass: 'btn-primary'}];
-
-	    $dialog.messageBox(title, msg, btns)
-	      .open()
-	      .then(function(result){
-	        if (result == 'delete') {
-	        	$scope.deleteData(api, id);
-	        }
-	        
-	    });
-	  };
+	$scope.removeFile=function (api, id, name, type) {
+		var modal_dialog=$modal.open({
+			controller: 'DeleteController',
+			resolve: {api: function () { return api; },
+				      id: function () { return id; },
+				      name: function () { return name; },
+				      type: function () { return type; },},
+			templateUrl: CONFIG.template_path + 'delete_modal.html'
+		});
+		modal_dialog.result.then(function (result) {
+			$scope.deleteData(result[0], result[1]);
+		});
+	}
+	
+//	// Set the delete_candidate, which un-hides the modal confirm dialog.	
+//	$rootScope.removeFile = function(api, id, name, type){
+//	    var title = 'Confirm delete of ' + type;
+//	    var msg = 'Are you sure you wish to delete ' + name +'?';
+//	    var btns = [{result:'cancel', label: 'Cancel'}, 
+//	                {result:'delete', label: 'Delete', cssClass: 'btn-primary'}];
+//
+//	    $modal.messageBox(title, msg, btns)
+//	      .open()
+//	      .then(function(result){
+//	        if (result == 'delete') {
+//	        	$scope.deleteData(api, id);
+//	        }
+//	        
+//	    });
+//	  };
 
 	
 	$scope.changeTab=function(newtab) {
@@ -274,7 +287,9 @@ function NMTKCtrl($scope, Restangular, $timeout, $dialog, $location,
 		$scope.refreshData(item);
 	});
 	$rootScope.resources['feedback']=Restangular.all('feedback');
-	
+	$rootScope.active={'job': undefined,
+			           'tool': undefined,
+			           'datafile': undefined,}
 	/* Load user preferences for the UI
 	 * 
 	 */
@@ -318,7 +333,7 @@ function NMTKCtrl($scope, Restangular, $timeout, $dialog, $location,
 	
 	
 	/*
-	 * Define the options for the feedback modal dialog and also
+	 * Define the options for the feedback modal modal and also
 	 * define the function to start the controller when someone clicks on
 	 * the feedback button.
 	 */
@@ -332,14 +347,18 @@ function NMTKCtrl($scope, Restangular, $timeout, $dialog, $location,
 	$scope.feedback=function () {
 		var rest=$rootScope.resources['feedback'];
 		$rootScope.rest['feedback']=rest.getList({'uri': $location.path(),
-			                                  'limit': 1}).then(function(result) {
+			                                  	  'limit': 1}).then(function(result) {
 			if (result.length) {
-				$scope.feedback_options.record=result[0];
+				$scope.record=result[0];
 			} else {
-				$scope.feedback_options.record={};
+				$scope.record={};
 			}
-			var d=$dialog.dialog($scope.feedback_options)			
-			d.open().then(function (result) {
+						
+			var modal_instance=$modal.open({templateUrl: CONFIG.template_path+'feedback.html',
+					     				    scope: $scope,
+					     				    controller: 'FeedbackCtrl',
+					     				    backdrop: true});
+			modal_instance.result.then(function (result) {
 				if (result) {
 					$log.info('Got a feedback response!', result);
 					result.uri=$location.path();
@@ -354,24 +373,14 @@ function NMTKCtrl($scope, Restangular, $timeout, $dialog, $location,
 	}
 	
 	$scope.configureJob=function (job) {
-	    var switchconfig_options = {
-				backdrop: true,
-				keyboard: true,
-				backdropClick: true,
-				templateUrl:  'switchjob.html', // OR: templateUrl: 'path/to/view.html',
-				controller: 'SwitchJobController'
-		};
-		$log.info('Got (configureJob)', job);
 		if ($scope.working_job_id && $scope.working_job_id != job.job_id) {
-			var d=$dialog.dialog(switchconfig_options);
-			d.open().then(function (result) {
-				if (result) {
-					// Reset the job config if/when we change to configure a new job.
-					$scope.job_config=undefined;
-					$scope.errors=undefined;
-					$scope.working_job_id=job.id;
-					$location.path('/job/' + $scope.working_job_id + '/');
-				}
+			var modal_dialog=$modal.open({templateUrl:  'switchjob.html', 
+										  controller: 'SwitchJobController'});
+			modal_dialog.result.then(function () {
+				$scope.job_config=undefined;
+				$scope.errors=undefined;
+				$scope.working_job_id=job.id;
+				$location.path('/job/' + $scope.working_job_id + '/');
 			});
 		} else {
 			$scope.working_job_id=job.id;
@@ -380,21 +389,36 @@ function NMTKCtrl($scope, Restangular, $timeout, $dialog, $location,
 	};
 	
 	$scope.downloadJob=function (job) {
-		var options={backdrop: true,
-					 keyboard: true,
-					 backdropClick: true,
-					 templateUrl:  CONFIG.template_path+'downloadjob.html', // OR: templateUrl: 'path/to/view.html',
-					 controller: 'DownloadJobController',
-					 job: job
-		};
-		var d=$dialog.dialog(options);
-		d.open();
+		var d=$modal.open({ templateUrl:  CONFIG.template_path+'downloadjob.html', 
+							controller: 'DownloadJobController',
+							resolve:{ job: function () { return job; } },
+							scope: $scope
+						  });
 	}
+	
+	$scope.createJob=function (tool_uri) {
+		var modal_instance=$modal.open({backdrop: true,
+										scope: $scope,
+										backdrop: true,
+										resolve: {'tool': function () { return tool_uri; }},
+										templateUrl:  CONFIG.template_path+'create_job_template.html', // OR: templateUrl: 'path/to/view.html',
+										controller: 'CreateJobController'});
+		modal_instance.result.then(function(result) {
+			$scope.resources['job'].post(result).then(function (api_result) {
+				$scope.refreshData('job');
+				$scope.rest['job'].then(function () {
+					$location.path('/job/' +
+								   api_result.resource_uri.split('/').reverse()[1] + '/');
+				});
+			});			
+		});
+		$log.info('Creating a new job!');
+	};
 	
 }
 
-function DownloadJobController($scope, $log, dialog) {
-	$scope.job_id=dialog.options.job.job_id;
+function DownloadJobController($scope, $log, $modalInstance, job) {
+	$scope.job_id=job.job_id;
 	var api_path=CONFIG.api_path;
 	$scope.format_types={'Comma Separated Values': 'csv',
 						 'GeoJSON': 'geojson',
@@ -402,18 +426,18 @@ function DownloadJobController($scope, $log, dialog) {
 	if (/\//.test(CONFIG.api_path)) {
 		  api_path=CONFIG.api_path.substring(0, CONFIG.api_path.length-1);
 	}
-	$scope.download_url=dialog.options.job.results;
+	$scope.download_url=job.results;
 	$scope.close=function () {
-		dialog.close();
+		$modalInstance.dismiss();
 	}
 	$scope.getUrl=function(type) {
 		return $scope.download_url + '?output=' + type;
 	}
 }
 
-function SwitchJobController($scope, dialog) {
-	$scope.switchjob=function () { dialog.close(true); };
-	$scope.close=function () { dialog.close(false); };
+function SwitchJobController($scope, $modalInstance) {
+	$scope.switchjob=function () { $modalInstance.close(); };
+	$scope.close=function () { $modalInstance.dismiss(); };
 }
 
 function IntroCtrl($scope, $log) {
@@ -422,7 +446,7 @@ function IntroCtrl($scope, $log) {
 	$scope.changeTab('introduction');
 }
 
-function ToolExplorerCtrl($scope, $routeParams, $log, $location, $dialog) {
+function ToolExplorerCtrl($scope, $routeParams, $log, $location, $modal) {
 	$log.info('In Tool Explorer');
 	$scope.changeTab('toolexplorer');
 	$log.info($scope.resources.tool);
@@ -458,29 +482,8 @@ function ToolExplorerCtrl($scope, $routeParams, $log, $location, $dialog) {
 		});
 	}	
 	
-	$scope.create_job_opts = {
-			backdrop: true,
-			keyboard: true,
-			backdropClick: true,
-			templateUrl:  CONFIG.template_path+'create_job_template.html', // OR: templateUrl: 'path/to/view.html',
-			controller: 'CreateJobController'
-	};
 
-	$scope.createJob=function (tool_uri) {
-		$scope.create_job_opts.tool=tool_uri;
-		var d=$dialog.dialog($scope.create_job_opts);
-		d.open().then(function(result) {
-			if (result) {
-				$scope.refreshData(['job']);
-				$scope.resources['job'].post(result).then(function (api_result) {
-					$scope.refreshData('job');
-					$location.path('/job/' +
-							       api_result.resource_uri.split('/').reverse()[1] + '/');
-				});				
-			}
-		});
-		$log.info('Creating a new job!');
-	};
+
 	
 }
 
@@ -824,7 +827,7 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http, $timeout,
 	
 }
  
-function FilesCtrl($scope, $timeout, $route, $dialog, $log) {
+function FilesCtrl($scope, $timeout, $route, $modal, $log) {
 	$log.info('In FilesCtrl');
 	$scope.enableRefresh(['datafile']);
 	$scope.changeTab('files');
@@ -862,7 +865,7 @@ function FilesCtrl($scope, $timeout, $route, $dialog, $log) {
 	$scope.openDialog=function (record) {
 		$scope.opts['record']=record;
 		$scope.opts['thisscope']=$scope;
-		var d=$dialog.dialog($scope.opts);
+		var d=$modal.dialog($scope.opts);
 		$log.info('Edit data is', record)
 		d.open().then(function(result) {
 			$log.info('Result from dialog was ', result);
@@ -975,7 +978,7 @@ function FileInfoUpdateController($scope, dialog, $filter, $log) {
  * Once a response comes back, we'll have to check for errors and then set
  * the appropriate error messages in the template as well...
  */
-function ConfigureCtrl($scope, $routeParams, $location, $dialog, $log) {
+function ConfigureCtrl($scope, $routeParams, $location, $modal, $log) {
 	var jobid=$routeParams.jobid;
 	// Get Job, tool, and file information, then use them to generate the form
 	// configuration.
@@ -1088,40 +1091,35 @@ function ConfigureCtrl($scope, $routeParams, $location, $dialog, $log) {
 					    controller: 'ErrorDialogCtrl'
 					  };
 				opts.errors=$scope.$parent.errors;
-				var d=$dialog.dialog(opts);
+				var d=$modal.dialog(opts);
 				d.open();
 			});
 		});
 	}
-	var clone_opts = {
-		    backdrop: true,
-		    keyboard: true,
-		    backdropClick: true,
-		    templateUrl:  'cloneconfig.html', // OR: templateUrl: 'path/to/view.html',
-		    controller: 'CloneConfigCtrl'
-		  };
+
 	
 	$scope.cloneConfig=function () {
-		var d=$dialog.dialog(clone_opts);
-		d.open().then(function (job_config) {
-			if (job_config) {
-			   $log.info('Selected to clone', job_config);
-//			   $log.info('Current config',$scope.$parent.job_config);
-			   var other_config=JSON.parse(job_config);
-			   $log.info('Job config is ', job_config);
-			   var file_config=undefined;
-			   _.some($scope.tool_data.config.input, function (data) {
+		var modal_dialog=$modal.open({
+			backdrop: true,
+			scope: $scope,
+		    templateUrl:  'cloneconfig.html', // OR: templateUrl: 'path/to/view.html',
+		    controller: 'CloneConfigCtrl'
+		});
+		modal_dialog.result.then(function (job_config) {
+			$log.info('Selected to clone', job_config);
+			var other_config=JSON.parse(job_config);
+			$log.info('Job config is ', job_config);
+			var file_config=undefined;
+			_.some($scope.tool_data.config.input, function (data) {
 				   if (data.type == 'File') {
 					   file_config=data.elements;
 					   return true;
 				   }
 				   return false;
-			   });
-			   _.each(file_config, function (setting) {
-				  $scope.$parent.job_config[setting.name]=other_config[setting.name] 
-			   });
-//			   $scope.$parent.job_config=JSON.parse(job_config);
-			}
+			});
+			_.each(file_config, function (setting) {
+				$scope.$parent.job_config[setting.name]=other_config[setting.name] 
+			});
 		});
 	}
 }
@@ -1139,19 +1137,13 @@ function ErrorDialogCtrl($scope, dialog) {
  * choose/set the parameters for them.
  */
 
-function JobCtrl($scope, $routeParams, $dialog, $position, $location, $log) {
+function JobCtrl($scope, $routeParams, $modal, $position, $location, $log) {
 	$scope.enableRefresh(['job']);
 	$scope.refreshData('job');
 	//var jobid=$routeParams.jobid;
 	$log.info('In JobCtrl');
 	$scope.changeTab('viewjob');
-	$scope.create_job_opts = {
-		backdrop: true,
-		keyboard: true,
-		backdropClick: true,
-		templateUrl:  CONFIG.template_path+'create_job_template.html', // OR: templateUrl: 'path/to/view.html',
-		controller: 'CreateJobController'
-	};
+	
 	$scope.view_job_opts = {
 			backdrop: true,
 			keyboard: true,
@@ -1159,24 +1151,11 @@ function JobCtrl($scope, $routeParams, $dialog, $position, $location, $log) {
 			templateUrl:  'view_job.html', // OR: templateUrl: 'path/to/view.html',
 			controller: 'ViewJobController'
 	};
-	$scope.createJob=function () {
-		var d=$dialog.dialog($scope.create_job_opts);
-		d.open().then(function(result) {
-			if (result) {
-				$scope.refreshData(['job']);
-				$scope.resources['job'].post(result).then(function (api_result) {
-					$scope.refreshData('job');
-					$location.path('/job/' +
-							       api_result.resource_uri.split('/').reverse()[1] + '/');
-				});				
-			}
-		});
-		$log.info('Creating a new job!');
-	};
+	
 	$scope.openDialog=function(job) {
 		$log.info('Got (openDialog)', job);
 		$scope.view_job_opts.resource=job;
-		var d=$dialog.dialog($scope.view_job_opts);
+		var d=$modal.dialog($scope.view_job_opts);
 		d.open().then(function(result) {
 			if (result) {
 				result.put().then(function () {
@@ -1234,32 +1213,27 @@ function ViewJobController($scope, dialog, $log) {
  * job configuration form.
  */
 
-function CreateJobController($scope, dialog, $log, $rootScope) {
+function CreateJobController($scope, $modalInstance, $log, tool) {
 	$scope.jobdata={};
-	if (dialog.options.tool) {
-		$scope.jobdata['tool']=dialog.options.tool
+	if (tool) {
+		$scope.jobdata['tool']=tool
 	}
 	$scope.getFileStr=function (o) {
-		if (o.descripton) {
-			return o.name + ': ' + o.description;
+		if (o.description) {
+			return o.name + ' (' + o.description + ')';
 		} else {
 			return o.name;
 		}
 	}
 	$scope.close=function () {
-		dialog.close(false);
+		$modalInstance.dismiss();
 	}
 	$scope.save=function () {
-		dialog.close($scope.jobdata);
+		$modalInstance.close($scope.jobdata);
 	}	
 }
 
-
-
-
-
-
-function FeedbackCtrl($scope, $location, dialog, $log) {
+function FeedbackCtrl($scope, $location, $modalInstance, $log) {
 	$log.info('In FeedbackCtrl');
 	$log.info('Current location is ', $location.path());
 	var values_list=['No Opinion', 'Works', 'Needs Help', 'No Way'];
@@ -1268,7 +1242,7 @@ function FeedbackCtrl($scope, $location, dialog, $log) {
 		values.push({'label': v,
 			         'value': v});
 	});
-	$scope.feedback=dialog.options.record;
+	$scope.feedback=$scope.record;
 	
 	$scope.fields=[{'display_name': 'Transparency',
 		        	'field': 'transparency',
@@ -1293,23 +1267,36 @@ function FeedbackCtrl($scope, $location, dialog, $log) {
 			       {'display_name': 'Comments',
 			        'field': 'comments',
 			        'help':'Enter your detailed comments here, especially if you ranked anything as \'Needs Help\' or \'No Way\'',
-			        'type': 'input' }];
+			        'type': 'textarea' }];
 	
 	$scope.save=function () {
-		dialog.close($scope.feedback);
+		$modalInstance.close($scope.feedback);
 	};
 	
 	$scope.close=function () {		
-		dialog.close();
+		$modalInstance.dismiss();
 	};
 }
 
-function CloneConfigCtrl($scope, dialog) {
-	$scope.selected=undefined;
-	$scope.clone=function () {
-		dialog.close($scope.selected);
+function DeleteController($scope, $modalInstance, api, id, name, type) {
+	$scope.api=api;
+	$scope.id=id;
+	$scope.name=name;
+	$scope.type=type;
+	$scope.delete=function () {
+		$modalInstance.close([api, id]);
 	}
 	$scope.close=function () {
-		dialog.close();
+		$modalInstance.dismiss();
+	}
+}
+
+function CloneConfigCtrl($scope, $modalInstance) {
+	$scope.selected=undefined;
+	$scope.clone=function () {
+		$modalInstance.close($scope.selected);
+	}
+	$scope.close=function () {
+		$modalInstance.dismiss();
 	}
 }

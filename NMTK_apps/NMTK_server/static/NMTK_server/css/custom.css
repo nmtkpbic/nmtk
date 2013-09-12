@@ -77,3 +77,13 @@ td.centered, th.centered, div.centered {
     width: 100%; 
     height: 300px;
 }
+
+.modal {
+	width: 600px;
+}
+.modal input, .modal select {
+    width: 75%;
+}
+textarea {
+    width: 90%;
+}
