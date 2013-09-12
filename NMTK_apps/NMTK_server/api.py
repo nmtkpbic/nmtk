@@ -459,6 +459,16 @@ class DataFileResourceValidation(Validation):
             (bundle.obj.IMPORT_FAILED,bundle.obj.PENDING)):
             errors['srid']='SRID can only be provided initially, ' + \
                            'or after a failed import'
+        if bundle.obj.status == bundle.obj.IMPORT_FAILED:
+            logger.debug('Got a failed job! (%s), srid: %s; %s', bundle.obj.pk,
+                         bundle.data.get('srid', False),
+                         bundle.obj._old_srid
+                         )
+            if (bundle.data.get('srid', False) and 
+                bundle.data['srid'] != bundle.obj._old_srid):
+                logger.debug('Attempting to change SRID!')
+                bundle.data['status']=bundle.obj.PENDING
+                bundle.obj.status=bundle.obj.PENDING
         return errors
 
 class DataFileResource(ModelResource):
@@ -478,7 +488,7 @@ class DataFileResource(ModelResource):
     file=fields.CharField('file', readonly=True, null=True)
     geojson=fields.CharField('geojson_file', readonly=True, null=True)
     job=fields.ToOneField('JobResource', 'job', null=True, readonly=True)
-
+    
     def prepend_urls(self):
         return [
             url(r"^(?P<resource_name>%s)/(?P<pk>\w[\w/-]*)/download%s$" % (self._meta.resource_name, 

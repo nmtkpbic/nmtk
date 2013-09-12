@@ -347,6 +347,7 @@ def importDataFile(datafile):
         logger.exception('Failed import process!')
         datafile.status=datafile.IMPORT_FAILED
         datafile.status_message="%s" % (e,)
+    datafile.status_message=None
     datafile.save()
     
     

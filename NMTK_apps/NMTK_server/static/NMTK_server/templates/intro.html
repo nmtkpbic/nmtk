@@ -1,14 +1,14 @@
 <div class="container">
    <div class="row">
       <div class="span12">
-        <div ng-init="divname='nmtk_introduction'" class="widget stacked">
-          <div ng-click="toggleDiv(divname)" class="widget-header">
+        <div class="widget stacked">
+          <div ng-click="toggleDiv('nmtk_introduction')" class="widget-header">
             <i class="icon-info-sign"></i>
             <h3>NMTK Introduction</h3>
-            <i ng-hide="isDivEnabled(divname)" class="icon-expand"></i>
-            <i ng-show="isDivEnabled(divname)" class="icon-collapse"></i>
+            <i ng-hide="isDivEnabled('nmtk_introduction')" class="icon-expand"></i>
+            <i ng-show="isDivEnabled('nmtk_introduction')" class="icon-collapse"></i>
           </div> <!-- /widget-header -->
-          <div id="nmtk_introduction" ng-show="isDivEnabled(divname)" class="widget-content">
+          <div id="nmtk_introduction" ng-show="isDivEnabled('nmtk_introduction')" class="widget-content">
           <p>
             The Non-Motorized Travel Analysis Toolkit provides access to a number 
             of analysis tools that you can apply to your own data, include models 

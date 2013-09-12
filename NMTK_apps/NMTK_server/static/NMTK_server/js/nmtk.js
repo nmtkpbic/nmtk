@@ -586,6 +586,7 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http, $timeout,
 		}
 	};
 	$scope.olcount=0;
+	
 	// Whenever a feature is selected in the table, we will match that feature in
 	// the view window...
 	$scope.$watch('selected_features', function (newVal, oldVal) {
@@ -618,15 +619,32 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http, $timeout,
 		}
 	}, true);
 	
+	// When someone selects items via the "results" grid it goes
+	// into selections, which we then need to copy over to selected_features
+	
 	$scope.$watch('selections', function (newVal, oldVal) {
 		$log.info('Got selections!')
+		// If we're working with results from a map-click, then clicking on
+		// a row will remove those results.
 		if ($scope.feature_query_results) {
-			_.each($scope.selected_features, function (v, index) {
-				$scope.gridOptions2.selectItem(index, false);
-				$scope.selected_selected.length=0;
-			});
+			$scope.selected_features=[];
+			$scope.selected_selected.length=0;
+			$scope.feature_query_results=false;
 		}
-		$scope.selected_features=newVal;
+		ids=[]
+		_.each($scope.selected_features, function (data) {
+			ids.push(data.nmtk_id);
+		});
+		if (! $scope.selected_features) {
+			$scope.selected_features=newVal;
+		} else {
+			_.each(newVal, function (data) {
+				if (! _.contains(ids, data.nmtk_id)) {
+					$scope.selected_features.push(data);
+				}
+			})
+		}
+//		$scope.selected_features=newVal;
 	},true);
 	
 	// We watch reloadData to signal to ng-grid that it should reset its 
@@ -638,7 +656,6 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http, $timeout,
 	 * stuff to 0 and then reload the data for the grid (to unselect items.)
 	 */
 	$scope.clearSelection=function() {
-		
 		_.each($scope.selected_features, function (v, index) {
 			$scope.gridOptions2.selectItem(index, false);
 		});
@@ -663,43 +680,8 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http, $timeout,
 			//$log.info('Result from query was %s', data);
 			$scope.selected_features=data.data;
 		})
-//		var config={params: { SERVICE: 'wms',
-//							  VERSION: '1.1.1',
-//							  REQUEST: 'GetFeatureInfo',
-//							  LAYERS: $scope.job_data.layer,
-//							  QUERY_LAYERS: $scope.job_data.layer,
-//							  BBOX: e.leafletMap.getBounds().toBBoxString(),
-//							  FEATURE_COUNT: 999,
-//							  HEIGHT: e.leafletMap.getSize().x,
-//							  WIDTH: e.leafletMap.getSize().y,
-//						  	  FORMAT: "image/png",
-//							  INFO_FORMAT: "application/json",
-//							  SRS: "EPSG:4326",
-//							  X: e.leafletEvent.containerPoint.x,
-//							  Y: e.leafletEvent.containerPoint.y}
-//			};
-		
-//        $http.get($scope.job_data.wms_url, config).success(function (data) {
-//        	//$scope.selectResultRow(data['results']);
-//        	if (data) {
-//        		var ids=[];
-//        		_.each(data['results'], function (v) {
-//        			ids.push(v['nmtk_id']);
-//        		});
-////        		$scope.selectResultRow(ids);
-//        	}
-//        });
     });
 	
-//	$scope.selectResultRow = function(features){
-//        angular.forEach($scope.data, function(data, index){
-//        	angular.forEach(features, function (feature) {
-//        		if (data.nmtk_id == feature){
-//                	$scope.gridOptions.selectItem(index, true);
-//        		}
-//        	});
-//    	});
-//    };
 	$scope.selected_selected=[];
 	var layoutPlugin = new ngGridLayoutPlugin();
 	$scope.updateLayout = function(){
@@ -846,13 +828,7 @@ function FilesCtrl($scope, $timeout, $route, $modal, $log) {
 	$log.info('In FilesCtrl');
 	$scope.enableRefresh(['datafile']);
 	$scope.changeTab('files');
-	$scope.opts = {
-		    backdrop: true,
-		    keyboard: true,
-		    backdropClick: true,
-		    templateUrl:  'file_info.html', // OR: templateUrl: 'path/to/view.html',
-		    controller: 'FileInfoUpdateController'
-		  };
+	
 	$scope.initialload=false;
 	$scope.fileupload='';
 	$scope.upload_uri=CONFIG.api_path + 'datafile/';
@@ -878,11 +854,16 @@ function FilesCtrl($scope, $timeout, $route, $modal, $log) {
 	});
 	
 	$scope.openDialog=function (record) {
-		$scope.opts['record']=record;
-		$scope.opts['thisscope']=$scope;
-		var d=$modal.dialog($scope.opts);
-		$log.info('Edit data is', record)
-		d.open().then(function(result) {
+		$scope.opts = {
+			    templateUrl:  'file_info.html', // OR: templateUrl: 'path/to/view.html',
+			    controller: 'FileInfoUpdateController',
+			    resolve:{'record': function () { return record; }},
+			    scope: $scope
+			  };
+		
+		var modal_dialog=$modal.open($scope.opts);
+		
+		modal_dialog.result.then(function(result) {
 			$log.info('Result from dialog was ', result);
 			$scope.refreshData('datafile');
 		});
@@ -911,8 +892,8 @@ function FilesCtrl($scope, $timeout, $route, $modal, $log) {
 	
 }
  
-function FileInfoUpdateController($scope, dialog, $filter, $log) {
-	$scope.filedata=dialog.options.record; // Save the data we are editing in this scope.
+function FileInfoUpdateController($scope, $filter, $log, $modalInstance, record, Restangular) {
+	$scope.filedata=Restangular.copy(record); // Save the data we are editing in this scope.
 	// Apply the filter to the data, since we need to display better in the template
 	$scope.filedata.date_created=$filter('date')($scope.filedata.date_created, 'medium');
 	// A list of lists, with the 5-set being field/attribute name
@@ -922,13 +903,19 @@ function FileInfoUpdateController($scope, dialog, $filter, $log) {
 		if (field.hide_empty && !$scope.filedata[field.field]) {
 			return false;
 		} else if (field.spatial == true) {
-			if (!$scope.filedata.geom_type) {
+			if ($scope.filedata.geom_type || ($scope.filedata.status == 'Import Failed')) {
 				return true;
 			} 
 		}
 		return true;
-
 	}
+	var srid_description=undefined;
+	if ($scope.filedata.status == 'Import Failed') {
+		srid_description='Specifying the proper SRID may allow this data to load.';
+	} else {
+		srid_description='The detected SRID for the uploaded file';
+	}
+	
 	$scope.fields=[{'display_name': 'File Name',
 		            'field': 'name',
 		            'description':'The name of the uploaded file', 
@@ -965,24 +952,21 @@ function FileInfoUpdateController($scope, dialog, $filter, $log) {
 			        'spatial': true },
 			       {'display_name': 'Spatial Reference Identifier (SRID)',
 		            'field': 'srid',
-		            'description':'The detected SRID for the uploaded file', 
-		            'disabled': true, 
-		            'hide_empty': true,
-		            'spatial': true }
-		            
-		           
-			        
+		            'description':srid_description, 
+		            'disabled': ($scope.filedata.status != 'Import Failed'), 
+		            'hide_empty': false,
+		            'spatial': true }	           
 		            ]
+	
 
 	$scope.save=function () {
 		$log.info('Data to save is', $scope.filedata);
 		$scope.filedata.put().then(function (data) {
-			dialog.close(true);
+			$modalInstance.close(true);
 		});
 	}
 	$scope.close=function() {
-		$log.info('Closed');
-		dialog.close(false);
+		$modalInstance.dismiss();
 	}
 }
 

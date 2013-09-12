@@ -304,6 +304,13 @@ class DataFile(models.Model):
 #        else:
 #            return ''
     
+    
+    def __init__(self, *args, **kwargs):
+        super(DataFile, self).__init__(*args, **kwargs)
+        if self.pk:
+            self._old_srid=self.srid
+        else: self._old_srid=None
+    
     @property
     def geojson_name(self):
         return '%s.geojson' % (os.path.splitext(self.name)[0],)
