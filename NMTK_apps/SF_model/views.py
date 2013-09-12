@@ -19,13 +19,14 @@ import hashlib
 import tool_configs
 import os, stat
 
+@csrf_exempt
 def toolBase(request, tool_name):
     '''
     This is the "base url" for the tool.  Generally, it doesn't do anything
     but there are several spots where we need to output it (for example, in 
     config) so this particular view is just here for the reverse-urlpattern.
     '''
-    if not hasattr(tool_configs, tool_name):
+    if not tool_configs.configs.has_key(tool_name):
         raise Http404
     return HttpResponse('%s' % (tool_name,))
 
@@ -36,17 +37,17 @@ def generateToolConfiguration(request, tool_name):
     substitute in any specific URL parameters, then return the config
     as a json object to the requestor.
     '''
-    if not hasattr(tool_configs, tool_name):
+    if not tool_configs.configs.has_key(tool_name):
         raise Http404
-    config=getattr(tool_configs, tool_name)
+    config=tool_configs.configs[tool_name]
     # Add in the host and route data...
     config['host']={'url': request.build_absolute_uri('/'),
                     'route': reverse('tool_base',  
                                      kwargs={'tool_name': tool_name}) }
-    for k in config['documentation']['links']:
-        config['documentation']['links'][k]=request.build_absolute_uri('/') + \
-                                            reverse('SF_Documentation',
-                                                    kwargs={'tool_name': tool_name})
+#     for k in config['documentation']['links']:
+#         config['documentation']['links'][k]=request.build_absolute_uri('/') + \
+#                                             reverse('SF_Documentation',
+#                                                     kwargs={'tool_name': tool_name})
     return HttpResponse(json.dumps(config),
                         content_type='application/json')
 
@@ -70,7 +71,7 @@ def runModel(request, tool_name):
     a response to the client, and then the processing task can update the
     status to the NMTK server.
     '''
-    if not hasattr(tool_configs, tool_name):
+    if not tool_configs.configs.has_key(tool_name):
         raise Http404
     logger.debug('Received request for processing!')
 
@@ -108,7 +109,7 @@ def runModel(request, tool_name):
     # We should now be able to load the configuration and process the 
     # job...
     ret = tasks.performModel.delay(data_file=outfile.name, 
-                                   job_config=config_file.name, 
+                                   job_setup=config_file.name, 
                                    tool_config=config,
                                    client=request.NMTK.client)
     return HttpResponse('OK')

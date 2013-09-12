@@ -1,5 +1,5 @@
 {% extends "NMTK_server/base.html" %}
-{% load static %}
+{% load static %}{% load admin_urls %}
 {% load url from future %}
 {% block title %}Non-Motorized Transportation Toolkit{% endblock %}
 {% block css_extra %}
@@ -42,7 +42,9 @@
 						
 						<ul class="dropdown-menu">
 							<li><a href="#/password">Change Password</a></li>
-							<li class="divider"></li>
+							{% if user.is_superuser %}
+							<li><a href="{% url 'admin:index' %}">Site Administration</a></li>
+							{% endif %}
 							<li><a href="{% url 'auth_logout' %}">Logout</a></li>
 						</ul>
 						

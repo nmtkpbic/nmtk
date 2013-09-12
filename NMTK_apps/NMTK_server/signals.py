@@ -9,10 +9,28 @@ from django.contrib.auth.models import User
 from django.dispatch import receiver
 import simplejson as json
 import shutil
+from registration.signals import user_activated
+from NMTK_server.default_data.init_account import setupAccount
+from django.core.mail import mail_managers
 
 
 logger = logging.getLogger(__name__)
 
+@receiver(user_activated)
+def post_activation_setup(sender, user, **kwargs):
+    # Deactivate the user, since the admin now needs to approve the account.
+    if user.is_active:
+        if user.datafile_set.count() == 0:
+            setupAccount(user)
+        if settings.ADMIN_APPROVAL_REQUIRED:
+            logger.debug('Deactivating account since approval is required')
+            user.is_active=False
+            
+            mail_managers('User {0} requires activation'.format(user.username),
+                        'Please go to the admin interface and activate the account (and notify the user)')
+            user.save()
+        # setup the account by populating it with any required "default" files.
+        
 
 @receiver(post_delete, sender=User)
 def delete_user_data(sender, instance, **kwargs):

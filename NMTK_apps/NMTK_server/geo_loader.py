@@ -175,7 +175,7 @@ class GeoDataLoader(object):
         return self.data
     
     def __iter__(self):
-        self.layer.ResetReading()
+        self.data.layer.ResetReading()
         return self
     
     def next(self):

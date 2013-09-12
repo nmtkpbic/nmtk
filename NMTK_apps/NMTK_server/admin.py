@@ -86,6 +86,9 @@ class JobStatusAdmin(admin.ModelAdmin):
     list_display=['job', 'timestamp', 'message']
     
 
+class FeedbackAdmin(admin.ModelAdmin):
+    list_display=['user', 'uri', 'date_created']
+
 class DataFileAdmin(admin.ModelAdmin):
 #    def data_file(self, obj):
 #        '''
@@ -126,6 +129,7 @@ class DataFileAdmin(admin.ModelAdmin):
     
 
 
+admin.site.register(models.Feedback, FeedbackAdmin)
 admin.site.register(models.ToolServer, ToolServerAdmin)
 admin.site.register(models.Tool, ToolAdmin)
 admin.site.register(models.Job, JobAdmin)

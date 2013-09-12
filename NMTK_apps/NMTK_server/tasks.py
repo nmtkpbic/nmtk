@@ -222,6 +222,7 @@ def email_user_job_complete(job):
                              context).strip().replace('\n',' ')
     message=render_to_string('NMTK_server/job_finished_message.txt',
                              context)
+    logger.debug('Sending job complete notification email to %s', job.user.email)
     send_mail(subject, message, settings.DEFAULT_FROM_EMAIL,
               [job.user.email,])
 

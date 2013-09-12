@@ -10,15 +10,23 @@ LOGFILE_PATH=os.path.abspath(os.path.join(BASE_PATH, '..','..','logs'))
 
 # Used to initialize the sites model (see: NMTK_server/management/__init__.py)
 SITE_DOMAIN='nmtk.otg-nc.com'
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = TASTYPIE_FULL_DEBUG = DEBUG
 djcelery.setup_loader()
 
 ACCOUNT_ACTIVATION_DAYS=3
-REGISTRATION_OPEN=False
+REGISTRATION_OPEN=True
 ADMINS = (
-    # ('Your Name', 'your_email@example.com'),
+     ('Chander Ganesan', 'chander@otg-nc.com'),
 )
+MANAGERS = (
+            ('Chander Ganesan', 'chander@otg-nc.com'),
+            ('Jeremy Raw', 'jeremy.raw@dot.gov'),
+            )
+
+# Indicates that once an account is created, an admin needs to approve it/enable it
+# basically results in new accounts being disabled.
+ADMIN_APPROVAL_REQUIRED=True
 
 # The path to the MapServer executable
 MAPSERV_PATH=os.path.abspath(os.path.join(BASE_PATH, '..', '..', 'cgi-bin','mapserv'))

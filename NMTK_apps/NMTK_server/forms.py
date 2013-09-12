@@ -107,7 +107,7 @@ class ToolConfigForm(forms.Form):
         self.parameters=[]
         super(ToolConfigForm, self).__init__(*args, **kwargs)
         config=job.tool.toolconfig.json_config
-        job.data_file.processed_file.seek(0)
+#         job.data_file.processed_file.seek(0)
 #        data=json.loads(job.data_file.processed_file.read())
 #        source_fields=data['features'][0]['properties'].keys()
         source_fields=job.data_file.fields
@@ -117,24 +117,25 @@ class ToolConfigForm(forms.Form):
         input=config['input']
         self.fields['job_id']=forms.CharField(initial=job.pk,
                                               widget=forms.HiddenInput)
-        for field_name, data in input['properties'].iteritems():
-            # these are the values the user needs to provide.
-            if data['type'] in self.mappings:
-                fieldObj=self.mappings[data['type']]
-                fargs={'required': data.get('required', False),
-                       'help_text': data.get('description','')}
-                if data.has_key('default'):
-                    fargs['initial']=data['default']
-                self.fields[field_name]=fieldObj(**fargs)
-                self.parameters.append(field_name)
-            # These are the fields that need to come from the data source.
-            elif data['type'] == 'property':
-                fargs={'choices': dataChoices,
-                       'help_text': data.get('description','')}
-                if field_name in source_fields:
-                    fargs['initial']=field_name
-                self.fields[field_name]=forms.ChoiceField(**fargs)
-                self.data_fields.append(field_name)
+        for dataset in input:
+            for field_name, data in ((e['name'], e) for e in dataset['elements']):
+                # these are the values the user needs to provide.
+                if data['type'] in self.mappings:
+                    fieldObj=self.mappings[data['type']]
+                    fargs={'required': data.get('required', False),
+                           'help_text': data.get('description','')}
+                    if data.has_key('default'):
+                        fargs['initial']=data['default']
+                    self.fields[field_name]=fieldObj(**fargs)
+                    self.parameters.append(field_name)
+                # These are the fields that need to come from the data source.
+                elif data['type'] == 'property':
+                    fargs={'choices': dataChoices,
+                           'help_text': data.get('description','')}
+                    if field_name in source_fields:
+                        fargs['initial']=field_name
+                    self.fields[field_name]=forms.ChoiceField(**fargs)
+                    self.data_fields.append(field_name)
             
     def as_json(self):
         '''

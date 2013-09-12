@@ -90,7 +90,7 @@ angular.module('nmtk', ['ui.bootstrap', 'restangular', 'ngGrid',
 	  RestangularProvider.setBaseUrl(api_path);
 	  RestangularProvider.setDefaultHeaders({'X-CSRFToken': getCookie('csrftoken') });
 	  RestangularProvider.setDefaultRequestParams({format: 'json',
-		                                           limit: 5});
+		                                           limit: 9999});
 	  // If the trailing slash isn't there, we redirect to the trailing slash url
 	  // - but that breaks things since post requests
 	  // get cancelled.  Ensure there's always a trailing slash...
@@ -430,6 +430,7 @@ function ToolExplorerCtrl($scope, $routeParams, $log, $location, $dialog) {
 	$scope.gridOptions= {
 			 data: 'rest.tool',
 			 showFooter: false,
+			 showFilter: true,
 			 enableColumnResize: false,
 			 multiSelect: false,
 			 selectedItems: $scope.selections,
@@ -869,6 +870,25 @@ function FilesCtrl($scope, $timeout, $route, $dialog, $log) {
 		});
 	}
 	
+	$scope.gridOptions= {
+			 data: 'rest.datafile',
+			 showFooter: false,
+			 showFilter: true,
+			 enableColumnResize: true,
+			 enableRowSelection: false,
+			 multiSelect: false,
+			 selectedItems: $scope.selections,
+			 columnDefs: [{field: 'name',
+				           displayName: 'File Name'},
+				          {field: 'status',
+				           displayName: 'Import Status'},
+				          {field: 'description',
+				           displayName: 'Description'},
+				          {field: 'actions',
+				           displayName: 'Actions'}],
+			 showColumnMenu: false };
+
+	
 
 	
 }
@@ -972,15 +992,41 @@ function ConfigureCtrl($scope, $routeParams, $location, $dialog, $log) {
 	$scope.toggleSection=function (type) {
 		$scope.sections[type]=!$scope.sections[type];
 	}
-	$scope.resources['job'].one(jobid).get().then(function (job_data) {
+	$scope.rest.job.then(function (jobs) {
+		var job_data=undefined;
+		_.each(jobs, function (job) {
+			if (job.id == jobid) {
+				job_data=job;
+			}
+		});
+//	});
+//	$scope.resources['job'].one(jobid).get().then(function (job_data) {
 		$scope.job_data=job_data;
 		var tool_id=job_data.tool.split('/').reverse()[1];
 		var file_id=job_data.data_file.split('/').reverse()[1];
 		$scope.disabled=(job_data.status != 'Configuration Pending');
 		$log.info('Setting is ', $scope.disabled);
-		$scope.resources['tool'].one(tool_id).get().then(function (tool_data) {
+		$scope.rest.tool.then(function (row) {
+			var tool_data=undefined;
+			_.each(row, function(toolinfo) {
+				if (toolinfo.id==tool_id) {
+					tool_data=toolinfo;
+				}
+			});
+			$log.info('Got tool data of ', tool_data);
+//		});
+//		$scope.resources['tool'].one(tool_id).get().then(function (tool_data) {
 			$scope.tool_name=tool_data.name;
-			$scope.resources['datafile'].one(file_id).get().then(function (file_data) {
+			$scope.tool_data=tool_data;
+			$scope.rest.datafile.then(function (files) {
+				var file_data=undefined;
+				_.each(files, function (data) {
+					if (data.id == file_id) {
+						file_data=data;
+					}
+				});
+//		});
+//			$scope.resources['datafile'].one(file_id).get().then(function (file_data) {
 				// Compute a list of fields to select from for property selection
 				// dialogs
 				$scope.file_name=file_data.name;
@@ -989,23 +1035,25 @@ function ConfigureCtrl($scope, $routeParams, $location, $dialog, $log) {
 					fields.push({'label': v,
 						         'value': v});
 				});
-				_.each(tool_data.config.input.properties, function (property_data, name) {
-					var config= {'display_name': property_data.display_name || name,
-				        		'field': name,
-				        		'required': property_data.required,
-				        		'description': property_data.description,
-				        		'type': property_data.type,
-				        		'value': property_data['default']};
-					
-					if (property_data.type == 'property') {
-						config.value=fields;
-						if (! config_present) {
-						  $scope.$parent.job_config[name]=name;
+				_.each(tool_data.config.input, function (data) {
+					_.each(data.elements, function (property_data, name) {
+						var config= {'display_name': property_data.display_name || property_data.name,
+					        		'field': property_data.name,
+					        		'required': property_data.required,
+					        		'description': property_data.description,
+					        		'type': property_data.type,
+					        		'value': property_data['default']};
+						
+						if (data.type == 'File') {
+							config.value=fields;
+							if (! config_present) {
+							  $scope.$parent.job_config[config.field]=config.field;
+							}
+						} else if (! config_present) {
+							$scope.$parent.job_config[config.field]=property_data['default'];
 						}
-					} else if (! config_present) {
-						$scope.$parent.job_config[name]=property_data['default'];
-					}
-					$scope.tool_config.push(config);
+						$scope.tool_config.push(config);
+					});
 				});
 				
 			});
@@ -1059,8 +1107,20 @@ function ConfigureCtrl($scope, $routeParams, $location, $dialog, $log) {
 			if (job_config) {
 			   $log.info('Selected to clone', job_config);
 //			   $log.info('Current config',$scope.$parent.job_config);
-				
-			   $scope.$parent.job_config=JSON.parse(job_config);
+			   var other_config=JSON.parse(job_config);
+			   $log.info('Job config is ', job_config);
+			   var file_config=undefined;
+			   _.some($scope.tool_data.config.input, function (data) {
+				   if (data.type == 'File') {
+					   file_config=data.elements;
+					   return true;
+				   }
+				   return false;
+			   });
+			   _.each(file_config, function (setting) {
+				  $scope.$parent.job_config[setting.name]=other_config[setting.name] 
+			   });
+//			   $scope.$parent.job_config=JSON.parse(job_config);
 			}
 		});
 	}
