@@ -937,7 +937,6 @@ class JobResource(ModelResource):
         if rec.results:
             # if there are results, then they can download them
             allow_download=True
-            
         if allow_download:
             if format == 'geojson': 
                 wrapper = FileWrapper(open(rec.results.path,'rb'))
@@ -950,9 +949,13 @@ class JobResource(ModelResource):
                 if format == 'csv':
                     return data_output.stream_csv(rec)
                 elif format == 'xls':
+                    logger.debug('About to call xls output!')
                     return data_output.stream_xls(rec)
             elif format == 'pager':
                 return data_output.pager_output(request, rec)
+            elif format == 'query':
+                # requires lat, lon, zoom and (optionally) pixels GET parameters
+                return data_output.data_query(request, rec)
                 
             else:
                 return HttpResponse('The format %s is not supported' % (format,))

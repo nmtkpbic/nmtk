@@ -588,36 +588,45 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http, $timeout,
 	$scope.olcount=0;
 	// Whenever a feature is selected in the table, we will match that feature in
 	// the view window...
+	$scope.$watch('selected_features', function (newVal, oldVal) {
+		var ids=[];
+		_.each($scope.selected_features, function (data) {
+			ids.push(data.nmtk_id);
+		});
+		if ($scope.leaflet.layers.overlays['highlight' + $scope.olcount]) {
+			delete $scope.leaflet.layers.overlays['highlight'+$scope.olcount];
+		}
+		$scope.olcount += 1;
+		if (ids.length) {
+				$scope.leaflet.layers.overlays['highlight'+$scope.olcount]= {
+			            name: 'Selected Layers',
+			            type: 'wms',
+			            visible: true,
+			            url: $scope.job_data.wms_url,
+			            layerOptions: { layers: "highlight",
+			            	            ids: ids.join(','),
+			                    		format: 'image/png',
+			                    		transparent: true }
+			    }
+			}
+		$log.info('Got items selected!');
+		// If nothing is selected, select the first item
+		if ($scope.selected_selected.length == 0) {
+			$timeout(function () {
+				$scope.gridOptions2.selectItem(0, true);
+			}, 100);
+		}
+	}, true);
+	
 	$scope.$watch('selections', function (newVal, oldVal) {
 		$log.info('Got selections!')
-		
-			$scope.selected_features=newVal;
-			var ids=[];
-			_.each($scope.selections, function (data) {
-				ids.push(data.nmtk_id);
+		if ($scope.feature_query_results) {
+			_.each($scope.selected_features, function (v, index) {
+				$scope.gridOptions2.selectItem(index, false);
+				$scope.selected_selected.length=0;
 			});
-			if ($scope.leaflet.layers.overlays['highlight' + $scope.olcount]) {
-				delete $scope.leaflet.layers.overlays['highlight'+$scope.olcount];
-			}
-			$scope.olcount += 1;
-			if (ids.length) {
-					$scope.leaflet.layers.overlays['highlight'+$scope.olcount]= {
-				            name: 'Selected Layers',
-				            type: 'wms',
-				            visible: true,
-				            url: $scope.job_data.wms_url,
-				            layerOptions: { layers: "highlight",
-				            	            ids: ids.join(','),
-				                    		format: 'image/png',
-				                    		transparent: true }
-				    }
-				}
-			$log.info('Got items selected!');
-			// If nothing is selected, select the first item
-			if ($scope.selected_selected.length == 0) {
-				$scope.gridOptions2.selectItem(0, true);
-			}
-		
+		}
+		$scope.selected_features=newVal;
 	},true);
 	
 	// We watch reloadData to signal to ng-grid that it should reset its 
@@ -636,42 +645,50 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http, $timeout,
 		_.each($scope.data, function (v, index) {
 			$scope.gridOptions.selectItem(index, false);
 		});
-		$timeout(function () {
-			$scope.selected_features.length=0;
-			$scope.selected_selected.length=0;
-			$scope.selections.length=0;
-		}, 350);
+		$scope.selected_features=[];
 	}
 	
 	
 	$scope.$on('leafletDirectiveMap.click', function(ev, e) {
-		var config={params: { SERVICE: 'wms',
-							  VERSION: '1.1.1',
-							  REQUEST: 'GetFeatureInfo',
-							  LAYERS: $scope.job_data.layer,
-							  QUERY_LAYERS: $scope.job_data.layer,
-							  BBOX: e.leafletMap.getBounds().toBBoxString(),
-							  FEATURE_COUNT: 999,
-							  HEIGHT: e.leafletMap.getSize().x,
-							  WIDTH: e.leafletMap.getSize().y,
-						  	  FORMAT: "image/png",
-							  INFO_FORMAT: "application/json",
-							  SRS: "EPSG:4326",
-							  X: e.leafletEvent.containerPoint.x,
-							  Y: e.leafletEvent.containerPoint.y}
-			};
-		
+		var lat=e.leafletEvent.latlng.lat;
+		var long=e.leafletEvent.latlng.lng;
+		var zoom=e.leafletMap.getZoom();
         $scope.clearSelection();
-        $http.get($scope.job_data.wms_url, config).success(function (data) {
-        	//$scope.selectResultRow(data['results']);
-        	if (data) {
-        		var ids=[];
-        		_.each(data['results'], function (v) {
-        			ids.push(v['nmtk_id']);
-        		});
-//        		$scope.selectResultRow(ids);
-        	}
-        });
+        $scope.feature_query_results=true
+		var config={params: {lat: e.leafletEvent.latlng.lat,
+							 lon: e.leafletEvent.latlng.lng,
+							 zoom: e.leafletMap.getZoom(),
+							 format: 'query'}};
+		$http.get($scope.job_data.results, config).success(function (data) {
+			//$log.info('Result from query was %s', data);
+			$scope.selected_features=data.data;
+		})
+//		var config={params: { SERVICE: 'wms',
+//							  VERSION: '1.1.1',
+//							  REQUEST: 'GetFeatureInfo',
+//							  LAYERS: $scope.job_data.layer,
+//							  QUERY_LAYERS: $scope.job_data.layer,
+//							  BBOX: e.leafletMap.getBounds().toBBoxString(),
+//							  FEATURE_COUNT: 999,
+//							  HEIGHT: e.leafletMap.getSize().x,
+//							  WIDTH: e.leafletMap.getSize().y,
+//						  	  FORMAT: "image/png",
+//							  INFO_FORMAT: "application/json",
+//							  SRS: "EPSG:4326",
+//							  X: e.leafletEvent.containerPoint.x,
+//							  Y: e.leafletEvent.containerPoint.y}
+//			};
+		
+//        $http.get($scope.job_data.wms_url, config).success(function (data) {
+//        	//$scope.selectResultRow(data['results']);
+//        	if (data) {
+//        		var ids=[];
+//        		_.each(data['results'], function (v) {
+//        			ids.push(v['nmtk_id']);
+//        		});
+////        		$scope.selectResultRow(ids);
+//        	}
+//        });
     });
 	
 //	$scope.selectResultRow = function(features){
@@ -687,10 +704,8 @@ function ViewResultsCtrl($scope, $routeParams, $location, $log, $http, $timeout,
 	var layoutPlugin = new ngGridLayoutPlugin();
 	$scope.updateLayout = function(){
 	      layoutPlugin.updateGridLayout();
-	    };
-    $scope.$watch('selected_selected', function () {
-    	$log.info($scope.selected_selected);
-    }, true);
+	};
+
     $scope.gridOptions2={data: 'selected_features',
     		             showColumnMenu: false,
     		             plugins: [layoutPlugin],

@@ -5,9 +5,47 @@ import csv
 import cStringIO as StringIO
 from django.http import HttpResponse
 import simplejson as json
-from django.db.models import Q 
+from django.db.models import Q
+from django.contrib.gis.geos import Polygon, Point
+import math
+import logging
+logger=logging.getLogger(__name__)
 
 
+
+def getBbox(long, lat, zoom_level, pixels=5):
+    '''
+    Given a point (lat/lon), zoom number (in spherical mercator) and pixel 
+    tolerance, compute and return a BBOX geometry
+    '''
+    try:
+        p=Point(long, lat, srid=4326)
+        logger.debug('Got point of %s', p.coords)
+        p.transform(3857)
+        x,y=p.coords
+        logger.debug('Transformed %s to 3857', p.coords)
+        # Get the number of meters per pixel...
+        # At zoom level 0 (at the equator) there are ~156413 m/pixel, then it halves for
+        # each zoom level beyond that...
+        resolution=156543.03392804062/(2**zoom_level)
+        spacing=pixels*resolution
+
+        p=Point(x-spacing, y-spacing, srid=3857)
+        p.transform(4326)
+        xv1,yv1=p.coords
+        p=Point(x+spacing, y+spacing, srid=3857)
+        p.transform(4326)
+        xv2,yv2=p.coords
+
+        xmin=min(xv1,xv2)
+        xmax=max(xv1,xv2)
+        ymin=min(yv1, yv2)
+        ymax=max(yv1,yv2)
+        return Polygon.from_bbox((xmin,ymin,xmax,ymax))
+    except OverflowError, e:
+        logger.exception('Overflow reverse-mapping from mercator to lat/long')
+        return None
+        
 
 def getQuerySet(job):
     '''
@@ -27,9 +65,9 @@ def stream_csv(job):
     qs=getQuerySet(job)
     row=qs[0]
     db_map=[(field.db_column or field.name, field.name) for
-             field in row._meta.fields if field.name ]
-    
-    
+             field in row._meta.fields if field.name and field.name not in ('nmtk_id',
+                                                                            'nmtk_geometry',
+                                                                            'nmtk_feature_id')]
     def read_and_flush():
         csvfile.seek(0)
         data=csvfile.read()
@@ -51,35 +89,90 @@ def stream_csv(job):
     return response
 
 def stream_xls(job):
-    qs=getQuerySet(job)
-    row=qs[0]
-    db_map=[(field.db_column or field.name, field.name) for
-             field in row._meta.fields]
-    font0 = xlwt.Font()
-    font0.name = 'Times New Roman'
-    font0.colour_index = 2
-    font0.bold = True
-    font1=xlwt.Font()
-    font1.name='Times New Roman'
-    style0 = xlwt.XFStyle()
-    style0.font = font0
-    style1 = xlwt.XFStyle()
-    style1.font = font1
-    wb = xlwt.Workbook()
-    ws = wb.add_sheet('NMTK Results')
-    rowid=0
-    for i, v in enumerate(db_map):
-        ws.write(rowid, i, v[0], style0)
-    for row in qs:
-        rowid += 1
+    try:
+        qs=getQuerySet(job)
+        row=qs[0]
+        db_map=[(field.db_column or field.name, field.name) for
+                 field in row._meta.fields if field.name not in ('nmtk_id','nmtk_geometry',
+                                                                 'nmtk_feature_id')]
+        font0 = xlwt.Font()
+        font0.name = 'Times New Roman'
+        font0.colour_index = 2
+        font0.bold = True
+        font1=xlwt.Font()
+        font1.name='Times New Roman'
+        style0 = xlwt.XFStyle()
+        style0.font = font0
+        style1 = xlwt.XFStyle()
+        style1.font = font1
+        wb = xlwt.Workbook()
+        ws = wb.add_sheet('NMTK Results')
+        rowid=0
         for i, v in enumerate(db_map):
-            ws.write(rowid, i, getattr(row, v[1]), style1)
+            ws.write(rowid, i, v[0], style0)
+        for row in qs:
+            rowid += 1
+            for i, v in enumerate(db_map):
+                ws.write(rowid, i, getattr(row, v[1]), style1)
+        logger.debug('Getting ready to return XLS response...')
+        response=HttpResponse(mimetype="application/ms-excel")
+        response.streaming=True
+        response['Content-Disposition']="attachment; filename=results.xls"
+        wb.save(response)
+        return response
+    except:
+        logger.exception('Something went wrong!')
     
-    response=HttpResponse(mimetype="application/ms-excel")
-    response.streaming=True
-    response['Content-Disposition']="attachment; filename=results.xls"
-    wb.save(response)
-    return response
+def data_query(request, job):
+    qs=getQuerySet(job)
+    # if lat, lon, and zoom were provided, then we can do a bbox generation...
+    if min([request.GET.has_key(key) for key in ('lat','lon','zoom')]):
+        try:
+            lat=float(request.GET.get('lat'))
+            long=float(request.GET.get('lon'))
+            # Get the zoom and compute the resolution.
+            zoom=int(request.GET.get('zoom'))
+            pixels=int(request.GET.get('pixels', 5))
+            
+            bbox=getBbox(long,lat,zoom,pixels)
+            if bbox:
+                logger.debug('Found BBOx of %s given long: %s, lat: %s, zoom: %s, pixles: %s',
+                             bbox, long, lat, zoom, pixels)
+                qs=qs.filter(nmtk_geometry__within=bbox)
+        except:
+            logger.exception('Something went wrong with geo_query parameters?')
+    ids=request.GET.get('id', None)
+    if ids:
+        ids=ids.split(',')
+        qs=qs.filter(nmtk_id__in=ids)
+    qs=qs.order_by('nmtk_id')
+    if len(qs):
+        row=qs[0]
+        db_map=[(field.db_column or field.name, field.name) for
+                 field in row._meta.fields if field.name not in ('nmtk_geometry',
+                                                                 'nmtk_feature_id')]
+    sstring=None
+    if request.GET.has_key('search'):
+        '''
+        Handle the text search against the data fields.
+        '''
+        sstring=request.GET['search']
+        filter=reduce(lambda q, field: q|Q(**{'{0}__icontains'.format(field): sstring}),
+                      (field for (db_field, field) in db_map), Q())
+        qs=qs.filter(filter)
+    result={'data': [],
+            'meta': {'total': qs.count(),
+                     'order': 'nmtk_id', }
+            }
+    if sstring:
+        result['meta']['search']=sstring
+    for row in qs:
+        data={}
+        for db_col, col in db_map:
+            data[db_col]=getattr(row, col)
+        result['data'].append(data)
+        
+    return HttpResponse(json.dumps(result), mimetype='application/json')
 
 def pager_output(request, job):
     try:
@@ -94,7 +187,8 @@ def pager_output(request, job):
     qs=getQuerySet(job)
     row=qs[0]
     db_map=[(field.db_column or field.name, field.name) for
-             field in row._meta.fields]
+             field in row._meta.fields if field.name not in ('nmtk_geometry',
+                                                             'nmtk_feature_id')]
     # Detect user specified ordering, if provided.
     if order.startswith('-'):
         order_field=order[1:]
