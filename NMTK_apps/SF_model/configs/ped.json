@@ -1,0 +1,136 @@
+{
+  "info":{
+    "text":"Implementtion of the San Francisco Pedestrian Intersection Volume Model",
+    "version":"0.2",
+    "name":"Pedestrian Intersection Volume Model (San Francisco)"
+  },
+  "sample":{},
+  "documentation":{
+    "links":[
+      {
+        "url":"http://safetrec.berkeley.edu/trb2012/Schneider_Henry_etal_TRB12-4224.pdf",
+        "title":"San Francisco Pedestrian Intersection Volume Model (Paper)"
+      }
+    ]
+  },
+  "output":[
+    {
+      "description":"Field name that will contain hourly pedestrian volume (will be forced to be unique)",
+      "default":"result",
+      "required":true,
+      "label":"Result Field",
+      "type":"string",
+      "name":"result"
+    }
+  ],
+  "input":[
+    {
+      "description":"Required model inputs. Each entry here must identify the necessary field in the file you wish to analyze.",
+      "elements":[
+        {
+          "required":true,
+          "type":"property",
+          "name":"quarter_mile_households",
+          "description":"Coefficient for Total households within 1/4 mile (10,000s)"
+        },
+        {
+          "required":true,
+          "type":"property",
+          "name":"quarter_mile_employment",
+          "description":"Coefficient for Total employment within 1/4 mile (100,000s)"
+        },
+        {
+          "required":true,
+          "type":"property",
+          "name":"high_activity_zone",
+          "description":"Coefficient for Intersection is in a high-activity zone"
+        },
+        {
+          "required":true,
+          "type":"property",
+          "name":"max_slope",
+          "description":"Coefficient for Maximum slope on any intersection approach leg (100s)"
+        },
+        {
+          "required":true,
+          "type":"property",
+          "name":"quarter_mile_campus",
+          "description":"Coefficient for Intersection is within 1/4 mile of a university campus"
+        },
+        {
+          "required":true,
+          "type":"property",
+          "name":"traffic_signal",
+          "description":"Coefficient for Intersection is controlled by a traffic signal"
+        }
+      ],
+      "type":"File",
+      "name":"data",
+      "label":"Analysis Input"
+    },
+    {
+      "description":"These are the estimated coefficients for the San Francisco Pedestrian Intersection Volume model. They are presented for reference only and should not be changed without a full model re-estimation.",
+      "elements":[
+        {
+          "description":"Regression constant",
+          "default":12.9,
+          "required":true,
+          "label":"Constant",
+          "type":"number",
+          "name":"constant"
+        },
+        {
+          "description":"Coefficient for Total households within 1/4 mile (10,000s)",
+          "default":1.81,
+          "required":true,
+          "label":"Households within 1/4 mile",
+          "type":"number",
+          "name":"quarter_mile_households_coeff"
+        },
+        {
+          "description":"Coefficient for Total employment within 1/4 mile (100,000s)",
+          "default":2.43,
+          "required":true,
+          "label":"Employment within 1/4 mile",
+          "type":"number",
+          "name":"quarter_mile_employment_coeff"
+        },
+        {
+          "description":"Coefficient for Intersection is in a high-activity zone",
+          "default":1.27,
+          "required":true,
+          "label":"Intersection in High-Activity Zone",
+          "type":"number",
+          "name":"high_activity_zone_coeff"
+        },
+        {
+          "description":"Coefficient for Maximum slope on any intersection approach leg (100s)",
+          "default":-9.4,
+          "required":true,
+          "label":"Maximum Slope on Any Approach",
+          "type":"number",
+          "name":"max_slope_coeff"
+        },
+        {
+          "description":"Coefficient for Intersection is within 1/4 mile of a university campus",
+          "default":0.635,
+          "required":true,
+          "label":"University within 1/4 mile",
+          "type":"number",
+          "name":"quarter_mile_campus_coeff"
+        },
+        {
+          "description":"Coefficient for Intersection is controlled by a traffic signal",
+          "default":1.16,
+          "required":true,
+          "label":"Signal-Controlled Intersection",
+          "type":"number",
+          "name":"traffic_signal_coeff"
+        }
+      ],
+      "type":"ConfigurationPage",
+      "name":"coefficients",
+      "label":"Coefficients"
+    }
+  ]
+}

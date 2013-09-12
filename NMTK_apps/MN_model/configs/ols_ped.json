@@ -1,0 +1,315 @@
+
+{
+  "info":{
+    "text":"Given a set of statistical parameters, this model estimates pedestrian travel using ordinary least-squares estimates from hourlypedestrian counts.  Provide the required statistical parameters to run the model.",
+    "version":"0.2",
+    "name":"Pedestrian Volume (OLS Method, Minnesota)"
+  },
+  "sample":{},
+  "documentation":{
+    "links":[
+      {
+        "url":"http://www.its.umn.edu/Publications/ResearchReports/pdfdownload.pl?id=1754",
+        "title":"Understanding the Use of Non-Motorized Transportation Facilities (Report)"
+      }
+    ]
+  },
+  "input":[
+    {
+      "description":"The indicated properties should be provided for each row of input data.  Omitting a property will result in an incomplete execution of the model as the missing property and its coefficients will be omitted from the model entirely.",
+      "elements":[
+        {
+          "required":true,
+          "type":"property",
+          "name":"Pctnonwhite",
+          "description":"Percentage of neighborhood residents that are non-white"
+        },
+        {
+          "required":true,
+          "type":"property",
+          "name":"PctU5_O65",
+          "description":"Percentage of neighborhood residents over 65 or under 5"
+        },
+        {
+          "required":true,
+          "type":"property",
+          "name":"Pctw4ormore",
+          "description":"Percentage of neighborhood residents with a college education"
+        },
+        {
+          "required":true,
+          "type":"property",
+          "name":"MedHHInc",
+          "description":"Median household income"
+        },
+        {
+          "required":true,
+          "type":"property",
+          "name":"Crime",
+          "description":"Average number of violent crimes/year"
+        },
+        {
+          "required":true,
+          "type":"property",
+          "name":"PDperkm2",
+          "description":"Population density in persons per square kilometer"
+        },
+        {
+          "required":true,
+          "type":"property",
+          "name":"LUMix",
+          "description":"Measure of mixing of land uses (range 0-1)"
+        },
+        {
+          "required":true,
+          "type":"property",
+          "name":"WatDist_km",
+          "description":"Distance from nearest body of water, in kilometers"
+        },
+        {
+          "required":true,
+          "type":"property",
+          "name":"CBDdist_km",
+          "description":"Distance from central business district, kilometers"
+        },
+        {
+          "required":true,
+          "type":"property",
+          "name":"EmployAccess",
+          "description":"Number of jobs accessible via transit."
+        },
+        {
+          "required":true,
+          "type":"property",
+          "name":"Tmax",
+          "description":"Recorded daily high temperature"
+        },
+        {
+          "required":true,
+          "type":"property",
+          "name":"Precip",
+          "description":"Recorded precipitation"
+        },
+        {
+          "required":true,
+          "type":"property",
+          "name":"University",
+          "description":"University district (1/0)"
+        },
+        {
+          "required":true,
+          "type":"property",
+          "name":"BusRoute",
+          "description":"Presence of one of more bus routes (1/0)"
+        },
+        {
+          "required":true,
+          "type":"property",
+          "name":"Principal",
+          "description":"Principal arterial street (1/0)"
+        },
+        {
+          "required":true,
+          "type":"property",
+          "name":"Arterial",
+          "description":"Arterial street (1/0)"
+        },
+        {
+          "required":true,
+          "type":"property",
+          "name":"Collector",
+          "description":"Collector street  (1/0)"
+        },
+        {
+          "required":true,
+          "type":"property",
+          "name":"Local",
+          "description":"Local street (1/0)"
+        },
+        {
+          "required":true,
+          "type":"property",
+          "name":"OnstreetFacility",
+          "description":"On street bicycle facility (1/0)"
+        },
+        {
+          "required":true,
+          "type":"property",
+          "name":"OffstreetTrail",
+          "description":"Off-street trail (1/0)"
+        },
+        {
+          "required":true,
+          "type":"property",
+          "name":"Year",
+          "description":"Level variable indicating year count occurred (offset from year 2007)"
+        }
+      ],
+      "type":"File",
+      "name":"data",
+      "label":"Analysis Input"
+    },
+    {
+      "description":"These are the estimated coefficients for the Ordinary Least Squares Pedestrian hourly volume model. They are presented for reference only and should not be changed without a full model re-estimation.",
+      "elements":[
+        {
+          "default":788.6,
+          "required":true,
+          "type":"number",
+          "name":"constant",
+          "description":"Constant value"
+        },
+        {
+          "default":-29.8,
+          "required":true,
+          "type":"number",
+          "name":"Pctnonwhite_coeff",
+          "description":"Coefficient used for OLS Pctnonwhite property"
+        },
+        {
+          "default":32.5,
+          "required":true,
+          "type":"number",
+          "name":"PctU5_O65_coeff",
+          "description":"Coefficient used for OLS PctU5_O65 property"
+        },
+        {
+          "default":371.4,
+          "required":true,
+          "type":"number",
+          "name":"Pctw4ormore_coeff",
+          "description":"Coefficient used for OLS Pctw4ormore property"
+        },
+        {
+          "default":2.1,
+          "required":true,
+          "type":"number",
+          "name":"MedHHInc_coeff",
+          "description":"Coefficient used for OLS MedHHInc property"
+        },
+        {
+          "default":2.9,
+          "required":true,
+          "type":"number",
+          "name":"Crime_coeff",
+          "description":"Coefficient used for OLS Crime property"
+        },
+        {
+          "default":-0.035,
+          "required":true,
+          "type":"number",
+          "name":"PDperkm2_coeff",
+          "description":"Coefficient used for OLS PDperkm2 property"
+        },
+        {
+          "default":-919.9,
+          "required":true,
+          "type":"number",
+          "name":"LUMix_coeff",
+          "description":"Coefficient used for OLS LUMix property"
+        },
+        {
+          "default":-21.6,
+          "required":true,
+          "type":"number",
+          "name":"WatDist_km_coeff",
+          "description":"Coefficient used for OLS WatDist_km property"
+        },
+        {
+          "default":-40.3,
+          "required":true,
+          "type":"number",
+          "name":"CBDdist_km_coeff",
+          "description":"Coefficient used for OLS CBDdist_km property"
+        },
+        {
+          "default":0,
+          "required":true,
+          "type":"number",
+          "name":"EmployAccess_coeff",
+          "description":"Coefficient used for OLS EmployAccess property"
+        },
+        {
+          "default":-26.0,
+          "required":true,
+          "type":"number",
+          "name":"Tmax_coeff",
+          "description":"Coefficient used for OLS Tmax property"
+        },
+        {
+          "default":-127.8,
+          "required":true,
+          "type":"number",
+          "name":"Precip_coeff",
+          "description":"Coefficient used for OLS Precip property"
+        },
+        {
+          "default":0,
+          "required":true,
+          "type":"number",
+          "name":"University_coeff",
+          "description":"Coefficient used for OLS University property"
+        },
+        {
+          "default":100.3,
+          "required":true,
+          "type":"number",
+          "name":"BusRoute_coeff",
+          "description":"Coefficient used for OLS BusRoute property"
+        },
+        {
+          "default":66.4,
+          "required":true,
+          "type":"number",
+          "name":"Principal_coeff",
+          "description":"Coefficient used for OLS Principal property"
+        },
+        {
+          "default":391.8,
+          "required":true,
+          "type":"number",
+          "name":"Arterial_coeff",
+          "description":"Coefficient used for OLS Arterial property"
+        },
+        {
+          "default":611.1,
+          "required":true,
+          "type":"number",
+          "name":"Collector_coeff",
+          "description":"Coefficient used for OLS Collector property"
+        },
+        {
+          "default":1,
+          "required":true,
+          "type":"number",
+          "name":"Local_coeff",
+          "description":"Coefficient used for OLS Local property"
+        },
+        {
+          "default":0,
+          "required":true,
+          "type":"number",
+          "name":"OnstreetFacility_coeff",
+          "description":"Coefficient used for OLS OnstreetFacility property"
+        },
+        {
+          "default":253.8,
+          "required":true,
+          "type":"number",
+          "name":"OffstreetTrail_coeff",
+          "description":"Coefficient used for OLS OffstreetTrail property"
+        },
+        {
+          "default":-5.9,
+          "required":true,
+          "type":"number",
+          "name":"Year_coeff",
+          "description":"Coefficient used for OLS Year property"
+        }
+      ],
+      "type":"ConfigurationPage",
+      "name":"coefficients",
+      "label":"Coefficients"
+    }
+  ]
+}
