@@ -326,6 +326,7 @@ def updateToolConfig(tool):
          
 @task(ignore_result=False)
 def importDataFile(datafile):
+    datafile.status_message=None
     try:
         geoloader=geo_loader.GeoDataLoader(datafile.file.path,
                                            srid=datafile.srid)
@@ -347,7 +348,6 @@ def importDataFile(datafile):
         logger.exception('Failed import process!')
         datafile.status=datafile.IMPORT_FAILED
         datafile.status_message="%s" % (e,)
-    datafile.status_message=None
     datafile.save()
     
     
