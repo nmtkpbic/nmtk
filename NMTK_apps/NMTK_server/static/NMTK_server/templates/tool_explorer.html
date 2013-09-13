@@ -43,19 +43,37 @@
 
     <div class="row">
       <div class="span6">
-        <div class="widget">
-          <div class="widget-header">
-            <i class="icon-wrench"></i>
-            <h3>Explore the Available Tools</h3>
-          </div> <!-- /widget-header -->
-          <div class="widget-content">
-          	<h4 ng-hide="rest.tool.metadata.total_count">Please wait while the tool list is loaded.</h4>
-			<section ng-show="rest.tool.metadata.total_count" id="tables">
-			  <h4>Select a tool to learn more about it ({{rest.tool.metadata.total_count}} tools available.)</h4>	
+          <div class="widget">
+            <div class="widget-header">
+              <i class="icon-wrench"></i>
+              <h3>Explore the Available Tools</h3>
+            </div> <!-- /widget-header -->
+            <div class="widget-content">
+              <h4 ng-hide="rest.tool.metadata.total_count">Please wait while the tool list is loaded.</h4>
+	  		  <section ng-show="rest.tool.metadata.total_count" id="tables">
+			    <h4>Select a tool to learn more about it ({{rest.tool.metadata.total_count}} tools available.)</h4>	
 				<div ng-grid="gridOptions" style="height: 200px;"></div>
+			  </section>
+            </div> <!-- /widget-content -->
+          </div> <!-- /widget stacked -->
+
+          <div ng-show="selections[0]" class="widget">
+            <div class="widget-header">
+              <i class="icon-external-link"></i>
+              <h3>Documentation Links</h3>
+            </div> <!-- /widget-header -->
+            <div class="widget-content">
+			  <section id="tables">
+				<table class="table table-bordered table-striped table-highlight"> 
+				  <tbody>
+					<tr ng-repeat="link in selections[0].config.documentation.links">						            
+					  <td><a ng-href="{{link.url}}">{{link.title}}</td>
+				    </tr>						          
+				  </tbody>
+				</table>
 			 </section>
-          </div> <!-- /widget-content -->
-        </div> <!-- /widget stacked -->
+            </div> <!-- /widget-content -->
+          </div> <!-- /widget stacked -->
       </div><!-- /span6 -->
       <div ng-show="selections[0]" class="row">
         <div class="span6">

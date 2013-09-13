@@ -138,7 +138,7 @@ def data_query(request, job):
             if bbox:
                 logger.debug('Found BBOx of %s given long: %s, lat: %s, zoom: %s, pixles: %s',
                              bbox, long, lat, zoom, pixels)
-                qs=qs.filter(nmtk_geometry__within=bbox)
+                qs=qs.filter(nmtk_geometry__intersects=bbox)
         except:
             logger.exception('Something went wrong with geo_query parameters?')
     ids=request.GET.get('id', None)
