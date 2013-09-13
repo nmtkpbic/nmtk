@@ -221,6 +221,8 @@ function NMTKCtrl($scope, Restangular, $timeout, $modal, $location,
 		var rest=$rootScope.resources[api];
 		rest.one(id).remove().then(function (r) {
 			$rootScope.refreshData(api);
+		}, function (r) {
+			alert('Please delete jobs for this file prior to deleting the file.')
 		});
 	}
 	
