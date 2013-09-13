@@ -238,6 +238,33 @@ function NMTKCtrl($scope, Restangular, $timeout, $modal, $location,
 		});
 	}
 	
+	$scope.changePassword=function() {
+		$rootScope.rest['user']=$rootScope.resources['user'].getList();
+		var modal_dialog=$modal.open({
+			controller: 'ChangePasswordCtrl',
+			templateUrl: CONFIG.template_path + 'changepassword.html'
+		});
+		modal_dialog.result.then(function (password) {
+			var modal_dialog=$modal.open({
+				controller: 'ChangePasswordResultCtrl',
+				templateUrl: CONFIG.template_path + 'password_change_status_modal.html',
+				scope: $scope
+			});
+			$scope.rest['user'].then(function (data) {
+				var user_info=data[0];
+				user_info['password']=password.password;
+				user_info['old_password']=password.old_password;
+				user_info.put().then(function () {
+					$scope.message='Password changed successfully.';
+					$scope.result='Complete';
+				}, function (result) {
+					$scope.result='Failed';
+					$scope.message=result.data.user.__all__;
+				})
+			})
+		});
+	}
+	
 //	// Set the delete_candidate, which un-hides the modal confirm dialog.	
 //	$rootScope.removeFile = function(api, id, name, type){
 //	    var title = 'Confirm delete of ' + type;
@@ -287,6 +314,7 @@ function NMTKCtrl($scope, Restangular, $timeout, $modal, $location,
 		$scope.refreshData(item);
 	});
 	$rootScope.resources['feedback']=Restangular.all('feedback');
+	$rootScope.resources['user']=Restangular.all('user');
 	$rootScope.active={'job': undefined,
 			           'tool': undefined,
 			           'datafile': undefined,}
@@ -1298,4 +1326,32 @@ function CloneConfigCtrl($scope, $modalInstance) {
 	$scope.close=function () {
 		$modalInstance.dismiss();
 	}
+}
+
+
+function ChangePasswordCtrl($scope, $modalInstance) {
+	$scope.password={'password': '',
+			         'password_repeat': '',
+			         'old_password': ''};
+	$scope.close=function () {
+		$modalInstance.dismiss();
+	};
+	$scope.matchPassword=function () {
+		if ($scope.password.password && $scope.password.password_repeat) {
+			if (($scope.password.password == $scope.password.password_repeat) &&
+				 $scope.password.old_password.length && $scope.password.password.length){
+				return true;
+			}
+		}
+		return false;
+	}
+	$scope.save=function () {
+		// Change the password here.
+		$modalInstance.close($scope.password);
+	};
+}
+function ChangePasswordResultCtrl($scope, $modalInstance) {
+	$scope.close=function () {
+		$modalInstance.dismiss();
+	};
 }

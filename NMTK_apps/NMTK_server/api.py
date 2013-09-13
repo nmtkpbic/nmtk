@@ -44,8 +44,7 @@ class UserResourceValidation(Validation):
             if count > 0:
                 errors['username']='Sorry, that username is not available'
         if bundle.request.method in ('PUT','PATCH'):
-            if (bundle.data.has_key('password') and 
-                not bundle.request.user.is_superuser):
+            if (bundle.data.has_key('password')):
                 if not bundle.data.has_key('old_password'):
                     errors['__all__']='old_password must be supplied when changing password'
                 elif not bundle.request.user.check_password(bundle.data['old_password']):
@@ -66,7 +65,7 @@ class UserResourceAuthorization(Authorization):
         username that matches the current logged in user.  In short, you 
         can see your information, but noone elses.
         '''
-        if bundle.request.user.is_superuser:
+        if bundle.request.user.is_superuser and bundle.data.get('all', False):
             return object_list
         return object_list.filter(pk=bundle.request.user.pk)
 
@@ -80,7 +79,7 @@ class UserResourceAuthorization(Authorization):
         causes the server to continue to function without an exception.  Other
         things (like not authorized) cause a 500
         '''
-        if bundle.request.user.is_superuser:
+        if bundle.request.user.is_superuser and bundle.data.get('all', False):
             return True
         elif bundle.obj.pk <> bundle.request.user.pk:
             raise Unauthorized('You lack the privilege to access this resource')

@@ -41,7 +41,7 @@
 						</a>
 						
 						<ul class="dropdown-menu">
-							<li><a href="#/password">Change Password</a></li>
+							<li><a ng-click="changePassword()">Change Password</a></li>
 							{% if user.is_superuser %}
 							<li><a href="{% url 'admin:index' %}">Site Administration</a></li>
 							{% endif %}
