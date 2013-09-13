@@ -74,7 +74,7 @@
             <i ng-show="isDivEnabled('nmtk_view_jobs')" class="icon-collapse"></i>
           </div> <!-- /widget-header -->
           <div ng-show="isDivEnabled('nmtk_view_jobs')"  class="widget-content">
-            <h4 ng-hide="rest.job.metadata.total_count">You have no jobs at this time.</h4>
+            <h4 ng-hide="rest.job.metadata.total_count">Please wait while the job list is refreshed.</h4>
             <section ng-show="rest.job.metadata.total_count" id="tables">
 			  <h4>Displaying Jobs {{rest.job.metadata.offset+1}} - {{rest.job.metadata.offset+rest.job.length}} (of {{rest.job.metadata.total_count}} jobs.)</h4>	
               <table class="table table-bordered table-striped table-highlight"> 

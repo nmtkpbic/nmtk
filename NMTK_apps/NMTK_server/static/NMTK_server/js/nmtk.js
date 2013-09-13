@@ -1321,9 +1321,9 @@ function DeleteController($scope, $modalInstance, api, id, name, type) {
 }
 
 function CloneConfigCtrl($scope, $modalInstance) {
-	$scope.selected=undefined;
+	$scope.selected={'item': undefined};
 	$scope.clone=function () {
-		$modalInstance.close($scope.selected);
+		$modalInstance.close($scope.selected.item);
 	}
 	$scope.close=function () {
 		$modalInstance.dismiss();

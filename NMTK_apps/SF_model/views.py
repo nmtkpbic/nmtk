@@ -11,7 +11,7 @@ from NMTK_apps.helpers import  server_api
 from NMTK_apps import decorators
 import os
 import tempfile
-from MN_model import tasks
+from SF_model import tasks
 import logging
 logger=logging.getLogger(__name__)
 import hmac

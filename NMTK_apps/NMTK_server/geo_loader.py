@@ -189,14 +189,15 @@ class GeoDataLoader(object):
         return self.data
     
     def geomTransform(self, feature):
-        transform=getattr(self, '_geomTransform', None)
-        if transform or self.data.reprojection:
-            geom=feature.GetGeometryRef()
-            if transform:
-                geom=transform(geom)
-            if self.data.reprojection:
-                geom.Transform( self.data.reprojection )
-            feature.SetGeometryDirectly(geom)
+        if feature:
+            transform=getattr(self, '_geomTransform', None)
+            if transform or self.data.reprojection:
+                geom=feature.GetGeometryRef()
+                if transform:
+                    geom=transform(geom)
+                if self.data.reprojection:
+                    geom.Transform( self.data.reprojection )
+                feature.SetGeometryDirectly(geom)
         return feature 
     
     @property
@@ -212,10 +213,11 @@ class GeoDataLoader(object):
         return self
     
     def next(self):
-        feature=self.geomTransform(self.data.layer.GetNextFeature())
+        feature=self.data.layer.GetNextFeature()
         if not feature:
             raise StopIteration
         else:
+            feature=self.geomTransform(feature)
             data=dict((field, getattr(feature, field)) for field in self.data.fields)
             return (data, str(feature.geometry()))
     

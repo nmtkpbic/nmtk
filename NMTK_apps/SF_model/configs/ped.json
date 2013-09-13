@@ -1,7 +1,8 @@
+
 {
   "info":{
-    "text":"Implementtion of the San Francisco Pedestrian Intersection Volume Model",
-    "version":"0.2",
+    "text":"\n<P>This tool implements a predictive model of Pedestrian Volume at Intersections estimated using a Negative Binomial\nregression method.  The volumes estimated are annual total volumes, and are most suitable for use in a risk exposure\nmodel for safety applications.</P>\n<P>The model is based on a combination of environmental and demographic factors that showed a relationship with\nobserved levels of pedestrian activity.  The model uses a simple set of significant environmental and socio-economic\nfactors, and may be applied to areas near urban intersections.</P>\n<P>The coefficients for the model were estimated by a team of researchers, consultants and public agency staff in the San\nFrancisco, CA, area based on counts collected in San Francisco, and were published in 2013.  The model implementation\npresented here was developed by the Open Technology Group (Morrisville, NC) under contract with the Federal Highway\nAdministration.</P>\n<P>A paper describing the data and procedures used to develop the model is available in the tool documentation links.</P>\n",
+    "version":"0.3",
     "name":"Pedestrian Intersection Volume Model (San Francisco)"
   },
   "sample":{},
@@ -15,12 +16,20 @@
   },
   "output":[
     {
-      "description":"Field name that will contain hourly pedestrian volume (will be forced to be unique)",
-      "default":"result",
-      "required":true,
-      "label":"Result Field",
-      "type":"string",
-      "name":"result"
+      "description":"You may override the default field name in which results from this tool are reported by entering a different name here.  The name you enter may be adjusted so it is not the same as any fields already in your input data.",
+      "elements":[
+        {
+          "description":"Field name that will contain Annual pedestrian count estimate",
+          "default":"AnnualPeds",
+          "required":true,
+          "label":"Result Field",
+          "type":"string",
+          "name":"result"
+        }
+      ],
+      "type":"ConfigurationPage",
+      "name":"results",
+      "label":"Result Variable"
     }
   ],
   "input":[
@@ -31,42 +40,42 @@
           "required":true,
           "type":"property",
           "name":"quarter_mile_households",
-          "description":"Coefficient for Total households within 1/4 mile (10,000s)"
+          "description":"Total households within 1/4 mile (10,000s)"
         },
         {
           "required":true,
           "type":"property",
           "name":"quarter_mile_employment",
-          "description":"Coefficient for Total employment within 1/4 mile (100,000s)"
+          "description":"Total employment within 1/4 mile (100,000s)"
         },
         {
           "required":true,
           "type":"property",
           "name":"high_activity_zone",
-          "description":"Coefficient for Intersection is in a high-activity zone"
+          "description":"Intersection is in a high-activity zone (== allows on-street parking)"
         },
         {
           "required":true,
           "type":"property",
           "name":"max_slope",
-          "description":"Coefficient for Maximum slope on any intersection approach leg (100s)"
+          "description":"Maximum slope on any intersection approach leg (100s)"
         },
         {
           "required":true,
           "type":"property",
           "name":"quarter_mile_campus",
-          "description":"Coefficient for Intersection is within 1/4 mile of a university campus"
+          "description":"Intersection is within 1/4 mile of a university campus"
         },
         {
           "required":true,
           "type":"property",
           "name":"traffic_signal",
-          "description":"Coefficient for Intersection is controlled by a traffic signal"
+          "description":"Intersection is controlled by a traffic signal"
         }
       ],
       "type":"File",
       "name":"data",
-      "label":"Analysis Input"
+      "label":"Input File Fields"
     },
     {
       "description":"These are the estimated coefficients for the San Francisco Pedestrian Intersection Volume model. They are presented for reference only and should not be changed without a full model re-estimation.",

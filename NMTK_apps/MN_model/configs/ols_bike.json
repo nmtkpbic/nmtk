@@ -1,8 +1,9 @@
+
 {
   "info":{
-    "text":"Given a set of statistical parameters, this model estimates hourly bicycle travel using ordinary least-squares coefficients estimated from hourly counts.  Provide the required statistical parameters to execute the model.",
-    "version":"0.2",
-    "name":"Bicycle Volume (OLS Method, Minnesota)"
+    "text":"\n<P>This tool implements a predictive model of Bicycle Volume estimated using an Ordinary Least Squares (simple linear)\nregression method.  The volumes estimated cover a 12-hour period (morning to evening).</P>\n<P>The model is based on a combination of environmental and demographic factors that showed a relationship with observed\nlevels of bicycle activity.  The model may be applied to road and trail segments.  For &ldquo;average&rdquo; facilities, this tool\nwill generate plausible estimates, but it does not deal well with outliers, and some facilities may show &ldquo;negative&rdquo;\nvalues.  This model is most useful for evaluating the relative level of activity that would be expected under different\nconditions.</P>\n<P>We have included the Ordinary Least Squares bicycle model in the Non-Motorized Toolkit primarily for completeness\n(all models in the UMN report linked in the tool documentation have been implemented).  You should use the Negative\nBinomial version of the model (which forces values not to be negative) if you would prefer to see results that only\ncontain positive numbers, and that thus might be directly compared to your own counts.</P>\n<P>The coefficients for the model were estimated by a team from the University of Minnesota (UMN) based on counts\ncollected in Minneapolis, and published by the UMN Center for Transportation Studies in July 2012.  The model\nimplementation presented here was developed by the Open Technology Group (Morrisville, NC) under contract with the\nFederal Highway Administration.</P>\n<P>The full report on the study and model development is available in the tool documentation links.</P>\n",
+    "version":"0.3",
+    "name":"Bicycle Volume (OLS Method, UMN)"
   },
   "sample":{},
   "documentation":{
@@ -13,9 +14,26 @@
       }
     ]
   },
+  "output":[
+    {
+      "description":"You may override the default field name in which results from this tool are reported by entering a different name here.  The name you enter may be adjusted so it is not the same as any fields already in your input data.",
+      "elements":[
+        {
+          "description":"Field name that will contain 12-hour bicycle volume",
+          "default":"bike12ols",
+          "required":true,
+          "label":"Result Field",
+          "type":"string",
+          "name":"result"
+        }
+      ],
+      "type":"ConfigurationPage",
+      "name":"results",
+      "label":"Result Variable"
+    }
+  ],
   "input":[
     {
-      "description":"Required model inputs. Each entry here must identify the necessary field in the file you wish to analyze.",
       "elements":[
         {
           "required":true,
@@ -42,7 +60,8 @@
           "description":"Median household income"
         },
         {
-          "required":true,
+          "global":true,
+          "required":false,
           "type":"property",
           "name":"Crime",
           "description":"Average number of violent crimes/year"
@@ -80,30 +99,6 @@
         {
           "required":true,
           "type":"property",
-          "name":"Tmax",
-          "description":"Recorded daily high temperature"
-        },
-        {
-          "required":true,
-          "type":"property",
-          "name":"Precip",
-          "description":"Recorded precipitation"
-        },
-        {
-          "required":true,
-          "type":"property",
-          "name":"University",
-          "description":"University district (1/0)"
-        },
-        {
-          "required":true,
-          "type":"property",
-          "name":"BusRoute",
-          "description":"Presence of one of more bus routes (1/0)"
-        },
-        {
-          "required":true,
-          "type":"property",
           "name":"Principal",
           "description":"Principal arterial street (1/0)"
         },
@@ -122,12 +117,6 @@
         {
           "required":true,
           "type":"property",
-          "name":"Local",
-          "description":"Local street (1/0)"
-        },
-        {
-          "required":true,
-          "type":"property",
           "name":"OnstreetFacility",
           "description":"On street bicycle facility (1/0)"
         },
@@ -136,17 +125,48 @@
           "type":"property",
           "name":"OffstreetTrail",
           "description":"Off-street trail (1/0)"
+        }
+      ],
+      "description":"Required model inputs. Each entry here must identify the necessary field in the file you wish to analyze.",
+      "required":true,
+      "label":"Input File Fields",
+      "type":"File",
+      "name":"data"
+    },
+    {
+      "description":"These model parameters are the same for each feature, and reflect background conditions that apply to the entire model scenario.  Certain parameters here can be specified either as fields for each input feature, or as global parameters.  You must set the corresponding Input File Field to \"Global\" in order to use the corresponding value from this section.",
+      "elements":[
+        {
+          "default":0,
+          "type":"number",
+          "name":"globalCrime",
+          "description":"Average number of violent crimes/year"
         },
         {
+          "default":23,
           "required":true,
-          "type":"property",
-          "name":"Year",
+          "type":"number",
+          "name":"globalTmax",
+          "description":"Recorded daily high temperature (Celsius)"
+        },
+        {
+          "default":0.0,
+          "required":true,
+          "type":"number",
+          "name":"globalPrecip",
+          "description":"Recorded precipitation (cm)"
+        },
+        {
+          "default":6,
+          "required":true,
+          "type":"number",
+          "name":"globalYear",
           "description":"Level variable indicating year count occurred (offset from year 2007)"
         }
       ],
-      "type":"File",
-      "name":"data",
-      "label":"Analysis Input"
+      "type":"ConfigurationPage",
+      "name":"global",
+      "label":"Global Parameters"
     },
     {
       "description":"These are the estimated coefficients for the Ordinary Least Squares Bicycle hourly volume model. They are presented for reference only and should not be changed without a full model re-estimation.",
@@ -243,20 +263,6 @@
           "description":"Coefficient used for OLS Precip property"
         },
         {
-          "default":0,
-          "required":true,
-          "type":"number",
-          "name":"University_coeff",
-          "description":"Coefficient used for OLS University property"
-        },
-        {
-          "default":0,
-          "required":true,
-          "type":"number",
-          "name":"BusRoute_coeff",
-          "description":"Coefficient used for OLS BusRoute property"
-        },
-        {
           "default":-115.6,
           "required":true,
           "type":"number",
@@ -276,13 +282,6 @@
           "type":"number",
           "name":"Collector_coeff",
           "description":"Coefficient used for OLS Collector property"
-        },
-        {
-          "default":1,
-          "required":true,
-          "type":"number",
-          "name":"Local_coeff",
-          "description":"Coefficient used for OLS Local property"
         },
         {
           "default":98.8,
