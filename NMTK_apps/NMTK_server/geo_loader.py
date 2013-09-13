@@ -132,7 +132,7 @@ class GeoDataLoader(object):
             logger.debug('Setting output SRID to %s (%s)', 
                          epsg, type(epsg))
             srs.SetFromUserInput(epsg)
-        if geom_srid <= 0 or geom_srid is None:
+        if (geom_srid <= 0 or geom_srid is None) and not spatial_ref:
             raise FormatException('Unable to determine valid SRID ' + 
                                   'for this data')
             
@@ -156,7 +156,8 @@ class GeoDataLoader(object):
                                           'ogr',
                                           'type',
                                           'type_text',
-                                          'fields'])
+                                          'fields','reprojection', 
+                                          'dest_srs'])
         # Note that we must preserve the OGR object here (even though
         # we do not use it elsewhere), because
         # otherwise it gets garbage collected, and the OGR Layer object
@@ -164,10 +165,16 @@ class GeoDataLoader(object):
         if geom_type in self.type_conversions:
             logger.debug('Converting geometry from %s to %s (geom_type upgrade)',
                          geom_type, self.type_conversions[geom_type][0])
-            geom_type, self.geomTransform=self.type_conversions[geom_type]
+            geom_type, self._geomTransform=self.type_conversions[geom_type]
         else:
-            self.geomTransform=lambda a: a
-            
+            self._geomTransform=lambda a: a
+        
+        epsg_4326=osr.SpatialReference()
+        epsg_4326.SetWellKnownGeogCS("EPSG:4326")
+        if (not spatial_ref.IsSame(epsg_4326)):
+            reprojection=osr.CoordinateTransformation( spatial_ref, epsg_4326 )
+        else:
+            reprojection=None
         self.data=OGRResult(srid=geom_srid,
                             extent=geom_extent,
                             ogr=ogr_obj,
@@ -176,8 +183,21 @@ class GeoDataLoader(object):
                             feature_count=layer.GetFeatureCount(),
                             type=geom_type,
                             type_text=self.types[geom_type],
-                            fields=fields)
+                            fields=fields,
+                            dest_srs=epsg_4326,
+                            reprojection=reprojection)
         return self.data
+    
+    def geomTransform(self, feature):
+        transform=getattr(self, '_geomTransform', None)
+        if transform or self.data.reprojection:
+            geom=feature.GetGeometryRef()
+            if transform:
+                geom=transform(geom)
+            if self.data.reprojection:
+                geom.Transform( self.data.reprojection )
+            feature.SetGeometryDirectly(geom)
+        return feature 
     
     @property
     def info(self):
@@ -192,7 +212,7 @@ class GeoDataLoader(object):
         return self
     
     def next(self):
-        feature=self.data.layer.GetNextFeature()
+        feature=self.geomTransform(self.data.layer.GetNextFeature())
         if not feature:
             raise StopIteration
         else:
@@ -219,16 +239,15 @@ class GeoDataLoader(object):
 #                                         options=('a_srs', self.data.srid))
         datasource = driver.CreateDataSource(tempfn)
         
+        
         layer=datasource.CreateLayer('GeoJSON',
                                      geom_type=self.data.type,
-                                     srs=self.data.srs)
+                                     srs=self.data.dest_srs)
         self.data.layer.ResetReading()
         while True:
             feature=self.data.layer.GetNextFeature()
             if not feature: break
-#            feature.GetGeometryRef().AssignSpatialReference(srs)
-            self.geomTransform(feature.GetGeometryRef())
-            feature.SetGeometryDirectly(self.geomTransform(feature.GetGeometryRef()))
+            feature=self.geomTransform(feature)
             layer.CreateFeature(feature)
         
         layer.SyncToDisk()
