@@ -261,7 +261,7 @@ def discover_tools(toolserver):
         t.save()
     
     # Locate all the tools that aren't there anymore and disable them.
-    for row in models.Tool.objects.exclude(tool_path__in=tool_list).filter(active=True):
+    for row in models.Tool.objects.exclude(tool_path__in=tool_list).filter(active=True, tool_server=toolserver):
         logger.debug('Disabling tool %s', row.name)
         row.active=False
         row.save()
