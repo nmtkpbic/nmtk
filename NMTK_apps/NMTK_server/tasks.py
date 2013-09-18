@@ -267,7 +267,7 @@ def discover_tools(toolserver):
         row.save()
 
 @task(ignore_result=False)
-def submitJob(job):
+def submitJob(job_id):
     '''
     Whenever a job status is set to active in the database, the 
     signal attached to the model causes the job to be submitted.
@@ -275,6 +275,7 @@ def submitJob(job):
     the job to the tool.
     '''
     from NMTK_server import models
+    job=models.Job.objects.get(pk=job_id)
     # Get a logger to log status for this task.
     logger=submitJob.get_logger()
     logger.debug('Submitting job %s to tool %s for processing', job.pk,

@@ -222,7 +222,7 @@ class Job(models.Model):
             logger.debug('Sending job to tool for processing.')
             # Submit the task to the client, passing in the job identifier.
             result=super(Job, self).save(*args, **kwargs)
-            tasks.submitJob.delay(self)
+            tasks.submitJob.delay(str(self.pk))
         elif (self.email and self._old_status <> self.status and
             self.status in (self.FAILED, self.TOOL_FAILED,)):
             result=super(Job, self).save(*args, **kwargs)  

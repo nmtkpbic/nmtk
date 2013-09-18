@@ -7,6 +7,7 @@ import os
 import logging
 import collections
 logger=logging.getLogger(__name__)
+from django.contrib.gis.geos import GEOSGeometry
 
 class FormatException(Exception): 
     '''
@@ -192,12 +193,14 @@ class GeoDataLoader(object):
         if feature:
             transform=getattr(self, '_geomTransform', None)
             if transform or self.data.reprojection:
-                geom=feature.GetGeometryRef()
+                geom=feature.geometry()
                 if transform:
                     geom=transform(geom)
                 if self.data.reprojection:
                     geom.Transform( self.data.reprojection )
-                feature.SetGeometryDirectly(geom)
+                # in theory this makes a copy of the geometry, which
+                # feature then copies - but it seems to fix the crashing issue.
+                feature.SetGeometry(geom.Clone())
         return feature 
     
     @property
@@ -219,7 +222,10 @@ class GeoDataLoader(object):
         else:
             feature=self.geomTransform(feature)
             data=dict((field, getattr(feature, field)) for field in self.data.fields)
-            return (data, str(feature.geometry()))
+            logger.debug('Returning data for next feature...')
+            d= (data, feature.geometry().ExportToWkt())
+            logger.debug('Converted data to WKT (%s)', d[1])
+            return d
     
     @property
     def geojson(self):
@@ -250,6 +256,7 @@ class GeoDataLoader(object):
             feature=self.data.layer.GetNextFeature()
             if not feature: break
             feature=self.geomTransform(feature)
+            logger.debug('Creating next feature in output dataset')
             layer.CreateFeature(feature)
         
         layer.SyncToDisk()

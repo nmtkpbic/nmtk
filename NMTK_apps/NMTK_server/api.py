@@ -671,7 +671,7 @@ class JobResourceAuthorization(Authorization):
         username that matches the current logged in user.  In short, you 
         can see your information, but noone elses.
         '''
-        if bundle.request.user.is_superuser:
+        if bundle.request.user.is_superuser and bundle.data.get('all', False):
             return object_list
         return object_list.filter(user=bundle.request.user.pk)
 
