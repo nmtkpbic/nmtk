@@ -20,8 +20,8 @@ logger = logging.getLogger(__name__)
 def post_activation_setup(sender, user, **kwargs):
     # Deactivate the user, since the admin now needs to approve the account.
     if user.is_active:
-        if user.datafile_set.count() == 0:
-            setupAccount(user)
+        #if user.datafile_set.count() == 0:
+          #  setupAccount(user)
         if settings.ADMIN_APPROVAL_REQUIRED:
             logger.debug('Deactivating account since approval is required')
             user.is_active=False
@@ -53,6 +53,7 @@ def delete_user_data(sender, instance, **kwargs):
 def create_user_profile(sender, instance, created, **kwargs):
     from NMTK_server.models import UserPreference
     if created:
+        setupAccount(user)
         UserPreference.objects.create(user=instance,
                                       divs=json.dumps(["nmtk_configjob",
                                                        "nmtk_jobs",
