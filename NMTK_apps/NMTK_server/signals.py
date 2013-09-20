@@ -53,7 +53,7 @@ def delete_user_data(sender, instance, **kwargs):
 def create_user_profile(sender, instance, created, **kwargs):
     from NMTK_server.models import UserPreference
     if created:
-        setupAccount(user)
+        setupAccount(instance)
         UserPreference.objects.create(user=instance,
                                       divs=json.dumps(["nmtk_configjob",
                                                        "nmtk_jobs",
