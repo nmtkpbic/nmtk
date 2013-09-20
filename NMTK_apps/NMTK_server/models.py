@@ -57,7 +57,7 @@ class ToolServer(models.Model):
     last_modified=models.DateTimeField(auto_now=True)
     server_url=models.URLField()
     date_created=models.DateTimeField(auto_now_add=True)
-    created_by=models.ForeignKey(settings.AUTH_USER_MODEL)
+    created_by=models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     objects=models.GeoManager()
     def __str__(self):
         return "%s" % (self.name,)
