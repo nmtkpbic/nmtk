@@ -93,6 +93,8 @@ def performModel(data_file,
                             for s in sets])
 #                 if perform_exp: # The binomial model (not used in SF model)
 #                     result=result.exp(result)
+                # Always use perform_exp for the SF model
+                result=result.exp(result)
                 #logger.debug("Data set is %s (Result: %s)", sets, result)
                 result = float(result) # for correct JSON encoding
                 props['result']=result
@@ -112,3 +114,4 @@ def performModel(data_file,
                                              cls=DjangoJSONEncoder))
     for f in [data_file, job_setup]:
         os.unlink(f)
+
