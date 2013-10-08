@@ -96,10 +96,10 @@ class GeoDataLoader(object):
                 break
         if ogr_obj is None:
             files_tried=','.join(map(os.path.basename, files))
-            raise FormatException('Unable to recognized the format,' +
-                                  ' tried these files (%s) against', +
-                                  ' %s different drivers' % 
-                                  (files_tried, ogr.GetDriverCount()-1,))
+            raise FormatException(('Unable to recognized the format,' +
+                                   ' tried these files (%s) against', +
+                                   ' %s different drivers') % 
+                                   (files_tried, ogr.GetDriverCount()-1,))
         # If we get here, then we have successfully determined the file type
         # that was provided, using OGR.  ogr_obj contains the OGR DataSource
         # object, and fn contains the name of the file we read to get that.

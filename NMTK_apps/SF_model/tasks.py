@@ -92,9 +92,9 @@ def performModel(data_file,
                 result=sum([decimal.Decimal(s.value)*decimal.Decimal(s.coefficient) 
                             for s in sets])
 #                 if perform_exp: # The binomial model (not used in SF model)
-#                     result=result.exp(result)
+#                     result=result.exp()
                 # Always use perform_exp for the SF model
-                result=result.exp(result)
+                result=result.exp()
                 #logger.debug("Data set is %s (Result: %s)", sets, result)
                 result = float(result) # for correct JSON encoding
                 props['result']=result
@@ -104,8 +104,7 @@ def performModel(data_file,
         except Exception, e:
             # if anything goes wrong we'll send over a failure status.
             logger.exception('Job Failed with Exception!')
-            client.updateResults(json.dumps(data={'status': '%s' % (e,) },
-                                            cls=DjangoJSONEncoder),
+            client.updateResults(json.dumps({'status': '%s' % (e,) }),
                                             failure=True)
         # Since we are updating the data as we go along, we just need to return
         # the data with the new column (results) which contains the result of the 
