@@ -14,7 +14,7 @@ developed the coefficients for the model based on locally collected data..  The 
 developed by the Open Technology Group (Morrisville, NC) under contract with the Federal
 Highway\nAdministration.</P>\n<P>A paper describing the data and procedures used to develop the model is available in
 the tool documentation links: Schneider, R.J., T. Henry, M.F. Mitman, L. Stonehill, and J. Koehler. "Development and
-Application of the San Francisco Pedestrian Intersection Volume Model, <ital>Transportation Research Record: Journal of the Transportation Research Board</ital>, Volume 2299, pp. 65-78, 2012</P>\n",
+Application of the San Francisco Pedestrian Intersection Volume Model", <ital>Transportation Research Record: Journal of the Transportation Research Board</ital>, Volume 2299, pp. 65-78, 2012</P>\n",
 
     "version":"0.3",
     "name":"Pedestrian Intersection Volume Model (San Francisco)"
