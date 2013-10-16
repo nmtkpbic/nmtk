@@ -3,7 +3,7 @@
 # First stop celery
 USERNAME=chander
 EMAIL=chander@otg-nc.com
-PASSWORD=chander
+PASSWORD=jraw123
 FIRSTNAME="Chander"
 LASTNAME="Ganesan"
 BASEDIR=$(dirname $0)
