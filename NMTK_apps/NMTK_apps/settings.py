@@ -131,7 +131,8 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'NMTK_server.middleware.StrictAuthentication',
+    'NMTK_server.middleware.admin_reverse_link.AdminReverseURI',
+    'NMTK_server.middleware.strict_authentication.StrictAuthentication',
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
@@ -268,7 +269,7 @@ LOGGING = {
 # shared secret key used for signing requests.  Note that the client identifies
 # the server using the public key - which is included in any dialog between 
 # the client and the server.
-NMTK_SERVERS={'d0461b9536eb483d9f23c157e809af35': {'url': 'http://nmtk.otg-nc.com/server',
+NMTK_SERVERS={'d0461b9536eb483d9f23c157e809af35': {'url': 'http://{0}/server'.format(SITE_DOMAIN),
                                                    'secret': '''yq@5u058y312%ebmyi85ytpfwjm9zv)1u2wu-m1s)%cngrvf_^''' },
               '51d315f8f1c545dbb60505722ff85132': {'url': ' http://ec2-23-20-159-89.compute-1.amazonaws.com/demo/',
                                                    'secret': '''1o782+$&*pyed1efg@nii7_9r&72%dxgm_2rm7v0jl((h#=4p0''' },
