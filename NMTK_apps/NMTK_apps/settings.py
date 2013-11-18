@@ -131,7 +131,6 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'NMTK_server.middleware.admin_reverse_link.AdminReverseURI',
     'NMTK_server.middleware.strict_authentication.StrictAuthentication',
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',

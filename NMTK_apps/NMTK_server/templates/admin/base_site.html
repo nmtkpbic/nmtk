@@ -6,7 +6,7 @@
 {% block branding %}
 <h1 id="site-name">{% trans 'NMTK Server Administration' %}</h1>
 {% if request.session.last_site_url %}
-        <h2><a href="{{ request.session.last_site_url }}">Return to NMTK</a></h2>
+        <h2><a href="{% url 'nmtk_server_nmtk_ui' %}">Return to NMTK</a></h2>
 {% endif %}
 {% endblock %}
 
