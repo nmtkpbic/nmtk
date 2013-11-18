@@ -7,7 +7,7 @@ PASSWORD=jraw123
 FIRSTNAME="Chander"
 LASTNAME="Ganesan"
 BASEDIR=$(dirname $0)
-CELERYD_NAME=nmtk
+CELERYD_NAME=$(hostname -s)
 if [[ -f /var/run/celery/$CELERYD_NAME.pid ]]; then
    sudo kill $(cat /var/run/celery/$CELERYD_NAME.pid)
    sleep 15
