@@ -1,6 +1,7 @@
 # Django settings for NMTK_apps project.
 import os
 import djcelery
+import socket
 
 BASE_PATH=os.path.dirname(__file__)
 # The path to where any files uploaded to the server are stored.
@@ -9,7 +10,9 @@ FILES_PATH=os.path.abspath(os.path.join(BASE_PATH, '..','..','nmtk_files'))
 LOGFILE_PATH=os.path.abspath(os.path.join(BASE_PATH, '..','..','logs'))
 
 # Used to initialize the sites model (see: NMTK_server/management/__init__.py)
-SITE_DOMAIN='nmtk.otg-nc.com'
+# This should be overridden by the VHOST name, but it is defaulted to the FQDN
+# since in most cases that will be the same.
+SITE_DOMAIN=socket.getfqdn()
 DEBUG = False
 TEMPLATE_DEBUG = TASTYPIE_FULL_DEBUG = DEBUG
 djcelery.setup_loader()
