@@ -178,6 +178,7 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable the admin:
 #    'django_admin_bootstrapped',
     'NMTK_server', # A test NMTK server for NMTK validating tools locally.
+    'NMTK_ui', # the UI components for NMTK server
     'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',

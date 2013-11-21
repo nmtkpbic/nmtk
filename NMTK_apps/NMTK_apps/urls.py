@@ -27,7 +27,12 @@ else:
     urlpatterns += patterns('',
         url(r'^$', RedirectView.as_view(url='/index/')),
     )
-
+# Enable the UI if the app is in the list of installed applications.
+if 'NMTK_ui' in settings.INSTALLED_APPS:
+    urlpatterns += patterns('',
+        url(r'^ui/', include('NMTK_ui.urls')),
+    )
+    
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 # ... the rest of your URLconf here ...

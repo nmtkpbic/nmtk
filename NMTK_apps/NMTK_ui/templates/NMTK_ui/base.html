@@ -1,6 +1,7 @@
 {% load url from future %}{% load static %}{% load widget_tweaks %}<!DOCTYPE html>
 <html lang="en" xmlns:ng="http://angularjs.org" id="ng-app">
   <head>
+    <meta http-equiv="x-ua-compatible" content="IE=Edge"/> 
     
     <title>{% block title %}Login :: Base Admin{% endblock%}</title>
     {% block meta %}
@@ -11,47 +12,58 @@
     {% endblock %}
     {% block meta_extra %}{% endblock %}
     {% block css %}
-   
-   
-   <link href="{% get_static_prefix %}NMTK_server/css/bootstrap.css" rel="stylesheet"> 
-   <link href="{% get_static_prefix %}NMTK_server/css/bootstrap-theme.css" rel="stylesheet">
-   {% comment %}
-   <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap.css" rel="stylesheet">
-   {% endcomment %}
-	
-    
-       
-    <link href="{% get_static_prefix %}NMTK_server/css/font-awesome.css" rel="stylesheet">    
-
-    <link href="http://fonts.googleapis.com/css?family=Open+Sans:400italic,600italic,400,600" rel="stylesheet">
-    
-    <link href="{% get_static_prefix %}NMTK_server/css/ui-lightness/jquery-ui-1.10.3.custom.css" rel="stylesheet">    
-    
-    <link href="{% get_static_prefix %}NMTK_server/css/base-admin-2.css" rel="stylesheet">
-    <link href="{% get_static_prefix %}NMTK_server/css/base-admin-2-responsive.css" rel="stylesheet">
-	<link href="{% get_static_prefix %}NMTK_server/css/ng-grid.min.css" rel="stylesheet">
-    <link href="{% get_static_prefix %}NMTK_server/css/custom.css" rel="stylesheet">
-    
     <!-- Add in some stuff so we can support IE8 -->
     <!--[if lte IE 8]>
-      <script src="{% get_static_prefix %}NMTK_server/js/lib/json2.js"></script>
+      <script>
+        document.createElement('ng-include');
+        document.createElement('ng-pluralize');
+        document.createElement('ng-view');
+ 
+        // Optionally these for CSS
+        document.createElement('ng:include');
+        document.createElement('ng:pluralize');
+        document.createElement('ng:view');
+      </script>
     <![endif]-->
-    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
-    <!--[if lt IE 9]>
-      <script src="{% get_static_prefix %}NMTK_server/js/lib/html5shiv.js"></script>
-    <![endif]-->
-    <script src="{% get_static_prefix %}NMTK_server/js/lib/jquery.js"></script>
-  
-    <script src="{% get_static_prefix %}NMTK_server/js/lib/bootstrap.js"></script>
+    <link href="{% get_static_prefix %}NMTK_ui/css/bootstrap.css" rel="stylesheet">
+    <link href="{% get_static_prefix %}NMTK_ui/css/bootstrap-theme.css" rel="stylesheet">	
+    {% comment %}
+       <!--  Note this all works fine with Bootstrap 2 (commented out below.) -->
+       <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap.css" rel="stylesheet">
+    {% endcomment %}
+    <link href="{% get_static_prefix %}NMTK_ui/css/font-awesome.css" rel="stylesheet">    
 
-	<script type="text/javascript" src="{% get_static_prefix %}NMTK_server/js/lib/jquery-ui.custom.js"></script>	
+    <link href="http://fonts.googleapis.com/css?family=Open+Sans:400italic,600italic,400,600" rel="stylesheet">
+
+    <link href="{% get_static_prefix %}NMTK_ui/css/jquery-ui-1.10.3.custom.css" rel="stylesheet">    
+    <link href="{% get_static_prefix %}NMTK_ui/css/base-admin-2.css" rel="stylesheet">
+    <link href="{% get_static_prefix %}NMTK_ui/css/base-admin-2-responsive.css" rel="stylesheet">
+
+	<link href="{% get_static_prefix %}NMTK_ui/css/ng-grid.css" rel="stylesheet">
+    <link href="{% get_static_prefix %}NMTK_ui/css/custom.css" rel="stylesheet">
+
+    <script>
+       CONFIG={'csrftoken': '{{csrf_token}}',
+    		   'api_path': 'http{% if request.is_secure %}s{% endif %}://{{ request.META.HTTP_HOST }}{% url 'api_v1_top_level' api_name='v1' %}'};
+    </script>
+    
+    <!-- Here we load up all the javascript -->
+    <script data-main="{% get_static_prefix %}NMTK_ui/js/nmtk_ui" 
+            src="{% get_static_prefix %}NMTK_ui/js/lib/require.js"></script>
+    <!-- this will 404 if the Javascript has not been built on this
+            site.  If this is a 200, then requirejs will see that the classes 
+            already exist, and will skip the requests of all the other files.-->
+    <script type="text/javascript"
+            src="{{STATIC_URL}}erma_ui/js/nmtk_ui.min.js"></script>
+    
+	<link rel="stylesheet" href="{% get_static_prefix %}NMTK_ui/css/leaflet.css" />
 
 	{% endblock %}
 	{% block css_extra %}
 	{% endblock %}
 </head>
 
-<body>
+<body ng-controller="NMTKCtrl">
 	<div id="wrap">
 	<div class="navbar navbar-inverse navbar-fixed-top">
 	

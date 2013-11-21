@@ -50,166 +50,31 @@ def registerUser(request):
         userform=forms.NMTKRegistrationForm()
     return render(request, template,
                   {'form': userform,
-                   'site': site })
-
-#@login_required
-#@user_passes_test(lambda u: u.is_active)
-#def downloadResults(request, job_id):
-#    try:
-#        job=models.Job.objects.get(job_id=job_id,
-#                                   user=request.user)
-#    except:
-#        raise Http404
-#    response = HttpResponse(job.results.file, content_type='application/json')
-#    response['Content-Disposition'] = 'attachment; filename=result.geojson'
-#    return response
-#
-#def downloadDataFile(request, file_id):
-#    try:
-#        datafile=models.DataFile.objects.get(pk=file_id,
-#                                             user=request.user)
-#    except:
-#        raise Http404
-#    response = HttpResponse(datafile.file, 
-#                            content_type=datafile.content_type)
-#    response['Content-Disposition'] = 'attachment; filename=%s' % (datafile.name,)
-#    return response
-#
-#def downloadGeoJsonFile(request, file_id):
-#    try:
-#        datafile=models.DataFile.objects.get(pk=file_id,
-#                                             user=request.user)
-#    except:
-#        raise Http404
-#    response = HttpResponse(datafile.processed_file, 
-#                            content_type='application/json')
-#    response['Content-Disposition'] = 'attachment; filename=%s' % (
-#                                            datafile.geojson_name,)
-#    return response
-
-# @login_required
-# @user_passes_test(lambda u: u.is_active)
-# def viewResults(request, job_id):
-#     try:
-#         job=models.Job.objects.get(job_id=job_id,
-#                                    user=request.user)
-#     except:
-#         raise Http404
-#     result=json.loads(job.results.read())
-#     table={}
-#     table['headers']=result['features'][0]['properties'].keys()
-#     table['rows']=[]
-#     for row in result['features']:
-#         this_row=[]
-#         for field in table['headers']:
-#             this_row.append(row['properties'][field])
-#         this_row.append(','.join(map(str,row['geometry']['coordinates'])))
-#         table['rows'].append(this_row)        
-#     table['headers'].append('Geometry')
-#     logger.debug('Done generating table structure for template.')
-#     return render(request, 'NMTK_server/display_results.html',
-#                   {'table': table,
-#                    'job_id': job_id })
-
-# @login_required
-# @user_passes_test(lambda u: u.is_active)
-# def refreshStatus(request, job_id):
-#     try:
-#         m=models.JobStatus.objects.filter(job=job_id,
-#                                           job__user=request.user)[0]
-#     except:
-#         logger.debug('No status reports received yet.')
-#         fakeStatus=collections.namedtuple('FakeStatus',['message',
-#                                                         'timestamp'])
-#         m=fakeStatus('Pending',timezone.now())
-#     result={'status': m.message,
-#             'timestamp': m.timestamp.isoformat()}
-#     return HttpResponse(json.dumps(result),
-#                         content_type='application/json')
-
-# @login_required
-# @user_passes_test(lambda u: u.is_active)
-# def configureJob(request, job=None):
-#     '''
-#     Build a form that can be used to configure a job to be sent to the 
-#     NMTK tool for processing.  In this case, we need to provide the field
-#     mappings, as well as the other parameters that the job requires for 
-#     processing.  If the result is valid, we'll send the whole thing over 
-#     to the NMTK tool for processing.
-#     
-#     If the form is submitted with all the parameters correctly, then
-#     the result is saved into the configuration for the job (serialized
-#     as json), and then the job is submitted to the tool for processing 
-#     (this happens automatically when the status of the job is set to
-#     Active).
-#     '''
-#     if request.POST.has_key('job_id'):
-#         try:
-#             job=models.Job.objects.get(pk=request.POST['job_id'],
-#                                        user=request.user)
-#             logger.debug('Retrieved job %s from form data.', job.pk)
-#         except:
-#             raise Http404
-#     elif job:
-#         form=forms.ToolConfigForm(job=job)
-#         
-#         
-#     if request.POST.has_key('job_id'):
-#         form=forms.ToolConfigForm(request.POST, job=job)
-#         if form.is_valid():
-#             logger.debug('HOORAY - form is valid!!!')
-#             job.config=form.cleaned_data
-#             job.status=job.ACTIVE
-#             job.user=request.user
-#             job.save()
-#             return render(request, "NMTK_server/result.html",
-#                           {'job_id': job.pk})
-#         
-#     return render(request, 'NMTK_server/job_config.html',
-#                   { 'job': job,
-#                     'form': form, })
-# @login_required
-# @user_passes_test(lambda u: u.is_active)
-# def submitJob(request):
-#     datafile=None
-#     initial={}
-#     if request.method == 'POST':
-#         datafile_form=forms.DataFileForm(request.POST,request.FILES)
-#         # We aren't too concerned about this file..if they provide a file,
-#         # we can save it here.
-#         if datafile_form.is_valid():
-#             datafile=datafile_form.save(commit=False)
-#             datafile.name=request.FILES['file'].name
-#             datafile.content_type=request.FILES['file'].content_type
-#             datafile.user=request.user
-#             datafile.save()
-#             job_form=forms.JobSubmissionFormTool(request.user, request.POST)
-#         else:
-#             job_form=forms.JobSubmissionForm(request.user,
-#                                              request.POST)
-#         if job_form.is_valid():
-#             job=job_form.save(commit=False)
-#             if 'data_file' not in job_form.cleaned_data:
-#                 job.data_file=datafile
-#             job.user=request.user
-#             job.save()
-#             return configureJob(request, job)            
-#     else:
-#         job_form=forms.JobSubmissionForm(request.user)
-#         datafile_form=forms.DataFileForm()
-#     return render(request, 'NMTK_server/submitjob.html',
-#                   {'job_form': job_form,
-#                    'datafile_form': datafile_form })
-    
+                   'site': site })    
 
 def nmtk_index(request):
     return render(request, 'NMTK_server/index.html',
                   {'registration_open': settings.REGISTRATION_OPEN})
 
-@user_passes_test(lambda u: u.is_active)
-@ensure_csrf_cookie
 def nmtk_ui(request):
-    return render(request, 'NMTK_server/nmtk_ui.html')
+    '''
+    It's possible that the NMTK_ui is not enabled, but NMTK_server is
+    - in such cases we cannot properly redirect the user from admin pages
+    and the link to the UI, so instead we'll just give them the index page
+    again - since that's all we can provide in this case.
+    
+    With this in mind, all the NMTK_server pages that refer to the UI use the
+    nmtk_server_nmtk_ui named urlpattern, which is tied to this view, which
+    redirects to the UI if it is installed/enabled.
+    '''
+    if 'NMTK_ui' in settings.INSTALLED_APPS:
+        try:
+            return HttpResponseRedirect(reverse('nmtk_ui_nmtk_ui'))
+        except Exception, e:
+            pass
+    logger.info('NMTK_ui application is not enabled')
+    return nmtk_index(request)
+
 
 # Methods below are methods that are called by the tool to send results
 # back to the server.  As a result, they are not user-facing, and do not
