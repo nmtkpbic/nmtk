@@ -230,3 +230,10 @@ two options::
   * Return to the admin page, edit the tool server you wish to refresh, and hit
     "save" (no need to make any changes, the act of saving will kick off a 
     refresh for the tools provided by that tool server.)
+
+
+Minification/Optimization of UI Components
+------------------------------------------
+1.  Run the node/install.sh script to install minification tools.
+2.  Run "python manage.py minify" to minify code
+3.  Run "python manage.py collectstatic -c" to re-install the static media (along with minified stuff.)
