@@ -43,12 +43,14 @@ require.config({
 	    , "angular": { exports: 'angular',
 	    	           deps: ['jquery']} // Note: Jquery must load first so we don't use jqlite
 	    , "jquery.ui.widget": ["jquery"]
-	    , "jquery-iframe-transport": ["jquery","jquery-fileupload"]
-	    , "jquery-fileupload": ["jquery","jquery.ui.widget"]
+	    , "jquery-iframe-transport": ["jquery", "jquery-fileupload",
+	                                  "jquery.ui.widget"]
+	    , "jquery-fileupload": ["jquery", "jquery.ui.widget"]
 	    , "angular-leaflet": ["angular", "leaflet"]
 	    , "restangular": ["angular"]
 	    , "ng-grid": ["angular"]
 	    , "angular-bootstrap": ["angular"]
+	    , "jquery": { exports: '$' }
 	}
 
 	// Allow an update of version to cause cache updates in the browser.
@@ -63,7 +65,7 @@ require.config({
 // Note that jquery, html5shiv, json2, etc. load into the global
 // scope so we need only require them here to make sure they are loaded.
 // then we need not ever call them again...
-require(['require','jquery','html5shiv','json2',
+require(['require', 'jquery','html5shiv','json2',
          'jquery.ui.widget','jquery-fileupload',
          'jquery-iframe-transport', 'browserdetect'], 
      function (require) {	

@@ -25,12 +25,13 @@
         document.createElement('ng:view');
       </script>
     <![endif]-->
+    {% comment %}
     <link href="{% get_static_prefix %}NMTK_ui/css/bootstrap.css" rel="stylesheet">
     <link href="{% get_static_prefix %}NMTK_ui/css/bootstrap-theme.css" rel="stylesheet">	
-    {% comment %}
+    {% endcomment %}
        <!--  Note this all works fine with Bootstrap 2 (commented out below.) -->
        <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap.css" rel="stylesheet">
-    {% endcomment %}
+    
     <link href="{% get_static_prefix %}NMTK_ui/css/font-awesome.css" rel="stylesheet">    
 
     <link href="http://fonts.googleapis.com/css?family=Open+Sans:400italic,600italic,400,600" rel="stylesheet">
@@ -53,9 +54,9 @@
     <!-- this will 404 if the Javascript has not been built on this
             site.  If this is a 200, then requirejs will see that the classes 
             already exist, and will skip the requests of all the other files.-->
-    <script type="text/javascript"
-            src="{{STATIC_URL}}erma_ui/js/nmtk_ui.min.js"></script>
-    
+    <!-- <script type="text/javascript"
+            src="{{STATIC_URL}}NMTK_ui/js/nmtk_ui_app.min.js"></script>
+    -->
 	<link rel="stylesheet" href="{% get_static_prefix %}NMTK_ui/css/leaflet.css" />
 
 	{% endblock %}
