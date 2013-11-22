@@ -15,6 +15,11 @@ LOGFILE_PATH=os.path.abspath(os.path.join(BASE_PATH, '..','..','logs'))
 SITE_DOMAIN=socket.getfqdn()
 DEBUG = False
 TEMPLATE_DEBUG = TASTYPIE_FULL_DEBUG = DEBUG
+# if production is set to true, then the minified version of the
+# code will be loaded instead of the regular version. This means that
+# python manage.py minify would have to be run before collectstatic
+PRODUCTION=False
+
 djcelery.setup_loader()
 
 ACCOUNT_ACTIVATION_DAYS=3

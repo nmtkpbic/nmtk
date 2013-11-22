@@ -49,14 +49,15 @@
     </script>
     
     <!-- Here we load up all the javascript -->
+    {% if not production %}
+    <!-- load the code the regular way -->
     <script data-main="{% get_static_prefix %}NMTK_ui/js/nmtk_ui" 
             src="{% get_static_prefix %}NMTK_ui/js/lib/require.js"></script>
-    <!-- this will 404 if the Javascript has not been built on this
-            site.  If this is a 200, then requirejs will see that the classes 
-            already exist, and will skip the requests of all the other files.-->
-    <!-- <script type="text/javascript"
-            src="{{STATIC_URL}}NMTK_ui/js/nmtk_ui_app.min.js"></script>
-    -->
+    {% else %}
+    <!-- load the uglified/minified version of the code. -->
+    <script data-main="{% get_static_prefix %}NMTK_ui/js/nmtk_ui" 
+            src="{% get_static_prefix %}NMTK_ui/js/nmtk_ui_app.min.js"></script>
+	{% endif %}
 	<link rel="stylesheet" href="{% get_static_prefix %}NMTK_ui/css/leaflet.css" />
 
 	{% endblock %}
