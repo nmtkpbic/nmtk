@@ -18,7 +18,7 @@ TEMPLATE_DEBUG = TASTYPIE_FULL_DEBUG = DEBUG
 # if production is set to true, then the minified version of the
 # code will be loaded instead of the regular version. This means that
 # python manage.py minify would have to be run before collectstatic
-PRODUCTION=False
+PRODUCTION=True
 
 djcelery.setup_loader()
 

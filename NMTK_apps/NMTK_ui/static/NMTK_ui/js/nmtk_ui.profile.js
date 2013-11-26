@@ -1,7 +1,8 @@
 ({
     mainConfigFile: "./nmtk_ui.js", 
     name: "nmtk_ui_app",
-    out: "nmtk_ui_app.min.js",
+    out: "nmtk_ui_app.combined.js",
+    findNestedDependencies: true,
     paths: {
     	requireLib: "lib/require",
     },
