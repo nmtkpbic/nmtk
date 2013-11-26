@@ -1,9 +1,10 @@
 define([], function () {	
 	"use strict";
 	var controller=['$scope','$routeParams','$log','$location','$modal',
-        function ToolExplorerCtrl($scope, $routeParams, $log, $location, $modal) {
-//			$log.info('In Tool Explorer');
+        function ($scope, $routeParams, $log, $location, $modal) {
+			$log.info('In Tool Explorer');
 			$scope.changeTab('toolexplorer');
+
 			$log.info($scope.resources.tool);
 			$scope.selections = [];
 			$scope.gridOptions= {

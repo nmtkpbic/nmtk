@@ -7,5 +7,5 @@
     },
 	include: ["requireLib", "json2","html5shiv", "jquery.ui.widget",
 	          "jquery-fileupload", "jquery-iframe-transport",
-	          "browserdetect"]
+	          "browserdetect", "respond"]
 })

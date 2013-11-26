@@ -1,14 +1,15 @@
 
 <div class="container">
    <div class="row">   	  
-      <div class="span12">
+      <div class="col-md-12">
         <div class="widget stacked">
           <div ng-click="toggleDiv('job_result_help')" class="widget-header">
-            <i class="icon-info-sign"></i>
-            <h3>Job Results - {{job_data.description}}</h3>
-            <i ng-hide="isDivEnabled('job_result_help')" class="icon-expand"></i>
-            <i ng-show="isDivEnabled('job_result_help')" class="icon-collapse"></i>
-          </div> <!-- /widget-header -->
+            <i class="glyphicon glyphicon-info-sign"></i>
+            <h3>Job Results - {{job_data.description}}</h3>            
+            
+            <i ng-class="{'glyphicon-chevron-right': !isDivEnabled('job_result_help'), 'glyphicon-chevron-down': isDivEnabled('job_result_help')}" 
+               class="navbar-right glyphicon"></i>       
+             </div> <!-- /widget-header -->
           <div ng-show="isDivEnabled('job_result_help')" class="widget-content">
             <p>
             This page displays the results of your job. If your data file contained
@@ -25,11 +26,11 @@
         </div><!-- /widget stacked -->
       </div><!-- /span12 -->
     </div><!-- /row -->
-    <div  class="row">
-      <div class="span6" ng-show="input_data.geom_type.length > 0" >
+    <div class="row">
+      <div class="col-md-6" ng-show="input_data.geom_type.length > 0" >
         <div class="widget stacked">
           <div class="widget-header">
-            <i class="icon-map-marker"></i>
+            <i class="glyphicon glyphicon-map-marker"></i>
             <h3>Spatial Result</h3>
           </div> <!-- /widget-header -->
           <div class="widget-content">
@@ -40,7 +41,7 @@
         </div><!-- /widget stacked -->
         <div class="widget stacked">
           <div class="widget-header">
-            <i class="icon-table"></i>
+            <i class="glyphicon glyphicon-list"></i>
             <h3>All Results</h3>
           </div> <!-- /widget-header -->
           <div class="widget-content">
@@ -51,10 +52,10 @@
     </div>
     <div class="row">
 
-      <div class="span6">
+      <div class="col-md-6">
         <div ng-show="input_data.geom_type.length > 0" class="widget stacked">
           <div class="widget-header">
-            <i class="icon-bar-chart"></i>
+            <i class="glyphicon glyphicon-picture"></i>
             <h3>Map Legend (all elements styled by Result)</h3>
           </div> <!-- /widget-header -->
           <div style="text-align: center;" class="widget-content">
@@ -63,9 +64,9 @@
         </div><!-- /widget stacked -->
         <div class="widget stacked">
           <div class="widget-header">
-            <i class="icon-plus-sign"></i>
+            <i class="glyphicon glyphicon-plus-sign"></i>
             <h3>{{selected_features.length}} Selected Features</h3>
-            <button ng-click="clearSelection()" ng-show="selected_features.length">Clear Selection</button>
+            <button class="navbar-right btn btn-xs btn-primary" ng-click="clearSelection()" ng-show="selected_features.length">Clear Selection</button>
           </div> <!-- /widget-header -->
           <div ng-show="selected_features.length" class="widget-content">  
             <div ng-show="selected_features.length" style="height: 200px;" class="gridStyle" ng-grid="gridOptions2"></div>
@@ -90,7 +91,7 @@
     
           
     <div class="row">
-      <div class="span12">
+      <div class="col-md-12">
         <div class="widget stacked">
           <div class="widget-content centered">
             <button ng-click="close()" class="btn btn-primary">Close</button>

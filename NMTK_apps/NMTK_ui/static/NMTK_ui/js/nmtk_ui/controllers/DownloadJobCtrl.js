@@ -1,7 +1,7 @@
 define([], function () {	
 	"use strict";
 	var controller=['$scope','$log','$modalInstance','job',
-        function DownloadJobCtrl($scope, $log, $modalInstance, job) {
+        function ($scope, $log, $modalInstance, job) {
 			$scope.job_id=job.job_id;
 			var api_path=CONFIG.api_path;
 			$scope.format_types={'Comma Separated Values': 'csv',

@@ -1,7 +1,7 @@
 define([], function () {	
 	"use strict";
 	var controller=['$scope','$modalInstance',
-		function ChangePasswordCtrl($scope, $modalInstance) {
+		function ($scope, $modalInstance) {
 			$scope.password={'password': '',
 					         'password_repeat': '',
 					         'old_password': ''};

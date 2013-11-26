@@ -1,9 +1,11 @@
-  <div class="modal-header">
+  <div class="modal-dialog">
+    <div class="modal-content">   
+      <div class="modal-header">
     <h3>Download Job Results</h3>
   </div>
   <div class="modal-body">
     <div class="row">
-      <div class="span6">  	
+      <div class="col-md-12">  	
         <div class="control-group">
           <label class="control-group" for="job">Choose your desired file format</label>
           <div class="controls">
@@ -20,5 +22,10 @@
         </div>
       </div>      
     </div>
-    <button ng-click="close()" class="btn btn-primary">Close</button>
+   </div>
+    
+  	<div class="modal-footer">
+    	<button ng-click="close()" class="btn btn-primary">Close</button>
+	</div>
+  </div>
   </div>

@@ -18,7 +18,42 @@ class FormatException(Exception):
     pass
 
 
-class GeoDataLoader(object):
+class DataLoader(object):
+    def __init__(self, filename, content_type):
+        self.content_type=content_type
+        self.working_dir=tempfile.mkdtemp()
+        self.filename=filename
+        self.data=None
+        
+    def _get_filelist(self, filename):
+        '''
+        Unpack the archive if it is an archive, and return a list of 
+        file names that should be examined by OGR to determine if they are
+        OGR supported file types.
+        
+        Cache the result to speed up subsequent calls.
+        '''
+        if not hasattr(self, '_files', None):
+            name, extension=os.path.splitext(filename)
+            try:
+                # Ensure that the files are output in the working dir, and 
+                # subdirectories are omitted (so it's a flat dir structure)
+                archive_util.unpack_archive(filename, self.working_dir,
+                                            progress_filter=self._progress_filter)
+                logger.debug('Unpacked archive %s to %s', filename, 
+                             self.working_dir)
+                files=[fn for fn in map(lambda dir: os.path.join(self.working_dir, 
+                                                                 dir),
+                                        os.listdir(self.working_dir)) 
+                                        if not os.path.isdir(fn)]
+            except archive_util.UnrecognizedFormat, e:
+                logger.debug('Specified file (%s) is not a recognized archive',
+                             filename)
+                files=[filename,]
+            self._files=files
+        return self._files
+
+class GeoDataLoader(DataLoader):
     '''
     The GeoDataLoader class accepts as input a single file and (optional) SRID
     information.  It then proceeds to parse and read from the file, using the
@@ -41,44 +76,41 @@ class GeoDataLoader(object):
                       ogr.wkbLineString: (ogr.wkbMultiLineString,ogr.ForceToMultiLineString),
                       ogr.wkbPolygon: (ogr.wkbMultiPolygon,ogr.ForceToMultiPolygon)}
     
-    def __init__(self, filename, srid=None):
-        self.working_dir=tempfile.mkdtemp()
-        self.data=None
-        self._process_file(filename, srid)
-        self.geojson_file=None
-        
+    def __init__(self, *args, **kwargs):
+        self.srid=kwargs.pop('srid',None)
+        super(GeoDataLoader, self).__init__(*args, **kwargs)
+        ogr_obj=self.geo_test(self.filename)
+        ''' Test to see if we have OGR data, if so, load it - otherwise
+            just process it like regular data.'''
+        if ogr_obj:
+            self.spatial=True
+            self.process_data(self.filename, self.srid,
+                              ogr_obj=ogr_obj)
+            self.geojson_file=None
+        else:
+            self.spatial=False
+            super(GeoDataLoader, self).process_data()
+            
     def __del__(self):
         shutil.rmtree(self.working_dir,
                       ignore_errors=True)
     
     def _progress_filter(self, src, dest):
         return os.path.join(self.working_dir, os.path.basename(src))
-    
-    def _get_filelist(self, filename):
-        '''
-        Unpack the archive if it is an archive, and return a list of 
-        file names that should be examined by OGR to determine if they are
-        OGR supported file types.
-        '''
-        name, extension=os.path.splitext(filename)
-        try:
-            # Ensure that the files are output in the working dir, and 
-            # subdirectories are omitted (so it's a flat dir structure)
-            archive_util.unpack_archive(filename, self.working_dir,
-                                        progress_filter=self._progress_filter)
-            logger.debug('Unpacked archive %s to %s', filename, 
-                         self.working_dir)
-            files=[fn for fn in map(lambda dir: os.path.join(self.working_dir, 
-                                                             dir),
-                                    os.listdir(self.working_dir)) 
-                                    if not os.path.isdir(fn)]
-        except archive_util.UnrecognizedFormat, e:
-            logger.debug('Specified file (%s) is not a recognized archive',
-                         filename)
-            files=[filename,]
-        return files
         
-    def _process_file(self, filename, srid=None):
+    def geo_test(self, filename):
+        '''
+        A simple test of a file to see if it is geospatial in nature.
+        '''
+        files=self._get_filelist(self.filename)
+        for fn in files:
+            ogr_obj=ogr.Open(fn)
+            if ogr_obj is not None:
+                return ogr_obj
+        if ogr_obj is None:
+            return False
+        
+    def process_data(self, filename, srid=None, ogr_obj=None):
         '''
         The main processing function - here we will accept as input a file.
         If the file is an archive, we will unpack and get a list of its 
@@ -89,17 +121,18 @@ class GeoDataLoader(object):
         file type works here.
         '''
         files=self._get_filelist(filename)
-        ogr_obj=layer=geom_extent=geom_type=spatial_ref=geom_srid=None
-        for fn in files:
-            ogr_obj=ogr.Open(fn)
-            if ogr_obj is not None:
-                break
-        if ogr_obj is None:
-            files_tried=','.join(map(os.path.basename, files))
-            raise FormatException(('Unable to recognized the format,' +
-                                   ' tried these files (%s) against', +
-                                   ' %s different drivers') % 
-                                   (files_tried, ogr.GetDriverCount()-1,))
+        layer=geom_extent=geom_type=spatial_ref=geom_srid=None
+        if not ogr_obj:
+            for fn in files:
+                ogr_obj=ogr.Open(fn)
+                if ogr_obj is not None:
+                    break
+            if ogr_obj is None:
+                files_tried=','.join(map(os.path.basename, files))
+                raise FormatException(('Unable to recognized the format,' +
+                                       ' tried these files (%s) against' +
+                                       ' %s different drivers') % 
+                                       (files_tried, ogr.GetDriverCount()-1,))
         # If we get here, then we have successfully determined the file type
         # that was provided, using OGR.  ogr_obj contains the OGR DataSource
         # object, and fn contains the name of the file we read to get that.

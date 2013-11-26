@@ -1,7 +1,7 @@
 define(['underscore'], function (_) {	
 	"use strict";
 	var controller=['$scope','$timeout','$route','$modal','$log',
-        function FilesCtrl($scope, $timeout, $route, $modal, $log) {
+        function ($scope, $timeout, $route, $modal, $log) {
 			$log.info('In FilesCtrl');
 			$scope.enableRefresh(['datafile']);
 			$scope.changeTab('files');

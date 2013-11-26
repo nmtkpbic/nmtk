@@ -13,7 +13,7 @@ LOGFILE_PATH=os.path.abspath(os.path.join(BASE_PATH, '..','..','logs'))
 # This should be overridden by the VHOST name, but it is defaulted to the FQDN
 # since in most cases that will be the same.
 SITE_DOMAIN=socket.getfqdn()
-DEBUG = False
+DEBUG = True
 TEMPLATE_DEBUG = TASTYPIE_FULL_DEBUG = DEBUG
 # if production is set to true, then the minified version of the
 # code will be loaded instead of the regular version. This means that

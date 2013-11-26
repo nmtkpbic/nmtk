@@ -1,12 +1,12 @@
 <div class="container">
    <div class="row">
-      <div class="span12">
+      <div class="col-md-12">
         <div class="widget stacked">
           <div ng-click="toggleDiv('nmtk_introduction')" class="widget-header">
-            <i class="icon-info-sign"></i>
-            <h3>NMTK Introduction</h3>
-            <i ng-hide="isDivEnabled('nmtk_introduction')" class="icon-expand"></i>
-            <i ng-show="isDivEnabled('nmtk_introduction')" class="icon-collapse"></i>
+            <i class="glyphicon glyphicon-info-sign"></i>
+            <h3>NMTK Introduction</h3>            
+            <i ng-class="{'glyphicon-chevron-right': !isDivEnabled('nmtk_introduction'), 'glyphicon-chevron-down': isDivEnabled('nmtk_introduction')}" 
+               class="navbar-right glyphicon"></i>
           </div> <!-- /widget-header -->
           <div id="nmtk_introduction" ng-show="isDivEnabled('nmtk_introduction')" class="widget-content">
           <p>
@@ -55,10 +55,10 @@
       </div><!-- /span12 -->
     </div><!-- /row -->
     <div class="row">
-      <div class="span12">
+      <div class="col-md-12">
         <div class="widget stacked">
           <div class="widget-header">
-            <i class="icon-wrench"></i>
+            <i class="glyphicon glyphicon-wrench"></i>
             <h3>Explore the Available Tools</h3>
           </div> <!-- /widget-header -->
           <div class="widget-content">

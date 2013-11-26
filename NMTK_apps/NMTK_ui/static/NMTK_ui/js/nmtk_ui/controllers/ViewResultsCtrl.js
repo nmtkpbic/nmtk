@@ -1,13 +1,14 @@
 define(['underscore','leaflet'], function (_, L) {
 	"use strict";
 	var controller=['$scope','$routeParams','$location','$log','$http',
-	                '$timeout','$rootScope',
+	                '$timeout','$rootScope', 'leafletData',
         /*
 		 * A variant of the ViewResults Controller that uses leaflet-directive 
 		 * rather than leaflet directly.
 		 */
 	        
-		function ($scope, $routeParams, $location, $log, $http, $timeout, $rootScope) {
+		function ($scope, $routeParams, $location, $log, $http, $timeout, 
+				  $rootScope, leafletData) {
 			$scope.jobid=$routeParams.jobid;
 			$scope.$parent.results_job=$scope.jobid;
 			$scope.changeTab('results');
@@ -29,15 +30,7 @@ define(['underscore','leaflet'], function (_, L) {
 			function getBounds(bbox) {
 				var southWest = new L.LatLng(bbox[2], bbox[0]);
 				var northEast = new L.LatLng(bbox[3], bbox[1]);	
-				return {'southWest': southWest,
-					    'northEast': northEast};
-				// The Angular directive stuff doesn't use the leaflet bbox stuff
-			    // correctly, so we'll hackify it slightly to ensure compatibility with
-				// both...
-				var bbox=L.LatLngBounds(southWest, northEast);
-				bbox.southWest=southWest;
-				bbox.northEast=northEast;
-				return bbox
+				return L.latLngBounds(southWest, northEast);
 			}
 			
 			$scope.$on('ngGridEventScroll', function (e) {
@@ -167,19 +160,18 @@ define(['underscore','leaflet'], function (_, L) {
 			
 			
 			$scope.$on('leafletDirectiveMap.click', function(ev, e) {
-				var lat=e.leafletEvent.latlng.lat;
-				var long=e.leafletEvent.latlng.lng;
-				var zoom=e.leafletMap.getZoom();
-		        $scope.clearSelection();
-		        $scope.feature_query_results=true
-				var config={params: {lat: e.leafletEvent.latlng.lat,
-									 lon: e.leafletEvent.latlng.lng,
-									 zoom: e.leafletMap.getZoom(),
-									 format: 'query'}};
-				$http.get($scope.job_data.results, config).success(function (data) {
-					//$log.info('Result from query was %s', data);
-					$scope.selected_features=data.data;
-				})
+				leafletData.getMap().then(function (leafletMap) {
+			        $scope.clearSelection();
+			        $scope.feature_query_results=true
+					var config={params: {lat: e.leafletEvent.latlng.lat,
+										 lon: e.leafletEvent.latlng.lng,
+										 zoom: leafletMap.getZoom(),
+										 format: 'query'}};
+					$http.get($scope.job_data.results, config).success(function (data) {
+						//$log.info('Result from query was %s', data);
+						$scope.selected_features=data.data;
+					})
+				});
 		    });
 			function ngGridLayoutPlugin () {
 			    var self = this;
@@ -248,9 +240,6 @@ define(['underscore','leaflet'], function (_, L) {
 				}, true);
 			});
 			
-			
-			
-			
 			/* 
 			 * The leaflet directive code is somewhat broke in that if 
 			 * bounds is specified, but set to a variable set to null, it is then 
@@ -263,7 +252,11 @@ define(['underscore','leaflet'], function (_, L) {
 				           northEast: { lat: 45.076137,
 				                        lng: -93.16212 }
 						  };
-		
+				
+			$scope.bounds=getBounds([-93.499378, -93.16212,
+									 44.81773, 45.076137]);
+			$scope.center=$scope.bounds.getCenter();
+			$scope.center.zoom=4;
 			
 			var style=function (feature) {
 				geojsonMarkerOptions = {

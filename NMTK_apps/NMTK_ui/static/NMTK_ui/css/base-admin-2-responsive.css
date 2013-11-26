@@ -9,8 +9,7 @@
 3. Max Width:	979px
 
 
-*** Any customizations from here on out by Chander or Tee should be made to this 
-should be added to the custom.css
+*** Any customizations from here on out by Chander or Tee should be made to this should be added to the custom.css
 stylesheet in order to separate your customizations and make 
 upgrading in the future easier. ***
 
@@ -84,7 +83,7 @@ upgrading in the future easier. ***
   .subnavbar .btn-subnavbar {
     display: block;
   }
-  .subnavbar .subnavbar-inner {
+  .subnavbar .subcontainer {
     height: auto;
   }
   .subnavbar .mainnav {
@@ -104,6 +103,7 @@ upgrading in the future easier. ***
     border: none;
   }
   .subnavbar .mainnav > li > a {
+	  height:20px;
     display: block;
     padding-top: 5px;
     padding-bottom: 5px;
@@ -223,8 +223,8 @@ upgrading in the future easier. ***
     position: static;
     margin-bottom: 0;
   }
-  .navbar .btn-navbar {
-    font-size: 18px;
+  .navbar-inverse .navbar-toggle {
+    font-size: 16px;
     background: none;
     filter: none;
     border: none;
@@ -237,13 +237,5 @@ upgrading in the future easier. ***
   }
   .subnavbar .subnavbar .container {
     width: auto;
-  }
-}
-/*------------------------------------------------------------------
-[2. Max Width: 1200px]
-*/
-@media (min-width: 1200px) {
-  .navbar .search-query {
-    width: 200px;
   }
 }

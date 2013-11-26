@@ -1,10 +1,12 @@
 <script type="text/ng-template" id="cloneconfig.html">
+  <div class="modal-dialog">
+    <div class="modal-content">
   <div class="modal-header">
     <h3>Clone Configuration</h3>
   </div>
   <div class="modal-body">
     <div class="row">
-      <div class="span6">  	
+      <div class="col-md-12">  	
         <div class="control-group">
           <label class="control-group" for="job">Choose the job whose configuration you wish to clone</label>
           <div class="controls">
@@ -26,18 +28,21 @@
     <button  ng-click="close()" class="btn">Cancel</button>
     <button ng-click="clone()" class="btn btn-primary">Clone</button>
   </div>
+</div></div>
 </script>
 
 <script type="text/ng-template"  id="error.html">
+  <div class="modal-dialog">
+    <div class="modal-content">
     <div class="modal-header">
     <h3>Configuration Errors</h3>
     </div>
     <div class="modal-body">
       <div class="row">
-        <div class="span6">
+        <div class="col-md-12">
           <div class="widget stacked">
             <div ng-click="toggleDiv('nmtk_configjob')" class="widget-header">
-              <i class="icon-exclamation"></i>
+              <i class="glyphicon glyphicon-exclamation"></i>
               <h3>The following errors were encountered.</h3>
             </div>
             <div class="widget-content">
@@ -61,18 +66,19 @@
       </div>
       <button  ng-click="close()" class="btn btn-primary">Close and Fix Errors</button>
     </div>
+</div>
+</div>
 </script>
 
-
-<div class="container">
-   <div class="row">   	  
-      <div class="span12">
+   <div class="container">
+      <div class="row">   	  
+         <div class="col-md-12">
         <div class="widget stacked">
           <div ng-click="toggleDiv('nmtk_configjob')" class="widget-header">
-            <i class="icon-info-sign"></i>
+            <i class="glyphicon glyphicon-info-sign"></i>
             <h3>Configure a Job</h3>
-            <i ng-hide="isDivEnabled('nmtk_configjob')" class="icon-expand"></i>
-            <i ng-show="isDivEnabled('nmtk_configjob')" class="icon-collapse"></i>
+            <i ng-class="{'glyphicon-chevron-right': !isDivEnabled('nmtk_configjob'), 'glyphicon-chevron-down': isDivEnabled('nmtk_configjob')}" 
+               class="navbar-right glyphicon"></i>           
           </div> <!-- /widget-header -->
           <div ng-show="isDivEnabled('nmtk_configjob')" class="widget-content">
             <p>
@@ -88,20 +94,21 @@
             </p>
           </div> <!-- /widget-content -->
         </div><!-- /widget stacked -->
-      </div><!-- /span12 -->
+      </div><!-- /col-md-12 -->
     </div><!-- /row -->
     <form name="job_config_form">
     
     
     <div class="row">
-      <div class="span12" >
+      <div class="col-md-12" >
         <div class="widget stacked">
           <div ng-click="toggleSection('properties')"  class="widget-header">
-            <i class="icon-edit"></i>
+            <i class="glyphicon glyphicon-edit"></i>
             <h3>Data Field Mappings for {{file_name}}</h3>
-            <button ng-show="job_data.status=='Configuration Pending'" ng-click="cloneConfig()" stop-event='click' style="z-index: 100;">Copy Mappings from Another Job</button>
-            <i ng-hide="sections.properties" class="icon-expand" ></i>
-            <i ng-show="sections.properties" class="icon-collapse"></i>
+            <i ng-class="{'glyphicon-chevron-right': !sections.properties, 'glyphicon-chevron-down': sections.properties}" 
+               class="navbar-right glyphicon"></i> 
+            <button class="navbar-right btn btn-xs btn-primary" ng-show="job_data.status=='Configuration Pending'" ng-click="cloneConfig()" stop-event='click'>Copy Mappings from Another Job</button>
+            
           </div> <!-- /widget-header -->
           <div ng-show="sections.properties"  class="widget-content">
             <section>
@@ -129,16 +136,16 @@
 			</section>
           </div> <!-- /widget-content -->
         </div><!-- /widget stacked -->
-      </div><!-- /span12 -->
+      </div><!-- /col-md-12 -->
     </div><!-- /row -->
     <div class="row">
-      <div class="span12" >
+      <div class="col-md-12" >
         <div class="widget stacked">
           <div ng-click="toggleSection('constants')"  class="widget-header">
-            <i class="icon-edit"></i>
+            <i class="glyphicon glyphicon-edit"></i>
             <h3>Tool Constants for {{tool_name}}</h3>
-            <i ng-hide="sections.constants" class="icon-expand" ></i>
-            <i ng-show="sections.constants" class="icon-collapse"></i>
+            <i ng-class="{'glyphicon-chevron-right': !sections.constants, 'glyphicon-chevron-down': sections.constants}" 
+               class="navbar-right glyphicon"></i>
           </div> <!-- /widget-header -->
           <div ng-show="sections.constants"  class="widget-content">
             <section>
@@ -166,11 +173,11 @@
 			</section>
           </div> <!-- /widget-content -->
         </div><!-- /widget stacked -->
-      </div><!-- /span12 -->
+      </div><!-- /col-md-12 -->
     </div><!-- /row -->
     </form>
     <div class="row">
-      <div class="span12">
+      <div class="col-md-12">
         <div class="widget stacked">
           <div class="widget-content centered">
             <button ng-show="disabled" ng-click="closeConfig()" class="btn btn-primary">Close</button>

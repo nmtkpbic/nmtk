@@ -13,12 +13,12 @@ define(['underscore', 'text!deleteModalTemplate',
 				 * other controllers.  It also handles the auto-reloading of things like jobs 
 				 * in progress and uploads, etc. 
 				 */
-				function NMTKCtrl($scope, Restangular, $timeout, $modal, $location,
-								  $rootScope, $log) {	
+				function ($scope, Restangular, $timeout, $modal, $location,
+						  $rootScope, $log) {	
 					// A Function used to update data via a rest call to an API interface,
 					// since it seems like we will refresh far more often than we don't, might
 					// as well do this.
-				
+					$log.info('NMTK Controller running!');
 					$scope.csrftoken=CONFIG.csrftoken;
 					$scope.browser_name=BrowserDetect.browser;
 					$scope.browser_version=BrowserDetect.version;
@@ -263,6 +263,7 @@ define(['underscore', 'text!deleteModalTemplate',
 					};
 					
 				}
-	];
-	return controller;
-});
+			];
+			return controller;
+	}
+);

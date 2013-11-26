@@ -21,6 +21,7 @@ require.config({
 		, "restangular": "lib/restangular" // REST Support for AngularJS
 		, "angular-leaflet": "lib/angular-leaflet-directive" // Directive to angularlize leaflet
 		, "leaflet": "lib/leaflet" // Library for the map UI stuff
+		, "respond": "lib/respond" // Respond js
 		, "nmtk_ui_app": "nmtk_ui/nmtk_ui_app" // The NMTK UI components
 		/* Templates used for page rendering */
 		, "changePasswordTemplate": "../templates/changepassword.html" // Template to change password
@@ -36,6 +37,7 @@ require.config({
 		, "passwordChangeStatusModalTemplate": "../templates/password_change_status_modal.html" // Status of password change
 		, "resultsTemplate": "../templates/results.html" // Results viewing template
 		, "explorerTemplate": "../templates/tool_explorer.html" // Explorer template
+	
 	}
 	, shim: {
 	    "underscore": { exports: '_' }
@@ -66,7 +68,7 @@ require.config({
 // scope so we need only require them here to make sure they are loaded.
 // then we need not ever call them again...
 require(['require', 'jquery','html5shiv','json2',
-         'jquery.ui.widget','jquery-fileupload',
+         'jquery.ui.widget','jquery-fileupload','respond',
          'jquery-iframe-transport', 'browserdetect'], 
      function (require) {	
   	    require(['nmtk_ui_app'], function (nmtk_ui_app) {

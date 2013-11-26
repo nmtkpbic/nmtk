@@ -25,18 +25,14 @@ define(['jquery'
 				});
 				$.event.props.push('dataTransfer');
 				
-				
-				
-				
-				
 				/*  
 				 * Initialize our application
 				 */
 				
 				var nmtk_app=angular.module('nmtk', ['ui.bootstrap', 'restangular', 'ngGrid', 
 				                                     'leaflet-directive']).
-				        config(['RestangularProvider', '$routeProvider',
-					function(RestangularProvider, $routeProvider) {
+				   config(['RestangularProvider', 
+					function(RestangularProvider) {
 					  var api_path=CONFIG.api_path;
 					  // Otherwise IE8 is broken...
 					  if (/\//.test(CONFIG.api_path)) {
@@ -64,6 +60,7 @@ define(['jquery'
 					        }
 					        return newResponse;
 					  });
+			        }]).config(['$routeProvider', function ($routeProvider) {
 					  $routeProvider.
 					  	  when('/results/:jobid/', {controller: 'ViewResultsCtrl',  
 							     					template: resultsTemplate}).
@@ -78,7 +75,7 @@ define(['jquery'
 					      when('/', {controller:'IntroCtrl', 
 					    		     template: introTemplate}).
 					      otherwise({redirectTo:'/'});
-					}]).filter('page', [function() {
+			        }]).filter('page', [function() {
 						  return function(input, metadata) {
 							  if (metadata) {
 							     var total = parseInt(metadata.total_count);
@@ -101,8 +98,9 @@ define(['jquery'
 				        }
 					}
 				]);
+				
 		        controllers.initialize(nmtk_app);
-				angular.bootstrap(window.document,['nmtk']);
-			}
+	        	angular.bootstrap(window.document,['nmtk']);			
+	        }
 			return { initialize: initialize };
 });

@@ -1,7 +1,7 @@
 define([], function () {	
 	"use strict";
 	var controller=['$scope',
-        function IntroCtrl($scope) {
+        function ($scope) {
 			$scope.changeTab('introduction');
 		}
 	];

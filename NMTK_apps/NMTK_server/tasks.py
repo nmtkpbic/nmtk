@@ -330,6 +330,7 @@ def importDataFile(datafile):
     datafile.status_message=None
     try:
         geoloader=geo_loader.GeoDataLoader(datafile.file.path,
+                                           content_type=datafile.content_type,
                                            srid=datafile.srid)
         datafile.srid=geoloader.info.srid
         datafile.extent=geos.Polygon.from_bbox(geoloader.info.extent)
@@ -343,6 +344,7 @@ def importDataFile(datafile):
         # We can use that as the basis for the name of the GeoJSON file
         # that we processed.
         name=os.path.splitext(os.path.basename(datafile.file.path))[0]
+
         datafile.processed_file.save('%s.geojson' % (name,),
                                      File(open(geoloader.geojson)))
     except Exception, e:

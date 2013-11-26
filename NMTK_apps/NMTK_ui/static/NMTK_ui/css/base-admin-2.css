@@ -47,11 +47,11 @@ select,
 textarea {
   font-family: 'Open Sans';
 }
-[class^="icon-"]:not(.ui-icon),
-[class*="icon-"]:not(.ui-icon) {
+[class^="glyphicon"]:not(.ui-icon),
+[class*="glyphicon"]:not(.ui-icon) {
   background: none;
 }
-[class^="icon-"] {
+[class^="glyphicon"] {
   background: none\9;
 }
 .dropdown .dropdown-menu {
@@ -104,24 +104,26 @@ h6 {
   color: #CCC;
   font-weight: 600;
   position: relative;
+  font-weight:600;
   top: 2px;
 }
 .navbar .brand:hover {
   color: #FFF;
 }
-.navbar.navbar-inverse .navbar-search .search-query {
+.navbar.navbar-inverse .navbar-form .search-query {
   background-color: #333;
   font-size: 11px;
   font-weight: bold;
   line-height: 20px;
+  border-width: 1px;
 }
-.navbar.navbar-inverse .navbar-search .search-query:focus {
+.navbar.navbar-inverse .navbar-form .search-query:focus {
   background-color: #FFF;
 }
-.navbar.navbar-inverse .navbar-search .search-query::-webkit-input-placeholder {
+.navbar.navbar-inverse .navbar-form .search-query::-webkit-input-placeholder {
   color: #666;
 }
-.navbar.navbar-inverse .navbar-search .search-query::-moz-placeholder {
+.navbar.navbar-inverse .navbar-form .search-query::-moz-placeholder {
   color: #666;
 }
 .navbar .nav a {
@@ -135,7 +137,7 @@ h6 {
   border: none;
   box-shadow: none;
 }
-.navbar .btn-navbar i {
+.navbar .navbar-toggle .glyphicon {
   color: #999;
   font-size: 18px;
   line-height: 18px;
@@ -152,7 +154,7 @@ h6 {
   margin-bottom: 2.5em;
   border-top: 1px solid #425e7f;
 }
-.subnavbar .subnavbar-inner {
+.subnavbar .subcontainer {
   height: 80px;
   background-color: #3b3b3b;
   background-image: -moz-linear-gradient(top, #2a4667, #1b3758);
@@ -445,7 +447,7 @@ h6 {
 .ui-datepicker-next-hover .ui-icon,
 .ui-datepicker-prev-hover .ui-icon {
   background-color: #ffffff;
-  background-image: url(../ui-images/ui-icons_222222_256x240.png);
+  background-image: url(../css/ui-lightness/images/ui-icons_222222_256x240.png);
   opacity: .5;
 }
 /*------------------------------------------------------------------
@@ -699,8 +701,8 @@ h6 {
   line-height: 18px;
   text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
 }
-.widget .widget-header [class^="icon-"],
-.widget .widget-header [class*=" icon-"] {
+.widget .widget-header [class^="glyphicon"],
+.widget .widget-header [class*=" glyphicon"] {
   display: inline-block;
   margin-left: 13px;
   margin-right: -2px;
@@ -1431,7 +1433,8 @@ body:not(:-moz-handler-blocked) .dropdown-submenu > a:after {
 [ Pagination / .pagination ]
 */
 .pagination ul li a {
-  padding: 0 10px;
+	border: 1px solid;
+	padding: 7px 12px;
   margin-right: .5em;
   line-height: 32px;
   color: #444444;

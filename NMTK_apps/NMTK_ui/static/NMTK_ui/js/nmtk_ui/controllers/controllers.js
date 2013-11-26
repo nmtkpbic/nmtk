@@ -9,6 +9,7 @@ define([
   // Standard Libs
   'underscore' // lib/underscore/underscore
   , 'nmtk_ui/controllers/NMTKCtrl' // Application Controller
+  , 'nmtk_ui/controllers/SwitchJobCtrl' // Application Controller
   , 'nmtk_ui/controllers/ChangePasswordCtrl' // Controller to handle password changes
   , 'nmtk_ui/controllers/CloneConfigCtrl' // Modal dialog for cloning configuration
   , 'nmtk_ui/controllers/ConfigureCtrl' // Job configuration controller
@@ -23,15 +24,16 @@ define([
   , 'nmtk_ui/controllers/ToolExplorerCtrl' // Controller for Tool explorer page
   , 'nmtk_ui/controllers/ViewJobCtrl' // Controller for Viewing Job data (modal)
   , 'nmtk_ui/controllers/ViewResultsCtrl' // Controller handling the view results page(s)
-], function ( _, NMTKCtrl, ChangePasswordCtrl, CloneConfigCtrl, ConfigureCtrl,
+], function ( _, NMTKCtrl, SwitchJobCtrl, 
+		ChangePasswordCtrl, CloneConfigCtrl, ConfigureCtrl,
 		CreateJobCtrl, DeleteCtrl, DownloadJobCtrl, FeedbackCtrl,
 		FileInfoUpdateCtrl, FilesCtrl, IntroCtrl, JobCtrl,
 		ToolExplorerCtrl, ViewJobCtrl, ViewResultsCtrl
 			 ) {
   "use strict";
-
   var controllers = {
 	"NMTKCtrl": NMTKCtrl
+	, "SwitchJobCtrl": SwitchJobCtrl
 	, "ChangePasswordCtrl": ChangePasswordCtrl
 	, "CloneConfigCtrl": CloneConfigCtrl
 	, "ConfigureCtrl": ConfigureCtrl

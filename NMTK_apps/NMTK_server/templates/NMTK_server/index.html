@@ -3,14 +3,14 @@
 
 {% block right_nav %}
 	{% if user.is_active %}
-		<li class="">		
-			<a href="{% url 'nmtk_server_nmtk_ui' %}" class="">
-				
-				NMTK Console
-				<i class="icon-chevron-right"></i>
-			</a>
-		</li>
-	{% else %}
+	  <li class="">
+	    <a href="{% url 'nmtk_server_nmtk_ui' %}"><i class=""></i> NMTK Console </a>
+	    <i class="icon-chevron-right"></i>
+	  </li>
+	  {% if user.is_superuser %}
+	     <li><a href="{% url 'admin:index' %}">Site Administration</a></li>
+	  {% endif %}
+    {% else %}
 		<li class="">								
 			<a href="{% url 'login' %}" class="">	
 				Login
@@ -22,7 +22,6 @@
 			</a>			
 		</li>
 	{% endif %}
-	
 </li>
 {% endblock %}
 

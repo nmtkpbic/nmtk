@@ -1,10 +1,12 @@
 <script type="text/ng-template"  id="view_job.html">
+<div class="modal-dialog">
+  <div class="modal-content">
     <div class="modal-header">
     <h3>View Job</h3>
     </div>
     <div class="modal-body">
       <div class="row">
-        <div class="span6">
+        <div class="col-md-12">
           <div ng-repeat="field in fields " class="control-group">
              <label class="control-group" for="{{field.field}}">{{field.display_name}}</label>
              <div class="controls">
@@ -16,37 +18,47 @@
           </div>
         </div>
       </div>
+    </div>
+    <div class="modal-footer">
       <button  ng-click="close()" class="btn">Cancel</button>
       <button ng-click="save()" class="btn btn-primary">Save</button>
     </div>
+  </div>
+</div>
 </script>
 
 <script type="text/ng-template"  id="switchjob.html">
+<div class="modal-dialog">
+  <div class="modal-content">
     <div class="modal-header">
       <h3>Switch Job?</h3>
     </div>
     <div class="modal-body">
       <div class="row">
-        <div class="span6">     
+        <div class="col-md-12">     
           You are currently configuring another job, discard any unsaved
           configuration changes for that job and switch to this one?  
         </div>
-      </div><br>
+      </div>
+    </div>
+    <div class="modal-footer">
       <button  ng-click="close()" class="btn">Cancel</button>
       <button ng-click="switchjob()" class="btn btn-primary">Switch Job</button>
     </div>
+  </div>
+</div>
 </script>
 
 
 <div class="container">
    <div class="row">   	  
-      <div class="span12">
+      <div class="col-md-12">
         <div class="widget stacked">
           <div ng-click="toggleDiv('nmtk_jobs')" class="widget-header">
-            <i class="icon-info-sign"></i>
-            <h3>Your Jobs</h3>
-            <i ng-hide="isDivEnabled('nmtk_jobs')" class="icon-expand"></i>
-            <i ng-show="isDivEnabled('nmtk_jobs')" class="icon-collapse"></i>
+            <i class="glyphicon glyphicon-info-sign"></i>
+            <h3>Your Jobs</h3>            
+            <i ng-class="{'glyphicon-chevron-right': !isDivEnabled('nmtk_jobs'), 'glyphicon-chevron-down': isDivEnabled('nmtk_jobs')}" 
+               class="navbar-right glyphicon"></i>          
           </div> <!-- /widget-header -->
           <div ng-show="isDivEnabled('nmtk_jobs')" class="widget-content">
             <p>
@@ -64,14 +76,15 @@
     </div><!-- /row -->
     
     <div class="row">
-      <div class="span12">
+      <div class="col-md-12">
         <div class="widget stacked">
           <div ng-click="toggleDiv('nmtk_view_jobs')"  class="widget-header">
-            <i class="icon-road"></i>
+            <i class="glyphicon glyphicon-road"></i>
             <h3>Your Current Jobs</h3>
-            <button ng-click="createJob()" stop-event='click' style="z-index: 100;">Create a New Job</button>
-            <i ng-hide="isDivEnabled('nmtk_view_jobs')" class="icon-expand"></i>
-            <i ng-show="isDivEnabled('nmtk_view_jobs')" class="icon-collapse"></i>
+            <i ng-class="{'glyphicon-chevron-right': !isDivEnabled('nmtk_view_jobs'), 'glyphicon-chevron-down': isDivEnabled('nmtk_view_jobs')}" 
+               class="navbar-right glyphicon"></i>  
+            <button class="navbar-right btn btn-xs btn-primary" ng-click="createJob()" stop-event="click">Create a New Job</button>
+               
           </div> <!-- /widget-header -->
           <div ng-show="isDivEnabled('nmtk_view_jobs')"  class="widget-content">
             <h4 ng-hide="rest.job.metadata.total_count">Please wait while the job list is refreshed.</h4>
@@ -98,61 +111,40 @@
 				     <td ng-hide="job.message">No Reported Status (or not yet available)</td>
 				     <td class="centered">
 				       <!-- Remove Job -->
-				       	<i tooltip="Delete job (and results)" ng-hide="(browser_name=='Explorer')" ng-click="removeFile('job',
+				       	<i tooltip="Delete job (and results)"  ng-click="removeFile('job',
 					    															 job.id,
 					    															 job.description,
 					    															 'Job')" 
-					    tooltip-placement="left" class="icon-trash icon-large"></i> 
-					    <a ng-show="(browser_name=='Explorer')" ng-click="removeFile('job',
-					                                                                 job.id,
-					                                                                 job.description,
-					                                                                 'Job')">[delete Job]</a>
-					    
-					    <br ng-show="(browser_name=='Explorer')" />
+					    tooltip-placement="left" class="glyphicon glyphicon-trash"></i> 
+
 					    <!-- Edit Job -->
 					    <i tooltip="View and Edit Job Details" tooltip-placement="left"
-					       ng-hide="(browser_name=='Explorer')" ng-click="openDialog(job)" 
-					    class="icon-info-sign icon-large"></i> 
-					    <a ng-show="(browser_name=='Explorer')" ng-click="openDialog(job)">[info]</a>
-					    
-					    <br ng-show="(browser_name=='Explorer')"/>
+					       ng-click="openDialog(job)" class="glyphicon glyphicon-info-sign"></i> 
+
 					    
 					    <!-- Configure Job -->
 					    <i tooltip="Configure Job (or view configuration)" tooltip-placement="left"
-					       ng-hide="(browser_name=='Explorer')" ng-click="configureJob(job)" 
-					       class="icon-cogs icon-large"></i> 
-					    <a ng-show="(browser_name=='Explorer')" ng-click="configureJob(job)">[configure]</a> 
-					 
+					       ng-click="configureJob(job)" 
+					       class="glyphicon glyphicon-asterisk"></i> 
 					    <br>
 					    <span ng-show="job.results">
 					      <!-- Download Results -->
 					
 					      <i tooltip="Download results" tooltip-placement="left"
 					         ng-click="downloadJob(job)" 
-					         ng-hide="(browser_name=='Explorer')" 
-					   	     class="icon-download icon-large"></i>
-					      <a ng-show="(browser_name=='Explorer')"
-					         ng-click="downloadJob(job)">
-					          [download results]
-					      </a>
+					   	     class="glyphicon glyphicon-cloud-download "></i>
 					      
-					      <br ng-show="(browser_name=='Explorer')" />
+					      
 					      <!-- View Results -->
-					      <i ng-hide="(browser_name=='Explorer')" 
-					         tooltip="View job results" tooltip-placement="left"
+					      <i  tooltip="View job results" tooltip-placement="left"
 					         ng-click="viewResults(job)" 
-					         class="icon-eye-open icon-large"></i> 
-					      <a ng-show="(browser_name=='Explorer')" ng-click="viewResults(job)">[view results]</a> 
-					      
-					      <br ng-show="(browser_name=='Explorer')" />
-					   
+					         class="glyphicon glyphicon-eye-open "></i> 
+					     
 					      <!-- Import Results -->
 					      <i tooltip-placement="left" 
-					         tooltip="Add results to library" ng-hide="(browser_name=='Explorer')" 
+					         tooltip="Add results to library"
 					         ng-click="importResults(job)" 
-					         class="icon-upload-alt icon-large"></i> 
-					      <a ng-show="(browser_name=='Explorer')" 
-					         ng-click="importResults(job)" >[import results]</a>    
+					         class="glyphicon glyphicon-cloud-upload "></i>    
 					    </span>        
 				       </td>
 				     </tr>
