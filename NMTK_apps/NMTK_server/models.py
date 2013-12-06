@@ -134,10 +134,14 @@ class Job(models.Model):
     FAILED='F'
     COMPLETE='C'
     TOOL_FAILED='TF'
+    POST_PROCESSING='PP'
+    POST_PROCESSING_FAILED='PF'
     STATUS_CHOICES=((UNCONFIGURED,'Configuration Pending'),
                     (ACTIVE,'Active',),
                     (FAILED,'Failed',),
                     (TOOL_FAILED,'Tool Failed to Accept Job',),
+                    (POST_PROCESSING, 'Post-processing results',),
+                    (POST_PROCESSING_FAILED, 'Post-processing of results failed'),
                     (COMPLETE,'Complete'),
                     )
     
@@ -151,27 +155,10 @@ class Job(models.Model):
     date_created=models.DateTimeField(auto_now_add=True)
     status=models.CharField(max_length=32, choices=STATUS_CHOICES, default=UNCONFIGURED)
     #file=models.FileField(storage=fs, upload_to=lambda instance, filename: 'data_files/%s.geojson' % (instance.job_id,))
-    data_file=models.ForeignKey('DataFile', null=False, related_name='data_file_job',
+    data_file=models.ForeignKey('DataFile', null=False, related_name='job_source',
                                 blank=False, on_delete=models.PROTECT)
-    results=models.FileField(storage=fs_results, 
-                             upload_to=lambda instance, filename: '%s/results/%s.results' % (instance.user.pk,
-                                                                                             instance.pk,),
-                             blank=True, null=True)
-    sqlite_db=models.FileField(storage=fs_results,
-                                   upload_to=lambda instance, filename: '%s/results/%s.spatialite' % (instance.user.pk,
-                                                                                                      instance.pk,),
-                                   blank=True, null=True)
-    mapfile=models.FileField(storage=fs_results,
-                             upload_to=lambda instance, filename: '%s/results/%s.map' % (instance.user.pk,
-                                                                                         instance.pk,),
-                             blank=True, null=True)
-    legendgraphic=models.FileField(storage=fs_results,
-                                   upload_to=lambda instance, filename: '%s/results/%s_legend.png' % (instance.user.pk,
-                                                                                                      instance.pk))
-    model=models.FileField(storage=fs_results,
-                           upload_to=lambda instance, filename: '%s/results/%s.py' % (instance.user.pk,
-                                                                                      instance.pk,),
-                           blank=True, null=True)
+    results=models.OneToOneField('DataFile', null=True, related_name='job_result',
+                                  on_delete=models.PROTECT)
     # This will contain the config data to be sent along with the job, in 
     # a JSON format of a multi-post operation.
     config=JSONField(null=True)
@@ -182,20 +169,6 @@ class Job(models.Model):
     email=models.BooleanField(default=False, help_text='Email user upon job completion')
     objects=models.GeoManager()
 
-    def delete(self):
-        '''
-        Ensure files are deleted when the model instance is removed.
-        '''
-        r=super(Job, self).delete()
-        for field in ['results','sqlite_db','mapfile', 'model', 'legendgraphic']:
-            if getattr(self, field, None):
-                os.unlink(getattr(self, field).path)
-                if field == 'model':
-                    compiled_module="{0}s".format(self.model.path)
-                    if os.path.exists(compiled_module):
-                        os.unlink(compiled_module)
-        return r
-    
     @property
     def results_link(self):
         return reverse('viewResults', kwargs={'job_id': self.job_id})
@@ -215,30 +188,17 @@ class Job(models.Model):
         some time to submit) is passed off as a celery task, so the client gets
         it's response(s) back immediately.
         '''
-        
+        result=super(Job, self).save(*args, **kwargs)
         if self._old_status == 'U' and self.status == 'A':
             logger.debug('Detected a state change from Unconfigured to ' + 
                          'Active for job (%s.)', self.pk)
             logger.debug('Sending job to tool for processing.')
             # Submit the task to the client, passing in the job identifier.
-            result=super(Job, self).save(*args, **kwargs)
             tasks.submitJob.delay(str(self.pk))
         elif (self.email and self._old_status <> self.status and
-            self.status in (self.FAILED, self.TOOL_FAILED,)):
-            result=super(Job, self).save(*args, **kwargs)  
-        elif (self.results and not self.sqlite_db):
-            logger.debug('Generating SQLITE database for results management (%s)',
-                         self.pk)
-            # Generate the spatialite database for performance.
-            tasks.generate_sqlite_database(self)
-            logger.debug('Saving %s,%s,%s,%s', 
-                         self.results, self.sqlite_db, self.mapfile,
-                         self.model)
-            result=super(Job, self).save(*args, **kwargs)
-            if self.email and self.status == self.COMPLETE:
-                tasks.email_user_job_complete.delay(self)
-        else:
-            result=super(Job, self).save(*args, **kwargs)  
+              self.status in (self.FAILED, self.TOOL_FAILED, 
+                              self.COMPLETE, self.POST_PROCESSING_FAILED)):
+            tasks.email_user_job_done.delay(self)
         return result
     
     class Meta:
@@ -252,11 +212,17 @@ class DataFile(models.Model):
     PROCESSING=2
     IMPORTED=3
     IMPORT_FAILED=4
+    PROCESSING_RESULTS=5
+    IMPORT_RESULTS_FAILED=6
+    IMPORT_RESULTS_COMPLETE=7
     
     STATUSES=((PENDING,'Import Pending',),
               (PROCESSING,'File submitted for processing',),
               (IMPORTED,'Import Complete',),
               (IMPORT_FAILED, 'Import Failed',),
+              (PROCESSING_RESULTS,'Import of Job Results Pending',),
+              (IMPORT_RESULTS_FAILED,'Import of Job Results Failed',),
+              (IMPORT_RESULTS_COMPLETE,'Import of Job Results Complete',),
               )
     # The supported geometry types
     GEOM_TYPES=((ogr.wkbPoint, 'POINT'),
@@ -267,11 +233,21 @@ class DataFile(models.Model):
                 (ogr.wkbPolygon, 'POLYGON'),
                 (ogr.wkbMultiLineString, 'MULTILINESTRING'),
                 )
+    # File Types
+    JOB_INPUT='source'
+    JOB_RESULT='result'
+    JOB_BOTH='both'
+    FILE_TYPES=((JOB_INPUT, 'Candidate for Input',),
+                (JOB_RESULT, 'Results from Job',),
+                (JOB_BOTH, 'Result from Job, can be used for input',)
+                )
     file=models.FileField(storage=fs, 
                           upload_to=lambda instance, filename: '%s/data_files/%s' % (instance.user.pk, filename,))
     processed_file=models.FileField(storage=fs_geojson, 
                                     upload_to=lambda instance, filename: '%s/data_files/converted/%s' % (instance.user.pk, filename,))
     name=models.CharField(max_length=64)
+    type=models.CharField(choices=FILE_TYPES, max_length=10,
+                          default=JOB_INPUT)
     status=models.IntegerField(choices=STATUSES, default=PENDING)
     status_message=models.TextField(blank=True, null=True)
     srid=models.IntegerField(null=True, blank=True)
@@ -285,25 +261,28 @@ class DataFile(models.Model):
     user=models.ForeignKey(settings.AUTH_USER_MODEL, null=False)
     fields=JSONField(null=True, blank=True)
     deleted=models.BooleanField(default=False)
-    job=models.ForeignKey(Job, null=True, blank=True, related_name='source_job')
+    result_field=models.CharField(null=True, blank=True, max_length=32)
+    sqlite_db=models.FileField(storage=fs_results,
+                                   upload_to=lambda instance, filename: '%s/data_files/converted/%s.spatialite' % (instance.user.pk,
+                                                                                                                   instance.pk,),
+                                   blank=True, null=True)
+    mapfile=models.FileField(storage=fs_results,
+                             upload_to=lambda instance, filename: '%s/data_files/wms/%s.map' % (instance.user.pk,
+                                                                                                instance.pk,),
+                             blank=True, null=True)
+    legendgraphic=models.FileField(storage=fs_results,
+                                   upload_to=lambda instance, filename: '%s/data_files/wms/%s_legend.png' % (instance.user.pk,
+                                                                                                             instance.pk))
+    model=models.FileField(storage=fs_results,
+                           upload_to=lambda instance, filename: '%s/data_files/%s.py' % (instance.user.pk,
+                                                                                         instance.pk,),
+                           blank=True, null=True)
     objects=models.GeoManager()
     
-#    @property
-#    def url(self):
-#        if self.file:
-#            return reverse('api_datafile_download_detail', 
-#                           kwargs={'pk': self.pk,}) 
-#        else:
-#            return ''
-    
-#    @property
-#    def geojson_url(self):
-#        if self.processed_file:
-#            return reverse('NMTK_server.download_geojson_datafile', 
-#                           kwargs={'file_id': self.pk})
-#        else:
-#            return ''
-    
+    @property
+    def spatial(self):
+        if not self.srid:
+            return False
     
     def __init__(self, *args, **kwargs):
         super(DataFile, self).__init__(*args, **kwargs)
@@ -321,9 +300,13 @@ class DataFile(models.Model):
         prevents multiple jobs from being submitted.
         '''
         import_datafile=False
+        job=kwargs.pop('job', None)
         if self.status==self.PENDING:
             import_datafile=True
-            self.status=self.PROCESSING
+            if not job:
+                self.status=self.PROCESSING
+            else:
+                self.status=self.PROCESSING_RESULTS
         result=super(DataFile, self).save(*args, **kwargs)
         if import_datafile:
             '''
@@ -331,8 +314,23 @@ class DataFile(models.Model):
             the job to import the file (and set the status to PROCESSING)
             '''
             logger.debug('Dispatching task for %s', self.pk)
-            tasks.importDataFile.delay(self)
+            tasks.importDataFile.delay(self, job)
         return result
+    
+    def delete(self):
+        '''
+        Ensure files are deleted when the model instance is removed.
+        '''
+        r=super(DataFile, self).delete()
+        for field in ['processed_file','file','results','sqlite_db',
+                      'mapfile', 'model', 'legendgraphic']:
+            if getattr(self, field, None):
+                os.unlink(getattr(self, field).path)
+                if field == 'model':
+                    compiled_module="{0}s".format(self.model.path)
+                    if os.path.exists(compiled_module):
+                        os.unlink(compiled_module)
+        return r
         
     def __str__(self):
         return '%s' % (self.name,)

@@ -222,6 +222,10 @@ class GeoDataLoader(DataLoader):
                             reprojection=reprojection)
         return self.data
     
+    @property
+    def extent(self):
+        return self.data.extent
+    
     def geomTransform(self, feature):
         if feature:
             transform=getattr(self, '_geomTransform', None)

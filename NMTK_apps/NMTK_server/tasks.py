@@ -13,7 +13,7 @@ import logging
 import os
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.gis.db.backends.spatialite.creation import SpatiaLiteCreation 
-from NMTK_server import geo_loader
+from NMTK_server.data_loaders.loaders import NMTKDataLoader
 from django.core.files import File
 from django.contrib.gis import geos
 from django.contrib.auth.models import User
@@ -29,6 +29,7 @@ import imp
 import math
 import colorsys
 from PIL import Image, ImageDraw, ImageFont
+from django.contrib.gis.geos import GEOSGeometry
 
 #from django.core.serializers.json import DjangoJSONEncoder
 logger=logging.getLogger(__name__)
@@ -44,7 +45,10 @@ geomodel_mappings={ ogr.wkbPoint: ('models.PointField', geos.Point, 'point'),
 # Given a min and max value, and a value (somewhere in the middle)
 # return a suitable pseudo-color to match.
 def pseudocolor(val, minval=0, maxval=255):
-    h=float(val-minval)/(maxval-minval)*120
+    if minval == maxval:
+        h=180
+    else:
+        h=float(val-minval)/(maxval-minval)*120
     g,r,b=colorsys.hsv_to_rgb(h/360,1.0,1.0)
     return int(r*255),int(g*255),int(b*255)
 
@@ -53,48 +57,53 @@ def generateColorRampLegendGraphic(min_text, max_text, height=16, width=258, bor
     draw=ImageDraw.Draw(im)
     start=border
     stop=height-border*2
+    if max_text==min_text:
+        fixed=True
     for i in range(border, width-border*2):
-        color="rgb({0},{1},{2})".format(*pseudocolor(i, minval=0, 
-                                                     maxval=width-(border*2)))
+        if not fixed:
+            color="rgb({0},{1},{2})".format(*pseudocolor(i, minval=0, 
+                                                         maxval=width-(border*2)))
+        else:
+            color="rgb({0},{1},{2})".format(*pseudocolor(0, 0, 0))
         draw.line((i, start, i, stop), fill=color)
     del draw
     
     # Generate the legend text under the image
     font=ImageFont.truetype(settings.LEGEND_FONT,12)
-    min_text_width, min_text_height = font.getsize(min_text)
-    max_text_width, max_text_height = font.getsize(max_text)
-    text_height=max(min_text_height, max_text_height)+2
-    final_width=max(width, max_text_width, min_text_width)
+    if not fixed:
+        min_text_width, min_text_height = font.getsize(min_text)
+        max_text_width, max_text_height = font.getsize(max_text)
+        text_height=max(min_text_height, max_text_height)+2
+        final_width=max(width, max_text_width, min_text_width)
+    else:
+        max_text_width, max_text_height=font.getsize('All Features')
+        text_height=max_text_height+2
+        final_width=max(width, max_text_width)
     im2=Image.new('RGB', (final_width, height+text_height), "white")
     im2.paste(im, (int((final_width-width)/2),0))
     text_pos=height+1
     draw=ImageDraw.Draw(im2)
-    draw.text((1, text_pos),
-              min_text,
-              "black",
-              font=font)
-    draw.text((final_width-(max_text_width+1), text_pos), 
-              max_text, 
-              "black", 
-              font=font)
+    if not fixed:
+        draw.text((1, text_pos),
+                  min_text,
+                  "black",
+                  font=font)
+        draw.text((final_width-(max_text_width+1), text_pos), 
+                  max_text, 
+                  "black", 
+                  font=font)
+    else:
+        placement=(int(final_width/2.0-((max_text_width+1)/2)), text_pos)
+        draw.text(placement, 
+                  'All Features', 
+                  "black", 
+                  font=font)
     del draw
     return im2
-            
-            
-
-# for i in range(1,256):
-#   print '''
-#      CLASS
-#         EXPRESSION "%s"
-#         STYLE
-#           COLOR %s %s %s
-#         END
-#      END
-# ''' % ((i,) + pseudocolor(i))
 
 # This actually does not get done as a task - it is inline with the
 # response from the tool server.
-def generate_sqlite_database(job):
+def generate_sqlite_database(datafile, loader):
     def propertymap(data):
         output={}
         used=[]
@@ -106,24 +115,23 @@ def generate_sqlite_database(job):
             output[k]=att_name
 #         logger.debug('Mappings are %s', output)
         return output
+
     try:
-        geoloader=geo_loader.GeoDataLoader(job.results.path,
-                                           srid=job.data_file.srid)
-        if geoloader.info.srid:
+        if loader.is_spatial:
             spatial=True
-            geom_type=geoloader.info.type
+            geom_type=loader.info.type
             model_type, geos_func, mapfile_type=geomodel_mappings[geom_type]
-        result_field='result'
         db_created=False
         this_model=None
         colors=[]
         model_content=['from django.contrib.gis.db import models']
         feature_id=1
-        for (row, geometry) in geoloader:
+        for (row, geometry) in loader:
             if not db_created:
                 db_created=True
-                min_result=max_result=float(row[result_field])
-                database='%s'% (job.pk,)
+                if datafile.result_field:
+                    min_result=max_result=float(row[datafile.result_field])
+                database='%s'% (datafile.pk,)
                 field_map=propertymap(row.keys())
                 # Create the model for this data
                 model_content.append('class Results(models.Model):')
@@ -139,15 +147,15 @@ def generate_sqlite_database(job):
                                          format(' '*4, model_type))
                 model_content.append('''{0}objects=models.GeoManager()'''.format(' '*4,))
                 
-                job.model.save('model.py', ContentFile('\n'.join(model_content)),
-                               save=False)
+                datafile.model.save('model.py', ContentFile('\n'.join(model_content)),
+                                    save=False)
                 #logger.debug('\n'.join(model_content))
-                job.sqlite_db.save('db', ContentFile(''), save=False)
+                datafile.sqlite_db.save('db', ContentFile(''), save=False)
                 settings.DATABASES[database]={'ENGINE': 'django.contrib.gis.db.backends.spatialite', 
-                                              'NAME': job.sqlite_db.path }
+                                              'NAME': datafile.sqlite_db.path }
                 # Must stick .model in there 'cause django doesn't like models
                 # without a package.
-                user_model=imp.load_source('%s.models' % (job.pk,),job.model.path)
+                user_model=imp.load_source('%s.models' % (datafile.pk,),datafile.model.path)
                 connection=connections[database]
                 connection.ops.spatial_version=(3,0,1)
                 SpatiaLiteCreation(connection).load_spatialite_sql() 
@@ -160,17 +168,23 @@ def generate_sqlite_database(job):
                     cursor.execute(statement)
             
             this_row=dict((field_map[k],v) for k,v in row.iteritems())
-            this_row['nmtk_id']=feature_id
-            this_row['nmtk_feature_id']=feature_id
+            this_row['nmtk_id']=this_row.get('nmtk_id', feature_id)
+            this_row['nmtk_feature_id']=this_row.get('nmtk_id', feature_id)
             feature_id += 1
             if spatial:
                 this_row['nmtk_geometry']=geometry
-            min_result=min(float(this_row[result_field]), min_result)
-            max_result=max(float(this_row[result_field]), max_result)
+            if datafile.result_field:
+                try:
+                    min_result=min(float(this_row[datafile.result_field]), min_result)
+                    max_result=max(float(this_row[datafile.result_field]), max_result)
+                except Exception, e:
+                    logger.debug('Result field is not a float (ignoring)')
+            else:
+                min_result=max_result=1
             m=user_model.Results(**this_row)
             m.save(using=database)
 #             logger.debug('Saved model with pk of %s', m.pk)
-        logger.debug('Completing transferring results to sqlite database %s', job.pk,)
+        logger.debug('Completing transferring results to sqlite database %s', datafile.pk,)
         if spatial:
             logger.debug('Spatial result generating styles (%s-%s)', min_result, max_result)
             step=math.fabs((max_result-min_result)/256)
@@ -186,30 +200,30 @@ def generate_sqlite_database(job):
                                'low': low ,
                                'high': v})
                 low=v
-                v += step
+                v += step or 1
             res=render_to_string('NMTK_server/mapfile_{0}.map'.format(mapfile_type), 
-                                 {'job': job,
+                                 {'datafile': datafile,
                                   'min': min_result,
                                   'max': max_result,
                                   'colors': colors,
                                   'mapserver_template': settings.MAPSERVER_TEMPLATE })
-            job.mapfile.save('mapfile.map', ContentFile(res), save=False)
-            job.legendgraphic.save('legend.png', ContentFile(''), save=False)
+            datafile.mapfile.save('mapfile.map', ContentFile(res), save=False)
+            datafile.legendgraphic.save('legend.png', ContentFile(''), save=False)
             
-            logger.debug('Creating a new legend graphic image %s', job.legendgraphic.path)
+            logger.debug('Creating a new legend graphic image %s', datafile.legendgraphic.path)
             im=generateColorRampLegendGraphic(min_text='{0}'.format(round(min_result,2)),
                                               max_text='{0}'.format(round(max_result,2)))
-            im.save(job.legendgraphic.path, 'png')
-            logger.debug('Image saved at %s', job.legendgraphic.path)
+            im.save(datafile.legendgraphic.path, 'png')
+            logger.debug('Image saved at %s', datafile.legendgraphic.path)
     except Exception, e:
         logger.exception ('Failed to create spatialite results table')
-        return job
-    logger.debug('About to return job back to caller - %s', job.pk)
-    return job
+        return datafile
+    logger.debug('About to return job back to caller - %s', datafile.pk)
+    return datafile
     
 
 @task(ignore_result=True)
-def email_user_job_complete(job):
+def email_user_job_done(job):
 #    from NMTK_server import models
 #    job=models.Job.objects.select_related('user','tool').get(pk=job_id)
     context={'job': job,
@@ -326,31 +340,46 @@ def updateToolConfig(tool):
     
          
 @task(ignore_result=False)
-def importDataFile(datafile):
+def importDataFile(datafile, job=None):
     datafile.status_message=None
     try:
-        geoloader=geo_loader.GeoDataLoader(datafile.file.path,
-                                           content_type=datafile.content_type,
-                                           srid=datafile.srid)
-        datafile.srid=geoloader.info.srid
-        datafile.extent=geos.Polygon.from_bbox(geoloader.info.extent)
-        datafile.srs=geoloader.info.srs
-        datafile.feature_count=geoloader.info.feature_count
-        datafile.geom_type=geoloader.info.type
-        datafile.status=datafile.IMPORTED
-        datafile.processed_file=geoloader.geojson
-        datafile.fields=geoloader.info.fields
-        # Get the base name of the file (without the extension)
-        # We can use that as the basis for the name of the GeoJSON file
-        # that we processed.
-        name=os.path.splitext(os.path.basename(datafile.file.path))[0]
-
-        datafile.processed_file.save('%s.geojson' % (name,),
-                                     File(open(geoloader.geojson)))
+        loader=NMTKDataLoader(datafile.file.path, srid=datafile.srid)
+        if loader.is_spatial:
+            datafile.srid=loader.info.srid
+            datafile.extent=geos.Polygon.from_bbox(loader.info.extent)
+            datafile.srs=loader.info.srs
+            datafile.geom_type=loader.info.type
+        datafile.feature_count=loader.info.feature_count
+        if not job:
+            datafile.status=datafile.IMPORTED
+        else:
+            datafile.status=datafile.IMPORT_RESULTS_COMPLETE
+        datafile.fields=loader.info.fields
+        # Create an empty file using ContentFile, then we can overwrite it 
+        # with the desired GeoJSON data.
+        if loader.is_spatial: 
+            suffix='geojson'
+        else: 
+            suffix='json'
+        datafile.processed_file.save('{0}.{1}'.format(datafile.pk, suffix), 
+                                     ContentFile(''))
+        loader.export_json(datafile.processed_file.path)
+        generate_sqlite_database(datafile, loader)
+        if job:
+            job.status=job.COMPLETE
     except Exception, e:
         logger.exception('Failed import process!')
-        datafile.status=datafile.IMPORT_FAILED
+        datafile.processed_file=None
+        if not job:
+            datafile.status=datafile.IMPORT_FAILED
+        else:
+            datafile.status=datafile.IMPORT_RESULTS_FAILED
         datafile.status_message="%s" % (e,)
+        if job:
+            job.status=job.POST_PROCESSING_FAILED
+    if job:
+        job.save()
+    # Now we need to create the spatialite version of this thing.
     datafile.save()
     
     

@@ -115,12 +115,20 @@ def processResults(request):
     '''
     config=json.loads(request.FILES['config'].read())
     data=ContentFile(request.FILES['data'].read())
-    request.NMTK_JOB.results.save('results', data,
-                                  save=False)
+    description="Results from '{0}'".format(request.NMTK_JOB.description)
+    result=models.DataFile(user=request.NMTK_JOB.user,
+                           name="Job Results",
+                           description=description)
+    result.type=result.JOB_RESULT
+    result.file.save('results',data, save=False)
+    result.save(job=request.NMTK_JOB)
     if config['status'] == 'results':
-        request.NMTK_JOB.status=request.NMTK_JOB.COMPLETE
+        request.NMTK_JOB.status=request.NMTK_JOB.POST_PROCESSING
+        request.NMTK_JOB.result_field=config.get('result_field', 'results')
+        request.NMTK_JOB.results=result
     elif config['status'] == 'error':
         request.NMTK_JOB.status=request.NMTK_JOB.FAILED
+    # The tool should indicate which field contains its result.
     request.NMTK_JOB.save()
     models.JobStatus(message='COMPLETE',
                      timestamp=timezone.now(),

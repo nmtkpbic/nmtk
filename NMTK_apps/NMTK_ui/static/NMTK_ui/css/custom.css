@@ -83,35 +83,3 @@ filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#fff5f5f5', en
 	display:block !important;	
 	}
 }
-
-.modal {
-    display: block;
-}
-
-
-
-.ng-cloak {
-    display: none;
-}
-
-.angular-leaflet-map {
-  height: 400px;
-  cursor: pointer!important;
-}
-.gridStyle {
-    border: 1px solid rgb(212,212,212);
-    width: 100%; 
-    height: 300px;
-}
-
-td.centered, th.centered, div.centered {
-  text-align: center;
-}
-
-
-.modal input, .modal select {
-    width: 100%;
-}
-textarea {
-    width: 90%;
-}

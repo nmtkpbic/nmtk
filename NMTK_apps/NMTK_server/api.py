@@ -5,6 +5,7 @@ from tastypie.exceptions import Unauthorized
 from tastypie.authentication import SessionAuthentication
 from tastypie import fields, utils
 from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login, logout
 from django.core.urlresolvers import reverse
 from tastypie.authorization import Authorization
 from django.forms.models import model_to_dict
@@ -37,8 +38,6 @@ class UserResourceValidation(Validation):
         if bundle.request.method == 'POST':
             if not bundle.data:
                 return {'__all__': 'Invalid Data'}
-    
-    
             if bundle.data.has_key('username'):
                 count=models.User.objects.filter(username=bundle.data['username']).count()
             if count > 0:
@@ -166,6 +165,65 @@ class UserResource(ModelResource):
         if bundle.data.has_key('password'):
             bundle.obj.set_password(bundle.data['password'])
         return bundle
+    
+    def dehydrate(self, bundle):
+        bundle.data['logout']=reverse("api_%s_logout" % (self._meta.resource_name,),
+                                      kwargs={'resource_name': self._meta.resource_name,
+                                              'pk': bundle.obj.pk,
+                                              'api_name': 'v1'})
+        return bundle
+        
+    
+    def override_urls(self):
+        return [
+            url(r"^(?P<resource_name>%s)/login%s$" % (self._meta.resource_name, 
+                                                                     trailing_slash()), 
+                                                                     self.wrap_view('login'), 
+                                                                     name="api_%s_login" % (self._meta.resource_name,)),
+            url(r"^(?P<resource_name>%s)/(?P<pk>\w[\w/-]*)/logout%s$" % (self._meta.resource_name, 
+                                                                     trailing_slash()), 
+                                                                     self.wrap_view('logout'), 
+                                                                     name="api_%s_logout" % (self._meta.resource_name,)),
+        ]
+    
+    def logout(self, request, **kwargs):
+        self.method_check(request, allowed=['get'])
+        logout(request)
+        return self.create_response(request, {'success': True})
+    
+    def login(self, request, **kwargs):
+        logger.debug('In the login view')
+        self.method_check(request, allowed=['post'])
+        data = self.deserialize(request, 
+                                request.raw_post_data, 
+                                format=request.META.get('CONTENT_TYPE', 
+                                                        'application/json'))
+
+        username = data.get('username', '')
+        password = data.get('password', '')
+        logger.debug('In the login view')
+        user = authenticate(username=username, password=password)
+        if user:
+            if user.is_active:
+                login(request, user)
+                uri=reverse("api_dispatch_detail",
+                            kwargs={'resource_name': self._meta.resource_name,
+                                    'pk':user.pk,
+                                    'api_name': 'v1'})
+                return self.create_response(request, {
+                    'success': True,
+                    'resource_uri' : uri,
+                })
+            else:
+                return self.create_response(request, {
+                    'success': False,
+                    'reason': 'Account is disabled',
+                    }, HttpForbidden )
+        else:
+            return self.create_response(request, {
+                'success': False,
+                'reason': 'Invalid username/password combination',
+                }, HttpUnauthorized )
     
     def obj_delete_list(self, bundle, **kwargs):
         """
@@ -485,23 +543,66 @@ class DataFileResource(ModelResource):
     status=fields.CharField('status', readonly=True, null=True)
     geom_type=fields.CharField('geom_type', readonly=True, null=True)
     file=fields.CharField('file', readonly=True, null=True)
-    geojson=fields.CharField('geojson_file', readonly=True, null=True)
-    job=fields.ToOneField('JobResource', 'job', null=True, readonly=True)
-    
+    result_field=fields.CharField('result_field', readonly=True, null=True)
+    type=fields.CharField('type', readonly=True, null=True)
+    job=fields.ToOneField('NMTK_server.api.JobResource','job_result',
+                           readonly=True, null=True)
     def prepend_urls(self):
         return [
             url(r"^(?P<resource_name>%s)/(?P<pk>\w[\w/-]*)/download%s$" % (self._meta.resource_name, 
                                                                            trailing_slash()), 
                                                                            self.wrap_view('download_detail_file'), 
-                name="api_%s_download_detail" % (self._meta.resource_name,)),
-            url(r"^(?P<resource_name>%s)/(?P<pk>\w[\w/-]*)/geojson%s$" % (self._meta.resource_name, 
+                name="api_%s_download_detail_file" % (self._meta.resource_name,)),
+            url(r"^(?P<resource_name>%s)/(?P<pk>\w[\w/-]*)/results%s$" % (self._meta.resource_name, 
                                                                            trailing_slash()), 
-                                                                           self.wrap_view('download_detail_geojson'), 
-                name="api_%s_download_detail_geojson" % (self._meta.resource_name,)),
+                                                                           self.wrap_view('download_detail'), 
+                name="api_%s_download_detail" % (self._meta.resource_name,)),
+            url(r"^(?P<resource_name>%s)/(?P<pk>\w[\w/-]*)/wms%s$" % (self._meta.resource_name, 
+                                                                           trailing_slash()), 
+                                                                           self.wrap_view('wms'), 
+                name="api_%s_wms" % (self._meta.resource_name,)),
+            url(r"^(?P<resource_name>%s)/(?P<pk>\w[\w/-]*)/legend%s$" % (self._meta.resource_name, 
+                                                                         trailing_slash()), 
+                                                                         self.wrap_view('legend'), 
+                name="api_%s_legend" % (self._meta.resource_name,)),
             ]
+ 
+    def legend(self, request, **kwargs):
+        rec=None
+        try:
+            if request.user.is_superuser:
+                rec = self._meta.queryset.get(pk=kwargs['pk'])
+            elif request.user.is_authenticated():
+                rec = self._meta.queryset.get(pk=kwargs['pk'],
+                                              user=request.user)
+        except ObjectDoesNotExist:
+            raise Http404
+        if rec and rec.legendgraphic:
+            response = HttpResponse(rec.legendgraphic, content_type='image/png')
+            return response
+        else:
+            raise Http404
         
+    def wms(self, request, **kwargs):
+        '''
+        Act like a WMS by passing the request into mapserver using the 
+        provided data set.
+        '''
+        rec=None
+        try:
+            if request.user.is_superuser:
+                rec = self._meta.queryset.get(pk=kwargs['pk'])
+            elif request.user.is_authenticated():
+                rec = self._meta.queryset.get(pk=kwargs['pk'],
+                                              user=request.user)
+        except ObjectDoesNotExist:
+            raise Http404
+        if rec and rec.mapfile:
+            return wms_service.handleWMSRequest(request, rec)
+        else:
+            raise Http404
 
-    def download_detail_geojson(self, request, **kwargs):
+    def download_detail(self, request, **kwargs):
         """
         Send a file through TastyPie without loading the whole file into
         memory at once. The FileWrapper will turn the file object into an
@@ -509,24 +610,45 @@ class DataFileResource(ModelResource):
 
         No need to build a bundle here only to return a file, lets look into the DB directly
         """
+        format=request.GET.get('format', 'json')
+        allow_download=False
+        logger.debug('In download_detail with %s', kwargs)
+        rec=None
         try:
             if request.user.is_superuser:
                 rec = self._meta.queryset.get(pk=kwargs['pk'])
-            else:
+            elif request.user.is_authenticated():
                 rec = self._meta.queryset.get(pk=kwargs['pk'],
                                               user=request.user)
         except ObjectDoesNotExist:
             raise Http404
-        if not rec.processed_file:
-            raise Http404
-        
-        
-        wrapper = FileWrapper(open(rec.processed_file.path,'rb'))
-        response = HttpResponse(wrapper, content_type='application/json') #or whatever type you want there
-        response['Content-Length'] = rec.processed_file.size
-        response['Content-Disposition'] = ('attachment; ' +
-                                           'filename="data.geojson"')
-        return response        
+        if rec and rec.results:
+            # if there are results, then they can download them
+            allow_download=True
+        if allow_download:
+            if format == 'json': 
+                wrapper = FileWrapper(open(rec.results.path,'rb'))
+                response = HttpResponse(wrapper, content_type='application/json') #or whatever type you want there
+                response['Content-Length'] = rec.results.size
+                response['Content-Disposition'] = 'attachment; ' + \
+                                                  'filename="result.json"'
+                return response
+            elif format in ('csv','xls'):
+                if format == 'csv':
+                    return data_output.stream_csv(rec)
+                elif format == 'xls':
+                    logger.debug('About to call xls output!')
+                    return data_output.stream_xls(rec)
+            elif format == 'pager':
+                return data_output.pager_output(request, rec)
+            elif format == 'query':
+                # requires lat, lon, zoom and (optionally) pixels GET parameters
+                return data_output.data_query(request, rec)
+                
+            else:
+                return HttpResponse('The format %s is not supported' % (format,))
+        else:
+            raise Unauthorized('You lack the privileges required to download this file')
 
     def download_detail_file(self, request, **kwargs):
         """
@@ -536,15 +658,16 @@ class DataFileResource(ModelResource):
 
         No need to build a bundle here only to return a file, lets look into the DB directly
         """
+        rec=None
         try:
             if request.user.is_superuser:
                 rec = self._meta.queryset.get(pk=kwargs['pk'])
-            else:
+            elif request.user.is_authenticated():
                 rec = self._meta.queryset.get(pk=kwargs['pk'],
                                               user=request.user)
         except ObjectDoesNotExist:
             raise Http404
-        if not rec.file:
+        if rec and not rec.file:
             # if there are results, then they can download them
             raise Http404
             
@@ -555,15 +678,17 @@ class DataFileResource(ModelResource):
         response['Content-Disposition'] = ('attachment; filename="%s"' % 
                                            (os.path.basename(rec.file.name)))
         return response        
+    
 
     class Meta:
         queryset = models.DataFile.objects.filter(deleted=False)
         authorization=DataFileResourceAuthorization()
         always_return_data = True
         resource_name = 'datafile'
-        allowed_methods=['get','post','delete','put']
+        allowed_methods=['get','post','delete','put',]
         excludes=['file','processed_file','status', 'geom_type','fields',
-                  'deleted']
+                  'deleted', 'sqlite_db','model','mapfile','legendgraphic',
+                  'type',]
         authentication=CSRFBypassSessionAuthentication()
         validation=DataFileResourceValidation()
         filtering= {'status': ALL,
@@ -578,6 +703,7 @@ class DataFileResource(ModelResource):
         bundle.obj.user=bundle.request.user
         if bundle.request.FILES.has_key('file'):
             bundle.obj.file=bundle.request.FILES['file']
+            bundle.obj.type=bundle.obj.JOB_INPUT
             if not bundle.obj.content_type:
                 bundle.obj.content_type=bundle.request.FILES['file'].content_type
         if bundle.data.get('srid', False) and not bundle.obj.srid:
@@ -613,13 +739,23 @@ class DataFileResource(ModelResource):
         them during the hydrate cycle...
         '''
         if bundle.obj.file:
-            bundle.data['file']=reverse("api_%s_download_detail" % 
+            bundle.data['file']=reverse("api_%s_download_detail_file" % 
                                         (self._meta.resource_name,),
                                         kwargs={'resource_name': self._meta.resource_name,
                                                 'pk': bundle.obj.pk,
                                                 'api_name': 'v1'})
         if bundle.obj.processed_file:
-            bundle.data['geojson']="%sgeojson/" % (bundle.data['resource_uri'],)
+            bundle.data['geojson']=reverse("api_%s_download_detail" % 
+                                        (self._meta.resource_name,),
+                                        kwargs={'resource_name': self._meta.resource_name,
+                                                'pk': bundle.obj.pk,
+                                                'api_name': 'v1'})
+            
+        if bundle.obj.mapfile:
+            bundle.data['wms_url']="%swms/" % (bundle.data['resource_uri'],)
+            bundle.data['layer']='results'
+            bundle.data['legend']="{0}legend/".format(bundle.data['resource_uri'])
+            
         bundle.data['status']=bundle.obj.get_status_display()
         bundle.data['geom_type']=bundle.obj.get_geom_type_display()
         bundle.data['user'] = bundle.obj.user.username
@@ -638,7 +774,6 @@ class ToolResource(ModelResource):
     class Meta:
         queryset = models.Tool.objects.filter(active=True)
         resource_name = 'tool'
-        authentication=SessionAuthentication()
         always_return_data = True
         fields=['name', 'last_modified']
         allowed_methods=['get',]
@@ -807,8 +942,10 @@ class JobResource(ModelResource):
     status=fields.CharField('status', readonly=True, null=True)
     tool_name=fields.CharField('tool_name', readonly=True, null=True)
     config=fields.CharField('config', readonly=True, null=True)
-    results=fields.CharField('results',readonly=True, null=True,
-                             help_text='URL to download results')
+    results=fields.ToOneField(DataFileResource, 'results',
+                              readonly=True, null=True,
+                              help_text='Results of job')
+    
     class Meta:
         queryset = models.Job.objects.select_related('jobstatus_set').all()
         authorization=JobResourceAuthorization()
@@ -816,7 +953,7 @@ class JobResource(ModelResource):
         always_return_data = True
         resource_name = 'job'
         authentication=SessionAuthentication()
-        excludes=['sqlite_db','mapfile', 'model', 'legendgraphic']
+        excludes=[]
         allowed_methods=['get','put','post','delete']
         filtering= {'status': ALL,
                     'user': ALL,
@@ -838,41 +975,15 @@ class JobResource(ModelResource):
         bundle.data['user'] = bundle.obj.user.username
         bundle.data['tool_name']=bundle.obj.tool.name
         bundle.data['status']=bundle.obj.get_status_display()
-        bundle.data['file_name']=bundle.obj.data_file.name
         bundle.data['config']=json.dumps(bundle.obj.config);
         try:
             bundle.data['message']=bundle.obj.jobstatus_set.all()[0].message
             bundle.data['last_status']=bundle.obj.jobstatus_set.all()[0].timestamp
         except IndexError:
             pass
-        if bundle.obj.status == bundle.obj.COMPLETE:
-            bundle.data['results']="%sresults/" % (bundle.data['resource_uri'],)
-        if bundle.obj.mapfile:
-            bundle.data['wms_url']="%swms/" % (bundle.data['resource_uri'],)
-            bundle.data['layer']='results'
-            bundle.data['legend']="{0}legend/".format(bundle.data['resource_uri'])
-            # This should work, but doesn't ?!?
-#            bundle.data['results']=reverse('api_%s_download_detail' % (self._meta.resource_name,),
-#                                           kwargs={'resource_name': self._meta.resource_name,
-#                                                   'pk': str(bundle.obj.pk) })
         return bundle
     
-    def prepend_urls(self):
-        return [
-            url(r"^(?P<resource_name>%s)/(?P<pk>\w[\w/-]*)/results%s$" % (self._meta.resource_name, 
-                                                                           trailing_slash()), 
-                                                                           self.wrap_view('download_detail'), 
-                name="api_%s_download_detail" % (self._meta.resource_name,)),
-            url(r"^(?P<resource_name>%s)/(?P<pk>\w[\w/-]*)/wms%s$" % (self._meta.resource_name, 
-                                                                           trailing_slash()), 
-                                                                           self.wrap_view('wms'), 
-                name="api_%s_wms" % (self._meta.resource_name,)),
-            url(r"^(?P<resource_name>%s)/(?P<pk>\w[\w/-]*)/legend%s$" % (self._meta.resource_name, 
-                                                                         trailing_slash()), 
-                                                                         self.wrap_view('legend'), 
-                name="api_%s_legend" % (self._meta.resource_name,)),
-            ]
-        
+           
 #     def alter_list_data_to_serialize(self, request, data):
 #         '''
 #         Loop over the list of objects and count how many are currently pending,
@@ -889,87 +1000,9 @@ class JobResource(ModelResource):
 #             data['meta']['refresh_interval']=60000
 #         return data
 
-    def legend(self, request, **kwargs):
-        try:
-            if request.user.is_superuser:
-                rec = self._meta.queryset.get(pk=kwargs['pk'])
-            else:
-                rec = self._meta.queryset.get(pk=kwargs['pk'],
-                                              user=request.user)
-        except ObjectDoesNotExist:
-            raise Http404
-        if rec.legendgraphic:
-            response = HttpResponse(rec.legendgraphic, content_type='image/png')
-            return response
-        else:
-            raise Http404
-    def wms(self, request, **kwargs):
-        '''
-        Act like a WMS by passing the request into mapserver using the 
-        provided data set.
-        '''
-        try:
-            if request.user.is_superuser:
-                rec = self._meta.queryset.get(pk=kwargs['pk'])
-            else:
-                rec = self._meta.queryset.get(pk=kwargs['pk'],
-                                              user=request.user)
-        except ObjectDoesNotExist:
-            raise Http404
-        if rec.mapfile:
-#             logger.debug('Mapfile is at %s',rec.mapfile.path)
-            return wms_service.handleWMSRequest(request, rec)
-        else:
-            raise Http404
-        
+
         
     
-    def download_detail(self, request, **kwargs):
-        """
-        Send a file through TastyPie without loading the whole file into
-        memory at once. The FileWrapper will turn the file object into an
-        iterator for chunks of 8KB.
-
-        No need to build a bundle here only to return a file, lets look into the DB directly
-        """
-        format=request.GET.get('format', 'geojson')
-        allow_download=False
-        logger.debug('In download_detail with %s', kwargs)
-        try:
-            if request.user.is_superuser:
-                rec = self._meta.queryset.get(pk=kwargs['pk'])
-            else:
-                rec = self._meta.queryset.get(pk=kwargs['pk'],
-                                              user=request.user)
-        except ObjectDoesNotExist:
-            raise Http404
-        if rec.results:
-            # if there are results, then they can download them
-            allow_download=True
-        if allow_download:
-            if format == 'geojson': 
-                wrapper = FileWrapper(open(rec.results.path,'rb'))
-                response = HttpResponse(wrapper, content_type='application/json') #or whatever type you want there
-                response['Content-Length'] = rec.results.size
-                response['Content-Disposition'] = 'attachment; ' + \
-                                                  'filename="result.geojson"'
-                return response
-            elif format in ('csv','xls'):
-                if format == 'csv':
-                    return data_output.stream_csv(rec)
-                elif format == 'xls':
-                    logger.debug('About to call xls output!')
-                    return data_output.stream_xls(rec)
-            elif format == 'pager':
-                return data_output.pager_output(request, rec)
-            elif format == 'query':
-                # requires lat, lon, zoom and (optionally) pixels GET parameters
-                return data_output.data_query(request, rec)
-                
-            else:
-                return HttpResponse('The format %s is not supported' % (format,))
-        else:
-            raise Unauthorized('You lack the privileges required to download this file')
 
 class JobStatusResourceAuthorization(Authorization):
     def read_list(self, object_list, bundle):
@@ -1004,8 +1037,6 @@ class JobStatusResourceAuthorization(Authorization):
         elif bundle.obj.user.pk <> bundle.request.user.pk:
             raise Unauthorized('You lack the privilege to access this resource')
         return True
-    
-
 
 class JobStatusResource(ModelResource):
     job=fields.ToOneField(JobResource, 'job')

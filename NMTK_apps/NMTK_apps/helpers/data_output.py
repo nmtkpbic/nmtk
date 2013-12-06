@@ -47,22 +47,22 @@ def getBbox(long, lat, zoom_level, pixels=5):
         return None
         
 
-def getQuerySet(job):
+def getQuerySet(datafile):
     '''
-    Given a job record, return a spatialite queryset representing the job results.
+    Given a datafile record, return a spatialite queryset representing the datafile results.
     '''
-    db_id='{0}'.format(job.pk)
+    db_id='{0}'.format(datafile.pk)
     if db_id not in settings.DATABASES:
         settings.DATABASES[db_id]={'ENGINE': 'django.contrib.gis.db.backends.spatialite', 
-                                   'NAME': job.sqlite_db.path }
-    model=imp.load_source('%s.models' % (job.pk,),job.model.path)
+                                   'NAME': datafile.sqlite_db.path }
+    model=imp.load_source('%s.models' % (datafile.pk,),datafile.model.path)
     qs=model.Results.objects.using(db_id).all()
     return qs
 
-def stream_csv(job):
+def stream_csv(datafile):
     csvfile=StringIO.StringIO()
     csvwriter=csv.writer(csvfile)
-    qs=getQuerySet(job)
+    qs=getQuerySet(datafile)
     row=qs[0]
     db_map=[(field.db_column or field.name, field.name) for
              field in row._meta.fields if field.name and field.name not in ('nmtk_id',
@@ -88,9 +88,9 @@ def stream_csv(job):
     response['Content-Disposition']="attachment; filename=results.csv"
     return response
 
-def stream_xls(job):
+def stream_xls(datafile):
     try:
-        qs=getQuerySet(job)
+        qs=getQuerySet(datafile)
         row=qs[0]
         db_map=[(field.db_column or field.name, field.name) for
                  field in row._meta.fields if field.name not in ('nmtk_id','nmtk_geometry',
@@ -123,8 +123,8 @@ def stream_xls(job):
     except:
         logger.exception('Something went wrong!')
     
-def data_query(request, job):
-    qs=getQuerySet(job)
+def data_query(request, datafile):
+    qs=getQuerySet(datafile)
     # if lat, lon, and zoom were provided, then we can do a bbox generation...
     if min([request.GET.has_key(key) for key in ('lat','lon','zoom')]):
         try:
@@ -174,7 +174,7 @@ def data_query(request, job):
         
     return HttpResponse(json.dumps(result), mimetype='application/json')
 
-def pager_output(request, job):
+def pager_output(request, datafile):
     try:
         offset=int(request.GET.get('offset',0))
     except: 
@@ -184,7 +184,7 @@ def pager_output(request, job):
     except: 
         limit=20
     order=request.GET.get('order_by', 'nmtk_id')
-    qs=getQuerySet(job)
+    qs=getQuerySet(datafile)
     row=qs[0]
     db_map=[(field.db_column or field.name, field.name) for
              field in row._meta.fields if field.name not in ('nmtk_geometry',

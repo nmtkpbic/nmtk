@@ -3,11 +3,6 @@
 
 [Login/Signup Stylesheet]
 
-	Project:		Base Admin
-	Version:		1.0
-	Last change:	05/21/2012
-	Assigned to:	Rod Howard (rh)
-
 -------------------------------------------------------------------*/
 
 
@@ -52,12 +47,14 @@ body{ color:#838383; font: 13px/1.7em 'Open Sans';}
 	font-family: 'Open Sans';
 	font-size: 13px;
 	color: #8e8d8d;
-	padding: 11px 15px 10px 50px;
+	padding: 8px 15px 8px 50px;
 	background-color: #fdfdfd;
-	width: 255px;
+	width: 324px;
 	display: block;
 	margin: 0;
 	box-shadow: inset 2px 2px 4px #f1f1f1;
+	border: 1px solid ccc;
+	border-radius: 5px;
 }
 
 .username-field { background: url(../../img/signin/user.png) no-repeat; }

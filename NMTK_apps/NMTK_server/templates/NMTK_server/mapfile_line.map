@@ -45,7 +45,7 @@ MAP
       WMS_TITLE "Incidents"
       WMS_ABSTRACT "NMTK Tool Results"
       WMS_ACCESSCONSTRAINTS "none"
-      WMS_ONLINERESOURCE "{% url 'api_job_wms' api_name='v1' resource_name='job' pk=job.pk %}"
+      WMS_ONLINERESOURCE "{% url 'api_datafile_wms' api_name='v1' resource_name='datafile' pk=datafile.pk %}"
       WMS_SRS "EPSG:3857 EPSG:4326"
     END
   END
@@ -80,9 +80,9 @@ MAP
   LAYER
     NAME "results"
     CONNECTIONTYPE OGR
-    CONNECTION "{{job.sqlite_db.path}}"
-    DATA "{{job.pk}}_results"
-#    DATA 'SELECT nmtk_geometry,* FROM "{{job.pk}}_results"'
+    CONNECTION "{{datafile.sqlite_db.path}}"
+    DATA "{{datafile.pk}}_results"
+#    DATA 'SELECT nmtk_geometry,* FROM "{{datafile.pk}}_results"'
     TYPE LINE
 #    STATUS ON
     DUMP TRUE
@@ -120,9 +120,9 @@ MAP
   LAYER
     NAME "highlight"
     CONNECTIONTYPE OGR
-    CONNECTION "{{job.sqlite_db.path}}"
+    CONNECTION "{{datafile.sqlite_db.path}}"
     # Generate a query to get those features that are requested for highlighting.
-    DATA 'SELECT nmtk_geometry FROM "{{job.pk}}_results" WHERE nmtk_id in (%ids%)'
+    DATA 'SELECT nmtk_geometry FROM "{{datafile.pk}}_results" WHERE nmtk_id in (%ids%)'
     VALIDATION
       "ids" "[0-9,]+"
     END
