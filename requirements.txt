@@ -4,12 +4,15 @@ GDAL==1.9.1
 Paste==1.7.5.1
 Pillow==2.1.0
 PyYAML==3.10
+SQLAlchemy==0.8.3
 Shapely==1.2.17
 amqp==1.2.0
 anyjson==0.3.3
 argparse==1.2.1
 billiard==2.7.3.28
 celery==3.0.19
+csvkit==0.6.1
+dbf==0.95.004
 django-admin-bootstrapped==0.4.1
 django-admin-tools==0.5.1
 django-celery==3.0.17
@@ -24,6 +27,7 @@ mechanize==0.2.5
 mimeparse==0.1.3
 nose==1.3.0
 numpy==1.7.1
+openpyxl==1.7.0
 ordereddict==1.1
 pysqlite==2.6.3
 python-dateutil==2.1
