@@ -5,13 +5,14 @@
 {% endblock %}
 {% block right_nav %}
 
-					
+					{% comment %}
 					<li class="">						
 						<a href="{% url 'login' %}" class="">
 							Login
 						</a>
 						
 					</li>
+					 
 					
 					<li class="">						
 						<a href="{% url 'nmtk_server_nmtk_index' %}" class="">
@@ -20,6 +21,11 @@
 						</a>
 						
 					</li>
+					{% endcomment %}
+					<li class="">
+	   				  <a href="{% url 'nmtk_server_nmtk_ui' %}"><i class=""></i> NMTK Console </a>
+	    			  <i class="icon-chevron-right"></i>
+	  				</li>
 {% endblock %}
 				
 

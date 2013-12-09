@@ -54,7 +54,8 @@ def registerUser(request):
 
 def nmtk_index(request):
     return render(request, 'NMTK_server/index.html',
-                  {'registration_open': settings.REGISTRATION_OPEN})
+                  {'registration_open': settings.REGISTRATION_OPEN,
+                   'ui_installed': 'NMTK_ui' in settings.INSTALLED_APPS})
 
 def nmtk_ui(request):
     '''

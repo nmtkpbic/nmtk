@@ -1,8 +1,9 @@
   <div class="modal-dialog">
     <div class="modal-content">   
-      <div class="modal-header">
-    <h3>Download Job Results</h3>
-  </div>
+    <div class="modal-header">
+        <button type="button" ng-click="close()" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h3 class="modal-title" id="download_file_title">Download Job Data File</h3>
+    </div> 
   <div class="modal-body">
     <div class="row">
       <div class="col-md-12">  	
@@ -12,9 +13,7 @@
             <p class="help-block">Please click one of the links below to download your
             job results in the specified file format.</p>
             <br>
-            <!-- <a ng-repeat"(desc, fmt) in format_types" 
-                    ng-href="{{getUrl(fmt)}}">
-                    {{desc}}</a><br> -->
+            <a ng-href="{{download_url}}?format=csv">Original Format</a><br>  
             <a ng-href="{{download_url}}?format=csv">Comma-Separated Values</a><br>   
             <a ng-href="{{download_url}}?format=xls">Microsoft Excel (.xls)</a><br>
             <a ng-href="{{download_url}}?format=geojson">GeoJSON Format</a><br>

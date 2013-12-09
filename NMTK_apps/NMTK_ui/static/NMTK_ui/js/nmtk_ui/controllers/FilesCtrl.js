@@ -1,8 +1,11 @@
 define(['underscore'], function (_) {	
 	"use strict";
-	var controller=['$scope','$timeout','$route','$modal','$log',
-        function ($scope, $timeout, $route, $modal, $log) {
-			$log.info('In FilesCtrl');
+	var controller=['$scope','$timeout','$route','$modal','$location', '$log',
+        function ($scope, $timeout, $route, $modal, $location, $log) {
+			if (! $scope.user.is_active ) {
+				$scope.login($location.path());
+				$location.path('/');
+			}
 			$scope.enableRefresh(['datafile']);
 			$scope.changeTab('files');
 			

@@ -32,6 +32,7 @@
 		<link href="{% get_static_prefix %}NMTK_ui/css/base-admin-2.css" rel="stylesheet" />
 		<link href="{% get_static_prefix %}NMTK_ui/css/base-admin-2-responsive.css" rel="stylesheet" />
 		<link href="{% get_static_prefix %}NMTK_ui/css/dashboard.css" rel="stylesheet" />
+		<link href="{% get_static_prefix %}NMTK_ui/css/signin.css" rel="stylesheet" type="text/css">
 		<link href="{% get_static_prefix %}NMTK_ui/css/ng-grid.css" rel="stylesheet" />
 	    <link href="{% get_static_prefix %}NMTK_ui/css/custom.css" rel="stylesheet" />
 	    <link href="{% get_static_prefix %}NMTK_ui/css/custom2.css" rel="stylesheet" />
@@ -47,7 +48,10 @@
 	{% endcomment %}
 	<script>
 	   CONFIG={'csrftoken': '{{csrf_token}}',
-			   'api_path': 'http{% if request.is_secure %}s{% endif %}://{{ request.META.HTTP_HOST }}{% url 'api_v1_top_level' api_name='v1' %}'};
+			   'api_path': '{% url 'api_v1_top_level' api_name='v1' %}',
+			   'reset_url': '{% url 'password_reset' %}',
+			   'register_url': '{% url 'nmtk_register' %}'
+	   };
 	</script>
 	
 	<!-- Here we load up all the javascript -->

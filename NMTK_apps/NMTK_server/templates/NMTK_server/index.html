@@ -2,26 +2,20 @@
 {% block title %}Non-Motorized Transportation Toolkit :: NMTK{% endblock%}
 
 {% block right_nav %}
-	{% if user.is_active %}
+	{% if ui_installed %} 
 	  <li class="">
 	    <a href="{% url 'nmtk_server_nmtk_ui' %}"><i class=""></i> NMTK Console </a>
 	    <i class="icon-chevron-right"></i>
 	  </li>
+	  {% else %}
+	  <li class="">
+	  	<a href="{% url 'login' %}"><i class=""></i>Login</a>
+	    <i class="icon-chevron-right"></i>
+	  </li>
+	  {% endif %}
 	  {% if user.is_superuser %}
 	     <li><a href="{% url 'admin:index' %}">Site Administration</a></li>
 	  {% endif %}
-    {% else %}
-		<li class="">								
-			<a href="{% url 'login' %}" class="">	
-				Login
-			</a>
-		</li>
-		<li class="">						
-			<a href="{% url 'registration_register' %}" class="">
-				Create an Account
-			</a>			
-		</li>
-	{% endif %}
 </li>
 {% endblock %}
 

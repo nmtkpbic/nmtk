@@ -1,0 +1,45 @@
+
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" ng-click="close()" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h3 class="modal-title" id="login_title">Login</h3>
+      </div>
+      <div class="modal-body">
+         <div class="account-container stacked">	
+			<div class="content clearfix">	
+				<form novalidate name="form">
+					<h1>Sign In</h1>		
+					<div class="login-fields">
+						<p>Sign in using your registered account:</p>
+						<div class="field">
+						    <label label-default="label-default" for="id_username">Username</label>
+							<input class="login username-field" id="id_username" 
+								   maxlength="254" name="username" ng-model="logindata.username"
+								   required placeholder="Username" type="text" />
+						    <span ng-show="failed_login" 
+						          class="help-inline">Unrecognized username/password combination</span>
+						</div> <!-- /field -->
+						<div class="field">
+						    <label label-default="label-default" for="id_password">Password</label>
+							<input class="login password-field" id="id_password" 
+								   name="password" ng-model="logindata.password"
+								   required placeholder="Password" type="password" />
+						</div> <!-- /password -->
+					</div> <!-- /login-fields -->
+				</form>
+			</div> <!-- /content -->
+			
+		</div> <!-- /account-container -->
+		<!-- Text Under Box -->
+		<div class="login-extra">
+			Don't have an account? <a ng-href="{{register_url}}">Register</a><br/>
+			Forgot your password? <a ng-href="{{reset_url}}"">Reset Password</a>
+		</div> <!-- /login-extra -->
+      </div>
+      <div class="modal-footer">
+        <button ng-click="close()" type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button ng-click="login()" type="button" ng-disabled="form.$invalid" ng-class="{'btn-primary': form.$valid}" class="btn">Login</button>     	
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->

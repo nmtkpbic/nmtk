@@ -1,14 +1,18 @@
 define(['underscore','leaflet'], function (_, L) {
 	"use strict";
 	var controller=['$scope','$routeParams','$location','$log','$http',
-	                '$timeout','$rootScope', 'leafletData',
+	                '$timeout', 'leafletData',
         /*
 		 * A variant of the ViewResults Controller that uses leaflet-directive 
 		 * rather than leaflet directly.
 		 */
 	        
 		function ($scope, $routeParams, $location, $log, $http, $timeout, 
-				  $rootScope, leafletData) {
+				  leafletData) {
+			if (! $scope.user.is_active ) {
+				$scope.login($location.path());
+				$location.path('/');
+			}
 			$scope.jobid=$routeParams.jobid;
 			$scope.$parent.results_job=$scope.jobid;
 			$scope.changeTab('results');

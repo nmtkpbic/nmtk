@@ -24,11 +24,12 @@ define([
   , 'nmtk_ui/controllers/ToolExplorerCtrl' // Controller for Tool explorer page
   , 'nmtk_ui/controllers/ViewJobCtrl' // Controller for Viewing Job data (modal)
   , 'nmtk_ui/controllers/ViewResultsCtrl' // Controller handling the view results page(s)
+  , 'nmtk_ui/controllers/LoginCtrl' // Controller handling the user login process
 ], function ( _, NMTKCtrl, SwitchJobCtrl, 
 		ChangePasswordCtrl, CloneConfigCtrl, ConfigureCtrl,
 		CreateJobCtrl, DeleteCtrl, DownloadJobCtrl, FeedbackCtrl,
 		FileInfoUpdateCtrl, FilesCtrl, IntroCtrl, JobCtrl,
-		ToolExplorerCtrl, ViewJobCtrl, ViewResultsCtrl
+		ToolExplorerCtrl, ViewJobCtrl, ViewResultsCtrl, LoginCtrl
 			 ) {
   "use strict";
   var controllers = {
@@ -48,6 +49,7 @@ define([
 	, "ToolExplorerCtrl": ToolExplorerCtrl
 	, "ViewJobCtrl": ViewJobCtrl
 	, "ViewResultsCtrl": ViewResultsCtrl
+	, "LoginCtrl": LoginCtrl
   };
   
   var initialize = function(angModule) {

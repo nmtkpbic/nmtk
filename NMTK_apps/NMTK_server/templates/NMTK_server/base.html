@@ -1,5 +1,5 @@
 {% load url from future %}{% load static %}{% load widget_tweaks %}<!DOCTYPE html>
-<html lang="en" xmlns:ng="http://angularjs.org" id="ng-app">
+<html lang="en">
   <head>
   <meta charset="utf-8">
   <meta http-equiv="x-ua-compatible" content="IE=Edge"/> 
@@ -11,59 +11,25 @@
     <meta name="apple-mobile-web-app-capable" content="yes"> 
     {% endblock %}
     {% block meta_extra %}{% endblock %}
-    {% block ie_compatibility %}
-    <!-- Add in some stuff so we can support IE8 -->
-    <!--[if lte IE 8]>
-      <script>
-        document.createElement('ng-include');
-        document.createElement('ng-pluralize');
-        document.createElement('ng-view');
- 
-        // Optionally these for CSS
-        document.createElement('ng:include');
-        document.createElement('ng:pluralize');
-        document.createElement('ng:view');
-      </script>
-    <![endif]-->
+    {% block ie_compatibility %}    
     {% endblock %}
     {% block css %}
     <link href="{% get_static_prefix %}NMTK_ui/css/bootstrap.css" rel="stylesheet">
 	<link href="http://fonts.googleapis.com/css?family=Open+Sans:400italic,600italic,400,600" rel="stylesheet" />
 	<link href="{% get_static_prefix %}NMTK_ui/css/font-awesome.css" rel="stylesheet" />
-	<link href="{% get_static_prefix %}NMTK_ui/css/ui-lightness/jquery-ui-1.10.3.custom.css" rel="stylesheet" />
+	<link href="{% get_static_prefix %}NMTK_ui/css/jquery-ui-1.10.3.custom.css" rel="stylesheet" />
 	<link href="{% get_static_prefix %}NMTK_ui/css/base-admin-2.css" rel="stylesheet" />
 	<link href="{% get_static_prefix %}NMTK_ui/css/base-admin-2-responsive.css" rel="stylesheet" />
 	<link href="{% get_static_prefix %}NMTK_ui/css/dashboard.css" rel="stylesheet" />
 	<link href="{% get_static_prefix %}NMTK_ui/css/ng-grid.css" rel="stylesheet">
     <link href="{% get_static_prefix %}NMTK_ui/css/custom.css" rel="stylesheet">
-<!--[if lt IE 9]>
-    <script src="{% get_static_prefix %}NMTK_ui/js/lib/html5shiv.js"></script>
-    <script src="{% get_static_prefix %}NMTK_ui/js/lib/respond.js"></script>
-<![endif]--> 
-
-    <script>
-       CONFIG={'csrftoken': '{{csrf_token}}',
-    		   'api_path': 'http{% if request.is_secure %}s{% endif %}://{{ request.META.HTTP_HOST }}{% url 'api_v1_top_level' api_name='v1' %}'};
-    </script>
-    
-    <!-- Here we load up all the javascript -->
-    {% if not production %}
-    <!-- load the code the regular way -->
-    <script data-main="{% get_static_prefix %}NMTK_ui/js/nmtk_ui" 
-            src="{% get_static_prefix %}NMTK_ui/js/lib/require.js"></script>
-    {% else %}
-    <!-- load the uglified/minified version of the code. -->
-    <script data-main="{% get_static_prefix %}NMTK_ui/js/nmtk_ui" 
-            src="{% get_static_prefix %}NMTK_ui/js/nmtk_ui_app.min.js"></script>
-	{% endif %}
-	<link rel="stylesheet" href="{% get_static_prefix %}NMTK_ui/css/leaflet.css" />
 
 	{% endblock %}
 	{% block css_extra %}
 	{% endblock %}
 </head>
 
-<body ng-controller="NMTKCtrl">
+<body>
 <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
    <div class="container">
       <div class="navbar-header">

@@ -37,7 +37,7 @@ require.config({
 		, "passwordChangeStatusModalTemplate": "../templates/password_change_status_modal.html" // Status of password change
 		, "resultsTemplate": "../templates/results.html" // Results viewing template
 		, "explorerTemplate": "../templates/tool_explorer.html" // Explorer template
-	
+		, "loginTemplate": "../templates/login.html" // Login template
 	}
 	, shim: {
 	    "underscore": { exports: '_' }

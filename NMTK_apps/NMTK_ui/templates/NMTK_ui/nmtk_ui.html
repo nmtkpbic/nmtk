@@ -7,17 +7,21 @@
 {% endblock %}
 
 {% block right_nav %}
-	  <li class="">
+	  <li ng-show="user.is_active" class="ng-cloak">
 	    <a ng-click="feedback()"><i class="glyphicon glyphicon-bullhorn"></i> Feedback </a>
 	  </li>
-	  <li class="dropdown"> <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{user.first_name}} {{user.last_name}}<b class="caret"></b> </a>
+	  <li ng-hide="user.is_active" class="ng-cloak">
+	    <a ng-click="login()"><i class="glyphicon glyphicon-log-in"></i> Login </a>
+	  </li>
+	  <li ng-hide="user.is_active" class="ng-cloak">
+	    <a href="{% url 'nmtk_register' %}"> Create Account </a>
+	  </li>
+	  <li ng-show="user.resource_uri" class="dropdown ng-cloak"> <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="glyphicon glyphicon-user"></i> {% templatetag openvariable %}user.first_name{% templatetag closevariable %} {% templatetag openvariable %}user.last_name{% templatetag closevariable %}<b class="caret"></b> </a>
 	    <ul class="dropdown-menu">
 	      <li><a ng-click="changePassword()">Change Password</a></li>
-	         {% if user.is_superuser %}
-	           <li><a href="{% url 'admin:index' %}">Site Administration</a></li>
-	         {% endif %}
+	         <li ng-show="user.is_superuser"><a href="{% url 'admin:index' %}">Site Administration</a></li>
 	         <li class="divider"></li>
-	         <li><a href="{% url 'auth_logout' %}">Logout</a></li>
+	         <li><a ng-click="logout()">Logout</a></li>
 	    </ul>
 	  </li>
 {% endblock %}
@@ -39,32 +43,32 @@
               <span>Tool Explorer</span> 
             </a> 
           </li>
-          <li class="ng-cloak" ng-class="{'active': (activeTab == 'files')}">
+          <li ng-show="user.is_active" class="ng-cloak" ng-class="{'active': (activeTab == 'files')}">
                <a href="#/files/">
                     <i ng-hide="activeTab == 'files'" class="glyphicon glyphicon-folder-close"></i>
                     <i ng-show="activeTab == 'files'" class="glyphicon glyphicon-folder-open"></i>
                     <span>My Files</span>
                </a>                    
           </li>
-          <li ng-class="{'active': (activeTab == 'viewjob')}" class="ng-cloak">                         
+          <li ng-show="user.is_active" ng-class="{'active': (activeTab == 'viewjob')}" class="ng-cloak">                         
                <a href="#/job/">
               <i class="glyphicon glyphicon-asterisk"></i> 
                     <span>My Jobs</span>
                </a>         
           </li>
-          <li ng-show="working_job_id" class="ng-cloak"
+          <li ng-show="working_job_id && user.is_active" class="ng-cloak"
            id="configurejob-tab" ng-class="{'active': (activeTab == 'configurejob')}">                    
                <a ng-href="#/job/{% templatetag openvariable %}working_job_id{% templatetag closevariable %}/">
               <i class="glyphicon glyphicon-list"></i> 
                     <span>Configure Job</span>
                </a>         
           </li>
-          <li ng-show="results_job" class="ng-cloak"
+          <li ng-show="results_job && user.is_active" class="ng-cloak"
            id="results-tab" ng-class="{'active': (activeTab == 'results')}">                    
                <a ng-href="#/results/{% templatetag openvariable %}results_job{% templatetag closevariable %}/">
               <i class="glyphicon glyphicon-tower"></i> 
                     <span>Job Results</span>
-               </a>         
+               </a>
           </li>
           
         </ul>

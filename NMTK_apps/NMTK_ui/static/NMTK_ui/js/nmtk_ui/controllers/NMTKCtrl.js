@@ -1,34 +1,50 @@
-define(['underscore', 'text!deleteModalTemplate',
-        'text!feedbackTemplate', 'text!changePasswordTemplate',
-        'text!passwordChangeStatusModalTemplate', 
-        'text!downloadJobTemplate', 'text!createJobTemplate'], 
+define(['underscore'
+        , 'text!deleteModalTemplate'
+        , 'text!feedbackTemplate'
+        , 'text!changePasswordTemplate'
+        , 'text!passwordChangeStatusModalTemplate'
+        , 'text!downloadJobTemplate'
+        , 'text!createJobTemplate'
+        , 'text!loginTemplate'], 
 		function (_, deleteModalTemplate, feedbackTemplate, changePasswordTemplate,
 				passwordChangeStatusModalTemplate, 
-				downloadJobTemplate, createJobTemplate) {	
+				downloadJobTemplate, createJobTemplate, loginTemplate) {	
 			"use strict";
 			var controller=['$scope','Restangular','$timeout','$modal','$location',
-			                '$rootScope','$log',
+			                '$http','$q', '$log',
 				/* 
 				 * This "base" controller provides some default scope components for all the
 				 * other controllers.  It also handles the auto-reloading of things like jobs 
 				 * in progress and uploads, etc. 
 				 */
-				function ($scope, Restangular, $timeout, $modal, $location,
-						  $rootScope, $log) {	
+				function ($scope, Restangular, $timeout, $modal, $location, 
+						  $http, $q, $log) {
 					// A Function used to update data via a rest call to an API interface,
 					// since it seems like we will refresh far more often than we don't, might
 					// as well do this.
 					$log.info('NMTK Controller running!');
 					$scope.csrftoken=CONFIG.csrftoken;
+					$scope.login_url=CONFIG.api_path + 'user/login/';
+					$scope.register_url=CONFIG.register_url;
+					$scope.reset_url=CONFIG.reset_url;
 					$scope.browser_name=BrowserDetect.browser;
 					$scope.browser_version=BrowserDetect.version;
 					$scope.loaded=false;
 					$log.info('Using', $scope.browser_name, $scope.browser_version);
 					$scope.refreshItems=[];
 					$scope.tabs={};
-					$rootScope.rest={};
-					$rootScope.restargs={};
-					$rootScope.resources={};
+					/*
+					 * Restargs are argument passed in to each request for an 
+					 * API component.
+					 * $scope.resources is a list of core resources - used for
+					 * retrieving and updating stuff.
+					 * $scope.rest is an object containing promises - we can use
+					 * these with .then() anywhere to refresh data when the promise
+					 * gets refreshed/updated later.
+					 */
+					$scope.restargs={};
+					$scope.resources={};
+					$scope.rest={};
 					$scope.delete_candidate={};
 					$scope.job_config=undefined;
 					$scope.results_job=undefined;
@@ -36,17 +52,18 @@ define(['underscore', 'text!deleteModalTemplate',
 					$scope.switchView=function(view) {
 						$scope.views[view]=!$scope.views[view];
 					}
-					
+					$scope.user={};
 					$scope.toggleDiv=function(div) {
 						if (_.indexOf($scope.preferences.divs, div) > -1) {
 							$scope.preferences.divs=_.without($scope.preferences.divs, div);
 						} else {
 							$scope.preferences.divs.push(div);
 						}
-						
-						var copy=Restangular.copy($scope.preferences);
-						copy.divs=JSON.stringify($scope.preferences.divs);
-						copy.put();
+						if ($scope.logged_in) {
+							var copy=Restangular.copy($scope.preferences);
+							copy.divs=JSON.stringify($scope.preferences.divs);
+							copy.put();
+						}
 					}
 					
 					// Check to see if a div is enabled and return a true/false response.
@@ -55,18 +72,82 @@ define(['underscore', 'text!deleteModalTemplate',
 						if (typeof $scope.preferences === 'undefined') {
 							return true;
 						}
-						return _.indexOf($scope.preferences.divs, div) > -1;
+						return _.indexOf($scope.preferences.divs, div) == -1;
+					}
+					/*
+					 * A simple function that returns an empty list as it's
+					 * promise result.  This "fakes out" things like datafile
+					 * which doesn't actually resolve when the user isn't logged
+					 * in.
+					 */
+					$scope.emptyPromise=function () {
+						var deferred=$q.defer();
+						deferred.resolve([]);
+						return deferred.promise
 					}
 					
-					$rootScope.refreshData=function (api, offset) {
-						if (typeof $rootScope.restargs[api] === 'undefined') {
-							$rootScope.restargs[api]={};
+					$scope.refreshData=function (api, offset) {
+						if (typeof $scope.restargs[api] === 'undefined') {
+							$scope.restargs[api]={};
 						}
 						if (typeof offset !== 'undefined') {
-							$rootScope.restargs[api]['offset']=offset;
+							$scope.restargs[api]['offset']=offset;
 						} 
-						var rest=$rootScope.resources[api];
-						$rootScope.rest[api]=rest.getList($rootScope.restargs[api]);
+						var rest=$scope.resources[api];
+						/*
+						 * If the user isn't logged in, only the user and
+						 * tool data should be queried.
+						 */
+						if (($scope.logged_in == true) ||
+						    (_.indexOf(['user','tool'], api) > -1)) {
+							$scope.rest[api]=rest.getList($scope.restargs[api]);
+						} else {
+							$scope.rest[api]=$scope.emptyPromise()
+						}
+						/*
+						 * If the preference data updates, then we need to ensure that
+						 * we process the updated data.
+						 * 
+						 */
+						if (api == 'preference') {
+							$scope.rest[api].then(function (data) {
+								if (data.length) {
+									/*
+									 * The preference field divs has a list of divs that should
+									 * be collapsed in the UI.
+									 */
+									$scope.preferences=data[0];
+									$scope.preferences.divs=JSON.parse($scope.preferences.divs);
+								} 
+							});
+						} else if (api == 'user') {
+							$scope.rest[api].then(function (data) {
+								/* 
+								 * Only update the user information if the URI of
+								 * the user changes (so we don't bother to look at 
+								 * things like last login for the refresh.)
+								 */
+								$scope.logged_in=true;
+								$scope.$broadcast('login', true);
+								if ($scope.user.resource_uri != data[0].resource_uri) {
+									$scope.user=data[0];
+									$scope.refreshAllData();
+								}
+							}, function (error) {
+								/*
+								 * Here the user is logged out/not logged in.  In such
+								 * cases we need to clear all the resources we have and
+								 * just refresh the user information (in case login in
+								 * another tab/window happens.)
+								 */
+								if (error.status == 401) {
+									$scope.logged_in=false;
+									$scope.user={};
+									$scope.refreshAllData();
+									$scope.preferences={'divs': [] };
+								}
+							});
+						}
 					};
 					
 					// When OK is pressed on the modal confirm dialog, delete the
@@ -75,10 +156,10 @@ define(['underscore', 'text!deleteModalTemplate',
 						$scope.delete_candidate={};
 					}
 					
-					$rootScope.deleteData=function (api, id) {
-						var rest=$rootScope.resources[api];
+					$scope.deleteData=function (api, id) {
+						var rest=$scope.resources[api];
 						rest.one(id).remove().then(function (r) {
-							$rootScope.refreshData(api);
+							$scope.refreshData(api);
 						}, function (r) {
 							alert('Please delete jobs for this file prior to deleting the file.')
 						});
@@ -99,7 +180,7 @@ define(['underscore', 'text!deleteModalTemplate',
 					}
 					
 					$scope.changePassword=function() {
-						$rootScope.rest['user']=$rootScope.resources['user'].getList();
+						$scope.rest['user']=$scope.resources['user'].getList();
 						var modal_dialog=$modal.open({
 							controller: 'ChangePasswordCtrl',
 							template: changePasswordTemplate
@@ -142,30 +223,40 @@ define(['underscore', 'text!deleteModalTemplate',
 						$scope.refreshItems=items
 					}
 					
-					_.each(['datafile','tool','job'], function (item) {
-						$rootScope.resources[item]=Restangular.all(item);
-						$scope.refreshData(item);
-					});
-					$rootScope.resources['feedback']=Restangular.all('feedback');
-					$rootScope.resources['user']=Restangular.all('user');
-					$rootScope.active={'job': undefined,
-							           'tool': undefined,
-							           'datafile': undefined,}
-					/* 
-					 * Load user preferences for the UI
+					/*
+					 * Log out the currently logged in user.
 					 */
-					$rootScope.resources['preference']=Restangular.all('preference');
-					// The app ensures that all users have a preference record by default.
-					$rootScope.resources['preference'].getList().then(function (data) {
-						if (data.length) {
-							/*
-							 * The preference field divs has a list of divs that should
-							 * be enabled in the UI.
-							 */
-							$scope.preferences=data[0];
-							$scope.preferences.divs=JSON.parse($scope.preferences.divs);
-						} 
-					});
+					$scope.resources['user']=Restangular.all('user');
+					$scope.refreshData('user');
+					$scope.logout= function () {
+						$http({method: 'GET',
+							   url: $scope.user.logout,
+							   headers: {'X-CSRFToken': $scope.csrftoken }
+						}).success(function (data, status, headers, config) {
+							$scope.refreshData('user');
+							$location.path('/')
+						});
+					}
+					
+					/*
+					 * Watch the user variable, if it changes, we need to
+					 * be sure to refresh all our stuff.
+					 * In here is all the code that is used when a login event
+					 * occurs
+					 */
+					$scope.refreshAllData=function () {
+						_.each(['datafile','job', 'preference','tool'], function (item) {
+							$scope.resources[item]=Restangular.all(item);
+							$scope.refreshData(item);
+						});
+					}
+										
+					$scope.refreshAllData();					
+					
+					$scope.active={'job': undefined,
+							       'tool': undefined,
+							       'datafile': undefined,}
+					
 					
 					$scope.updateData= function (model, offset) {
 						$log.info('Updatedata arguments', model, offset);
@@ -193,9 +284,10 @@ define(['underscore', 'text!deleteModalTemplate',
 					}
 					
 					$scope.feedback=function () {
-						var rest=$rootScope.resources['feedback'];
-						$rootScope.rest['feedback']=rest.getList({'uri': $location.path(),
-							                                  	  'limit': 1}).then(function(result) {
+						$scope.resources['feedback']=Restangular.all('feedback');
+						var rest=$scope.resources['feedback'];
+						$scope.rest['feedback']=rest.getList({'uri': $location.path(),
+							                                  'limit': 1}).then(function(result) {
 							if (result.length) {
 								$scope.record=result[0];
 							} else {
@@ -214,6 +306,22 @@ define(['underscore', 'text!deleteModalTemplate',
 								}
 							});
 						});
+					}
+					$scope.login=function (redirect) {
+						var modal_instance=$modal.open({template: loginTemplate,
+								     				    scope: $scope,
+								     				    controller: 'LoginCtrl',
+								     				    backdrop: true});
+						
+						modal_instance.result.then(function (result) {
+							$scope.refreshData('user');
+							$scope.rest['user'].then(function (data) {
+								if (typeof redirect !== 'undefined') {
+									$location.path(redirect);
+								}
+							});
+						});
+						
 					}
 					
 					$scope.setConfigureJob=function (working_job_id) {

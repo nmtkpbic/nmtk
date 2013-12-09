@@ -8,6 +8,10 @@ define([], function () {
 		 */
 		
 		function ($scope, $routeParams, $modal, $position, $location, $log) {
+			if (! $scope.user.is_active ) {
+				$scope.login($location.path());
+				$location.path('/');
+			}
 			$scope.enableRefresh(['job']);
 			$scope.refreshData('job');
 			//var jobid=$routeParams.jobid;
