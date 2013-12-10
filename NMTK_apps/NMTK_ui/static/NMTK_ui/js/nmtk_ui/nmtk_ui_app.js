@@ -71,7 +71,7 @@ define(['jquery'
 					      when('/job/:jobid/', {controller:'ConfigureCtrl',
 					    	  				    template: configureTemplate}).
 					      when('/tool-explorer/:toolid', {controller:'ToolExplorerCtrl',
-					    	    	  			  template: explorerTemplate}).
+					    	    	  			  		  template: explorerTemplate}).
 					      when('/', {controller:'IntroCtrl', 
 					    		     template: introTemplate}).
 					      otherwise({redirectTo:'/'});

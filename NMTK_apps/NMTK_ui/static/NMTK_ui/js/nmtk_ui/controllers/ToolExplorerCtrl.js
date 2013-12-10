@@ -1,8 +1,7 @@
 define([], function () {	
 	"use strict";
-	var controller=['$scope','$routeParams','$log','$location','$modal',
-        function ($scope, $routeParams, $log, $location, $modal) {
-			$log.info('In Tool Explorer');
+	var controller=['$scope','$routeParams','$log','$location','$modal', '$route',
+        function ($scope, $routeParams, $log, $location, $modal, $route) {
 			$scope.changeTab('toolexplorer');
 
 			$log.info($scope.resources.tool);
@@ -19,7 +18,9 @@ define([], function () {
 					 showColumnMenu: false };
 			$scope.$watch('selections', function () {
 				if ($scope.selections.length) {
-//					$log.info('Setting tool id');
+					if ($routeParams.toolid != $scope.selections[0]['id']) {
+						var path='#/tool-explorer/'+$scope.selections[0]['id'];
+					}
 					$scope.$parent.current_tool_id=$scope.selections[0]['id'];
 				}
 			}, true);

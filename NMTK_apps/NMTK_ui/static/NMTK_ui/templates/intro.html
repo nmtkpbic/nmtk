@@ -62,41 +62,7 @@
             <h3>Explore the Available Tools</h3>
           </div> <!-- /widget-header -->
           <div class="widget-content">
-          	<h4 ng-hide="rest.tool.metadata.total_count">There are no tools available at this time.</h4>
-			<section ng-show="rest.tool.metadata.total_count" id="tables">
-			  <h4>Displaying tools {{rest.tool.metadata.offset+1}} - {{rest.tool.metadata.offset+rest.tool.length}} (of {{rest.tool.metadata.total_count}} available tools.)</h4>	
-				<table class="table table-bordered table-striped table-highlight"> 
-				  <thead>
-				   <tr>
-					  <th>Tool Name</th>
-					  <th>Explore</th>
-				    </tr>
-				  </thead>
-				  <tbody>
-					<tr ng-repeat="tool in rest.tool">						            
-					  <td>{{ tool.config.info.name }}</td>
-					  <td>
-						<a ng-href="#/tool-explorer/{{tool.id}}/">Explore</a>
-					  </td>
-				    </tr>						          
-				  </tbody>
-				</table>
-				<section id="paginations-pager">
-				  <div class="pagination" ng-show="rest.tool.metadata.total_count > rest.tool.metadata.limit">
-					<ul>
-					  <li ng-click="updateData('tool',rest.tool.metadata.offset-rest.tool.metadata.limit)" ng-show="rest.tool.metadata.offset > 0">
-						<a class="pager">Prev</a>
-					  </li>
-					  <li ng-repeat="n in [] | page:rest.tool.metadata" ng-click="updateData('tool',n)" ng-class="{'active': (rest.tool.metadata.offset == n)}" >
-						<a class="pager">{{n/rest.tool.metadata.limit+1}}</a>
-					  </li>
-					  <li ng-click="updateData('tool',rest.tool.metadata.offset+rest.tool.metadata.limit)" ng-show="rest.tool.metadata.offset+rest.tool.metadata.limit < rest.tool.metadata.total_count">
-						<a class="pager">Next</a>
-					  </li>
-					</ul>
-				  </div> <!-- /pagination -->
-				</section>
-			 </section>
+            <div ng-grid="gridOptions" class="gridStyle"></div>		
           </div> <!-- /widget-content -->
         </div> <!-- /widget stacked -->
       </div><!-- /span12 -->

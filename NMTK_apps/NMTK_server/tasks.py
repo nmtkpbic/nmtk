@@ -340,7 +340,8 @@ def updateToolConfig(tool):
     
          
 @task(ignore_result=False)
-def importDataFile(datafile, job=None):
+def importDataFile(datafile, job_id=None):
+    from NMTK_server import models
     datafile.status_message=None
     try:
         loader=NMTKDataLoader(datafile.file.path, srid=datafile.srid)
@@ -350,7 +351,7 @@ def importDataFile(datafile, job=None):
             datafile.srs=loader.info.srs
             datafile.geom_type=loader.info.type
         datafile.feature_count=loader.info.feature_count
-        if not job:
+        if not job_id:
             datafile.status=datafile.IMPORTED
         else:
             datafile.status=datafile.IMPORT_RESULTS_COMPLETE
@@ -365,19 +366,27 @@ def importDataFile(datafile, job=None):
                                      ContentFile(''))
         loader.export_json(datafile.processed_file.path)
         generate_sqlite_database(datafile, loader)
-        if job:
-            job.status=job.COMPLETE
+        if job_id:
+            try:
+                job=models.Job.objects.get(pk=job_id)
+                job.status=job.COMPLETE
+            except: 
+                logger.exception('Failed to update job status to complete?!!')
     except Exception, e:
         logger.exception('Failed import process!')
         datafile.processed_file=None
-        if not job:
+        if not job_id:
             datafile.status=datafile.IMPORT_FAILED
         else:
             datafile.status=datafile.IMPORT_RESULTS_FAILED
         datafile.status_message="%s" % (e,)
-        if job:
-            job.status=job.POST_PROCESSING_FAILED
-    if job:
+        if job_id:
+            try:
+                job=models.Job.objects.get(pk=job_id)
+                job.status=job.POST_PROCESSING_FAILED
+            except:
+                logger.exception('Failed to update job status to failed?!!')
+    if job_id:
         job.save()
     # Now we need to create the spatialite version of this thing.
     datafile.save()

@@ -314,7 +314,7 @@ class DataFile(models.Model):
             the job to import the file (and set the status to PROCESSING)
             '''
             logger.debug('Dispatching task for %s', self.pk)
-            tasks.importDataFile.delay(self, job)
+            tasks.importDataFile.delay(self, getattr(job,'pk',None))
         return result
     
     def delete(self):

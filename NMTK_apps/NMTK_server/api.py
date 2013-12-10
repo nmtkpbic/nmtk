@@ -935,10 +935,6 @@ class JobResource(ModelResource):
     tool=fields.ToOneField(ToolResource, 'tool')
     data_file=fields.ToOneField(DataFileResource,'data_file',
                                 null=False)
-#     form=fields.CharField(readonly=True,
-#                           help_text=('JavaScript Representation of form' + 
-#                                      ' (pass genform=1 as a GET parameter' +
-#                                      ' to generate)'))
     status=fields.CharField('status', readonly=True, null=True)
     tool_name=fields.CharField('tool_name', readonly=True, null=True)
     config=fields.CharField('config', readonly=True, null=True)
@@ -947,7 +943,8 @@ class JobResource(ModelResource):
                               help_text='Results of job')
     
     class Meta:
-        queryset = models.Job.objects.select_related('jobstatus_set').all()
+        queryset = models.Job.objects.select_related('data_file',
+                                                     'jobstatus_set').all()
         authorization=JobResourceAuthorization()
         validation=JobResourceValidation()
         always_return_data = True
@@ -976,6 +973,7 @@ class JobResource(ModelResource):
         bundle.data['tool_name']=bundle.obj.tool.name
         bundle.data['status']=bundle.obj.get_status_display()
         bundle.data['config']=json.dumps(bundle.obj.config);
+        bundle.data['file_name']=os.path.basename(bundle.obj.data_file.file.name)
         try:
             bundle.data['message']=bundle.obj.jobstatus_set.all()[0].message
             bundle.data['last_status']=bundle.obj.jobstatus_set.all()[0].timestamp

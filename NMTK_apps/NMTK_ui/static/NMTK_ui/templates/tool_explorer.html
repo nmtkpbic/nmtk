@@ -49,10 +49,9 @@
               <h3>Explore the Available Tools</h3>
             </div> <!-- /widget-header -->
             <div class="widget-content">
-              <h4 ng-hide="rest.tool.metadata.total_count">Please wait while the tool list is loaded.</h4>
-	  		  <section ng-show="rest.tool.metadata.total_count" id="tables">
+	  		  <section>
 			    <h4>Select a tool to learn more about it ({{rest.tool.metadata.total_count}} tools available.)</h4>	
-				<div ng-grid="gridOptions" style="height: 200px;"></div>
+				<div ng-grid="gridOptions" class="gridStyle" style="height: 200px;"></div>
 			  </section>
             </div> <!-- /widget-content -->
           </div> <!-- /widget stacked -->

@@ -119,8 +119,9 @@ def processResults(request):
     description="Results from '{0}'".format(request.NMTK_JOB.description)
     result=models.DataFile(user=request.NMTK_JOB.user,
                            name="Job Results",
-                           description=description)
-    result.type=result.JOB_RESULT
+                           description=description,
+                           result_field=config.get('result_field', 'results'),
+                           type=models.DataFile.JOB_RESULT)
     result.file.save('results',data, save=False)
     result.save(job=request.NMTK_JOB)
     if config['status'] == 'results':

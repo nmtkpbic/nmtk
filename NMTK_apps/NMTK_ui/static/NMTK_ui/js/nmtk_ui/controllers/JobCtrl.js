@@ -18,8 +18,6 @@ define([], function () {
 			$log.info('In JobCtrl');
 			$scope.changeTab('viewjob');
 			
-			
-			
 			$scope.openDialog=function(job) {
 				$log.info('Got (openDialog)', job);
 				$scope.view_job_opts = {
