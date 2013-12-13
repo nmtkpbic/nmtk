@@ -1,4 +1,3 @@
-  <div class="modal-dialog">
     <div class="modal-content">   
     <div class="modal-header">
         <button type="button" ng-click="close()" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
@@ -30,7 +29,7 @@
                 <p class="help-block">The data file will be used as the file input for the job (note: only files that have a status of "Import Complete" are shown here.)</p>
                  <select id="data_file" 
                          ng-model="jobdata.data_file" 
-                         ng-options="o.resource_uri as getFileStr(o) for o in rest.datafile|filter:{'status': 'Import Complete'}" >
+                         ng-options="o.resource_uri as getFileStr(o) for o in rest.datafile|filter:{'status': 'Complete'}" >
                 </select>
              </div>
           </div>
@@ -50,6 +49,5 @@
       <div class="modal-footer">
       <button  ng-click="close()" class="btn">Cancel</button>
       <button ng-click="save()" class="btn btn-primary">Save</button>
-    </div>
     </div>
     </div>

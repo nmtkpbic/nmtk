@@ -57,6 +57,7 @@ def generateColorRampLegendGraphic(min_text, max_text, height=16, width=258, bor
     draw=ImageDraw.Draw(im)
     start=border
     stop=height-border*2
+    fixed=False
     if max_text==min_text:
         fixed=True
     for i in range(border, width-border*2):
@@ -344,7 +345,8 @@ def importDataFile(datafile, job_id=None):
     from NMTK_server import models
     datafile.status_message=None
     try:
-        loader=NMTKDataLoader(datafile.file.path, srid=datafile.srid)
+        loader=NMTKDataLoader(datafile.file.path, 
+                              srid=datafile.srid)
         if loader.is_spatial:
             datafile.srid=loader.info.srid
             datafile.extent=geos.Polygon.from_bbox(loader.info.extent)

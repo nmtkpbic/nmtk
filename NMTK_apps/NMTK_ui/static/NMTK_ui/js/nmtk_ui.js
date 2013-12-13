@@ -22,13 +22,15 @@ require.config({
 		, "angular-leaflet": "lib/angular-leaflet-directive" // Directive to angularlize leaflet
 		, "leaflet": "lib/leaflet" // Library for the map UI stuff
 		, "respond": "lib/respond" // Respond js
+		, "ng-grid-flexible-height": "lib/ng-grid-flexible-height" // Flexi-height plugin for grid
+		, "ng-grid-layout": "lib/ng-grid-layout" // Rebuild columns when a column changes.
 		, "nmtk_ui_app": "nmtk_ui/nmtk_ui_app" // The NMTK UI components
 		/* Templates used for page rendering */
 		, "changePasswordTemplate": "../templates/changepassword.html" // Template to change password
 		, "configureTemplate": "../templates/configure.html" // template related to job configuration
 		, "createJobTemplate": "../templates/create_job_template.html" // template related to creating new jobs
 		, "deleteModalTemplate": "../templates/delete_modal.html" // Delete dialog modal template
-		, "downloadJobTemplate": "../templates/downloadjob.html" // Download job dialog
+		, "downloadDatafileTemplate": "../templates/downloaddatafile.html" // Download job dialog
 		, "feedbackTemplate": "../templates/feedback.html" // Grouse/Feedback dialog
 		, "filesTemplate": "../templates/files.html" // Template for managing job files
 		, "introTemplate": "../templates/intro.html" // Template for introduction page
@@ -38,6 +40,12 @@ require.config({
 		, "resultsTemplate": "../templates/results.html" // Results viewing template
 		, "explorerTemplate": "../templates/tool_explorer.html" // Explorer template
 		, "loginTemplate": "../templates/login.html" // Login template
+		, "fileInfoTemplate": "../templates/file_info.html" // Login template
+		, "fileActionsCellTemplate": "../templates/file_actions_cell.html" // Template for ng-grid file actions
+		, "jobActionsCellTemplate": "../templates/job_actions_cell.html" // Template for ng-grid job actions
+		, "viewJobModalTemplate": "../templates/view_job_modal.html" // Template for ng-grid file actions
+		, "switchJobModalTemplate": "../templates/switch_job_modal.html" // Template for ng-grid job actions
+
 	}
 	, shim: {
 	    "underscore": { exports: '_' }
@@ -50,7 +58,7 @@ require.config({
 	    , "jquery-fileupload": ["jquery", "jquery.ui.widget"]
 	    , "angular-leaflet": ["angular", "leaflet"]
 	    , "restangular": ["angular"]
-	    , "ng-grid": ["angular"]
+	    , "ng-grid": ["angular", "ng-grid-flexible-height", "ng-grid-layout"]
 	    , "angular-bootstrap": ["angular"]
 	    , "jquery": { exports: '$' }
 	}
@@ -69,7 +77,8 @@ require.config({
 // then we need not ever call them again...
 require(['require', 'jquery','html5shiv','json2',
          'jquery.ui.widget','jquery-fileupload','respond',
-         'jquery-iframe-transport', 'browserdetect'], 
+         'jquery-iframe-transport', 'browserdetect', 
+         'ng-grid-flexible-height', 'ng-grid-layout'], 
      function (require) {	
   	    require(['nmtk_ui_app'], function (nmtk_ui_app) {
   	    	nmtk_ui_app.initialize();

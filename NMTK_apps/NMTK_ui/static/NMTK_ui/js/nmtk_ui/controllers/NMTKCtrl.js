@@ -3,12 +3,12 @@ define(['underscore'
         , 'text!feedbackTemplate'
         , 'text!changePasswordTemplate'
         , 'text!passwordChangeStatusModalTemplate'
-        , 'text!downloadJobTemplate'
+        , 'text!downloadDatafileTemplate'
         , 'text!createJobTemplate'
         , 'text!loginTemplate'], 
 		function (_, deleteModalTemplate, feedbackTemplate, changePasswordTemplate,
 				passwordChangeStatusModalTemplate, 
-				downloadJobTemplate, createJobTemplate, loginTemplate) {	
+				downloadDatafileTemplate, createJobTemplate, loginTemplate) {	
 			"use strict";
 			var controller=['$scope','Restangular','$timeout','$modal','$location',
 			                '$http','$q', '$log',
@@ -47,7 +47,7 @@ define(['underscore'
 					$scope.rest={};
 					$scope.delete_candidate={};
 					$scope.job_config=undefined;
-					$scope.results_job=undefined;
+					$scope.preview_datafile=undefined;
 					$scope.views={}
 					$scope.switchView=function(view) {
 						$scope.views[view]=!$scope.views[view];
@@ -147,6 +147,14 @@ define(['underscore'
 									$scope.preferences={'divs': [] };
 								}
 							});
+						} else {
+							$scope.rest[api].then(null, function (error) {
+								if (error.status == 401) {
+									if ($scope.user.is_active) {
+										$scope.refreshData('user');
+									}
+								}
+							})
 						}
 					};
 					
@@ -164,7 +172,12 @@ define(['underscore'
 							alert('Please delete jobs for this file prior to deleting the file.')
 						});
 					}
-					
+					$scope.loginCheck=function () {
+						if (! $scope.user.is_active ) {
+							$scope.login({'redirect': $location.path() });
+							$location.path('/');
+						}
+					}
 					$scope.removeFile=function (api, id, name, type) {
 						var modal_dialog=$modal.open({
 							controller: 'DeleteCtrl',
@@ -307,7 +320,7 @@ define(['underscore'
 							});
 						});
 					}
-					$scope.login=function (redirect) {
+					$scope.login=function (options) {
 						var modal_instance=$modal.open({template: loginTemplate,
 								     				    scope: $scope,
 								     				    controller: 'LoginCtrl',
@@ -316,8 +329,12 @@ define(['underscore'
 						modal_instance.result.then(function (result) {
 							$scope.refreshData('user');
 							$scope.rest['user'].then(function (data) {
-								if (typeof redirect !== 'undefined') {
-									$location.path(redirect);
+								if (typeof options !== 'undefined') {
+									if (typeof options.redirect !== 'undefined') {
+										$location.path(options.redirect);
+									} else if (typeof options.post_func !== 'undefined') {
+										options.post_func();
+									}
 								}
 							});
 						});
@@ -344,32 +361,36 @@ define(['underscore'
 						}
 					};
 					
-					$scope.downloadJob=function (job) {
-						var d=$modal.open({ template:  downloadJobTemplate, 
-											controller: 'DownloadJobCtrl',
-											resolve:{ job: function () { return job; } },
+					$scope.downloadDatafile=function (datafile) {
+						var d=$modal.open({ template:  downloadDatafileTemplate, 
+											controller: 'DownloadDatafileCtrl',
+											resolve:{ datafile: function () { return datafile; } },
 											scope: $scope
 										  });
 					}
 					
-					$scope.createJob=function (tool_uri) {
-						var modal_instance=$modal.open({scope: $scope,
-														backdrop: true,
-														resolve: {'tool': function () { return tool_uri; }},
-														template:  createJobTemplate, // OR: templateUrl: 'path/to/view.html',
-														controller: 'CreateJobCtrl'});
-						modal_instance.result.then(function(result) {
-							$scope.resources['job'].post(result).then(function (api_result) {
-								$scope.refreshData('job');
-								$scope.rest['job'].then(function () {
-									$location.path('/job/' +
-												   api_result.resource_uri.split('/').reverse()[1] + '/');
-								});
-							});			
-						});
-						$log.info('Creating a new job!');
+					$scope.createJob=function (tool_uri, data_file_uri) {
+						if (! $scope.user.is_active) {
+							$scope.login({'post_func': function () { $scope.createJob(tool_uri, data_file_uri) }});
+						} else {
+							var modal_instance=$modal.open({scope: $scope,
+															backdrop: true,
+															resolve: {'tool': function () { return tool_uri; },
+																      'data_file': function () { return data_file_uri; }},
+															template:  createJobTemplate, // OR: templateUrl: 'path/to/view.html',
+															controller: 'CreateJobCtrl'});
+							modal_instance.result.then(function(result) {
+								$scope.resources['job'].post(result).then(function (api_result) {
+									$scope.refreshData('job');
+									$scope.rest['job'].then(function () {
+										$location.path('/job/' +
+													   api_result.resource_uri.split('/').reverse()[1] + '/');
+									});
+								});			
+							});
+							$log.info('Creating a new job!');
+						}
 					};
-					
 				}
 			];
 			return controller;

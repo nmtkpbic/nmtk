@@ -63,11 +63,11 @@
                     <span>Configure Job</span>
                </a>         
           </li>
-          <li ng-show="results_job && user.is_active" class="ng-cloak"
-           id="results-tab" ng-class="{'active': (activeTab == 'results')}">                    
-               <a ng-href="#/results/{% templatetag openvariable %}results_job{% templatetag closevariable %}/">
+          <li ng-show="preview_datafile && user.is_active" class="ng-cloak"
+           id="datafile_view-tab" ng-class="{'active': (activeTab == 'datafile_view')}">                    
+               <a ng-href="#/results/{% templatetag openvariable %}preview_datafile.id{% templatetag closevariable %}/">
               <i class="glyphicon glyphicon-tower"></i> 
-                    <span>Job Results</span>
+                    <span>View Data</span>
                </a>
           </li>
           

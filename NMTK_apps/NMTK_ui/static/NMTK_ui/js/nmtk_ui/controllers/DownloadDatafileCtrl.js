@@ -1,16 +1,20 @@
 define([], function () {	
 	"use strict";
-	var controller=['$scope','$log','$modalInstance','job',
-        function ($scope, $log, $modalInstance, job) {
-			$scope.job_id=job.job_id;
+	var controller=['$scope','$log','$modalInstance','datafile',
+        function ($scope, $log, $modalInstance, datafile) {
+		$log.debug(datafile);
+			$scope.datafile_id=datafile.id;
 			var api_path=CONFIG.api_path;
-			$scope.format_types={'Comma Separated Values': 'csv',
-								 'GeoJSON': 'geojson',
-								 'Microsoft Excel Format (xls)': 'xls'};
 			if (/\//.test(CONFIG.api_path)) {
 				  api_path=CONFIG.api_path.substring(0, CONFIG.api_path.length-1);
 			}
-			$scope.download_url=job.results;
+			$scope.download_url=datafile.download_url;
+			if (datafile.srid) {
+				$scope.spatial=true;
+			} else {
+				$scope.spatial=false;
+			}
+			$scope.file_url=datafile.file;
 			$scope.close=function () {
 				$modalInstance.dismiss();
 			}

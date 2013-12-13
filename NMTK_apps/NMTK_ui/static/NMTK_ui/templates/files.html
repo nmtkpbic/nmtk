@@ -5,34 +5,6 @@
     <input type="submit" name="submit" value="Upload File" />
 </script>
 
-<script type="text/ng-template"  id="file_info.html">
-<div class="modal-dialog">
-  <div class="modal-content">
-    <div class="modal-header">
-    <h3>View and Edit file details</h3>
-    </div>
-    <div class="modal-body">
-      <div class="row">
-        <div class="col-md-12">
-          <div class="control-group" ng-repeat="field in fields|filter:filterSpatial">
-             <label class="control-group" for="{{field.field}}">{{field.display_name}}</label>
-             <div class="controls">
-                <p class="help-block">{{field.description}}</p>
-                <input ng-disabled="field.disabled" type="text" class="input" 
-                 name="{{field.field}}" id="{{field.field}}" ng-model="filedata[field.field]"></input>
-             </div>
-          </div>
-        </div>
-      </div>
-	</div>
-	<div class="modal-footer">
-      <button  ng-click="close()" class="btn">Cancel</button>
-      <button ng-click="save()" class="btn btn-primary">Save</button>
-	</div>	 
-  </div>
-</div>
-</script>
-
 <div class="container">
    <div class="row">
    	  
@@ -113,54 +85,9 @@
             <h3>Your Data Files</h3>
           </div> <!-- /widget-header -->
           <div class="widget-content">
-          	<h4 ng-hide="rest.datafile.metadata.total_count">Please wait while your file list is refreshed.</h4>
 			<section ng-show="rest.datafile.metadata.total_count" id="tables">
 			  <h4>Displaying datafiles {{rest.datafile.metadata.offset+1}} - {{rest.datafile.metadata.offset+rest.datafile.length}} (of {{rest.datafile.metadata.total_count}} available datafiles.)</h4>	
-				<table class="table table-bordered table-striped table-highlight"> 
-				  <thead>
-				   <tr>
-					  <th>Name</th>
-				  	  <th>Status</th>
-				  	  <th>Description</th>
-				  	  <th>Actions</th>
-				    </tr>
-				  </thead>
-				  <tbody>
-					<tr ng-repeat="datafile in rest.datafile">						            
-					  <td>{{ datafile.name }}</td>
-					  <td><i ng-show="datafile.status_message" class="message glyphicon glyphicon-exclamation-sign">
-					        <span>
-					        {{datafile.status_message}}
-					        </span>
-					      </i> 
-					      {{ datafile.status }} </td>
-					  <td>{{datafile.description}}</td>
-					  <td class="centered">
-					    <i ng-click="removeFile('datafile', datafile.id,
-					    						datafile.name, 'File')" 
-					       class="glyphicon glyphicon-trash"></i> 
-					    <i ng-click="openDialog(datafile)" 
-					       class="glyphicon glyphicon-info-sign icon-large"></i> 
-					  </td>
-				    </tr>						          
-				  </tbody>
-				</table>
-				<section id="paginations-pager">
-				  <div class="pagination" ng-show="rest.datafile.metadata.total_count > rest.datafile.metadata.limit">
-					<ul>
-					  <li ng-click="updateData('datafile',rest.datafile.metadata.offset-rest.datafile.metadata.limit)" ng-show="rest.datafile.metadata.offset > 0">
-						<a class="pager">Prev</a>
-					  </li>
-					  <li ng-repeat="n in [] | page:rest.datafile.metadata" 
-					      ng-click="updateData('datafile',n)" ng-class="{'active': (rest.datafile.metadata.offset == n)}" >
-						<a class="pager">{{n/rest.datafile.metadata.limit+1}}</a>
-					  </li>
-					  <li ng-click="updateData('datafile',rest.datafile.metadata.offset+rest.datafile.metadata.limit)" ng-show="rest.datafile.metadata.offset+rest.datafile.metadata.limit < rest.datafile.metadata.total_count">
-						<a class="pager">Next</a>
-					  </li>
-					</ul>
-				  </div> <!-- /pagination -->
-				</section>
+				<div ng-grid="gridOptions" class="gridStyle"></div>	
 			 </section>
           </div> <!-- /widget-content -->
         </div> <!-- /widget stacked -->

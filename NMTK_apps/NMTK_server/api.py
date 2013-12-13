@@ -622,16 +622,14 @@ class DataFileResource(ModelResource):
                                               user=request.user)
         except ObjectDoesNotExist:
             raise Http404
-        if rec and rec.results:
-            # if there are results, then they can download them
-            allow_download=True
+        allow_download=True
         if allow_download:
             if format == 'json': 
-                wrapper = FileWrapper(open(rec.results.path,'rb'))
+                wrapper = FileWrapper(open(rec.processed_file.path,'rb'))
                 response = HttpResponse(wrapper, content_type='application/json') #or whatever type you want there
-                response['Content-Length'] = rec.results.size
+                response['Content-Length'] = rec.processed_file.size
                 response['Content-Disposition'] = 'attachment; ' + \
-                                                  'filename="result.json"'
+                                                  'filename="data.json"'
                 return response
             elif format in ('csv','xls'):
                 if format == 'csv':
@@ -745,12 +743,12 @@ class DataFileResource(ModelResource):
                                                 'pk': bundle.obj.pk,
                                                 'api_name': 'v1'})
         if bundle.obj.processed_file:
-            bundle.data['geojson']=reverse("api_%s_download_detail" % 
-                                        (self._meta.resource_name,),
-                                        kwargs={'resource_name': self._meta.resource_name,
-                                                'pk': bundle.obj.pk,
-                                                'api_name': 'v1'})
-            
+            bundle.data['download_url']=reverse("api_%s_download_detail" % 
+                                                (self._meta.resource_name,),
+                                                kwargs={'resource_name': self._meta.resource_name,
+                                                        'pk': bundle.obj.pk,
+                                                        'api_name': 'v1'})
+                
         if bundle.obj.mapfile:
             bundle.data['wms_url']="%swms/" % (bundle.data['resource_uri'],)
             bundle.data['layer']='results'

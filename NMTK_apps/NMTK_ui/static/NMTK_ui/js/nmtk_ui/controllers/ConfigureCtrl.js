@@ -12,10 +12,10 @@ define(['underscore'], function (_) {
 			var jobid=$routeParams.jobid;
 			// Get Job, tool, and file information, then use them to generate the form
 			// configuration.
-			if (! $scope.user.is_active ) {
-				$scope.login($location.path());
-				$location.path('/');
-			}
+			$scope.loginCheck();
+			$scope.$watch('user', function () {
+				$scope.loginCheck();
+			});
 			$scope.tool_config=[];
 			var config_present=false;
 			if (typeof $scope.$parent.job_config !== 'undefined') {

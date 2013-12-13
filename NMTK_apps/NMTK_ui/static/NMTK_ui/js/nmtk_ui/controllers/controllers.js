@@ -15,7 +15,7 @@ define([
   , 'nmtk_ui/controllers/ConfigureCtrl' // Job configuration controller
   , 'nmtk_ui/controllers/CreateJobCtrl' // Controller for creating a new job
   , 'nmtk_ui/controllers/DeleteCtrl' // Ack modal for deleting a job
-  , 'nmtk_ui/controllers/DownloadJobCtrl' // Modal Controller to download job(s) NOT USED?
+  , 'nmtk_ui/controllers/DownloadDatafileCtrl' // Modal Controller to download job(s) NOT USED?
   , 'nmtk_ui/controllers/FeedbackCtrl' // Grouse facility controller
   , 'nmtk_ui/controllers/FileInfoUpdateCtrl' // Controller for file information update (modal)
   , 'nmtk_ui/controllers/FilesCtrl' // Controller for file management page
@@ -23,13 +23,13 @@ define([
   , 'nmtk_ui/controllers/JobCtrl' // Controller for Job management page
   , 'nmtk_ui/controllers/ToolExplorerCtrl' // Controller for Tool explorer page
   , 'nmtk_ui/controllers/ViewJobCtrl' // Controller for Viewing Job data (modal)
-  , 'nmtk_ui/controllers/ViewResultsCtrl' // Controller handling the view results page(s)
+  , 'nmtk_ui/controllers/ViewDatafileCtrl' // Controller handling the view results page(s)
   , 'nmtk_ui/controllers/LoginCtrl' // Controller handling the user login process
 ], function ( _, NMTKCtrl, SwitchJobCtrl, 
 		ChangePasswordCtrl, CloneConfigCtrl, ConfigureCtrl,
-		CreateJobCtrl, DeleteCtrl, DownloadJobCtrl, FeedbackCtrl,
+		CreateJobCtrl, DeleteCtrl, DownloadDatafileCtrl, FeedbackCtrl,
 		FileInfoUpdateCtrl, FilesCtrl, IntroCtrl, JobCtrl,
-		ToolExplorerCtrl, ViewJobCtrl, ViewResultsCtrl, LoginCtrl
+		ToolExplorerCtrl, ViewJobCtrl, ViewDatafileCtrl, LoginCtrl
 			 ) {
   "use strict";
   var controllers = {
@@ -40,7 +40,7 @@ define([
 	, "ConfigureCtrl": ConfigureCtrl
 	, "CreateJobCtrl": CreateJobCtrl
 	, "DeleteCtrl": DeleteCtrl
-	, "DownloadJobCtrl": DownloadJobCtrl
+	, "DownloadDatafileCtrl": DownloadDatafileCtrl
 	, "FeedbackCtrl": FeedbackCtrl
 	, "FileInfoUpdateCtrl": FileInfoUpdateCtrl
 	, "FilesCtrl": FilesCtrl
@@ -48,7 +48,7 @@ define([
 	, "JobCtrl": JobCtrl
 	, "ToolExplorerCtrl": ToolExplorerCtrl
 	, "ViewJobCtrl": ViewJobCtrl
-	, "ViewResultsCtrl": ViewResultsCtrl
+	, "ViewDatafileCtrl": ViewDatafileCtrl
 	, "LoginCtrl": LoginCtrl
   };
   

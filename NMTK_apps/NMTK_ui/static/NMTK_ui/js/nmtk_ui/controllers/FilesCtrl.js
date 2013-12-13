@@ -1,11 +1,12 @@
-define(['underscore'], function (_) {	
+define(['underscore', 'text!fileInfoTemplate', 'text!fileActionsCellTemplate'], 
+		function (_, fileInfoTemplate, fileActionsCellTemplate) {	
 	"use strict";
 	var controller=['$scope','$timeout','$route','$modal','$location', '$log',
         function ($scope, $timeout, $route, $modal, $location, $log) {
-			if (! $scope.user.is_active ) {
-				$scope.login($location.path());
-				$location.path('/');
-			}
+			$scope.loginCheck();
+			$scope.$watch('user', function () {
+				$scope.loginCheck();
+			});
 			$scope.enableRefresh(['datafile']);
 			$scope.changeTab('files');
 			
@@ -33,9 +34,9 @@ define(['underscore'], function (_) {
 				   }	 
 			});
 			
-			$scope.openDialog=function (record) {
+			$scope.fileInfo=function (record) {
 				$scope.opts = {
-					    templateUrl:  'file_info.html', // OR: templateUrl: 'path/to/view.html',
+					    template:  fileInfoTemplate, // OR: templateUrl: 'path/to/view.html',
 					    controller: 'FileInfoUpdateCtrl',
 					    resolve:{'record': function () { return record; }},
 					    scope: $scope
@@ -48,7 +49,7 @@ define(['underscore'], function (_) {
 					$scope.refreshData('datafile');
 				});
 			}
-			
+
 			$scope.gridOptions= {
 					 data: 'rest.datafile',
 					 showFooter: false,
@@ -56,15 +57,25 @@ define(['underscore'], function (_) {
 					 enableColumnResize: true,
 					 enableRowSelection: false,
 					 multiSelect: false,
+					 plugins: [new ngGridFlexibleHeightPlugin()],
 					 selectedItems: $scope.selections,
 					 columnDefs: [{field: 'name',
+						           width: '30%',
 						           displayName: 'File Name'},
 						          {field: 'status',
-						           displayName: 'Import Status'},
+						           width: '20%',
+						           displayName: 'Status'},
 						          {field: 'description',
+						           width: '45%',
+						           cellClass: 'cellWrapText',
 						           displayName: 'Description'},
 						          {field: 'actions',
-						           displayName: 'Actions'}],
+						           width: '5%',
+						           sortable: false,
+						           cellClass: 'cellCenterOverflow',
+						           cellTemplate: fileActionsCellTemplate,
+						           displayName: ''},
+						          ],
 					 showColumnMenu: false };
 		}
 	];

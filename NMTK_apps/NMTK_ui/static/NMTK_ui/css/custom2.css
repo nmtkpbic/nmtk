@@ -1,10 +1,3 @@
-
-.modal {
-    display: block;
-}
-
-
-
 .ng-cloak {
     display: none;
 }
@@ -23,10 +16,49 @@ td.centered, th.centered, div.centered {
   text-align: center;
 }
 
-
 .modal input, .modal select {
     width: 100%;
 }
 textarea {
     width: 90%;
+}
+
+/*
+ * Wrap text in cells - This hides cell data, so it's bad...
+ */
+/* .cellWrapText {
+    word-wrap: break-word !important;
+    white-space: normal !important;
+} */
+
+/* 
+ * Allows tooltips over ng-grid cells to work properly, also helps with 
+ * drop downs
+ */
+.cellOverflow {
+    overflow: visible;
+}
+
+/* Same as above, but also center the content */
+.cellCenterOverflow {
+	text-align: center;
+	overflow: visible;
+}
+/*
+ * In the cases where we use a dropdown list, we need to reset
+ * the options so they are left-aligned again - this does that.
+ */
+.cellCenterOverflow .dropdown-menu {
+	text-align: left;
+}
+
+/*
+ * Normally ng-grid defines in (see ng-grid.css) a ngViewport class that
+ * uses overflow auto.  In the case of our drop-downs, we don't want this because
+ * it obscures the drop-down list.  So here we override it and set it to visible.
+ * The side effect here is that column resizing gets funkified...  So in many cases
+ * we simply remove that
+ */
+.ngViewport {
+	overflow: visible;
 }

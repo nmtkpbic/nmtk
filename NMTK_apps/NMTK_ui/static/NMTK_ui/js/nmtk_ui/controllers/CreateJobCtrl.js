@@ -1,17 +1,17 @@
 define([], function () {	
 	"use strict";
-	var controller=['$scope', '$modalInstance', '$log', 'tool',
+	var controller=['$scope', '$modalInstance', '$log', 'tool','data_file',
 	    /*
 		 * This controller is used to manage the create job dialog - which is used to 
 		 * choose a tool and data file so that a user can create a new job and get a
 		 * job configuration form.
 		 */
 		
-		function ($scope, $modalInstance, $log, tool) {
+		function ($scope, $modalInstance, $log, tool, data_file) {
 			$scope.jobdata={};
-			if (tool) {
-				$scope.jobdata['tool']=tool
-			}
+			$scope.jobdata['tool']=tool;
+			$scope.jobdata['data_file']=data_file;
+		
 			$scope.getFileStr=function (o) {
 				if (o.description) {
 					return o.name + ' (' + o.description + ')';

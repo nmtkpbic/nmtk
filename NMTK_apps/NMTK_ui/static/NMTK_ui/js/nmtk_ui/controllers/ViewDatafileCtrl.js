@@ -9,13 +9,13 @@ define(['underscore','leaflet'], function (_, L) {
 	        
 		function ($scope, $routeParams, $location, $log, $http, $timeout, 
 				  leafletData) {
-			if (! $scope.user.is_active ) {
-				$scope.login($location.path());
-				$location.path('/');
-			}
-			$scope.jobid=$routeParams.jobid;
-			$scope.$parent.results_job=$scope.jobid;
-			$scope.changeTab('results');
+			$scope.loginCheck();
+			$scope.$watch('user', function () {
+				$scope.loginCheck();
+			});
+			$scope.datafile_id=$routeParams.datafile_id;
+			$scope.$parent.preview_datafile=$scope.datafile_id;
+			$scope.changeTab('datafile_view');
 			$scope.filterOptions= { filterText: "",
 									userExternalFilter: true };
 							

@@ -1,0 +1,13 @@
+<div class="btn-group">
+  <button type="button" class="btn btn-default btn-xs dropdown-toggle">
+    Action <span class="caret"></span>
+  </button>
+  <ul class="dropdown-menu" role="menu">
+    <li><a ng-click="fileInfo(row.entity)"><i class="glyphicon glyphicon-info-sign"></i> File Details</a></li>
+    <li><a ng-click="downloadDatafile(row.entity)"><i class="glyphicon glyphicon-cloud-download"></i> Download Data</a></li>
+    <li><a ng-click="viewResults(row.entity)"><i class="glyphicon glyphicon-eye-open"></i> View Data</a></li>
+    <li><a ng-click="createJob(null, row.entity.resource_uri)"><i class="glyphicon glyphicon-eye-open"></i> Create Job</a></li>
+    <li class="divider"></li>
+    <li><a class="" ng-click="removeFile('datafile',row.id,row.description,'Data File')"><i class="glyphicon glyphicon-trash"></i> Delete File</a></li>
+  </ul>
+</div>

@@ -117,16 +117,18 @@ def processResults(request):
     config=json.loads(request.FILES['config'].read())
     data=ContentFile(request.FILES['data'].read())
     description="Results from '{0}'".format(request.NMTK_JOB.description)
-    result=models.DataFile(user=request.NMTK_JOB.user,
-                           name="Job Results",
-                           description=description,
-                           result_field=config.get('result_field', 'results'),
-                           type=models.DataFile.JOB_RESULT)
-    result.file.save('results',data, save=False)
-    result.save(job=request.NMTK_JOB)
     if config['status'] == 'results':
+        result=models.DataFile(user=request.NMTK_JOB.user,
+                               name="job_%s_results" % (request.NMTK_JOB.pk,),
+                               description=description,
+                               result_field=config.get('result_field', 'result'),
+                               content_type=config.get('content_type', 'application/json'),
+                               type=models.DataFile.JOB_RESULT)
+        result.file.save('results', data, save=False)
         request.NMTK_JOB.status=request.NMTK_JOB.POST_PROCESSING
-        request.NMTK_JOB.result_field=config.get('result_field', 'results')
+        # Pass in the job here so that the data file processor knows to
+        # update the job when this is done.
+        result.save(job=request.NMTK_JOB)
         request.NMTK_JOB.results=result
     elif config['status'] == 'error':
         request.NMTK_JOB.status=request.NMTK_JOB.FAILED
@@ -136,7 +138,7 @@ def processResults(request):
                      timestamp=timezone.now(),
                      job=request.NMTK_JOB).save()
     return HttpResponse(json.dumps({'status': 'Results saved'}),
-                        content_type='application/json')    
+                        content_type='application/json')
     
 def logout_page(request):
     """

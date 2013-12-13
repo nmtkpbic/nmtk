@@ -1,4 +1,7 @@
-define([], function () {	
+define(['text!jobActionsCellTemplate'
+        , 'text!viewJobModalTemplate'
+        , 'text!switchJobModalTemplate'], function (jobActionsCellTemplate,
+        		viewJobModalTemplate, switchJobModalTemplate) {	
 	"use strict";
 	var controller=['$scope','$routeParams','$modal','$position','$location','$log',
 		/*
@@ -8,10 +11,10 @@ define([], function () {
 		 */
 		
 		function ($scope, $routeParams, $modal, $position, $location, $log) {
-			if (! $scope.user.is_active ) {
-				$scope.login($location.path());
-				$location.path('/');
-			}
+			$scope.loginCheck();
+			$scope.$watch('user', function () {
+				$scope.loginCheck();
+			});
 			$scope.enableRefresh(['job']);
 			$scope.refreshData('job');
 			//var jobid=$routeParams.jobid;
@@ -19,12 +22,11 @@ define([], function () {
 			$scope.changeTab('viewjob');
 			
 			$scope.openDialog=function(job) {
-				$log.info('Got (openDialog)', job);
 				$scope.view_job_opts = {
 					backdrop: true,
 					keyboard: true,
 					backdropClick: true,
-					templateUrl:  'view_job.html', // OR: templateUrl: 'path/to/view.html',
+					template:  viewJobModalTemplate,
 					controller: 'ViewJobCtrl',
 					resolve: { jobdata: function () { return job; } }
 				};
@@ -36,16 +38,7 @@ define([], function () {
 						});
 					}
 				});
-			};
-		
-			$scope.importResults=function (job) {
-				$log.info('Got (importResults)', job);
-			};
-			
-			$scope.viewResults=function (job) {
-				$scope.$parent.results_job=job;
-				$location.path('/results/' + job.id + '/');
-			};
+			};					
 		}
 	];
 	return controller;
