@@ -1,53 +1,55 @@
-    <div class="modal-content">   
+<div class="modal-content">   
     <div class="modal-header">
         <button type="button" ng-click="close()" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
         <h3 class="modal-title" id="create_job_title">Create Job</h3>
     </div>
-    <div class="modal-body">
-      <div class="row">
-        <div class="col-md-12">
-          <div class="control-group">
-             <label class="control-group" for="description">Enter a description for this job</label>
-             <div class="controls">
-                <p class="help-block">A description helps you to identify this job later.</p>
-                <input type="text" class="input" 
-                 name="description" id="description" ng-model="jobdata.description"></input>
-             </div>
-          </div>
-          <div class="control-group">
-             <label class="control-group" for="tool">Choose the tool you wish to use for this job</label>
-             <div class="controls">
-                <p class="help-block">The tool indicates the tool server used to execute this job.</p>
-                 <select id="tool" 
-                        ng-model="jobdata.tool" ng-options="o.resource_uri as o.name for o in rest.tool" >
-                </select>
-             </div>
-          </div>
-          <div class="control-group">
-             <label class="control-group" for="data_file">Choose the data file you wish to use for this job</label>
-             <div class="controls">
-                <p class="help-block">The data file will be used as the file input for the job (note: only files that have a status of "Import Complete" are shown here.)</p>
-                 <select id="data_file" 
-                         ng-model="jobdata.data_file" 
-                         ng-options="o.resource_uri as getFileStr(o) for o in rest.datafile|filter:{'status': 'Complete'}" >
-                </select>
-             </div>
-          </div>
-          <!--
-          <div class="control-group">
-             <label class="control-group" for="email">Email Upon Job Completion</label>
-             <div class="controls">
-                <p class="help-block">The NMTK server can notify you via email when your job completes.</p>
-                <input type="checkbox" class="input"  value="true"
-                 name="email" id="email" ng-model="jobdata.email"></input>
-             </div>
-          </div>
-          -->
-        </div>
-      </div>
-      </div>
+    <form novalidate name="form">
+      <div class="modal-body">
+		<div class="row">
+	        <div class="col-md-12">
+	          <div class="control-group">
+	             <label class="control-group" for="description">Enter a description for this job</label>
+	             <div class="controls">
+	                <p class="help-block">A description helps you to identify this job later.</p>
+	                <input required type="text" class="input" 
+	                 name="description" id="description" ng-model="jobdata.description"></input>
+	             </div>
+	          </div>
+	          <div class="control-group">
+	             <label class="control-group" for="tool">Choose the tool you wish to use for this job</label>
+	             <div class="controls">
+	                <p class="help-block">The tool indicates the tool server used to execute this job.</p>
+	                 <select required id="tool" 
+	                        ng-model="jobdata.tool" ng-options="o.resource_uri as o.name for o in rest.tool" >
+	                </select>
+	             </div>
+	          </div>
+	          <div class="control-group">
+	             <label class="control-group" for="data_file">Choose the data file you wish to use for this job</label>
+	             <div class="controls">
+	                <p class="help-block">The data file will be used as the file input for the job (note: only files that have a status of "Import Complete" are shown here.)</p>
+	                 <select required id="data_file" 
+	                         ng-model="jobdata.data_file" 
+	                         ng-options="o.resource_uri as getFileStr(o) for o in rest.datafile|filter:{'status': 'Complete'}" >
+	                </select>
+	             </div>
+	          </div>
+	          <!--
+	          <div class="control-group">
+	             <label class="control-group" for="email">Email Upon Job Completion</label>
+	             <div class="controls">
+	                <p class="help-block">The NMTK server can notify you via email when your job completes.</p>
+	                <input type="checkbox" class="input"  value="true"
+	                 name="email" id="email" ng-model="jobdata.email"></input>
+	             </div>
+	          </div>
+	          -->
+	        </div>
+	      </div>
+	  </div>
       <div class="modal-footer">
       <button  ng-click="close()" class="btn">Cancel</button>
-      <button ng-click="save()" class="btn btn-primary">Save</button>
-    </div>
-    </div>
+      <button ng-click="save()" ng-disabled="form.$invalid" class="btn btn-primary">Save</button>
+      </div>
+   </form>
+</div>

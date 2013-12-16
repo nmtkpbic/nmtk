@@ -1,0 +1,14 @@
+<div class="btn-group">
+  <button type="button" class="btn btn-default btn-xs dropdown-toggle">
+    Action <span class="caret"></span>
+  </button>
+  <ul class="dropdown-menu" role="menu">
+    <li><a ng-click="downloadDatafile(row.entity)"><i class="glyphicon glyphicon-cloud-download"></i> Download Results</a></li>
+    <li><a ng-click="viewResults(row.entity)"><i class="glyphicon glyphicon-eye-open"></i> View Results</a></li>
+    <li><a ng-show="row.entity.status == 'Configuration Pending'" ng-click="configureJob(row.entity)"><i class="glyphicon glyphicon-list"></i> Configure Job</a></li>
+    <li><a ng-hide="row.entity.status == 'Configuration Pending'" ng-click="configureJob(row.entity)"><i class="glyphicon glyphicon-list"></i> View Configuration</a></li>
+    <li class="divider"></li>
+    <li ng-hide="row.entity.status != 'Complete'"><a class="" ng-click="removeFile('job',row.entity.id,row.entity.description,'Job')"><i class="glyphicon glyphicon-trash"></i> Remove Job</a></li>
+    <li ng-show="row.entity.status != 'Complete'"><a class="" ng-click="removeFile('job',row.entity.id,row.entity.description,'Job', 'Cancel')"><i class="glyphicon glyphicon-trash"></i> Cancel Job</a></li>
+  </ul>
+</div>

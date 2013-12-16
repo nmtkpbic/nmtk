@@ -35,87 +35,10 @@
                
           </div> <!-- /widget-header -->
           <div ng-show="isDivEnabled('nmtk_view_jobs')"  class="widget-content">
-            <h4 ng-hide="rest.job.metadata.total_count">Please wait while the job list is refreshed.</h4>
-            <section ng-show="rest.job.metadata.total_count" id="tables">
-			  <h4>Displaying Jobs {{rest.job.metadata.offset+1}} - {{rest.job.metadata.offset+rest.job.length}} (of {{rest.job.metadata.total_count}} jobs.)</h4>	
-              <table class="table table-bordered table-striped table-highlight"> 
-				  <thead>
-				   <tr>
-					  <th>Description</th>
-				  	  <th>Status</th>
-				  	  <th>Tool Reported Status</th>
-				  	  <th class="centered">Actions</th>
-				    </tr>
-				  </thead>
-				  <tbody >
-				    <tr ng-repeat="job in rest.job">
-				     <td><strong>{{job.description}}</strong>
-				     <br>Tool: <strong>{{job.tool_name}}</strong>
-				     <br>File: <strong>{{job.file_name}}</strong>
-				     </td>
-				     <td>{{job.status}}</td>
-				     <td ng-show="job.message">{{job.message}} at {{job.last_status}}
-				     </td>
-				     <td ng-hide="job.message">No Reported Status (or not yet available)</td>
-				     <td class="centered">
-				       <!-- Remove Job -->
-				       	<i tooltip="Delete job (retains results)"  ng-click="removeFile('job',
-					    																job.id,
-					    																job.description,
-					    																'Job')" 
-					    tooltip-placement="left" class="glyphicon glyphicon-trash"></i> 
-
-					    <!-- Edit Job -->
-					    <i tooltip="View and Edit Job Details" tooltip-placement="left"
-					       ng-click="openDialog(job)" class="glyphicon glyphicon-info-sign"></i> 
-
-					    
-					    <!-- Configure Job -->
-					    <i tooltip="Configure Job (or view configuration)" tooltip-placement="left"
-					       ng-click="configureJob(job)" 
-					       class="glyphicon glyphicon-asterisk"></i> 
-					    <br>
-					    <span ng-show="job.results">
-					      <!-- Download Results -->
-					
-					      <i tooltip="Download results" tooltip-placement="left"
-					         ng-click="downloadJob(job)" 
-					   	     class="glyphicon glyphicon-cloud-download "></i>
-					      
-					      
-					      <!-- View Results -->
-					      <i  tooltip="View job results" tooltip-placement="left"
-					         ng-click="viewResults(job)" 
-					         class="glyphicon glyphicon-eye-open "></i> 
-					     
-					      <!-- Import Results -->
-					      <i tooltip-placement="left" 
-					         tooltip="Add results to library"
-					         ng-click="importResults(job)" 
-					         class="glyphicon glyphicon-cloud-upload "></i>    
-					    </span>        
-				       </td>
-				     </tr>
-				  </tbody>
-			    </table>
-			  </section>
-			  <section id="paginations-pager">
-				  <div class="pagination" ng-show="rest.job.metadata.total_count > rest.job.metadata.limit">
-					<ul>
-					  <li ng-click="updateData('job',rest.job.metadata.offset-rest.job.metadata.limit)" ng-show="rest.job.metadata.offset > 0">
-						<a class="pager">Prev</a>
-					  </li>
-					  <li ng-repeat="n in [] | page:rest.job.metadata" 
-					      ng-click="updateData('job',n)" ng-class="{'active': (rest.job.metadata.offset == n)}" >
-						<a class="pager">{{n/rest.job.metadata.limit+1}}</a>
-					  </li>
-					  <li ng-click="updateData('job',rest.job.metadata.offset+rest.job.metadata.limit)" 
-					      ng-show="rest.job.metadata.offset+rest.job.metadata.limit < rest.job.metadata.total_count">
-						<a class="pager">Next</a>
-					  </li>
-					</ul>
-				  </div> <!-- /pagination -->
-            </section>
+            <section id="tables">
+			  <h4>Displaying {{rest.job.metadata.total_count}} Jobs</h4>	
+				<div ng-grid="gridOptions" class="gridStyle"></div>	
+			</section>
           </div> <!-- /widget-content -->
         </div><!-- /widget stacked -->
       </div><!-- /span12 -->
