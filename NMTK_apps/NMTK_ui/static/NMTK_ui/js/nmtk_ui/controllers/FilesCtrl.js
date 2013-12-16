@@ -69,7 +69,7 @@ define(['underscore', 'text!fileInfoTemplate', 'text!fileActionsCellTemplate'],
 						           width: '45%',
 						           cellClass: 'cellWrapText',
 						           displayName: 'Description'},
-						          {field: 'actions',
+						          {
 						           width: '5%',
 						           sortable: false,
 						           cellClass: 'cellCenterOverflow',

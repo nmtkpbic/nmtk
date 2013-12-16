@@ -43,6 +43,8 @@ require.config({
 		, "fileInfoTemplate": "../templates/file_info.html" // Login template
 		, "fileActionsCellTemplate": "../templates/file_actions_cell.html" // Template for ng-grid file actions
 		, "jobActionsCellTemplate": "../templates/job_actions_cell.html" // Template for ng-grid job actions
+		, "jobStatusCellTemplate": "../templates/job_status_cell.html" // Template for ng-grid job actions
+		, "jobDescriptionCellTemplate": "../templates/job_description_cell.html" // Template for ng-grid job actions
 		, "viewJobModalTemplate": "../templates/view_job_modal.html" // Template for ng-grid file actions
 		, "switchJobModalTemplate": "../templates/switch_job_modal.html" // Template for ng-grid job actions
 

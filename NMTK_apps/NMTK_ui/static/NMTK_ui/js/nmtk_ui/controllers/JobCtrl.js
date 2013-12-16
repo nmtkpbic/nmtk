@@ -1,7 +1,10 @@
 define(['text!jobActionsCellTemplate'
         , 'text!viewJobModalTemplate'
-        , 'text!switchJobModalTemplate'], function (jobActionsCellTemplate,
-        		viewJobModalTemplate, switchJobModalTemplate) {	
+        , 'text!switchJobModalTemplate'
+        , 'text!jobDescriptionCellTemplate'
+        , 'text!jobStatusCellTemplate'], function (jobActionsCellTemplate,
+        		viewJobModalTemplate, switchJobModalTemplate,
+        		jobDescriptionCellTemplate, jobStatusCellTemplate) {	
 	"use strict";
 	var controller=['$scope','$routeParams','$modal','$position','$location','$log',
 		/*
@@ -38,7 +41,35 @@ define(['text!jobActionsCellTemplate'
 						});
 					}
 				});
-			};					
+			};		
+			$scope.gridOptions= {
+					 data: 'rest.job',
+					 showFooter: false,
+					 showFilter: true,
+					 rowHeight: 75,
+					 enableColumnResize: false,
+					 enableRowSelection: false,
+					 multiSelect: false,
+					 plugins: [new ngGridFlexibleHeightPlugin()],
+					 selectedItems: $scope.selections,
+					 columnDefs: [{width: '50%',
+						 		   sortable: false,
+						           cellTemplate: jobDescriptionCellTemplate,
+						           displayName: 'Job Description'},
+						          {field: 'status',
+						           width: '15%',
+						           displayName: 'Status'},
+						          {width: '29%',
+					        	   sortable: false,
+						           cellTemplate: jobStatusCellTemplate,
+						           displayName: 'Tool Reported Status'},
+						          {width: '6%',
+						           sortable: false,
+						           cellClass: 'cellCenterOverflow',
+						           cellTemplate: jobActionsCellTemplate,
+						           displayName: ''},
+						          ],
+					 showColumnMenu: false };
 		}
 	];
 	return controller;

@@ -178,12 +178,16 @@ define(['underscore'
 							$location.path('/');
 						}
 					}
-					$scope.removeFile=function (api, id, name, type) {
+					$scope.removeFile=function (api, id, name, type, operation) {
+						if ((typeof(operation) === 'undefined') || (! operation) ) {
+							operation='Delete';
+						}
 						var modal_dialog=$modal.open({
 							controller: 'DeleteCtrl',
 							resolve: {api: function () { return api; },
 								      id: function () { return id; },
 								      name: function () { return name; },
+								      operation: function () { return operation; },
 								      type: function () { return type; },},
 							template: deleteModalTemplate
 						});
