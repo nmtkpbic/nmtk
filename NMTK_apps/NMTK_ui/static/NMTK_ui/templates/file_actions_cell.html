@@ -5,7 +5,7 @@
   <ul class="dropdown-menu" role="menu">
     <li><a ng-click="fileInfo(row.entity)"><i class="glyphicon glyphicon-info-sign"></i> File Details</a></li>
     <li><a ng-click="downloadDatafile(row.entity)"><i class="glyphicon glyphicon-cloud-download"></i> Download Data</a></li>
-    <li><a ng-href="#/results/file/{{row.entity.id}}/"><i class="glyphicon glyphicon-eye-open"></i> View Data</a></li>
+    <li><a ng-href="#/view_file/{{row.entity.id}}/"><i class="glyphicon glyphicon-eye-open"></i> View Data</a></li>
     <li><a ng-click="createJob(null, row.entity.resource_uri)"><i class="glyphicon glyphicon-cog"></i> Create Job</a></li>
     <li class="divider"></li>
     <li><a class="" ng-click="removeFile('datafile',row.entity.id,row.entity.description,'Data File')"><i class="glyphicon glyphicon-trash"></i> Delete File</a></li>

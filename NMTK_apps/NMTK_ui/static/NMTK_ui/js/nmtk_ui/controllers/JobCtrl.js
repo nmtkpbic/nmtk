@@ -15,9 +15,6 @@ define(['text!jobActionsCellTemplate'
 		
 		function ($scope, $routeParams, $modal, $position, $location, $log) {
 			$scope.loginCheck();
-			$scope.$watch('user', function () {
-				$scope.loginCheck();
-			});
 			$scope.enableRefresh(['job']);
 			$scope.refreshData('job');
 			//var jobid=$routeParams.jobid;

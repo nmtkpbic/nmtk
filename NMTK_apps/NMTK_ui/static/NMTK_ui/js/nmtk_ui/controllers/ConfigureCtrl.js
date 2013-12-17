@@ -9,13 +9,11 @@ define(['underscore'], function (_) {
 		 * the appropriate error messages in the template as well...
 		 */
 		function ($scope, $routeParams, $location, $modal, $log) {
+			$scope.loginCheck();
 			var jobid=$routeParams.jobid;
+			$scope.$parent.job_uri=$location.path();
 			// Get Job, tool, and file information, then use them to generate the form
 			// configuration.
-			$scope.loginCheck();
-			$scope.$watch('user', function () {
-				$scope.loginCheck();
-			});
 			$scope.tool_config=[];
 			var config_present=false;
 			if (typeof $scope.$parent.job_config !== 'undefined') {
@@ -101,9 +99,8 @@ define(['underscore'], function (_) {
 			$scope.enableRefresh([]);
 			$scope.changeTab('configurejob');
 			$scope.closeConfig=function () {
-				$log.info('Got close request?!?!');
-				$scope.$parent.job_config=undefined;
-				$scope.$parent.working_job_id=null;
+				$scope.$parent.job_uri=null;
+				$scope.$parent.job_config={};
 				$location.path('/job');
 			}
 			$scope.submit_job=function () {

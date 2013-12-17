@@ -62,10 +62,10 @@ define(['jquery'
 					  });
 			        }]).config(['$routeProvider', function ($routeProvider) {
 					  $routeProvider.
-					  	  when('/results/job/:job_id/', {controller: 'ViewDatafileCtrl',  
-					  		  							template: resultsTemplate}).
-					  	  when('/results/file/:datafile_id/', {controller: 'ViewDatafileCtrl',  
-					  		  							  	   template: resultsTemplate}).
+					  	  when('/view_results/:job_id/', {controller: 'ViewDatafileCtrl',  
+					  		  							  template: resultsTemplate}).
+					  	  when('/view_file/:datafile_id/', {controller: 'ViewDatafileCtrl',  
+					  		  							  	template: resultsTemplate}).
 					  	  when('/job', {controller: 'JobCtrl',  
 							  			template: jobTemplate}).
 					      when('/files', {controller: 'FilesCtrl',

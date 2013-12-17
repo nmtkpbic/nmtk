@@ -10,10 +10,9 @@ define(['underscore','leaflet'], function (_, L) {
 		function ($scope, $routeParams, $location, $log, $http, $timeout, 
 				  leafletData, Restangular, $q) {
 			$scope.loginCheck();
-			$scope.$watch('user', function () {
-				$scope.loginCheck();
-			});
 			$scope.changeTab('datafile_view');
+			$scope.$parent.results_uri=$location.path();
+			
 			if ($routeParams.job_id) {
 				$scope.job_api=Restangular.one('job', $routeParams.job_id).get();
 			} else {
@@ -114,11 +113,14 @@ define(['underscore','leaflet'], function (_, L) {
 				_.each($scope.selected_features, function (data) {
 					ids.push(data.nmtk_id);
 				});
-				if ($scope.leaflet.layers.overlays['highlight' + $scope.olcount]) {
-					delete $scope.leaflet.layers.overlays['highlight'+$scope.olcount];
+				if ($scope.spatial) {
+					if ($scope.leaflet.layers.overlays['highlight' + $scope.olcount]) {
+						delete $scope.leaflet.layers.overlays['highlight'+$scope.olcount];
+					}
 				}
 				$scope.olcount += 1;
-				if (ids.length) {
+				if ($scope.spatial) {
+					if (ids.length) {
 						$scope.leaflet.layers.overlays['highlight'+$scope.olcount]= {
 					            name: 'Selected Layers',
 					            type: 'wms',
@@ -130,6 +132,7 @@ define(['underscore','leaflet'], function (_, L) {
 					                    		transparent: true }
 					    }
 					}
+				}
 				$log.info('Got items selected!');
 				// If nothing is selected, select the first item
 				if ($scope.selected_selected.length == 0) {
@@ -332,16 +335,21 @@ define(['underscore','leaflet'], function (_, L) {
 					} else {
 						$scope.spatial=false;
 					}
-					$scope.getPagedDataAsync($scope.page_size, 0, '', 'nmtk_id');		
-					$scope.leaflet.layers.overlays['results']= {
-				            name: 'Tool Results',
-				            type: 'wms',
-				            visible: true,
-				            url: $scope.datafile.wms_url,
-				            layerOptions: { layers: $scope.datafile.layer,
-				                    		format: 'image/png',
-				                    		transparent: true }
-				    };
+					$scope.getPagedDataAsync($scope.page_size, 0, '', 'nmtk_id');	
+					if ($scope.spatial) {
+						$scope.leaflet.layers.overlays['results']= {
+					            name: 'Tool Results',
+					            type: 'wms',
+					            visible: true,
+					            url: $scope.datafile.wms_url,
+					            layerOptions: { layers: $scope.datafile.layer,
+					                    		format: 'image/png',
+					                    		transparent: true }
+					    };
+					}
+				}, function (error) {
+					$scope.$parent.results_uri=null;
+					$location.path('/files/');
 				});
 			};
 			if ($scope.job_api) {
@@ -357,6 +365,9 @@ define(['underscore','leaflet'], function (_, L) {
 						$scope.input_data=source;
 						process_data();
 					});	
+				}, function (error) {
+					$scope.$parent.results_uri=null;
+					$location.path('/job/');
 				});
 			} else {
 				process_data();
@@ -370,7 +381,7 @@ define(['underscore','leaflet'], function (_, L) {
 			
 		     
 			$scope.close=function () {
-				$scope.$parent.results_job=undefined;
+				$scope.$parent.results_uri=null;
 				$scope.back();
 			}
 		}

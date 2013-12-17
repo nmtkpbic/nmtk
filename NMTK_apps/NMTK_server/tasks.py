@@ -122,6 +122,8 @@ def generate_sqlite_database(datafile, loader):
             spatial=True
             geom_type=loader.info.type
             model_type, geos_func, mapfile_type=geomodel_mappings[geom_type]
+        else:
+            spatial=False
         db_created=False
         this_model=None
         colors=[]

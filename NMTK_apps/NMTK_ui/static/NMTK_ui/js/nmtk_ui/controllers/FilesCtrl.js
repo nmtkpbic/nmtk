@@ -3,10 +3,6 @@ define(['underscore', 'text!fileInfoTemplate', 'text!fileActionsCellTemplate'],
 	"use strict";
 	var controller=['$scope','$timeout','$route','$modal','$location', '$log',
         function ($scope, $timeout, $route, $modal, $location, $log) {
-			$scope.loginCheck();
-			$scope.$watch('user', function () {
-				$scope.loginCheck();
-			});
 			$scope.enableRefresh(['datafile']);
 			$scope.changeTab('files');
 			

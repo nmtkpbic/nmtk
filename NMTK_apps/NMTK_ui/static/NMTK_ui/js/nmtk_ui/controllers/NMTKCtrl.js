@@ -174,10 +174,17 @@ define(['underscore'
 					}
 					$scope.loginCheck=function () {
 						if (! $scope.user.is_active ) {
-							$scope.login({'redirect': $location.path() });
+							var path=$location.path();
 							$location.path('/');
+							$log.info('Running logincheck w/redirect to', path);
+							$scope.login({'redirect': path});
 						}
 					}
+
+					$scope.$watch('user', function () {
+						$scope.loginCheck();
+					});
+					
 					$scope.removeFile=function (api, id, name, type, operation) {
 						if ((typeof(operation) === 'undefined') || (! operation) ) {
 							operation='Delete';
@@ -251,7 +258,6 @@ define(['underscore'
 							   headers: {'X-CSRFToken': $scope.csrftoken }
 						}).success(function (data, status, headers, config) {
 							$scope.refreshData('user');
-							$location.path('/')
 						});
 					}
 					
@@ -380,7 +386,7 @@ define(['underscore'
 				        if (prevUrl) {
 				        	$location.path(prevUrl);
 				        } else {
-				        	$location.path('#/');
+				        	$location.path('/');
 				        }
 				    };
 					
