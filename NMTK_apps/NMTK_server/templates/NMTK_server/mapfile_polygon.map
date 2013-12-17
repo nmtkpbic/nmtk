@@ -101,11 +101,14 @@ MAP
       GML_INCLUDE_ITEMS "nmtk_feature_id"
     END
     
-    
     {% for color in colors %}
     CLASS
+      {% if static %}
+      NAME "All Results"
+      {% else %}
       NAME "Results between {{color.low}} and {{color.high}}"
       EXPRESSION ([result] >= {{color.low}} and [result] <= {{color.high}}) 
+      {% endif %}
       STYLE
         COLOR {{color.r}} {{color.g}} {{color.b}}
 	    OUTLINECOLOR 0 0 0

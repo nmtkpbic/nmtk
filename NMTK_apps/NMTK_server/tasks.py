@@ -204,6 +204,7 @@ def generate_sqlite_database(datafile, loader):
                 v += step or 1
             res=render_to_string('NMTK_server/mapfile_{0}.map'.format(mapfile_type), 
                                  {'datafile': datafile,
+                                  'static': min_result == max_result,
                                   'min': min_result,
                                   'max': max_result,
                                   'colors': colors,

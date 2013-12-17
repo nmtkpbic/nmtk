@@ -365,7 +365,31 @@ define(['underscore'
 						}
 					};
 					
-					$scope.downloadDatafile=function (datafile) {
+					/*
+					 * This little section of code handles returning to a previous
+					 * route, if one exists.
+					 */
+					var history = [];
+
+				    $scope.$on('$routeChangeSuccess', function() {
+				        history.push($location.$$path);
+				    });
+
+				    $scope.back = function () {
+				        var prevUrl = history.length > 1 ? history.splice(-2)[0] : "/";
+				        if (prevUrl) {
+				        	$location.path(prevUrl);
+				        } else {
+				        	$location.path('#/');
+				        }
+				    };
+					
+					$scope.downloadDatafile=function (datafile, datafile_uri) {
+						if (! datafile) {
+							datafile_uri=datafile_uri.replace(/\/+$/, "");
+							var id=datafile_uri.substring(datafile_uri.lastIndexOf("/")+1)
+							var datafile=Restangular.one('datafile', id).get();
+						} 
 						var d=$modal.open({ template:  downloadDatafileTemplate, 
 											controller: 'DownloadDatafileCtrl',
 											resolve:{ datafile: function () { return datafile; } },

@@ -1,21 +1,30 @@
 define(['underscore','leaflet'], function (_, L) {
 	"use strict";
 	var controller=['$scope','$routeParams','$location','$log','$http',
-	                '$timeout', 'leafletData',
+	                '$timeout', 'leafletData','Restangular', '$q',
         /*
 		 * A variant of the ViewResults Controller that uses leaflet-directive 
 		 * rather than leaflet directly.
 		 */
 	        
 		function ($scope, $routeParams, $location, $log, $http, $timeout, 
-				  leafletData) {
+				  leafletData, Restangular, $q) {
 			$scope.loginCheck();
 			$scope.$watch('user', function () {
 				$scope.loginCheck();
 			});
-			$scope.datafile_id=$routeParams.datafile_id;
-			$scope.$parent.preview_datafile=$scope.datafile_id;
 			$scope.changeTab('datafile_view');
+			if ($routeParams.job_id) {
+				$scope.job_api=Restangular.one('job', $routeParams.job_id).get();
+			} else {
+				$scope.job_api=null;
+				$scope.job=null;
+				$scope.datafile_id=$routeParams.datafile_id;
+				$scope.datafile_api=Restangular.one('datafile', $scope.datafile_id);
+			}
+			
+			$scope.$parent.preview_datafile=$scope.datafile_id;
+			
 			$scope.filterOptions= { filterText: "",
 									userExternalFilter: true };
 							
@@ -46,14 +55,14 @@ define(['underscore','leaflet'], function (_, L) {
 			
 			$scope.getPagedDataAsync=function(pageSize, offset, searchText, order){
 				$scope.paging_offset=offset;
-				if ($scope.job_data) {
+				if ($scope.datafile) {
 					var options={offset: offset,
 							     limit: pageSize,
 							     search: searchText,
 							     order_by: order,
 							     format: 'pager'};
-					$log.info('Making request for ', $scope.job_data.results, options);
-					$http.get($scope.job_data.results, {params: options}).success(function (data) {
+					$log.info('Making request for ', $scope.datafile.download_url, options);
+					$http.get($scope.datafile.download_url, {params: options}).success(function (data) {
 						$scope.totalServerItems=data.meta.total;
 						$scope.pagingOptions.currentPage=(data.meta.offset/data.meta.limit)+1
 						if ($scope.paging_offset > 0) {
@@ -66,17 +75,31 @@ define(['underscore','leaflet'], function (_, L) {
 						if ($scope.columnOptions.length == 0) {
 							$scope.columnOptions=[]
 							var visible=false;
-							var fields=JSON.parse($scope.input_data.fields);
-							fields.push('nmtk_feature_id');
-							_.each(data.data[0], function (col_val, col_name) {
-								if (_.indexOf(fields, col_name) == -1) {
-									visible=true;
-								} else {
-									visible=false;
-								}
-								$scope.columnOptions.push({ field: col_name,
-									                        visible: visible });
-							});
+							if ($scope.input_data) {
+								var fields=JSON.parse($scope.input_data.fields);
+								fields.push('nmtk_feature_id');
+								_.each(data.data[0], function (col_val, col_name) {
+									if (_.indexOf(fields, col_name) == -1) {
+										visible=true;
+									} else {
+										visible=false;
+									}
+									$scope.columnOptions.push({ field: col_name,
+										                        visible: visible });
+								});
+							} else {
+								var i=0;
+								_.each(data.data[0], function (col_val, col_name) {
+									if ((i <= 1) || (col_name=='nmtk_feature_id')) {
+										visible=true;
+									} else {
+										visible=false;
+									}
+									$scope.columnOptions.push({ field: col_name,
+										                        visible: visible});
+									i += 1;
+								});
+							}
 							$log.info($scope.columnOptions);
 						}
 					});
@@ -100,7 +123,7 @@ define(['underscore','leaflet'], function (_, L) {
 					            name: 'Selected Layers',
 					            type: 'wms',
 					            visible: true,
-					            url: $scope.job_data.wms_url,
+					            url: $scope.datafile.wms_url,
 					            layerOptions: { layers: "highlight",
 					            	            ids: ids.join(','),
 					                    		format: 'image/png',
@@ -111,7 +134,7 @@ define(['underscore','leaflet'], function (_, L) {
 				// If nothing is selected, select the first item
 				if ($scope.selected_selected.length == 0) {
 					$timeout(function () {
-						$scope.gridOptions2.selectItem(0, true);
+//						$scope.gridOptions2.selectItem(0, true);
 					}, 100);
 				}
 			}, true);
@@ -171,7 +194,7 @@ define(['underscore','leaflet'], function (_, L) {
 										 lon: e.leafletEvent.latlng.lng,
 										 zoom: leafletMap.getZoom(),
 										 format: 'query'}};
-					$http.get($scope.job_data.results, config).success(function (data) {
+					$http.get($scope.datafile.download_url, config).success(function (data) {
 						//$log.info('Result from query was %s', data);
 						$scope.selected_features=data.data;
 					})
@@ -201,14 +224,10 @@ define(['underscore','leaflet'], function (_, L) {
 			}
 			
 			$scope.selected_selected=[];
-			var layoutPlugin = new ngGridLayoutPlugin();
-			$scope.updateLayout = function(){
-			      layoutPlugin.updateGridLayout();
-			};
+
 		
 		    $scope.gridOptions2={data: 'selected_features',
 		    		             showColumnMenu: false,
-		    		             plugins: [layoutPlugin],
 		    		             multiSelect: false,
 		    		             columnDefs: 'columnOptions',
 		    		             showFooter: false,
@@ -301,35 +320,49 @@ define(['underscore','leaflet'], function (_, L) {
 			// Get the information about the input file - used to determine if this
 			// job has a spatial component to it and get the various URLs for data
 			// display.
-			$scope.resources['job'].one($scope.jobid).get().then(function (job_data) {
-				// Store the job data, then get the input file data as well, so we
-				// can determine what the input file fields are, and also so we can
-				// figure out if there is a spatial component to the results.
-				$scope.job_data=job_data;
-				var file_id=job_data.data_file.split('/').reverse()[1];
-				$scope.input_data=$scope.resources['datafile'].one(file_id).get().then(function (input_data) {
-					if (input_data.geom_type) {
-						$scope.bounds=getBounds(input_data.bbox);
+			var process_data=function () {
+				$scope.datafile_api.get().then(function (datafile) {
+					// Store the job data, then get the input file data as well, so we
+					// can determine what the input file fields are, and also so we can
+					// figure out if there is a spatial component to the results.
+					$scope.datafile=datafile;
+					if ($scope.datafile.geom_type) {
+						$scope.bounds=getBounds($scope.datafile.bbox);
+						$scope.spatial=true;
+					} else {
+						$scope.spatial=false;
 					}
-					$scope.input_data=input_data;
-					// Don't get the paged results until we load the datafile information,
-					// otherwise we cannot figure out the columns to display.
-					$scope.getPagedDataAsync($scope.page_size, 0, '', 'nmtk_id');
+					$scope.getPagedDataAsync($scope.page_size, 0, '', 'nmtk_id');		
+					$scope.leaflet.layers.overlays['results']= {
+				            name: 'Tool Results',
+				            type: 'wms',
+				            visible: true,
+				            url: $scope.datafile.wms_url,
+				            layerOptions: { layers: $scope.datafile.layer,
+				                    		format: 'image/png',
+				                    		transparent: true }
+				    };
 				});
-				
-				$scope.leaflet.layers.overlays['results']= {
-		            name: 'Tool Results',
-		            type: 'wms',
-		            visible: true,
-		            url: $scope.job_data.wms_url,
-		            layerOptions: { layers: $scope.job_data.layer,
-		                    		format: 'image/png',
-		                    		transparent: true }
-		    	};
-				
-				
-				
-			});
+			};
+			if ($scope.job_api) {
+				$scope.job_api.then(function (job) {
+					var source_uri=job.data_file.replace(/\/+$/, "");
+					var source_id=source_uri.substring(source_uri.lastIndexOf("/")+1)
+					var datafile_uri=job.results.replace(/\/+$/, "");
+					var id=datafile_uri.substring(datafile_uri.lastIndexOf("/")+1)
+					$scope.datafile_id=id;
+					$scope.job=job;
+					$scope.datafile_api=Restangular.one('datafile', id);
+					Restangular.one('datafile', source_id).get().then(function (source) {
+						$scope.input_data=source;
+						process_data();
+					});	
+				});
+			} else {
+				process_data();
+			}
+			
+			
 			
 			
 			// Handle the case when a user clicks on a spot on the map, we need to then
@@ -338,7 +371,7 @@ define(['underscore','leaflet'], function (_, L) {
 		     
 			$scope.close=function () {
 				$scope.$parent.results_job=undefined;
-				$location.path('/job/');
+				$scope.back();
 			}
 		}
 	];

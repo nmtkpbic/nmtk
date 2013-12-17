@@ -59,6 +59,7 @@ textarea {
  * The side effect here is that column resizing gets funkified...  So in many cases
  * we simply remove that
  */
-.ngViewport {
-	overflow: visible;
+
+.ngGridOverflow .ngViewport {
+	overflow: visible !important;
 }
