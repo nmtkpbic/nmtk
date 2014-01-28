@@ -6,7 +6,7 @@
             <i class="glyphicon glyphicon-info-sign"></i>
             <h3>Your Jobs</h3>            
             <i ng-class="{'glyphicon-chevron-right': !isDivEnabled('nmtk_jobs'), 'glyphicon-chevron-down': isDivEnabled('nmtk_jobs')}" 
-               class="navbar-right glyphicon"></i>          
+               class="navbar-right glyphicon ic-right"></i>          
           </div> <!-- /widget-header -->
           <div ng-show="isDivEnabled('nmtk_jobs')" class="widget-content">
             <p>
@@ -30,8 +30,8 @@
             <i class="glyphicon glyphicon-road"></i>
             <h3>Your Current Jobs</h3>
             <i ng-class="{'glyphicon-chevron-right': !isDivEnabled('nmtk_view_jobs'), 'glyphicon-chevron-down': isDivEnabled('nmtk_view_jobs')}" 
-               class="navbar-right glyphicon"></i>  
-            <button class="navbar-right btn btn-xs btn-primary" ng-click="createJob()" stop-event="click">Create a New Job</button>
+               class="navbar-right glyphicon ic-right"></i>  
+            <button class="navbar-right btn btn-xs btn-primary ic-right" ng-click="createJob()" stop-event="click">Create a New Job</button>
                
           </div> <!-- /widget-header -->
           <div ng-show="isDivEnabled('nmtk_view_jobs')"  class="widget-content">

@@ -3,6 +3,7 @@ from NMTK_server import models
 from django.conf.urls import patterns, include, url
 from tastypie.exceptions import Unauthorized
 from tastypie.authentication import SessionAuthentication
+from tastypie.http import HttpForbidden, HttpUnauthorized
 from tastypie import fields, utils
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout

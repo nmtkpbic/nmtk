@@ -705,7 +705,7 @@ h6 {
 .widget .widget-header [class*=" glyphicon"] {
   display: inline-block;
   margin-left: 13px;
-  margin-right: -2px;
+  margin-right: 13px;
   font-size: 16px;
   color: #555;
   vertical-align: middle;
@@ -1603,4 +1603,8 @@ content: '';
 }
 .navbar-inverse .navbar-form .search-query:focus {
 color: #000 !important;
+}
+.ic-right {
+	margin-right: 13px;
+	margin-top: 10px;
 }

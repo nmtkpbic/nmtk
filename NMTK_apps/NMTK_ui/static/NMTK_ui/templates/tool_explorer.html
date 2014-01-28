@@ -5,8 +5,8 @@
           <div ng-click="toggleDiv('toolexplorer_intro')" class="widget-header">
             <i class="glyphicon glyphicon-info-sign"></i>
             <h3>Tool Explorer Introduction</h3>
-            <i ng-hide="isDivEnabled('toolexplorer_intro')" class="navbar-right glyphicon glyphicon-chevron-right"></i>
-            <i ng-show="isDivEnabled('toolexplorer_intro')" class="navbar-right glyphicon glyphicon-chevron-down"></i>
+            <i ng-class="{'glyphicon-chevron-right': !isDivEnabled('toolexplorer_intro'), 'glyphicon-chevron-down': isDivEnabled('toolexplorer_intro')}"
+               class="navbar-right glyphicon ic-right"></i>
           </div> <!-- /widget-header -->
           <div ng-show="isDivEnabled('toolexplorer_intro')" class="widget-content">
           <p>

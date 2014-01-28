@@ -14,7 +14,7 @@
             <i class="glyphicon glyphicon-info-sign"></i>
             <h3>Your Files</h3>            
             <i ng-class="{'glyphicon-chevron-right': !isDivEnabled('nmtk_filehelp'), 'glyphicon-chevron-down': isDivEnabled('nmtk_filehelp')}" 
-               class="navbar-right glyphicon"></i>
+               class="navbar-right glyphicon ic-right"></i>
           </div> <!-- /widget-header -->
           <div ng-show="isDivEnabled('nmtk_filehelp')" class="widget-content">
             <p>
@@ -44,11 +44,11 @@
             <i class="glyphicon glyphicon-upload"></i>
             <h3>Add New Files</h3>
                         <i ng-class="{'glyphicon-chevron-right': !isDivEnabled('nmtk_fileupload_panel'), 'glyphicon-chevron-down': isDivEnabled('nmtk_fileupload_panel')}" 
-               class="navbar-right glyphicon"></i>
-            <button class="navbar-right btn btn-xs btn-primary" ng-click="switchView('classic_file_upload')" 
+               class="navbar-right glyphicon ic-right"></i>
+            <button class="navbar-right btn btn-xs btn-primary ic-right" ng-click="switchView('classic_file_upload')" 
                     stop-event="click" 
                     ng-show="(browser_name!='Explorer') && (views.classic_file_upload)">Drag &amp; Drop Upload</button>
-            <button class="navbar-right btn btn-xs btn-primary" ng-click="switchView('classic_file_upload')" 
+            <button class="navbar-right btn btn-xs btn-primary ic-right" ng-click="switchView('classic_file_upload')" 
                     stop-event="click" 
                     ng-show="(browser_name!='Explorer') && (!views.classic_file_upload)">Classic Upload Form</button>
 

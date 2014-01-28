@@ -49,6 +49,22 @@ In this installation, mapserver was compiled with the following configure argume
                 --with-png --with-jpeg --with-gif --with-zlib --with-gd 
                 --with-curl --with-geos --with-gdal --enable-python-mapscript
 
+PostgreSQL Installation
+=======================
+You need to install the PostgreSQL and PostGIS components as well, these can be downloaded from the PostgreSQL 
+repository.  The URL http://www.postgresql.org/download/linux/debian/ contains instructions for doing
+that.
+
+Once the PostgreSQL repository is installed, you'll need to install some additional packages::
+
+ * postgresql-9.3
+ * postgis
+ * postgresql-9.3-postgis-2.1 
+ * postgresql-9.3-postgis-2.1-scripts
+ * libgdal-dev
+ * gdal-bin
+
+
 Installation Instructions
 =========================
 
