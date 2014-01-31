@@ -933,7 +933,7 @@ class JobResource(ModelResource):
     job_id=fields.CharField('job_id', readonly=True)
     tool=fields.ToOneField(ToolResource, 'tool')
     data_file=fields.ToOneField(DataFileResource,'data_file',
-                                null=False)
+                                null=True)
     status=fields.CharField('status', readonly=True, null=True)
     tool_name=fields.CharField('tool_name', readonly=True, null=True)
     config=fields.CharField('config', readonly=True, null=True)
@@ -972,7 +972,8 @@ class JobResource(ModelResource):
         bundle.data['tool_name']=bundle.obj.tool.name
         bundle.data['status']=bundle.obj.get_status_display()
         bundle.data['config']=json.dumps(bundle.obj.config);
-        bundle.data['file_name']=os.path.basename(bundle.obj.data_file.file.name)
+        if bundle.obj.data_file:
+            bundle.data['file_name']=os.path.basename(bundle.obj.data_file.file.name)
         try:
             bundle.data['message']=bundle.obj.jobstatus_set.all()[0].message
             bundle.data['last_status']=bundle.obj.jobstatus_set.all()[0].timestamp

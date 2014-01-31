@@ -11,6 +11,10 @@ urlpatterns = patterns('',
     url(r'^MN_model/', include('MN_model.urls')),
     url(r'^SF_model/', include('SF_model.urls')),
 )
+if settings.DEBUG:
+   urlpatterns += patterns('',
+                           url(r'^test_tool/', include('test_tool.urls')),
+                           )
 
 # If the NMTK_server app is installed, then we need to include this
 # other stuff - the views, etc. for the server.

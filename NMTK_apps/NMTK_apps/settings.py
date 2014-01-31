@@ -12,6 +12,9 @@ LOGFILE_PATH=os.path.abspath(os.path.join(BASE_PATH, '..','..','logs'))
 # Used to initialize the sites model (see: NMTK_server/management/__init__.py)
 # This should be overridden by the VHOST name, but it is defaulted to the FQDN
 # since in most cases that will be the same.
+# It should be noted that if you use any kind of vhost setup, then this
+# probably won't work, and will result in all kinds of broken-ness :-) 
+
 SITE_DOMAIN=socket.getfqdn()
 DEBUG = True
 TEMPLATE_DEBUG = TASTYPIE_FULL_DEBUG = DEBUG
@@ -196,6 +199,12 @@ INSTALLED_APPS = (
     'kombu.transport.django',
     'tastypie',
 )
+# The test tool only gets installed if debug is set to true.
+if DEBUG:
+    INSTALLED_APPS=INSTALLED_APPS + (
+                                     'test_tool', # A sample tool designed for testing new stuff.
+                                     )
+
 
 # Define a GeoJSON serializer so we can serialize and return results of
 # various tasks in the GeoJSON format.

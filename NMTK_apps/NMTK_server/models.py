@@ -155,8 +155,8 @@ class Job(models.Model):
     date_created=models.DateTimeField(auto_now_add=True)
     status=models.CharField(max_length=32, choices=STATUS_CHOICES, default=UNCONFIGURED)
     #file=models.FileField(storage=fs, upload_to=lambda instance, filename: 'data_files/%s.geojson' % (instance.job_id,))
-    data_file=models.ForeignKey('DataFile', null=False, related_name='job_source',
-                                blank=False, on_delete=models.PROTECT)
+    data_file=models.ForeignKey('DataFile', null=True, related_name='job_source',
+                                blank=True, on_delete=models.PROTECT)
     results=models.OneToOneField('DataFile', null=True, related_name='job_result',
                                   on_delete=models.PROTECT)
     # This will contain the config data to be sent along with the job, in 

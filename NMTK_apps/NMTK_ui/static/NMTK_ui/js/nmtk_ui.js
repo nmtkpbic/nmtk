@@ -28,7 +28,7 @@ require.config({
 		/* Templates used for page rendering */
 		, "changePasswordTemplate": "../templates/changepassword.html" // Template to change password
 		, "configureTemplate": "../templates/configure.html" // template related to job configuration
-		, "createJobTemplate": "../templates/create_job_template.html" // template related to creating new jobs
+		, "createJobTemplate": "../templates/create_job_modal.html" // modal template related to creating new jobs
 		, "deleteModalTemplate": "../templates/delete_modal.html" // Delete dialog modal template
 		, "downloadDatafileTemplate": "../templates/downloaddatafile.html" // Download job dialog
 		, "feedbackTemplate": "../templates/feedback.html" // Grouse/Feedback dialog
