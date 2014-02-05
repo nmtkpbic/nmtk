@@ -32,6 +32,7 @@
       ],
       "type":"ConfigurationPage",
       "name":"results",
+      "namespace":"results",
       "label":"Result Variable"
     }
   ],
@@ -78,6 +79,8 @@
       ],
       "type":"File",
       "name":"data",
+      "namespace":"data",
+      "primary": true,
       "label":"Input File Fields"
     },
     {
@@ -142,6 +145,7 @@
       ],
       "type":"ConfigurationPage",
       "name":"coefficients",
+      "namespace":"coefficients",
       "label":"Coefficients"
     }
   ]

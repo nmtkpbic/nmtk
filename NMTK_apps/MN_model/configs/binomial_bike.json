@@ -24,7 +24,8 @@
           "required":true,
           "label":"Result Field",
           "type":"string",
-          "name":"result"
+          "name":"result",
+          "namespace":"result"
         }
       ],
       "type":"ConfigurationPage",
@@ -131,7 +132,9 @@
       "required":true,
       "label":"Input File Fields",
       "type":"File",
-      "name":"data"
+      "primary": true,
+      "name":"data",
+      "namespace":"data"
     },
     {
       "description":"These model parameters are the same for each feature, and reflect background conditions that apply to the entire model scenario.  Certain parameters here can be specified either as fields for each input feature, or as global parameters.  You must set the corresponding Input File Field to \"Global\" in order to use the corresponding value from this section.",
@@ -166,6 +169,7 @@
       ],
       "type":"ConfigurationPage",
       "name":"global",
+      "namespace":"global",
       "label":"Global Parameters"
     },
     {
@@ -307,6 +311,7 @@
       ],
       "type":"ConfigurationPage",
       "name":"coefficients",
+      "namespace":"coefficients",
       "label":"Coefficients"
     }
   ]

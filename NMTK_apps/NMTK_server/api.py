@@ -932,8 +932,8 @@ class JobResourceValidation(Validation):
 class JobResource(ModelResource):
     job_id=fields.CharField('job_id', readonly=True)
     tool=fields.ToOneField(ToolResource, 'tool')
-    data_file=fields.ToOneField(DataFileResource,'data_file',
-                                null=True)
+    data_files=fields.ToManyField(DataFileResource,'data_files',
+                                  null=True)
     status=fields.CharField('status', readonly=True, null=True)
     tool_name=fields.CharField('tool_name', readonly=True, null=True)
     config=fields.CharField('config', readonly=True, null=True)
@@ -972,8 +972,8 @@ class JobResource(ModelResource):
         bundle.data['tool_name']=bundle.obj.tool.name
         bundle.data['status']=bundle.obj.get_status_display()
         bundle.data['config']=json.dumps(bundle.obj.config);
-        if bundle.obj.data_file:
-            bundle.data['file_name']=os.path.basename(bundle.obj.data_file.file.name)
+#         if bundle.obj.data_file:
+#             bundle.data['file_name']=os.path.basename(bundle.obj.data_file.file.name)
         try:
             bundle.data['message']=bundle.obj.jobstatus_set.all()[0].message
             bundle.data['last_status']=bundle.obj.jobstatus_set.all()[0].timestamp
@@ -981,23 +981,6 @@ class JobResource(ModelResource):
             pass
         return bundle
     
-           
-#     def alter_list_data_to_serialize(self, request, data):
-#         '''
-#         Loop over the list of objects and count how many are currently pending,
-#         this is then used to update the importing count for the UI, so it knows
-#         how often to update itself (in milliseconds.)
-#         '''
-#         count=0
-#         for item in data['objects']:
-#             if item.obj.status in (item.obj.ACTIVE,):
-#                 count += 1
-#         if count:
-#             data['meta']['refresh_interval']=3000
-#         else:
-#             data['meta']['refresh_interval']=60000
-#         return data
-
 
         
     

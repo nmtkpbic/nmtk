@@ -3,11 +3,12 @@ define(['underscore'
         , 'text!feedbackTemplate'
         , 'text!changePasswordTemplate'
         , 'text!passwordChangeStatusModalTemplate'
+        , 'text!switchJobModalTemplate'
         , 'text!downloadDatafileTemplate'
         , 'text!createJobTemplate'
         , 'text!loginTemplate'], 
 		function (_, deleteModalTemplate, feedbackTemplate, changePasswordTemplate,
-				passwordChangeStatusModalTemplate, 
+				passwordChangeStatusModalTemplate, switchJobModalTemplate,
 				downloadDatafileTemplate, createJobTemplate, loginTemplate) {	
 			"use strict";
 			var controller=['$scope','Restangular','$timeout','$modal','$location',
@@ -357,7 +358,7 @@ define(['underscore'
 					
 					$scope.configureJob=function (job) {
 						if ($scope.working_job_id && $scope.working_job_id != job.job_id) {
-							var modal_dialog=$modal.open({templateUrl:  'switchjob.html', 
+							var modal_dialog=$modal.open({template:  switchJobModalTemplate, 
 														  controller: 'SwitchJobCtrl'});
 							modal_dialog.result.then(function () {
 								$scope.job_config=undefined;
@@ -402,7 +403,13 @@ define(['underscore'
 											scope: $scope
 										  });
 					}
-					
+					$scope.getFileStr=function (o) {
+						if (o.description) {
+							return o.name + ' (' + o.description + ')';
+						} else {
+							return o.name;
+						}
+					}
 					$scope.createJob=function (tool_uri, data_file_uri) {
 						if (! $scope.user.is_active) {
 							$scope.login({'post_func': function () { $scope.createJob(tool_uri, data_file_uri) }});

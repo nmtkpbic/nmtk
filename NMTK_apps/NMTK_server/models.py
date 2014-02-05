@@ -127,6 +127,7 @@ class ToolConfig(models.Model):
     class Meta:
         verbose_name='Tool Configuration'
         verbose_name_plural='Tool Configurations'
+      
         
 class Job(models.Model):
     UNCONFIGURED='U'
@@ -154,11 +155,14 @@ class Job(models.Model):
     tool=models.ForeignKey(Tool, on_delete=models.PROTECT)
     date_created=models.DateTimeField(auto_now_add=True)
     status=models.CharField(max_length=32, choices=STATUS_CHOICES, default=UNCONFIGURED)
-    #file=models.FileField(storage=fs, upload_to=lambda instance, filename: 'data_files/%s.geojson' % (instance.job_id,))
-    data_file=models.ForeignKey('DataFile', null=True, related_name='job_source',
-                                blank=True, on_delete=models.PROTECT)
+#     file=models.FileField(storage=fs, upload_to=lambda instance, filename: 'data_files/%s.geojson' % (instance.job_id,))
+#     data_file=models.ForeignKey('DataFile', null=True, related_name='job_source',
+#                                 blank=True, on_delete=models.PROTECT)
     results=models.OneToOneField('DataFile', null=True, related_name='job_result',
                                   on_delete=models.PROTECT)
+    # Now each job could have numerous data files, prevent deletion of a data file
+    # if a job still requires it.
+    data_files=models.ManyToManyField('DataFile', null=True)
     # This will contain the config data to be sent along with the job, in 
     # a JSON format of a multi-post operation.
     config=JSONField(null=True)

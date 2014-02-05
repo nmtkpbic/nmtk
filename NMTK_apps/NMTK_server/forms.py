@@ -68,12 +68,10 @@ class JobSubmissionForm(forms.ModelForm):
     def __init__(self, user, *pargs,**kwargs):
         super(JobSubmissionForm, self).__init__(*pargs, **kwargs)
         self.fields["tool"].queryset=models.Tool.objects.filter(active=True)
-        self.fields["data_file"].queryset=models.DataFile.objects.filter(user=user,
-                                                                         status=models.DataFile.IMPORTED) 
            
     class Meta:
         model=models.Job
-        fields=('tool','data_file')
+        fields=('tool',)
       
 class ToolConfigForm(forms.Form):
     '''
@@ -110,7 +108,6 @@ class ToolConfigForm(forms.Form):
 #         job.data_file.processed_file.seek(0)
 #        data=json.loads(job.data_file.processed_file.read())
 #        source_fields=data['features'][0]['properties'].keys()
-        source_fields=job.data_file.fields
 #        logger.debug('Fields are %s', source_fields)
         # build choices so the user can choose the mapping(s)
         dataChoices=[(field, field) for field in source_fields]          

@@ -1,9 +1,8 @@
 define(['text!jobActionsCellTemplate'
         , 'text!viewJobModalTemplate'
-        , 'text!switchJobModalTemplate'
         , 'text!jobDescriptionCellTemplate'
         , 'text!jobStatusCellTemplate'], function (jobActionsCellTemplate,
-        		viewJobModalTemplate, switchJobModalTemplate,
+        		viewJobModalTemplate, 
         		jobDescriptionCellTemplate, jobStatusCellTemplate) {	
 	"use strict";
 	var controller=['$scope','$routeParams','$modal','$position','$location','$log',

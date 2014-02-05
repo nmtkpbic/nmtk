@@ -1,83 +1,107 @@
-<script type="text/ng-template" id="cloneconfig.html">
-    <div class="modal-content">
-    <div class="modal-header">
-        <button type="button" ng-click="close()" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-        <h3 class="modal-title" id="clone_config_title">Clone Configuration</h3>
-    </div>
-  <div class="modal-body">
-    <div class="row">
-      <div class="col-md-12">  	
-        <div class="control-group">
-          <label class="control-group" for="job">Choose the job whose configuration you wish to clone</label>
-          <div class="controls">
-            <p class="help-block">Choose a job, and it's configuration will be imported as the default for this job.  Please note that
-            if you choose to clone a job from a tool with different parameters, only those matching parameter values will be copied.</p>
-            <p class="help-block">If you clone an existing configuration, it will overwrite your existing configuration.  You can discard the
-            changes by scrolling to the botton, closing the configuration, and then re-opening it.</p>
-            <p class="help-block">Cloning a configuration clones both the field mappings (assuming that the source file has the same
-            field names, and the tool has the same field requirements) and the constant/tuning options for the tool</p>
-            <p class="help-block">Unconfigured jobs are not available for cloning (since they use the default job config)</p>
-            <select id="job" 
-                    ng-model="selected.item" 
-                    ng-options="o.config as o.description for o in rest.job|filter:{'status':'!Configuration Pending'}" >
-            </select>
-          </div>
-        </div>
-      </div>      
-    </div>
-    <button  ng-click="close()" class="btn">Cancel</button>
-    <button ng-click="clone()" class="btn btn-primary">Clone</button>
-  </div>
-</div>
+<script type="text/ng-template" id="config.html">
+     <!-- Handle the case where we are getting a file whose inputs we use for 
+          data mappings -->
+     <div ng-if="config.type == 'File'" class="col-md-12" >
+       <div class="widget stacked">
+         <div ng-click="toggleSection(section + ':' + $index)"  class="widget-header">
+           <i class="glyphicon glyphicon-edit"></i>
+           <h3>{{config.label}}</h3>
+           <i ng-class="{'glyphicon-chevron-right': !sections[section + ':' + $index], 'glyphicon-chevron-down': sections[section + ':' + $index]}" 
+              class="navbar-right glyphicon ic-right"></i> 
+           <button class="navbar-right btn btn-xs btn-primary ic-right" ng-show="job_data.status=='Configuration Pending' && config.elements.length > 0" 
+                   ng-click="cloneConfig(config.namespace)" stop-event='click'>Copy Mappings from Another Job</button>
+           
+         </div> <!-- /widget-header -->
+         <div ng-show="sections[section + ':' + $index]"  class="widget-content">
+           <section>
+             <p>{{config.description}}</p>
+			 <h4>Choose a file: <select ng-model="$parent.job_config[config.namespace]" name="{{config.namespace}}" 
+									    ng-change="updateFileFieldsFromResourceURI(config.namespace)"
+										ng-init="updateFileFieldsFromResourceURI(config.namespace)"
+                     ng-options="o.resource_uri as getFileStr(o) for o in list_files(config.mime_types)"></select></h4>
+             <table ng-show="$parent.job_config[config.namespace] && config.elements.length > 0" class="table table-bordered table-striped table-highlight"> 
+			<thead>
+			  <tr>
+			      <th>Setting</th>
+				  <th>Description</th>
+			  	  <th>Field Name</th>
+			  </tr>
+			  </thead>
+			  <tbody >
+			    <tr ng-repeat="property in config.elements">
+			       <td >
+					 <button ng-if="property.type != 'property'" class="btn btn-xs btn-default" ng-hide="$parent.job_config[config.namespace + ':CONSTANT:' + property.name]" 
+                             ng-click="$parent.job_config[config.namespace + ':CONSTANT:' + property.name]=true; $parent.job_config[config.namespace + ':' + property.name]=''">Use Constant</button>
+                     <button class="btn btn-xs btn-default" ng-hide="!$parent.job_config[config.namespace + ':CONSTANT:' + property.name]"
+                             ng-click="$parent.job_config[config.namespace + ':CONSTANT:' + property.name]=false">Use Property</button>
+			         <select ng-if="!$parent.job_config[config.namespace + ':CONSTANT:' + property.name]" ng-model="$parent.job_config[config.namespace + ':' + property.name]" 
+                             name="{{config.namespace}}:{{property.name}}" 
+                             ng-options="o.value as o.label for o in file_fields[config.namespace]"></select>
+                     <input ng-if="$parent.job_config[config.namespace + ':CONSTANT:' + property.name]" 
+                            size="10" type="text" ng-model="$parent.job_config[config.namespace + ':' + property.name]" 
+                            name="{{config.namespace}}:{{property.name}}" ></input>
+			         <span ng-repeat="error in errors[config.namespace + ':' + property.name]" class="alert-error" ng-show="error">{{error}}</span>
+			       </td>
+			       <td><label for="{{config.namespace}}:{{property.name}}">{{property.description}}</label></td>
+			       <td>{{property.display_name||property.name}}</td>
+			     </tr>
+			  </tbody>
+		  </table>
+		</section>
+         </div> <!-- /widget-content -->
+       </div><!-- /widget stacked -->
+     </div><!-- /col-md-12 -->
+
+  <!--  Handle the case where the user needs to enter configuration data -->
+     <div ng-if="config.type == 'ConfigurationPage'" class="col-md-12" >
+       <div class="widget stacked">
+         <div ng-click="toggleSection(section + ':' + $index)"  class="widget-header">
+           <i class="glyphicon glyphicon-edit"></i>
+           <h3>{{config.label}}</h3>
+           <i ng-class="{'glyphicon-chevron-right': !sections[section + ':' + $index], 'glyphicon-chevron-down': sections[section + ':' + $index]}" 
+              class="navbar-right glyphicon ic-right"></i>
+         </div> <!-- /widget-header -->
+         <div ng-show="sections[section + ':' + $index]"  class="widget-content">
+           <section>
+             <p>{{config.description}}</p>
+             <table class="table table-bordered table-striped table-highlight"> 
+			<thead>
+			  <tr>
+			      <th>Setting</th>
+				  <th>Description</th>
+			  	  <th>Field Name</th>
+			  </tr>
+			  </thead>
+			  <tbody >
+			     <tr ng-repeat="property in config.elements">
+			       <td>
+			         <input ng-disabled="disabled" type="text" ng-model="$parent.job_config[config.namespace + ':' + property.name]" 
+			                name="{{config.namespace}}:{{property.name}}" required>
+			         <span ng-repeat="error in errors[config.namespace + ':' + property.name]" class="alert-error" ng-show="error">{{error}}</span>
+			       </td>
+			       <td><label for="{{config.namespace}}:{{property.name}}">{{property.description}}</label></td>
+			       <td>{{property.display_name||property.name}}</td>
+			     </tr>
+			  </tbody>
+		  </table>
+		</section>
+         </div> <!-- /widget-content -->
+       </div><!-- /widget stacked -->
+     </div><!-- /col-md-12 -->
+     
 </script>
 
-<script type="text/ng-template"  id="error.html">
-    <div class="modal-content">
-    <div class="modal-header">
-        <button type="button" ng-click="close()" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-        <h3 class="modal-title" id="password_change_results_title">Configuration Errors</h3>
-    </div>
-    <div class="modal-body">
-      <div class="row">
-        <div class="col-md-12">
-          <div class="widget stacked">
-            <div ng-click="toggleDiv('nmtk_configjob')" class="widget-header">
-              <i class="glyphicon glyphicon-exclamation"></i>
-              <h3>The following errors were encountered.</h3>
-            </div>
-            <div class="widget-content">
-               <section>
-               <table class="table table-bordered table-striped table-highlight"> 
-				 <thead>
-				   <tr>
-				      <th>Field</th>
-					  <th>Error(s)</th>
-			       </tr>
-			     </thead>
-			     <tbody>
-			       <tr ng-repeat="(field, errors) in messages">
-			       <td>{{field}}</td>
-			       <td><span ng-repeat="error in errors">{{error}}</span></td>
-			     </tbody>
-			   </table>
-             </div>
-          </div>
-        </div>
-      </div>
-      <button  ng-click="close()" class="btn btn-primary">Close and Fix Errors</button>
-    </div>
-</div>
-</script>
 
-   <div class="container">
-      <div class="row">   	  
-         <div class="col-md-12">
+
+<div class="container">
+   <div class="row">   	  
+     <div class="col-md-12">
         <div class="widget stacked">
           <div ng-click="toggleDiv('nmtk_configjob')" class="widget-header">
             <i class="glyphicon glyphicon-info-sign"></i>
             <h3>Configure a Job</h3>
             <i ng-class="{'glyphicon-chevron-right': !isDivEnabled('nmtk_configjob'), 'glyphicon-chevron-down': isDivEnabled('nmtk_configjob')}" 
-               class="navbar-right glyphicon"></i>           
+               class="navbar-right glyphicon ic-right"></i>           
           </div> <!-- /widget-header -->
           <div ng-show="isDivEnabled('nmtk_configjob')" class="widget-content">
             <p>
@@ -95,85 +119,25 @@
         </div><!-- /widget stacked -->
       </div><!-- /col-md-12 -->
     </div><!-- /row -->
+    
+    
     <form name="job_config_form">
     
-    
-    <div class="row">
-      <div class="col-md-12" >
-        <div class="widget stacked">
-          <div ng-click="toggleSection('properties')"  class="widget-header">
-            <i class="glyphicon glyphicon-edit"></i>
-            <h3>Data Field Mappings for {{file_name}}</h3>
-            <i ng-class="{'glyphicon-chevron-right': !sections.properties, 'glyphicon-chevron-down': sections.properties}" 
-               class="navbar-right glyphicon"></i> 
-            <button class="navbar-right btn btn-xs btn-primary" ng-show="job_data.status=='Configuration Pending'" ng-click="cloneConfig()" stop-event='click'>Copy Mappings from Another Job</button>
-            
-          </div> <!-- /widget-header -->
-          <div ng-show="sections.properties"  class="widget-content">
-            <section>
-              <h4>Choose the field from the data file that you wish to use for the tool parameter</h4>
-              <table class="table table-bordered table-striped table-highlight"> 
-				<thead>
-				  <tr>
-				      <th>Setting</th>
-					  <th>Description</th>
-				  	  <th>Field Name</th>
-				  </tr>
-				  </thead>
-				  <tbody >
-				    <tr ng-repeat="property in tool_config|filter:{type: 'property'}">
-				       <td>
-				         <select ng-disabled="disabled" 
-				                 ng-model="$parent.job_config[property.field]" name="{{property.field}}" ng-options="o.value as o.label for o in property.value"></select>
-				         <span ng-repeat="error in errors[property.field]" class="alert-error" ng-show="error">{{error}}</span>
-				       </td>
-				       <td><label for="{{property.field}}">{{property.description}}</label></td>
-				       <td>{{property.display_name}}</td>
-				     </tr>
-				  </tbody>
-			  </table>
-			</section>
-          </div> <!-- /widget-content -->
-        </div><!-- /widget stacked -->
-      </div><!-- /col-md-12 -->
-    </div><!-- /row -->
-    <div class="row">
-      <div class="col-md-12" >
-        <div class="widget stacked">
-          <div ng-click="toggleSection('constants')"  class="widget-header">
-            <i class="glyphicon glyphicon-edit"></i>
-            <h3>Tool Constants for {{tool_name}}</h3>
-            <i ng-class="{'glyphicon-chevron-right': !sections.constants, 'glyphicon-chevron-down': sections.constants}" 
-               class="navbar-right glyphicon"></i>
-          </div> <!-- /widget-header -->
-          <div ng-show="sections.constants"  class="widget-content">
-            <section>
-              <h4>To alter a constant, simply modify the specified value</h4>
-              <table class="table table-bordered table-striped table-highlight"> 
-				<thead>
-				  <tr>
-				      <th>Setting</th>
-					  <th>Description</th>
-				  	  <th>Field Name</th>
-				  </tr>
-				  </thead>
-				  <tbody >
-				     <tr ng-repeat="constant in tool_config|filter:{type: 'number'}">
-				       <td>
-				         <input ng-disabled="disabled" type="text" ng-model="$parent.job_config[constant.field]" 
-				                name="{{constant.field}}" required>
-				         <span ng-repeat="error in errors[constant.field]" class="alert-error" ng-show="error">{{error}}</span>
-				       </td>
-				       <td><label for="{{constant.field}}">{{constant.description}}</label></td>
-				       <td>{{constant.display_name}}</td>
-				     </tr>
-				  </tbody>
-			  </table>
-			</section>
-          </div> <!-- /widget-content -->
-        </div><!-- /widget stacked -->
-      </div><!-- /col-md-12 -->
-    </div><!-- /row -->
+    <tabset justified="false">
+	    <tab heading="Tool Input Configuration" >
+	    	<div ng-repeat="config in tool_data.config.input" class="row"
+	    	     ng-init="section='input'">
+	   	 		<ng-include src="'config.html'"></ng-include>
+	   	 	</div>
+	    </tab>
+	    <tab heading="Tool Output Configuration" >
+	    	<div ng-repeat="config in tool_data.config.output" class="row"
+	    	     ng-init="section='output'">
+	    		<ng-include src="'config.html'"></ng-include>
+	    	</div>
+	    </tab>
+    </tabset>
+	    
     </form>
     <div class="row">
       <div class="col-md-12">

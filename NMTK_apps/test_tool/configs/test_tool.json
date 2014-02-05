@@ -36,6 +36,8 @@
       ],
       "type":"ConfigurationPage",
       "name":"results",
+      "namespace": "results",
+      "display_first": true,
       "label":"Result Variable"
     }
   ],
@@ -77,6 +79,8 @@
       "label":"Input File Fields",
       "type":"File",
       "name":"data",
+      "namespace":"data",
+      "expanded": false,
       "primary": true
     },
     {
@@ -93,13 +97,16 @@
       ],
       "type":"ConfigurationPage",
       "name":"coefficients",
-      "label":"Coefficients"
+      "namespace":"coefficients",
+      "label":"Coefficients",
+      "expanded": true
     },
     {
         "description":"A picture of your favorite donut.",
         "type":"File",
         "primary": false,
         "name":"donput_pic",
+        "namespace":"donput_pic",
         "label":"Favorite Donut",
         "mime_types": ["image/png", "image/jpeg", "image/gif", "image/tif"]
      }
