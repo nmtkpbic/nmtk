@@ -4,9 +4,13 @@ define([], function () {
         function ($scope, $log, $modalInstance, datafile) {
 		$log.debug(datafile);
 			$scope.datafile_id=datafile.id;
+			$scope.datafile=datafile;
 			var api_path=CONFIG.api_path;
 			if (/\//.test(CONFIG.api_path)) {
 				  api_path=CONFIG.api_path.substring(0, CONFIG.api_path.length-1);
+			}
+			$scope.isComplete=function (record) {
+				return /complete/i.test(record.status);
 			}
 			$scope.download_url=datafile.download_url;
 			if (datafile.srid) {

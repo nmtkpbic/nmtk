@@ -223,7 +223,7 @@ class DataFile(models.Model):
     STATUSES=((PENDING,'Import Pending',),
               (PROCESSING,'File submitted for processing',),
               (IMPORTED,'Import Complete',),
-              (IMPORT_FAILED, 'Unsupported Type',),
+              (IMPORT_FAILED, 'Unrecognized Type',),
               (PROCESSING_RESULTS,'Import of Job Results Pending',),
               (IMPORT_RESULTS_FAILED,'Import of Job Results Failed',),
               (IMPORT_RESULTS_COMPLETE,'Import of Job Results Complete',),

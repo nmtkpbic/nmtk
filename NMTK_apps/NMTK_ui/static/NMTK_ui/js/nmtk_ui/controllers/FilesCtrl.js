@@ -3,6 +3,7 @@ define(['underscore', 'text!fileInfoTemplate', 'text!fileActionsCellTemplate'],
 	"use strict";
 	var controller=['$scope','$timeout','$route','$modal','$location', '$log',
         function ($scope, $timeout, $route, $modal, $location, $log) {
+			$scope.loginCheck();
 			$scope.enableRefresh(['datafile']);
 			$scope.changeTab('files');
 			
@@ -30,6 +31,9 @@ define(['underscore', 'text!fileInfoTemplate', 'text!fileActionsCellTemplate'],
 				   }	 
 			});
 			
+			$scope.isComplete=function (record) {
+				return /complete/i.test(record.status);
+			}
 			$scope.fileInfo=function (record) {
 				$scope.opts = {
 					    template:  fileInfoTemplate, // OR: templateUrl: 'path/to/view.html',
