@@ -90,10 +90,18 @@
           "default":42,
           "required":true,
           "type":"number",
-          "name":"constant",
+          "name":"magic_value",
           "description":"Magical number",
           "validation": { "maximum": 100, "minimum": 0 }
-        }
+        },
+        {
+            "choices": [41.5,42,43,44,45,46,47,48,49],
+            "required":true,
+            "type":"number",
+            "name":"constant",
+            "description":"Required donut diameter (centimeters), choose from supported sizes.",
+            "validation": { "maximum": 90, "minimum": 41.5 }
+          }
       ],
       "type":"ConfigurationPage",
       "name":"coefficients",

@@ -362,6 +362,7 @@ define(['underscore'
 														  controller: 'SwitchJobCtrl'});
 							modal_dialog.result.then(function () {
 								$scope.job_config=undefined;
+								$scope.job_config_file=undefined;
 								$scope.errors=undefined;
 								$scope.working_job_id=job.id;
 								$location.path('/job/' + $scope.working_job_id + '/');

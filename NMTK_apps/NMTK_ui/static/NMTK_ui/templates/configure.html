@@ -14,12 +14,12 @@
          </div> <!-- /widget-header -->
          <div ng-show="sections[section + ':' + $index]"  class="widget-content">
            <section>
-             <p>{{config.description}}</p>
-			 <h4>Choose a file: <select ng-model="$parent.job_config[config.namespace]" name="{{config.namespace}}" 
+             <p><label for="{{config.namespace}}">{{config.description}}</label></p>
+			 <h4>Choose a file: <select ng-model="$parent.job_config_files[config.namespace]" name="{{config.namespace}}" 
 									    ng-change="updateFileFieldsFromResourceURI(config.namespace)"
 										ng-init="updateFileFieldsFromResourceURI(config.namespace)"
                      ng-options="o.resource_uri as getFileStr(o) for o in list_files(config.mime_types)"></select></h4>
-             <table ng-show="$parent.job_config[config.namespace] && config.elements.length > 0" class="table table-bordered table-striped table-highlight"> 
+             <table ng-show="$parent.job_config_files[config.namespace] && config.elements.length > 0" class="table table-bordered table-striped table-highlight"> 
 			<thead>
 			  <tr>
 			      <th>Setting</th>
@@ -30,17 +30,24 @@
 			  <tbody >
 			    <tr ng-repeat="property in config.elements">
 			       <td >
-					 <button ng-if="property.type != 'property'" class="btn btn-xs btn-default" ng-hide="$parent.job_config[config.namespace + ':CONSTANT:' + property.name]" 
-                             ng-click="$parent.job_config[config.namespace + ':CONSTANT:' + property.name]=true; $parent.job_config[config.namespace + ':' + property.name]=''">Use Constant</button>
-                     <button class="btn btn-xs btn-default" ng-hide="!$parent.job_config[config.namespace + ':CONSTANT:' + property.name]"
-                             ng-click="$parent.job_config[config.namespace + ':CONSTANT:' + property.name]=false">Use Property</button>
-			         <select ng-if="!$parent.job_config[config.namespace + ':CONSTANT:' + property.name]" ng-model="$parent.job_config[config.namespace + ':' + property.name]" 
+					 <button ng-if="($parent.job_config[config.namespace][property.name]['type'] == 'property' && validation[config.namespace][property.name]['type'] != 'property')" 
+                             class="btn btn-xs btn-default"
+                             ng-click="switchFieldMode(config.namespace, property.name)">Use Constant</button>
+                     <button class="btn btn-xs btn-default" 
+                             ng-if="($parent.job_config[config.namespace][property.name]['type'] != 'property' && validation[config.namespace][property.name]['type'] != 'property')"
+                             ng-click="switchFieldMode(config.namespace, property.name)">Use Property</button>
+			         <select ng-if="$parent.job_config[config.namespace][property.name]['type'] == 'property'" 
+                             ng-model="$parent.job_config[config.namespace][property.name]['value']" 
                              name="{{config.namespace}}:{{property.name}}" 
                              ng-options="o.value as o.label for o in file_fields[config.namespace]"></select>
-                     <input ng-if="$parent.job_config[config.namespace + ':CONSTANT:' + property.name]" 
-                            size="10" type="text" ng-model="$parent.job_config[config.namespace + ':' + property.name]" 
+                     <input ng-if="$parent.job_config[config.namespace][property.name]['type'] != 'property' && ! validation[config.namespace][property.name]['choices']"  
+                            size="10" type="text" ng-model="$parent.job_config[config.namespace][property.name]['value']" 
                             name="{{config.namespace}}:{{property.name}}" ></input>
-			         <span ng-repeat="error in errors[config.namespace + ':' + property.name]" class="alert-error" ng-show="error">{{error}}</span>
+					 <select ng-if="$parent.job_config[config.namespace][property.name]['type'] != 'property' && validation[config.namespace][property.name]['choices']"
+							name="{{config.namespace}}:{{property.name}}" 
+                            ng-model="$parent.job_config[config.namespace][property.name]['value']" 
+ 							ng-options="item.value as item.label for item in get_options(validation[config.namespace][property.name]['choices'])"></select>
+			         <span ng-repeat="error in errors[config.namespace][property.name]" class="alert-error" ng-show="error">{{error}}</span>
 			       </td>
 			       <td><label for="{{config.namespace}}:{{property.name}}">{{property.description}}</label></td>
 			       <td>{{property.display_name||property.name}}</td>
@@ -75,9 +82,14 @@
 			  <tbody >
 			     <tr ng-repeat="property in config.elements">
 			       <td>
-			         <input ng-disabled="disabled" type="text" ng-model="$parent.job_config[config.namespace + ':' + property.name]" 
+			         <input ng-if="!validation[config.namespace][property.name]['choices']" 
+							type="text" ng-model="$parent.job_config[config.namespace][property.name]['value']" 
 			                name="{{config.namespace}}:{{property.name}}" required>
-			         <span ng-repeat="error in errors[config.namespace + ':' + property.name]" class="alert-error" ng-show="error">{{error}}</span>
+					 <select ng-if="validation[config.namespace][property.name]['choices']"
+							name="{{config.namespace}}:{{property.name}}" required
+                            ng-model="$parent.job_config[config.namespace][property.name]['value']" 
+ 							ng-options="item.value as item.label for item in get_options(validation[config.namespace][property.name]['choices'])"></select>
+			         <span ng-repeat="error in errors[config.namespace][property.name]" class="alert-error" ng-show="error">{{error}}</span>
 			       </td>
 			       <td><label for="{{config.namespace}}:{{property.name}}">{{property.description}}</label></td>
 			       <td>{{property.display_name||property.name}}</td>

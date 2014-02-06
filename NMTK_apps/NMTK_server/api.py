@@ -839,8 +839,8 @@ class JobResourceAuthorization(Authorization):
         Each record being created is passed through this method, which is
         used to determine if the object can be created - an exception means
         that it cannot, a True (or anything else for that matter) means that it
-        can be created.  In our case, we only allow this record to be created
-        when the user is an admin user.
+        can be created.  Any user can create jobs, since they are tied to the
+        user account automatically.
         '''
         return True
 
@@ -932,14 +932,20 @@ class JobResourceValidation(Validation):
 class JobResource(ModelResource):
     job_id=fields.CharField('job_id', readonly=True)
     tool=fields.ToOneField(ToolResource, 'tool')
-    data_files=fields.ToManyField(DataFileResource,'data_files',
-                                  null=True)
+    job_files=fields.ToManyField('JobFileResource','job_files',
+                                 null=True)
     status=fields.CharField('status', readonly=True, null=True)
     tool_name=fields.CharField('tool_name', readonly=True, null=True)
     config=fields.CharField('config', readonly=True, null=True)
     results=fields.ToOneField(DataFileResource, 'results',
                               readonly=True, null=True,
                               help_text='Results of job')
+    
+    def save_m2m(self, bundle):
+        '''
+        We don't use this at all...
+        '''
+        pass
     
     class Meta:
         queryset = models.Job.objects.select_related('data_file',
@@ -981,9 +987,70 @@ class JobResource(ModelResource):
             pass
         return bundle
     
-
+class JobFileResourceAuthorization(Authorization):
+    def read_list(self, object_list, bundle):
+        '''
+        This gets a queryset (object_list) and returns a new one.  The key
+        here is that we are apply *additional* filters to the default 
+        queryset to restrict the output back to the user.
         
-    
+        In this case, we check to see if the user is a site admin, if they are
+        then they are able to see *all* the records for active users.
+        
+        If they are *not* a site admin, we restrict viewing of data to the
+        username that matches the current logged in user.  In short, you 
+        can see your information, but noone elses.
+        '''
+        if bundle.request.user.is_superuser and bundle.data.get('all', False):
+            return object_list
+        return object_list.filter(job__user=bundle.request.user.pk)
+
+    def read_detail(self, object_list, bundle):
+        '''
+        This should get a list (containing a single record).  It should
+        either return an error indicating the record is not accessible by
+        the user, or it should simply return.
+        
+        In this case, raising NotFound seems to be the only option that 
+        causes the server to continue to function without an exception.  Other
+        things (like not authorized) cause a 500
+        '''
+        if bundle.request.user.is_superuser:
+            return True
+        elif bundle.obj.job.user.pk <> bundle.request.user.pk:
+            raise Unauthorized('You lack the privilege to access this resource')
+        return True
+
+    def delete_list(self, object_list, bundle):
+        # Sorry user, no deletes for you
+        if bundle.request.user.is_superuser:
+            return object_list
+        else:
+            return [obj for obj in object_list 
+                    if obj.job.user == bundle.request.user] 
+
+    def delete_detail(self, object_list, bundle):
+        if bundle.request.user.is_superuser:
+            return True
+        elif bundle.obj.job.user == bundle.request.user:
+            return True
+        raise Unauthorized('You lack the privilege to access this resource')
+
+class JobFileResource(ModelResource):
+    job=fields.ToOneField(JobResource, 'job')
+    datafile=fields.ToOneField(DataFileResource, 'datafile')
+    namespace=fields.CharField('namespace', readonly=True)
+    class Meta:
+        queryset = models.JobFile.objects.all()
+        authorization=JobFileResourceAuthorization()
+        always_return_data = True
+        resource_name = 'job_file'
+        authentication=SessionAuthentication()
+        excludes=[]
+        allowed_methods=['get','delete',]
+        filtering= {'job': ALL,
+                    'datafile': ALL,
+                    'namespace': ALL}
 
 class JobStatusResourceAuthorization(Authorization):
     def read_list(self, object_list, bundle):

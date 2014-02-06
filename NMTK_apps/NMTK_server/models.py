@@ -162,7 +162,7 @@ class Job(models.Model):
                                   on_delete=models.PROTECT)
     # Now each job could have numerous data files, prevent deletion of a data file
     # if a job still requires it.
-    data_files=models.ManyToManyField('DataFile', null=True)
+    job_files=models.ManyToManyField('DataFile', null=True, through='JobFile')
     # This will contain the config data to be sent along with the job, in 
     # a JSON format of a multi-post operation.
     config=JSONField(null=True)
@@ -210,6 +210,10 @@ class Job(models.Model):
         verbose_name='Job'
         verbose_name_plural='Jobs'
 
+class JobFile(models.Model):
+    job = models.ForeignKey('Job')
+    datafile = models.ForeignKey('DataFile')
+    namespace=models.CharField(max_length=255, null=False);
   
 class DataFile(models.Model):
     PENDING=1
