@@ -16,7 +16,8 @@
            <section>
              <p><label for="{{config.namespace}}">{{config.description}}</label></p>
 			 <h4>Choose a file: <select ng-model="$parent.job_config_files[config.namespace]" name="{{config.namespace}}" 
-									    ng-change="updateFileFieldsFromResourceURI(config.namespace)"
+									    ng-change="updateFileFieldsFromResourceURI(config.namespace)" required
+										ng-disabled="disabled"
 										ng-init="updateFileFieldsFromResourceURI(config.namespace)"
                      ng-options="o.resource_uri as getFileStr(o) for o in list_files(config.mime_types)"></select></h4>
              <table ng-show="$parent.job_config_files[config.namespace] && config.elements.length > 0" class="table table-bordered table-striped table-highlight"> 
@@ -27,27 +28,35 @@
 			  	  <th>Field Name</th>
 			  </tr>
 			  </thead>
-			  <tbody >
+			  <tbody ng-if="$parent.job_config_files[config.namespace]">
 			    <tr ng-repeat="property in config.elements">
 			       <td >
 					 <button ng-if="($parent.job_config[config.namespace][property.name]['type'] == 'property' && validation[config.namespace][property.name]['type'] != 'property')" 
-                             class="btn btn-xs btn-default"
+                             class="btn btn-xs btn-default" required
+							 ng-disabled="disabled"
                              ng-click="switchFieldMode(config.namespace, property.name)">Use Constant</button>
                      <button class="btn btn-xs btn-default" 
+							 ng-disabled="disabled"
                              ng-if="($parent.job_config[config.namespace][property.name]['type'] != 'property' && validation[config.namespace][property.name]['type'] != 'property')"
                              ng-click="switchFieldMode(config.namespace, property.name)">Use Property</button>
 			         <select ng-if="$parent.job_config[config.namespace][property.name]['type'] == 'property'" 
-                             ng-model="$parent.job_config[config.namespace][property.name]['value']" 
+                             ng-model="$parent.job_config[config.namespace][property.name]['value']" required
                              name="{{config.namespace}}:{{property.name}}" 
+							 ng-init="setFieldDefaultValue(config.namespace, property.name)"
+							 ng-disabled="disabled" nmtk-namespace="{{config.namespace}}"
                              ng-options="o.value as o.label for o in file_fields[config.namespace]"></select>
                      <input ng-if="$parent.job_config[config.namespace][property.name]['type'] != 'property' && ! validation[config.namespace][property.name]['choices']"  
                             size="10" type="text" ng-model="$parent.job_config[config.namespace][property.name]['value']" 
+							ng-disabled="disabled" required 
+							ng-change="validateEntry(config.namespace, property.name) && validateEntry(config.namespace, property.name)"
                             name="{{config.namespace}}:{{property.name}}" ></input>
 					 <select ng-if="$parent.job_config[config.namespace][property.name]['type'] != 'property' && validation[config.namespace][property.name]['choices']"
-							name="{{config.namespace}}:{{property.name}}" 
+							name="{{config.namespace}}:{{property.name}}" required
+							ng-disabled="disabled" 
+							ng-init="setFieldDefaultValue(config.namespace, property.name)"
                             ng-model="$parent.job_config[config.namespace][property.name]['value']" 
  							ng-options="item.value as item.label for item in get_options(validation[config.namespace][property.name]['choices'])"></select>
-			         <span ng-repeat="error in errors[config.namespace][property.name]" class="alert-error" ng-show="error">{{error}}</span>
+			         <span class="alert-error" ng-show="job_config_form[config.namespace+':'+property.name].$dirty && job_config_form[config.namespace+':'+property.name].$invalid" ng-bind="validation[config.namespace][property.name]['error']"></span>
 			       </td>
 			       <td><label for="{{config.namespace}}:{{property.name}}">{{property.description}}</label></td>
 			       <td>{{property.display_name||property.name}}</td>
@@ -84,13 +93,19 @@
 			       <td>
 			         <input ng-if="!validation[config.namespace][property.name]['choices']" 
 							type="text" ng-model="$parent.job_config[config.namespace][property.name]['value']" 
+							ng-disabled="disabled"
+							ng-change="validateEntry(config.namespace, property.name)"
+							ng-init="setFieldDefaultValue(config.namespace,property.name) && validateEntry(config.namespace, property.name)"
 			                name="{{config.namespace}}:{{property.name}}" required>
 					 <select ng-if="validation[config.namespace][property.name]['choices']"
 							name="{{config.namespace}}:{{property.name}}" required
+							ng-disabled="disabled"
+							ng-init="setFieldDefaultValue(config.namespace,property.name)"
                             ng-model="$parent.job_config[config.namespace][property.name]['value']" 
  							ng-options="item.value as item.label for item in get_options(validation[config.namespace][property.name]['choices'])"></select>
 			         <span ng-repeat="error in errors[config.namespace][property.name]" class="alert-error" ng-show="error">{{error}}</span>
-			       </td>
+			         <span class="alert-error" ng-show="job_config_form[config.namespace+':'+property.name].$dirty && job_config_form[config.namespace+':'+property.name].$invalid">Invalid selection</span>
+				   </td>
 			       <td><label for="{{config.namespace}}:{{property.name}}">{{property.description}}</label></td>
 			       <td>{{property.display_name||property.name}}</td>
 			     </tr>
@@ -132,8 +147,8 @@
       </div><!-- /col-md-12 -->
     </div><!-- /row -->
     
-    
-    <form name="job_config_form">
+    <!--  disable HTML5 validation, since Angular does it -->
+    <form name="job_config_form" novalidate>
     
     <tabset justified="false">
 	    <tab heading="Tool Input Configuration" >
@@ -157,7 +172,7 @@
           <div class="widget-content centered">
             <button ng-show="disabled" ng-click="closeConfig()" class="btn btn-primary">Close</button>
             <button ng-hide="disabled" ng-click="closeConfig()" class="btn">Cancel</button>
-            <button ng-hide="disabled" ng-click="submit_job()" class="btn btn-primary">Submit Job</button>
+            <button ng-hide="disabled" ng-click="submit_job()" ng-disabled="job_config_form.$invalid" class="btn btn-primary">Submit Job</button>
           </div>
         </div>
       </div>

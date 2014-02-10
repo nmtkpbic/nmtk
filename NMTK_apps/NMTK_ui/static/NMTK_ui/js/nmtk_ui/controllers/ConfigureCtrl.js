@@ -12,6 +12,8 @@ define(['underscore',
 		 * the appropriate error messages in the template as well...
 		 */
 		function ($scope, $routeParams, $location, $modal, $log) {
+			var FLOAT_REGEXP = /^\-?\d+((\.)\d+)?$/;
+			var INTEGER_REGEXP= /^\-?\d+$/;
 			$scope.loginCheck();
 			var jobid=$routeParams.jobid;
 			$scope.$parent.job_uri=$location.path();
@@ -91,9 +93,9 @@ define(['underscore',
 									$scope.$parent.job_config[data.namespace][config_set.name]={};
 									$scope.$parent.job_config[data.namespace][config_set.name]['type']=config_set.type;
 									if (typeof config_set.default !== 'undefined' && data.type != 'File') {
-										$scope.$parent.job_config[data.namespace][config_set.name]['value']=config_set.default;
+//										$scope.$parent.job_config[data.namespace][config_set.name]['value']=config_set.default;
 									} else if (data.type == 'File') {
-										$scope.$parent.job_config[data.namespace][config_set.name]['value']=config_set.name;
+//										$scope.$parent.job_config[data.namespace][config_set.name]['value']=config_set.name;
 										$scope.$parent.job_config[data.namespace][config_set.name]['type']='property';
 									}
 								}
@@ -102,6 +104,10 @@ define(['underscore',
 																					 'name': config_set.name,
 																					 'default': config_set.default,
 										        									 'choices': config_set.choices };
+								if (/boolean/i.test(config_set.type)) {
+									$scope.validation[data.namespace][config_set.name]['choices']={'True': true,
+											 													   'False': false};
+								}
 							});
 						});
 					});
@@ -193,7 +199,6 @@ define(['underscore',
 					} else {
 						_.each(data_files, function (file_entry) {
 							if (/complete/i.exec(file_entry.status)) {
-								$log.info(file_entry.name)
 								files.push(file_entry);
 							}
 						});
@@ -202,29 +207,89 @@ define(['underscore',
 				};
 			});
 			
+			/*
+			 * When a field is generated, this init function will set the 
+			 * current default value for the field.  It is called from the 
+			 * template using ng-init for all the form fields, and is also 
+			 * called by the switchFieldMode function to ensure the proper
+			 * defaults are chosen when the user switches field modes.
+			 */
+			$scope.setFieldDefaultValue=function (namespace, field) {
+				// The CURRENT type for this (property or something else.)
+				var type=$scope.$parent.job_config[namespace][field]['type'];
+				var name=$scope.validation[namespace][field]['name'];
+				var current_value=$scope.$parent.job_config[namespace][field]['value'];
+				var field_default=$scope.validation[namespace][field]['default'];
+				// If the type is property, the default must be one of the fields.
+				if (type == 'property') {
+					if (typeof $scope.file_fields[namespace] !== 'undefined') {
+						var file_fields=[];
+						_.each($scope.file_fields[namespace], function (f) { 
+							file_fields.push(f.value);
+						});
+						if (_.indexOf(file_fields, current_value) > -1) {
+					    	$scope.$parent.job_config[namespace][field]['value']= current_value;
+					    } else if (_.indexOf(file_fields, name) > -1) {
+					    	$scope.$parent.job_config[namespace][field]['value']= name;
+					    } else {
+					    	$scope.$parent.job_config[namespace][field]['value']=undefined;
+					    }
+					}
+				// If the type is choice, the default must be one of the choices.
+				} else if (typeof $scope.validation[namespace][field]['choices'] !== 'undefined') {
+					var options=$scope.get_options($scope.validation[namespace][field]['choices'])
+					var this_default=undefined;
+					
+					// First try to use the current value, if that doesn't work, use
+					// the field default value and return a suitable default value.
+					_.find([current_value, field_default], function (default_value) {
+						if (typeof default_value !== 'undefined') {
+							this_default=_.find(options, function (item) {
+								if (item.value == default_value) {
+									return true;
+								}
+							return false;
+							});
+						}
+						return (typeof this_default !== 'undefined');
+					});
+					if (typeof this_default === 'undefined' && $scope.validation[namespace][field]['choices'].length > 0) {
+						$scope.$parent.job_config[namespace][field]['value']=$scope.validation[namespace][field]['choices'][0].value;
+					} else if (typeof this_default !== 'undefined') {
+						$scope.$parent.job_config[namespace][field]['value']=this_default.value;
+					}
+					
+				// If the type is neither choice nor property, the current_value or field_default is used.
+				} else {
+					$scope.$parent.job_config[namespace][field]['value']=current_value || field_default || undefined;
+				}
+				// Note: The validation code must be called to set the correct state here!
+			}
+			
 
 			$scope.switchFieldMode=function (namespace, field) {
+				// This is the valid type for this field.
 				var type=$scope.validation[namespace][field]['type'];
-				var name=$scope.validation[namespace][field]['name'];
-				var field_default=$scope.validation[namespace][field]['default'];
 				if (type != 'property') {
 					if ($scope.$parent.job_config[namespace][field]['type'] == 'property') {
 						$scope.$parent.job_config[namespace][field]['type'] = type;
-						$scope.$parent.job_config[namespace][field]['value']=field_default || '';
+						$scope.$parent.job_config[namespace][field]['value']=undefined;
 					} else {
 						$scope.$parent.job_config[namespace][field]['type'] = 'property';
-						$scope.$parent.job_config[namespace][field]['value']= name;
 					}
 				}
-				return false;
+				$scope.setFieldDefaultValue(namespace, field);
 			}
 			
 			
 			
 			$scope.submit_job=function () {
+				$log.info($scope.job_config_form);
 				$scope.resources['job'].getList({'job_id': $scope.job_data.id}).then(function (response) {
 					var data=response[0];
 					data.config=$scope.$parent.job_config;
+					// Need to pass in the file configuration as well.
+					data.file_config=$scope.$parent.job_config_files;
 					data.put().then(function (response) {
 						$log.info(response);
 						// Return them to the job window.
@@ -251,6 +316,70 @@ define(['underscore',
 				});
 			}
 		
+			
+			
+			/* I had this in a custom directive before, but the reality is that
+			 * it's much less complex here.  Also, there are issues with ng-options 
+		     * and a local scope in Angular for some reason.
+		     * Instead, this is slightly less efficient, but handles all the use
+		     * cases well, not to mention it allows the error messages to be set
+		     * properly.
+		     */ 
+			$scope.validateEntry=function (namespace, property_name) {
+        		var validation=$scope.validation[namespace][property_name];
+        		var value=$scope.$parent.job_config[namespace][property_name]['value'];
+        		var error=undefined;
+    			if (typeof value !== 'undefined') {
+        			var valid=false;
+        			if (value.length > 0) {
+	        			if (/integer/i.test(validation.type)) {
+	        				valid=INTEGER_REGEXP.test(value);
+	        			} else if (/number/i.test(validation.type)) {
+	        				valid=FLOAT_REGEXP.test(value);
+	        			} else { // Must be string..
+	        				valid=true;
+	        			}
+        			}
+        			if (valid==false) {
+        				error='Please enter a valid ' + validation.type + '.';
+        			}
+        			var max=undefined;
+        			var min=undefined;
+        			if (valid) {
+        				if (typeof validation['validation'] !== 'undefined') {
+        					var v=parseFloat(value);
+        					if (_.has(validation['validation'], 'minimum')) {
+        						min=validation['validation']['minimum'];
+        						if (validation['validation']['minimum'] > v) {
+        							valid=false;
+        						}
+        					}
+        					if (_.has(validation['validation'], 'maximum')) {
+        						max=validation['validation']['maximum'];
+        						if (validation['validation']['maximum'] < v) {
+        							valid=false;
+        						}
+        					}
+        					if (valid == false) {
+        						if (typeof max !== 'undefined' && 
+								    typeof min !== 'undefined') {
+        							error='Value must be between ' + min + ' and ' + max;
+        						} else if (typeof max !== 'undefined') {
+        							error='Value must be less than or equal to' + max;
+        						} else if (typeof min !== 'undefined') {
+        							error='Value must be greater than or equal to' + min;
+        						}
+        					}
+        				}
+        			}
+    			}
+    			$scope.validation[namespace][property_name]['error']=error;
+				$scope.job_config_form.$setValidity(namespace+':'+property_name, valid);
+				if (! valid) {
+					$log.debug('Valid?', valid, 'Value:', value, 'Error:',error, namespace + ':'+ property_name);
+				}
+			}
+			
 			
 			$scope.cloneConfig=function (target_namespace) {
 				var modal_dialog=$modal.open({

@@ -98,8 +98,7 @@ define(['jquery'
 				                });
 				            }
 				        }
-					}
-				]);
+					}]);
 				
 		        controllers.initialize(nmtk_app);
 	        	angular.bootstrap(window.document,['nmtk']);			
