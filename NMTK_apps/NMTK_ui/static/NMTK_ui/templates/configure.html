@@ -15,7 +15,7 @@
          <div ng-show="sections[section + ':' + $index]"  class="widget-content">
            <section>
              <p><label for="{{config.namespace}}">{{config.description}}</label></p>
-			 <h4>Choose a file: <select ng-model="$parent.job_config_files[config.namespace]" name="{{config.namespace}}" 
+			 <h4>Choose a file: <select ng-model="$parent.job_config_files[config.namespace]" dynamic-name="config.namespace" 
 									    ng-change="updateFileFieldsFromResourceURI(config.namespace)" required
 										ng-disabled="disabled"
 										ng-init="updateFileFieldsFromResourceURI(config.namespace)"
@@ -41,17 +41,17 @@
                              ng-click="switchFieldMode(config.namespace, property.name)">Use Property</button>
 			         <select ng-if="$parent.job_config[config.namespace][property.name]['type'] == 'property'" 
                              ng-model="$parent.job_config[config.namespace][property.name]['value']" required
-                             name="{{config.namespace}}:{{property.name}}" 
+                             dynamic-name="config.namespace + ':' + property.name" 
 							 ng-init="setFieldDefaultValue(config.namespace, property.name)"
-							 ng-disabled="disabled" nmtk-namespace="{{config.namespace}}"
+							 ng-disabled="disabled"
                              ng-options="o.value as o.label for o in file_fields[config.namespace]"></select>
                      <input ng-if="$parent.job_config[config.namespace][property.name]['type'] != 'property' && ! validation[config.namespace][property.name]['choices']"  
                             size="10" type="text" ng-model="$parent.job_config[config.namespace][property.name]['value']" 
 							ng-disabled="disabled" required 
 							ng-change="validateEntry(config.namespace, property.name) && validateEntry(config.namespace, property.name)"
-                            name="{{config.namespace}}:{{property.name}}" ></input>
+                            dynamic-name="config.namespace + ':' + property.name"  ></input>
 					 <select ng-if="$parent.job_config[config.namespace][property.name]['type'] != 'property' && validation[config.namespace][property.name]['choices']"
-							name="{{config.namespace}}:{{property.name}}" required
+							name="config.namespace + ':' + property.name"  required
 							ng-disabled="disabled" 
 							ng-init="setFieldDefaultValue(config.namespace, property.name)"
                             ng-model="$parent.job_config[config.namespace][property.name]['value']" 
@@ -96,9 +96,9 @@
 							ng-disabled="disabled"
 							ng-change="validateEntry(config.namespace, property.name)"
 							ng-init="setFieldDefaultValue(config.namespace,property.name) && validateEntry(config.namespace, property.name)"
-			                name="{{config.namespace}}:{{property.name}}" required>
+			                dynamic-name="config.namespace + ':' + property.name"  required>
 					 <select ng-if="validation[config.namespace][property.name]['choices']"
-							name="{{config.namespace}}:{{property.name}}" required
+							dynamic-name="config.namespace + ':' + property.name"  required
 							ng-disabled="disabled"
 							ng-init="setFieldDefaultValue(config.namespace,property.name)"
                             ng-model="$parent.job_config[config.namespace][property.name]['value']" 

@@ -263,7 +263,8 @@ define(['underscore',
 				} else {
 					$scope.$parent.job_config[namespace][field]['value']=current_value || field_default || undefined;
 				}
-				// Note: The validation code must be called to set the correct state here!
+				// Note: The validation code must be called to set the correct state here (if a field requires it)
+				// this is typically done in the controller by chaining a call to validation after this function.
 			}
 			
 
@@ -374,8 +375,11 @@ define(['underscore',
         			}
     			}
     			$scope.validation[namespace][property_name]['error']=error;
-				$scope.job_config_form.$setValidity(namespace+':'+property_name, valid);
+    			$log.info()
+				$scope.job_config_form[namespace+':'+property_name].$setValidity(valid);
+				
 				if (! valid) {
+					$log.info($scope.job_config_form);
 					$log.debug('Valid?', valid, 'Value:', value, 'Error:',error, namespace + ':'+ property_name);
 				}
 			}
