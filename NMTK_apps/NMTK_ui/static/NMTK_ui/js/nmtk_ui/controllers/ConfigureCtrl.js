@@ -216,6 +216,7 @@ define(['underscore',
 			 */
 			$scope.setFieldDefaultValue=function (namespace, field) {
 				// The CURRENT type for this (property or something else.)
+				$scope.validation[namespace][field]['error']='This field is required.';
 				var type=$scope.$parent.job_config[namespace][field]['type'];
 				var name=$scope.validation[namespace][field]['name'];
 				var current_value=$scope.$parent.job_config[namespace][field]['value'];
@@ -283,9 +284,13 @@ define(['underscore',
 			}
 			
 			
-			
+			$scope.submit_attempted=false;
 			$scope.submit_job=function () {
-				$log.info($scope.job_config_form);
+				$log.info($scope.job_config_form, $scope.validation);
+				if ($scope.job_config_form.$invalid) {
+					$scope.submit_attempted=true;
+					return false;
+				}
 				$scope.resources['job'].getList({'job_id': $scope.job_data.id}).then(function (response) {
 					var data=response[0];
 					data.config=$scope.$parent.job_config;
@@ -373,15 +378,20 @@ define(['underscore',
         					}
         				}
         			}
+    			} else {
+    				valid=false;
+    				error="This field is required";
     			}
     			$scope.validation[namespace][property_name]['error']=error;
-    			$log.info()
-				$scope.job_config_form[namespace+':'+property_name].$setValidity(valid);
+    			$log.info('Setting validity for', namespace+':'+property_name, 'to', valid);
+				$scope.job_config_form[namespace+':'+property_name].$setValidity('nmtk',valid);
 				
 				if (! valid) {
 					$log.info($scope.job_config_form);
-					$log.debug('Valid?', valid, 'Value:', value, 'Error:',error, namespace + ':'+ property_name);
+					$log.debug('INVALID?', valid, 'Value:', value, 'Error:',error, namespace + ':'+ property_name);
 				}
+				$log.debug('VALID?', valid, 'Value:', value, 'Error:',error, namespace + ':'+ property_name);
+
 			}
 			
 			

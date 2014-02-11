@@ -19,7 +19,10 @@
 									    ng-change="updateFileFieldsFromResourceURI(config.namespace)" required
 										ng-disabled="disabled"
 										ng-init="updateFileFieldsFromResourceURI(config.namespace)"
-                     ng-options="o.resource_uri as getFileStr(o) for o in list_files(config.mime_types)"></select></h4>
+                     ng-options="o.resource_uri as getFileStr(o) for o in list_files(config.mime_types)"></select>
+			     <p class="help-block error" ng-show="submit_attempted && job_config_form[config.namespace].$invalid">This field is required</p>
+             </h4>
+
              <table ng-show="$parent.job_config_files[config.namespace] && config.elements.length > 0" class="table table-bordered table-striped table-highlight"> 
 			<thead>
 			  <tr>
@@ -48,7 +51,8 @@
                      <input ng-if="$parent.job_config[config.namespace][property.name]['type'] != 'property' && ! validation[config.namespace][property.name]['choices']"  
                             size="10" type="text" ng-model="$parent.job_config[config.namespace][property.name]['value']" 
 							ng-disabled="disabled" required 
-							ng-change="validateEntry(config.namespace, property.name) && validateEntry(config.namespace, property.name)"
+							ng-init="setFieldDefaultValue(config.namespace,property.name) && validateEntry(config.namespace, property.name)"
+							ng-change="validateEntry(config.namespace, property.name)"
                             dynamic-name="config.namespace + ':' + property.name"  ></input>
 					 <select ng-if="$parent.job_config[config.namespace][property.name]['type'] != 'property' && validation[config.namespace][property.name]['choices']"
 							name="config.namespace + ':' + property.name"  required
@@ -56,7 +60,7 @@
 							ng-init="setFieldDefaultValue(config.namespace, property.name)"
                             ng-model="$parent.job_config[config.namespace][property.name]['value']" 
  							ng-options="item.value as item.label for item in get_options(validation[config.namespace][property.name]['choices'])"></select>
-			         <span class="alert-error" ng-show="job_config_form[config.namespace+':'+property.name].$dirty && job_config_form[config.namespace+':'+property.name].$invalid" ng-bind="validation[config.namespace][property.name]['error']"></span>
+			         <p class="help-block error" ng-show="(submit_attempted || job_config_form[config.namespace+':'+property.name].$dirty) && job_config_form[config.namespace+':'+property.name].$invalid" ng-bind="validation[config.namespace][property.name]['error']"></p>
 			       </td>
 			       <td><label for="{{config.namespace}}:{{property.name}}">{{property.description}}</label></td>
 			       <td>{{property.display_name||property.name}}</td>
@@ -104,7 +108,7 @@
                             ng-model="$parent.job_config[config.namespace][property.name]['value']" 
  							ng-options="item.value as item.label for item in get_options(validation[config.namespace][property.name]['choices'])"></select>
 			         <span ng-repeat="error in errors[config.namespace][property.name]" class="alert-error" ng-show="error">{{error}}</span>
-			         <span class="alert-error" ng-show="job_config_form[config.namespace+':'+property.name].$dirty && job_config_form[config.namespace+':'+property.name].$invalid">Invalid selection</span>
+			         <p class="help-block error" ng-show="(submit_attempted || job_config_form[config.namespace+':'+property.name].$dirty) && job_config_form[config.namespace+':'+property.name].$invalid">{{validation[config.namespace][property.name]['error']}}</p>
 				   </td>
 			       <td><label for="{{config.namespace}}:{{property.name}}">{{property.description}}</label></td>
 			       <td>{{property.display_name||property.name}}</td>
@@ -172,7 +176,7 @@
           <div class="widget-content centered">
             <button ng-show="disabled" ng-click="closeConfig()" class="btn btn-primary">Close</button>
             <button ng-hide="disabled" ng-click="closeConfig()" class="btn">Cancel</button>
-            <button ng-hide="disabled" ng-click="submit_job()" ng-disabled="job_config_form.$invalid" class="btn btn-primary">Submit Job</button>
+            <button ng-hide="disabled" ng-click="submit_job()"  ng-class="{'btn-success': job_config_form.$valid, 'btn-warning': job_config_form.$invalid }"class="btn">Submit Job</button>
           </div>
         </div>
       </div>
