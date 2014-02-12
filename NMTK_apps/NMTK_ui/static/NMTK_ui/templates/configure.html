@@ -125,6 +125,17 @@
 
 
 <div class="container">
+   <div class="row">
+      <div class="col-md-12">
+        <div class="widget stacked">
+          <div class="widget-content centered">
+            <button ng-show="disabled" ng-click="closeConfig()" class="btn btn-primary">Close</button>
+            <button ng-hide="disabled" ng-click="closeConfig()" class="btn">Cancel</button>
+            <button ng-hide="disabled" ng-click="submit_job()"  ng-class="{'btn-success': job_config_form.$valid, 'btn-warning': job_config_form.$invalid }"class="btn">Submit Job</button>
+          </div>
+        </div>
+      </div>
+    </div>
    <div class="row">   	  
      <div class="col-md-12">
         <div class="widget stacked">

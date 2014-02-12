@@ -59,22 +59,21 @@ define(['underscore', 'text!fileInfoTemplate', 'text!fileActionsCellTemplate'],
 					 multiSelect: false,
 					 plugins: [new ngGridFlexibleHeightPlugin()],
 					 selectedItems: $scope.selections,
-					 columnDefs: [{field: 'name',
-						           width: '30%',
-						           displayName: 'File Name'},
-						          {field: 'status',
-						           width: '20%',
-						           displayName: 'Status'},
-						          {field: 'description',
-						           width: '45%',
-						           cellClass: 'cellWrapText',
-						           displayName: 'Description'},
-						          {
-						           width: '5%',
-						           sortable: false,
-						           cellClass: 'cellCenterOverflow',
-						           cellTemplate: fileActionsCellTemplate,
-						           displayName: ''},
+					 columnDefs: [  { width: '7%',
+						              sortable: false,
+						              cellClass: 'cellCenterOverflow',
+						              cellTemplate: fileActionsCellTemplate,
+						              displayName: ''}
+						          , { field: 'name',
+						              width: '30%',
+						              displayName: 'File Name'}
+						          , { field: 'status',
+						              width: '20%',
+						              displayName: 'Status'}
+						          , { field: 'description',
+						              width: '45%',
+						              cellClass: 'cellWrapText',
+						              displayName: 'Description'}
 						          ],
 					 showColumnMenu: false };
 		}

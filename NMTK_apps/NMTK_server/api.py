@@ -18,6 +18,7 @@ from django.http import HttpResponse, Http404
 from NMTK_server import forms
 from NMTK_apps.helpers import data_output
 from NMTK_apps.helpers import wms_service
+from validation.tool_config_validator import ToolConfigValidator
 import simplejson as json
 from tastypie.validation import Validation
 from django.contrib.gis.gdal import OGRGeometry
@@ -898,42 +899,54 @@ class JobResourceValidation(Validation):
         a configuration that seems valid.  Then it's up to the tool to do the
         rest of the work in terms of processing/generating errors.
         '''
-        kwargs={}
-        kwargs['job']=bundle.obj
         errors={}
-        # Special case with POST is that the data comes in as a unicode string.
-        # convert it to the proper Python object.
-        if isinstance(bundle.data.get('config'), (str, unicode)):
-            bundle.data['config']=json.loads(bundle.data['config'])
-        if bundle.obj.pk:
-            for field in ['data_file','tool']:
-                if (getattr(bundle.obj, '_old_%s' % (field,)) != 
-                    getattr(bundle.obj, field)):
-                    errors[field]=('This field cannot be changed, ' +
-                                   'please create a new job instead')
-        if bundle.obj.status != 'U':
-            errors['status']= ('Cannot update a job once it has been ' +
-                               'configured, please create a new job instead (%s)' % (bundle.obj.status))  
-        elif bundle.data.get('config', None):
-            bundle.data['config']['job_id']=bundle.obj.pk
-            if bundle.obj.config:
-                kwargs['initial']=bundle.obj.config
-            form=forms.ToolConfigForm(bundle.data.get('config'), 
-                                      **kwargs)
-            if form.is_valid():
-                bundle.obj.config=form.cleaned_data
-                bundle.obj.status=bundle.obj.ACTIVE
-                return errors
-            errors['config']=form.errors
-            return errors
+        # if there is 
+        if bundle.obj.pk and bundle.obj.status==bundle.obj.UNCONFIGURED:
+            kwargs={}
+            kwargs['job']=bundle.obj
+            # Special case with POST is that the data comes in as a unicode string.
+            # convert it to the proper Python object.
+            for name in ['config','file_config']:
+                if isinstance(bundle.data.get(name), (str, unicode)):
+                    bundle.data[name]=json.loads(bundle.data[name])
+                elif not bundle.data.has_key(name):
+                    bundle.data[name]='{}'
+            if bundle.obj.pk:
+                for field in ['tool',]:
+                    if (getattr(bundle.obj, '_old_{0}'.format(field), None) != 
+                        getattr(bundle.obj, field, None)):
+                        logger.debug('Old value was: %s', 
+                                     getattr(bundle.obj, '_old_{0}'.format(field)))
+                        errors[field]=('This field cannot be changed, ' +
+                                       'please create a new job instead')
+            if bundle.obj.status != 'U':
+                errors['status']= ('Cannot update a job once it has been ' +
+                                   'configured, please create a new job instead (%s)' % (bundle.obj.status))  
+            elif bundle.data.get('config', None):
+#                 bundle.data['config']['job_id']=str(bundle.obj.pk)
+#                 if bundle.obj.config:
+#                     kwargs['initial']=bundle.obj.config
+                validator=ToolConfigValidator(job=bundle.obj, 
+                                              tool_config=bundle.data['config'],
+                                              file_config=bundle.data['file_config'])
+                if validator.is_valid():
+                    bundle.obj.config=validator.genToolConfig() # Returns a valid tool config.
+                    # Stick the job files here, we can have the model save them.
+                    # the model looks at job_files_pending when it sees a state change,
+                    # and only then will it save the job files.
+                    bundle.obj.job_files_pending=validator.genJobFiles()
+                        
+                    bundle.obj.status=bundle.obj.ACTIVE
+                else:
+                    errors['config']=validator.errors
         return errors
          
 
 class JobResource(ModelResource):
     job_id=fields.CharField('job_id', readonly=True)
     tool=fields.ToOneField(ToolResource, 'tool')
-    job_files=fields.ToManyField('JobFileResource','job_files',
-                                 null=True)
+    job_files=fields.ToManyField('NMTK_server.api.JobFileResource','jobfile_set',
+                                 null=True, full=True)
     status=fields.CharField('status', readonly=True, null=True)
     tool_name=fields.CharField('tool_name', readonly=True, null=True)
     config=fields.CharField('config', readonly=True, null=True)
@@ -967,7 +980,7 @@ class JobResource(ModelResource):
     
     def dehydrate(self, bundle):
         # Need this for Restangular, or we need to wrangle stuff.
-        bundle.data['id']=bundle.obj.job_id
+        bundle.data['id']=str(bundle.obj.job_id)
 #         if bundle.obj.data_file:
 #             kwargs={}
 #             if bundle.obj.config:
@@ -977,9 +990,12 @@ class JobResource(ModelResource):
         bundle.data['user'] = bundle.obj.user.username
         bundle.data['tool_name']=bundle.obj.tool.name
         bundle.data['status']=bundle.obj.get_status_display()
-        bundle.data['config']=json.dumps(bundle.obj.config);
-#         if bundle.obj.data_file:
-#             bundle.data['file_name']=os.path.basename(bundle.obj.data_file.file.name)
+        bundle.data['config']=json.dumps(bundle.obj.config)
+#         if len(bundle.obj.jobfile_set.all()) > 0:
+#             bundle.data['job_files']=[]
+#             for f in bundle.obj.jobfile_set.all():
+#                 bundle.data['job_files'].append(f.json())
+
         try:
             bundle.data['message']=bundle.obj.jobstatus_set.all()[0].message
             bundle.data['last_status']=bundle.obj.jobstatus_set.all()[0].timestamp

@@ -47,7 +47,8 @@ require.config({
 		, "jobDescriptionCellTemplate": "../templates/job_description_cell.html" // Template for ng-grid job actions
 		, "viewJobModalTemplate": "../templates/view_job_modal.html" // Template for ng-grid file actions
 		, "switchJobModalTemplate": "../templates/switch_job_modal.html" // Template for ng-grid job actions
-		, "configureErrorsTemplate": "../templates/configure_errors_modal.html" //Template for configuration error messages
+		, "configureErrorsServerTemplate": "../templates/configure_errors_server_modal.html" //Template for configuration error messages
+		, "configureErrorsClientTemplate": "../templates/configure_errors_client_modal.html" //Template for configuration error messages
 		, "cloneConfigTemplate": "../templates/clone_config_modal.html" // Template for config page to clone config.
 	}
 	, shim: {

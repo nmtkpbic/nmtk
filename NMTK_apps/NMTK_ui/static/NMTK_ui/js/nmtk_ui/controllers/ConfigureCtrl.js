@@ -1,6 +1,8 @@
 define(['underscore',
-        'text!configureErrorsTemplate',
-        'text!cloneConfigTemplate'], function (_, configureErrorsTemplate,
+        'text!configureErrorsServerTemplate',
+        'text!configureErrorsClientTemplate',
+        'text!cloneConfigTemplate'], function (_, configureErrorsServerTemplate,
+        		configureErrorsClientTemplate,
         		cloneConfigTemplate) {	
 	"use strict";
 	var controller=['$scope', '$routeParams', '$location', '$modal', '$log',
@@ -289,7 +291,15 @@ define(['underscore',
 				$log.info($scope.job_config_form, $scope.validation);
 				if ($scope.job_config_form.$invalid) {
 					$scope.submit_attempted=true;
-					return false;
+					var opts = {
+						    template: configureErrorsClientTemplate, // OR: templateUrl: 'path/to/view.html',
+						    controller: ['$scope','$modalInstance', function ($scope, $modalInstance) {
+											$scope.close=function () {
+												$modalInstance.close();
+											}
+										}]
+						  };
+					var d=$modal.open(opts);
 				}
 				$scope.resources['job'].getList({'job_id': $scope.job_data.id}).then(function (response) {
 					var data=response[0];
@@ -304,20 +314,16 @@ define(['underscore',
 						/* Function called when an error is returned */
 						$scope.$parent.errors=response.data.job.config;
 						var opts = {
-							    backdrop: true,
-							    keyboard: true,
-							    backdropClick: true,
-							    template: configureErrorsTemplate, // OR: templateUrl: 'path/to/view.html',
-							    controller: ['$scope','dialog', function ($scope, dialog) {
-												$scope.messages=dialog.options.errors;
+							    resolve: {messages: function () { return $scope.$parent.errors; } },
+							    template: configureErrorsServerTemplate, // OR: templateUrl: 'path/to/view.html',
+							    controller: ['$scope','$modalInstance','messages', function ($scope, $modalInstance, messages) {
 												$scope.close=function () {
-													dialog.close();
+													$modalInstance.close();
 												}
+												$scope.messages=messages;
 											}]
-							  };
-						opts.errors=$scope.$parent.errors;
-						var d=$modal.dialog(opts);
-						d.open();
+					    };
+						var d=$modal.open(opts);
 					});
 				});
 			}

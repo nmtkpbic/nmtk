@@ -149,7 +149,6 @@ class Job(models.Model):
     def __init__(self, *args, **kwargs):
         super(Job, self).__init__(*args, **kwargs)
         self._old_status=self.status
-        self._old_data_file=self.data_file if hasattr(self,'data_file') else None
         self._old_tool=self.tool if hasattr(self,'tool') else None
     job_id=UUIDField(auto=True, primary_key=True)
     tool=models.ForeignKey(Tool, on_delete=models.PROTECT)
@@ -193,7 +192,11 @@ class Job(models.Model):
         it's response(s) back immediately.
         '''
         result=super(Job, self).save(*args, **kwargs)
-        if self._old_status == 'U' and self.status == 'A':
+        if self._old_status == self.UNCONFIGURED and self.status == self.ACTIVE:
+            if hasattr(self, 'job_files_pending'):
+                logger.debug('Saving Job file entries for this job')
+                # Save all the job files.
+                map(lambda f: f.save(), self.job_files_pending)
             logger.debug('Detected a state change from Unconfigured to ' + 
                          'Active for job (%s.)', self.pk)
             logger.debug('Sending job to tool for processing.')
@@ -211,9 +214,14 @@ class Job(models.Model):
         verbose_name_plural='Jobs'
 
 class JobFile(models.Model):
-    job = models.ForeignKey('Job')
-    datafile = models.ForeignKey('DataFile')
+    job = models.ForeignKey('Job', on_delete=models.CASCADE)
+    datafile = models.ForeignKey('DataFile', on_delete=models.PROTECT)
     namespace=models.CharField(max_length=255, null=False);
+    
+    def json(self):
+        return {'job': str(self.job.pk),
+                'datafile': self.datafile.pk,
+                'namespace': self.namespace}
   
 class DataFile(models.Model):
     PENDING=1
