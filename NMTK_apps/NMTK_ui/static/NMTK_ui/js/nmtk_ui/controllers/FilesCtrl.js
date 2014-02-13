@@ -71,7 +71,7 @@ define(['underscore', 'text!fileInfoTemplate', 'text!fileActionsCellTemplate'],
 						              width: '20%',
 						              displayName: 'Status'}
 						          , { field: 'description',
-						              width: '45%',
+						              width: '43%',
 						              cellClass: 'cellWrapText',
 						              displayName: 'Description'}
 						          ],

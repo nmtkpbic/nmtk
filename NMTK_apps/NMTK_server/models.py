@@ -157,8 +157,9 @@ class Job(models.Model):
 #     file=models.FileField(storage=fs, upload_to=lambda instance, filename: 'data_files/%s.geojson' % (instance.job_id,))
 #     data_file=models.ForeignKey('DataFile', null=True, related_name='job_source',
 #                                 blank=True, on_delete=models.PROTECT)
-    results=models.OneToOneField('DataFile', null=True, related_name='job_result',
-                                  on_delete=models.PROTECT)
+    results_files=models.ManyToManyField('DataFile', null=True, related_name='job_result',
+                                         through='ResultsFile',
+                                         on_delete=models.PROTECT)
     # Now each job could have numerous data files, prevent deletion of a data file
     # if a job still requires it.
     job_files=models.ManyToManyField('DataFile', null=True, through='JobFile')
@@ -212,6 +213,19 @@ class Job(models.Model):
         ordering=['-date_created']
         verbose_name='Job'
         verbose_name_plural='Jobs'
+
+
+class ResultsFile(models.Model):
+    '''
+    Since it is possible for a job to return multiple results now, we need to 
+    tie the job to its results.  This is done via this model.  Only one
+    of the result files is considered the "primary" result though, and it's
+    the one that can be used for display using the result field from the models
+    config.
+    '''
+    job=models.ForeignKey('Job', on_delete=models.CASCADE)
+    datafile=models.ForeignKey('DataFile', on_delete=models.PROTECT)
+    primary=models.BooleanField(default=False)
 
 class JobFile(models.Model):
     job = models.ForeignKey('Job', on_delete=models.CASCADE)

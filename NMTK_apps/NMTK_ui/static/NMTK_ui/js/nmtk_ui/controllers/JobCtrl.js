@@ -48,22 +48,22 @@ define(['text!jobActionsCellTemplate'
 					 multiSelect: false,
 					 plugins: [new ngGridFlexibleHeightPlugin()],
 					 selectedItems: $scope.selections,
-					 columnDefs: [{width: '50%',
-						 		   sortable: false,
-						           cellTemplate: jobDescriptionCellTemplate,
-						           displayName: 'Job Description'},
-						          {field: 'status',
-						           width: '15%',
-						           displayName: 'Status'},
-						          {width: '29%',
-					        	   sortable: false,
-						           cellTemplate: jobStatusCellTemplate,
-						           displayName: 'Tool Reported Status'},
-						          {width: '6%',
-						           sortable: false,
-						           cellClass: 'cellCenterOverflow',
-						           cellTemplate: jobActionsCellTemplate,
-						           displayName: ''},
+					 columnDefs: [  { width: '10%',
+				                      sortable: false,
+				                      cellClass: 'cellCenterOverflow',
+				                      cellTemplate: jobActionsCellTemplate,
+				                      displayName: ''}
+				           		  , { width: '50%',
+						 		      sortable: false,
+						              cellTemplate: jobDescriptionCellTemplate,
+						              displayName: 'Job Description'}
+						          , { field: 'status',
+						              width: '12%',
+						              displayName: 'Status'}
+						          , { width: '28%',
+					        	      sortable: false,
+						              cellTemplate: jobStatusCellTemplate,
+						              displayName: 'Tool Reported Status'}
 						          ],
 					 showColumnMenu: false };
 		}
