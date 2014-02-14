@@ -52,7 +52,7 @@ class NMTKClient(object):
         digest=digest_maker.hexdigest()
         return digest
     
-    def _generate_request(self, url, payload, type="post", data=None,
+    def _generate_request(self, url, payload, type="post", files={},
                           headers={}):
         payload['job']={'timestamp': datetime.datetime.now().isoformat(),
                         'job_id': self.job_id,
@@ -64,9 +64,9 @@ class NMTKClient(object):
         # requests using requests.post, requests.get, requests.put
         # so the getattr(requests,type) uses the type provided to
         # perform the proper request operation to the NMTK server.
-        files= {'config': ('config', payload_json,),}
-        if data:
-            files['data']=('data',data)
+        files['config']=('config', payload_json,)
+        
+            
         logger.debug(files)
         r=getattr(requests, type)(url, 
                                   files=files, 
@@ -76,21 +76,29 @@ class NMTKClient(object):
         # so we always decode and return that response.
         return r.json()        
         
-    def updateResults(self, data=None,
+    def updateResults(self, result_field, result_file, files, 
                       failure=False):
         '''
         According to the docs here (http://fhwa.cgclientx.com/index.php/API_Specification#External_API_Specification)
         there are two methods the analysis tool uses to communicate with the
         server - one of which is analyses/results (a URL).  This is used
         to send final results back to the server.
+        
+        Note: files should be a dictionary of two-tuples, containing a file name and 
+              a file-like object.  the key of the dictionary is the name of the POST 
+              field used to send the file, and at least one of those keys should match
+              the 'result_field' value.
         '''
         url="%s/%s" % (self.url, "tools/result",)
         if failure:
             payload={'status': 'error' }
         else:
-            payload={'status': 'results' }
+            payload={'status': 'results',
+                     'results': {'results_field': result_field,
+                                 'file': result_file }
+                     }
 
-        result=self._generate_request(url, payload, "post", data=data)
+        result=self._generate_request(url, payload, "post", files=files)
         return result['status']
     
     def updateStatus(self, status):

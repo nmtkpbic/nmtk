@@ -3,7 +3,7 @@ from django.shortcuts import render
 from NMTK_server import forms
 from NMTK_server import models
 from NMTK_server.decorators import authentication
-from django.http import HttpResponse, Http404, HttpResponseRedirect
+from django.http import HttpResponse, Http404, HttpResponseRedirect, HttpResponseServerError
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.contrib.sites.models import get_current_site
 import requests
@@ -115,25 +115,64 @@ def processResults(request):
     based on content type.
     '''
     config=json.loads(request.FILES['config'].read())
-    data=ContentFile(request.FILES['data'].read())
-    description="Results from '{0}'".format(request.NMTK_JOB.description)
+
+    
+    base_description="Results from '{0}'".format(request.NMTK_JOB.description)
     if config['status'] == 'results':
-        result=models.DataFile(user=request.NMTK_JOB.user,
-                               name="job_%s_results" % (request.NMTK_JOB.pk,),
-                               description=description,
-                               result_field=config.get('result_field', 'result'),
-                               content_type=config.get('content_type', 'application/json'),
-                               type=models.DataFile.JOB_RESULT)
-        result.file.save('results', data, save=False)
+        if (not config.has_key('results') or 
+            not config['results'].has_key('field') or
+            not config['results'].has_key('file')):
+            logger.error('Results received with no valid results key in config (old API?)')
+            raise HttpResponseServerError('Invalid result format')
+        result_field=config['results']['field']
+        result_file=config['results']['file']
+        
+        if config['results']['file'] not in request.FILES:
+            logger.error('Specified file for results was not uploaded')
+            raise HttpResponseServerError('Invalid result file specified')
+        total=len(request.FILES)-1
+        
         request.NMTK_JOB.status=request.NMTK_JOB.POST_PROCESSING
-        # Pass in the job here so that the data file processor knows to
-        # update the job when this is done.
-        result.save(job=request.NMTK_JOB)
-        request.NMTK_JOB.results=result
+        request.NMTK_JOB.save()
+        i=0
+        for namespace in request.FILES.keys():
+            i += 1
+            if (total > 1):
+                description = base_description + '({0}/{1})'.format(i, total)
+            else:
+                description=base_description
+            kwargs={}
+            if namespace == 'config':
+                continue
+            if namespace == result_file:
+                primary=True
+                field=result_field
+            else:
+                field=None
+                primary=False
+            result=models.DataFile(user=request.NMTK_JOB.user,
+                                   name="job_{0}_results".format(request.NMTK_JOB.pk),
+                                   description=description,
+                                   content_type=request.FILES[namespace].content_type,
+                                   type=models.DataFile.JOB_RESULT, 
+                                   result_field=field)
+            result.file.save('results', ContentFile(request.FILES[result_file].read()), save=False)
+            
+            if namespace == result_file:
+                # Pass in the job here so that the data file processor knows to
+                # update the job when this is done (only happens with primary file.)
+                result.save(job=request.NMTK_JOB)
+            else:
+                result.save()
+            # Save the linkage back to the job...
+            rf=models.ResultsFile(job=request.NMTK_JOB,
+                                  datafile=result,
+                                  primary=primary)
+            rf.save()
     elif config['status'] == 'error':
         request.NMTK_JOB.status=request.NMTK_JOB.FAILED
-    # The tool should indicate which field contains its result.
-    request.NMTK_JOB.save()
+        request.NMTK_JOB.save()
+
     models.JobStatus(message='COMPLETE',
                      timestamp=timezone.now(),
                      job=request.NMTK_JOB).save()

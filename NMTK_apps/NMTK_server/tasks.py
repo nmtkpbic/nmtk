@@ -303,11 +303,7 @@ def submitJob(job_id):
     configuration['job']= {'tool_server_id': "%s" % (job.tool.tool_server.tool_server_id,),
                            'job_id': str(job.job_id),
                            'timestamp': timezone.now().isoformat() }
-    # Add the file configuration information, this would allow the tool to
-    # map file names over to namespaces.  Presently not required or used...
-    configuration['files']=[]
-    for jobfile in job.jobfile_set.all():
-        configuration['files'].append((jobfile.namespace, jobfile.datafile.name,))
+
     config_data=json.dumps(configuration, use_decimal=True) #cls=DjangoJSONEncoder)
     digest_maker =hmac.new(str(job.tool.tool_server.auth_token), 
                            config_data, 

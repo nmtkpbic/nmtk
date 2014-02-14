@@ -947,6 +947,8 @@ class JobResource(ModelResource):
     tool=fields.ToOneField(ToolResource, 'tool')
     job_files=fields.ToManyField('NMTK_server.api.JobFileResource','jobfile_set',
                                  null=True, full=True)
+    results_files=fields.ToManyField('NMTK_server.api.ResultsFileResource','resultsfile_set',
+                                 null=True, full=True)
     status=fields.CharField('status', readonly=True, null=True)
     tool_name=fields.CharField('tool_name', readonly=True, null=True)
     config=fields.CharField('config', readonly=True, null=True)
@@ -1002,7 +1004,73 @@ class JobResource(ModelResource):
         except IndexError:
             pass
         return bundle
-    
+   
+   
+class ResultsFileResourceAuthorization(Authorization):
+    def read_list(self, object_list, bundle):
+        '''
+        This gets a queryset (object_list) and returns a new one.  The key
+        here is that we are apply *additional* filters to the default 
+        queryset to restrict the output back to the user.
+        
+        In this case, we check to see if the user is a site admin, if they are
+        then they are able to see *all* the records for active users.
+        
+        If they are *not* a site admin, we restrict viewing of data to the
+        username that matches the current logged in user.  In short, you 
+        can see your information, but noone elses.
+        '''
+        if bundle.request.user.is_superuser and bundle.data.get('all', False):
+            return object_list
+        return object_list.filter(job__user=bundle.request.user.pk)
+
+    def read_detail(self, object_list, bundle):
+        '''
+        This should get a list (containing a single record).  It should
+        either return an error indicating the record is not accessible by
+        the user, or it should simply return.
+        
+        In this case, raising NotFound seems to be the only option that 
+        causes the server to continue to function without an exception.  Other
+        things (like not authorized) cause a 500
+        '''
+        if bundle.request.user.is_superuser:
+            return True
+        elif bundle.obj.job.user.pk <> bundle.request.user.pk:
+            raise Unauthorized('You lack the privilege to access this resource')
+        return True
+
+    def delete_list(self, object_list, bundle):
+        # Sorry user, no deletes for you
+        if bundle.request.user.is_superuser:
+            return object_list
+        else:
+            return [obj for obj in object_list 
+                    if obj.job.user == bundle.request.user] 
+
+    def delete_detail(self, object_list, bundle):
+        if bundle.request.user.is_superuser:
+            return True
+        elif bundle.obj.job.user == bundle.request.user:
+            return True
+        raise Unauthorized('You lack the privilege to access this resource')
+
+class ResultsFileResource(ModelResource):
+    job=fields.ToOneField(JobResource, 'job')
+    datafile=fields.ToOneField(DataFileResource, 'datafile')
+    primary=fields.BooleanField('primary', readonly=True)
+    class Meta:
+        queryset = models.ResultsFile.objects.all()
+        authorization=ResultsFileResourceAuthorization()
+        always_return_data = True
+        resource_name = 'job_results'
+        authentication=SessionAuthentication()
+        excludes=[]
+        allowed_methods=['get','delete',]
+        filtering= {'job': ALL,
+                    'datafile': ALL,
+                    'primary': ALL}    
+        
 class JobFileResourceAuthorization(Authorization):
     def read_list(self, object_list, bundle):
         '''

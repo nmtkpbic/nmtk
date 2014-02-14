@@ -157,12 +157,14 @@ class Job(models.Model):
 #     file=models.FileField(storage=fs, upload_to=lambda instance, filename: 'data_files/%s.geojson' % (instance.job_id,))
 #     data_file=models.ForeignKey('DataFile', null=True, related_name='job_source',
 #                                 blank=True, on_delete=models.PROTECT)
-    results_files=models.ManyToManyField('DataFile', null=True, related_name='job_result',
-                                         through='ResultsFile',
-                                         on_delete=models.PROTECT)
+    # The result could contain multiple datafiles as well, so we will deal with 
+    # that via a separate model.
+    results_files=models.ManyToManyField('DataFile', null=True, through='ResultsFile',
+                                         related_name='results')
     # Now each job could have numerous data files, prevent deletion of a data file
     # if a job still requires it.
-    job_files=models.ManyToManyField('DataFile', null=True, through='JobFile')
+    job_files=models.ManyToManyField('DataFile', null=True, through='JobFile',
+                                     related_name='job_files')
     # This will contain the config data to be sent along with the job, in 
     # a JSON format of a multi-post operation.
     config=JSONField(null=True)
