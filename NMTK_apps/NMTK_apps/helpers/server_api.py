@@ -76,7 +76,7 @@ class NMTKClient(object):
         # so we always decode and return that response.
         return r.json()        
         
-    def updateResults(self, result_field, result_file, files, 
+    def updateResults(self, result_field, result_file=None, files={}, 
                       failure=False):
         '''
         According to the docs here (http://fhwa.cgclientx.com/index.php/API_Specification#External_API_Specification)

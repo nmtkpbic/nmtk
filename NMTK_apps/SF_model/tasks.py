@@ -109,8 +109,11 @@ def performModel(data_file,
         # Since we are updating the data as we go along, we just need to return
         # the data with the new column (results) which contains the result of the 
         # model.
-        client.updateResults(data=json.dumps(source_data,
-                                             cls=DjangoJSONEncoder))
+        client.updateResults(result_field='result',
+                             result_file='data',
+                             files={'data': ('data',json.dumps(source_data,
+                                                               cls=DjangoJSONEncoder))
+                                    })
     for f in [data_file, job_setup]:
         os.unlink(f)
 
