@@ -29,8 +29,7 @@ def getParameters( setup, elements, failures ):
     return ( parameters, failures )
 
 @task(ignore_result=False)
-def performModel(data_file, 
-                 job_setup, 
+def performModel(input_files,
                  tool_config,
                  client,
                  perform_exp=False):
@@ -71,9 +70,7 @@ def performModel(data_file,
     if failures:
         for f in failures:
             logger.debug("Failure: %s",f)
-        client.updateResults(data=json.dumps({'status': 'FAILED',
-                                              'errors': failures},
-                                            cls=DjangoJSONEncoder),
+        client.updateResults(payload={'errors': failures },
                              failure=True)
     else:    
         client.updateStatus('Parameter validation complete.')

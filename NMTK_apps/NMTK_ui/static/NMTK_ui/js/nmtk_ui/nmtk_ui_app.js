@@ -11,6 +11,7 @@ define(['jquery'
         , 'text!introTemplate'
         , 'leaflet'
         , 'angular-leaflet'
+        , 'angular-elastic'
         , 'restangular'
         , 'ng-grid'
         , 'angular-bootstrap'
@@ -30,7 +31,7 @@ define(['jquery'
 				 */
 				
 				var nmtk_app=angular.module('nmtk', ['ui.bootstrap', 'restangular', 'ngGrid', 
-				                                     'leaflet-directive']).
+				                                     'leaflet-directive', 'monospaced.elastic']).
 				   config(['RestangularProvider', 
 					function(RestangularProvider) {
 					  var api_path=CONFIG.api_path;

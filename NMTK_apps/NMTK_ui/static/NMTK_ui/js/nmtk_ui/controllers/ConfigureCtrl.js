@@ -18,12 +18,17 @@ define(['underscore',
 			var INTEGER_REGEXP= /^\-?\d+$/;
 			$scope.loginCheck();
 			var jobid=$routeParams.jobid;
-			$scope.$parent.job_uri=$location.path();
+			if ((typeof $scope.$parent.job_uri !== 'undefined') &&
+				($scope.$parent.job_uri != $location.path())) {
+				$scope.$parent.job_config=undefined;
+				$scope.$parent.job_uri=$location.path();
+			} else {
+				$log.info('Continuing to configure existing job', $scope.$parent.job_config);
+			}
+			
 			// Get Job, tool, and file information, then use them to generate the form
 			// configuration.
-			$scope.tool_config=[];
-			
-			$log.info('Job config is ', $scope.$parent.job_config);
+			$scope.tool_config=[];			
 			
 			$scope.sections={}
 			$scope.toggleSection=function (type) {
@@ -309,6 +314,7 @@ define(['underscore',
 					data.put().then(function (response) {
 						$log.info(response);
 						// Return them to the job window.
+						$scope.$parent.job_config=undefined;
 						$scope.closeConfig();
 					}, function (response) {
 						/* Function called when an error is returned */

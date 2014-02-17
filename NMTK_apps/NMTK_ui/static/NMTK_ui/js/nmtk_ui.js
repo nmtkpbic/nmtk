@@ -9,6 +9,7 @@ require.config({
 		, "jquery": "lib/jquery" // Used for the file upload drag-and-drop stuff - and nothing else.
 		, "jquery.ui.widget": "lib/jquery.ui.widget" // UI Widget needed for file upload
 		, "jquery-iframe-transport": "lib/jquery.iframe-transport" // Used for file upload
+		, "angular-elastic": "lib/angular-elastic" // Used for auto-resize of textarea fields
 		, "jquery-fileupload": "lib/jquery.fileupload" // Used for file upload
 		/* End drag-and-drop upload required files */
 		, "browserdetect": "lib/browserdetect" // Might not be needed - detect browser version
@@ -61,6 +62,7 @@ require.config({
 	                                  "jquery.ui.widget"]
 	    , "jquery-fileupload": ["jquery", "jquery.ui.widget"]
 	    , "angular-leaflet": ["angular", "leaflet"]
+	    , "angular-elastic": ["angular"]
 	    , "restangular": ["angular"]
 	    , "ng-grid": ["angular", "ng-grid-flexible-height", "ng-grid-layout"]
 	    , "angular-bootstrap": ["angular"]

@@ -12,9 +12,11 @@
         <div class="col-sm-9">
           <div class="controls"> 
             <!-- <p ng-show="{{field.disabled}}">{{jobdata[field.field]}}</p> -->
-            <input ng-disabled="{{field.disabled}}" type="{{field.type}}" class="input" 
-                 name="{{field.field}}" id="{{field.field}}" ng-model="jobdata[field.field]">
-            </input>
+            <input ng-if="field.type == 'input'" ng-disabled="{{field.disabled}}" type="input" class="input" 
+                 name="{{field.field}}" id="{{field.field}}" ng-model="jobdata[field.field]"></input>
+            <textarea msd-elastic ng-if="field.type == 'textarea'" ng-disabled="{{field.disabled}}" type="textarea" class="input" 
+                 name="{{field.field}}" id="{{field.field}}" ng-model="jobdata[field.field]"></textarea>
+            
             <p class="help-block">{{field.description}}</p>
           </div>
         </div>

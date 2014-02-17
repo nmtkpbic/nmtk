@@ -73,63 +73,36 @@ def runModel(request, tool_name):
     if 'binomial' in tool_name.lower():
         perform_exp=True
     config=json.loads(generateToolConfiguration(request, tool_name).content)
-    # Grab the uploaded files and store them on the file system, preserve
-    # the extension, since OGR might need it to determine the driver
-    # to use to read the file. 
-    
-    # So we expect there to be two keys for the uploaded files here,
-    # config - for the config object
-    # data - for the data object.
-    logger.debug('Keys in request.FILES are %s', request.FILES)
-    logger.debug('config in request.FILES: %s', 'config' in request.FILES)
-    logger.debug('data in request.FILES: %s', 'data' in request.FILES)
-    if not ('config' in request.FILES and 'data' in request.FILES):
-        raise SuspiciousOperation('A file and configuration must provided ' +
-                                  ' in the payload.')
-    filename=request.FILES['data'].name
-    extension=os.path.splitext(filename)[1]
-    outfile=tempfile.NamedTemporaryFile(suffix=extension, 
-                                        prefix='nmtk_upload_',
-                                        delete=False)
-    outfile.write(request.FILES['data'].read())
-    outfile.close() 
-    
-    config_file=tempfile.NamedTemporaryFile(prefix='nmtk_config_',
+
+    # Grab all the files that were passed to the tool and 
+    # store them in temp storage.  input_files will contain
+    # the namespace --> filename mappings.
+    for namespace in request.FILES.keys():
+        filename=request.FILES[namespace]
+        extension=os.path.splitext(filename)[1]
+        outfile=tempfile.NamedTemporaryFile(suffix=extension, 
+                                            prefix='nmtk_upload_',
                                             delete=False)
-    config_file.write(json.dumps(request.NMTK.config))
-    config_file.close()
+        outfile.write(request.FILES[namespace].read())
+        outfile.close() 
+        input_files[namespace]=(outfile, filename.content_type)
+    logger.debug('Input files are: %s', input_files)
+    
     # This is here because the celery job isn't running as the www-data user
     # and as a result has issues reading the tempfile that is created.
     # Once deployed (and all run as the same user) we can probably dispense
     # with this.
-    for filename in [outfile.name, config_file.name]:
-        os.chmod(filename,stat.S_IROTH|stat.S_IREAD|stat.S_IWRITE)
+    for namespace, filename in input_files.iteritems():
+        os.chmod(filename[0],stat.S_IROTH|stat.S_IREAD|stat.S_IWRITE)
     # We should now be able to load the configuration and process the 
     # job...
-    ret = tasks.performModel.delay(data_file=outfile.name, 
-                                   job_setup=config_file.name, 
+    ret = tasks.performModel.delay(input_files=input_files, 
                                    tool_config=config,
                                    client=request.NMTK.client,
                                    perform_exp=perform_exp)
     return HttpResponse('OK')
         
-@csrf_exempt
-@decorators.nmtk        
-def updateToolConfig(request, tool_name):
-    '''
-    A simple function that can be used to send a tool configuration up to 
-    the NMTK server.  This isn't something that the NMTK framework provides,
-    but it's useful with the test server - iteratively testing tools means
-    that configs can change regularly, and the test server can
-    alter its behaviour immediately on a config reload.
-    '''
-    client_config=settings.NMTK_KEYS['MN_Model']
-    if tool_name.lower() == 'ols':
-        config=generateOLSToolConfiguration(request).content
-    elif tool_name.lower() =='binomial':
-        config=generateBinomialToolConfiguration(request).content
-    response=request.NMTK.client.updateConfig(config)
-    return HttpResponse(response)
+
     
     
     

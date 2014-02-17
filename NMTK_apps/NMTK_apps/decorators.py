@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, SuspiciousOperation
 import hmac
 import json
 import hashlib
@@ -28,8 +28,8 @@ def nmtk(func):
         try:
             configobj=json.loads(config)
         except:
-            logger.error(config)
-            logger.exception('Failed to parse JSON config object.')
+            logger.exception('Failed to parse JSON config object (%s)', config)
+            raise SuspiciousOperation('Invalid config')
         # Ensure that the config object has a job/tool_server_id value.
         if (not configobj.has_key('job') or 
             not configobj['job'].has_key('tool_server_id')):

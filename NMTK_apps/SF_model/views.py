@@ -80,36 +80,43 @@ def runModel(request, tool_name):
     # the extension, since OGR might need it to determine the driver
     # to use to read the file. 
     
-    # So we expect there to be two keys for the uploaded files here,
-    # config - for the config object
-    # data - for the data object.
-    logger.debug('config in request.FILES: %s', 'config' in request.FILES)
-    logger.debug('data in request.FILES: %s', 'data' in request.FILES)
-    if not ('config' in request.FILES and 'data' in request.FILES):
-        raise SuspiciousOperation('A file and configuration must provided ' +
-                                  ' in the payload.')
-    filename=request.FILES['data'].name
-    extension=os.path.splitext(filename)[1]
-    outfile=tempfile.NamedTemporaryFile(suffix=extension, 
-                                        prefix='nmtk_upload_',
-                                        delete=False)
-    outfile.write(request.FILES['data'].read())
-    outfile.close() 
+    # Parse the configuration provided by the tool.
+    try:
+        config=json.loads(request.FILES['config'].read())
+        logger.debug('Job Config is: %s', config)
+        request.FILES['config'].seek(0)
+    except Exception, e:
+        logger.exception('Job configuration not parseable (%s)!', e)
+        raise SuspiciousOperation('Job configuration is not parseable!')
     
-    config_file=tempfile.NamedTemporaryFile(prefix='nmtk_config_',
+    input_files={}
+    # Grab all the files that were passed to the tool and 
+    # store them in temp storage.  input_files will contain
+    # the namespace --> filename mappings.
+    for namespace in request.FILES.keys():
+        filedata=request.FILES[namespace]
+        extension=os.path.splitext(filedata.name)[1]
+        outfile=tempfile.NamedTemporaryFile(suffix=extension, 
+                                            prefix='nmtk_upload_',
                                             delete=False)
-    config_file.write(json.dumps(request.NMTK.config))
-    config_file.close()
+        outfile.write(request.FILES[namespace].read())
+        outfile.close() 
+        input_files[namespace]=(outfile.name, filedata.content_type)
+    logger.debug('Input files are: %s', input_files)
+    
+#     config_file=tempfile.NamedTemporaryFile(prefix='nmtk_config_',
+#                                             delete=False)
+#     config_file.write(json.dumps(request.NMTK.config))
+#     config_file.close()
     # This is here because the celery job isn't running as the www-data user
     # and as a result has issues reading the tempfile that is created.
     # Once deployed (and all run as the same user) we can probably dispense
     # with this.
-    for filename in [outfile.name, config_file.name]:
-        os.chmod(filename,stat.S_IROTH|stat.S_IREAD|stat.S_IWRITE)
+    for namespace, filedata in input_files.iteritems():
+        os.chmod(filedata[0],stat.S_IROTH|stat.S_IREAD|stat.S_IWRITE)
     # We should now be able to load the configuration and process the 
     # job...
-    ret = tasks.performModel.delay(data_file=outfile.name, 
-                                   job_setup=config_file.name, 
+    ret = tasks.performModel.delay(input_files=input_files,
                                    tool_config=config,
                                    client=request.NMTK.client)
     return HttpResponse('OK')

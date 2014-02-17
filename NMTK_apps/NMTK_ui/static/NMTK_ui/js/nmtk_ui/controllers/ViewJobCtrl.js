@@ -13,16 +13,21 @@ define([], function () {
 							'type': 'input',
 					        'description':'The tool used for this job', 
 					        'disabled': true },
-					       {'display_name': 'File Name',
-							'field': 'file_name',
-							'type': 'input',
-					        'description':'The data file provided for this job', 
-					        'disabled': true },
 					       {'display_name': 'Job Status',
 							'field': 'status',
 							'type': 'input',
 					        'description':'The current status of this job', 
-					        'disabled': true }];
+					        'disabled': true },
+					       {'display_name': 'Tool Status Time',
+							'field': 'last_status',
+							'type': 'input',
+					        'description':'The last time we received a status update from the tool.', 
+					        'disabled': true },
+					       {'display_name': 'Tool Messages',
+							'field': 'message',
+							'type': 'textarea',
+					        'description':'Any tool reported messages.', 
+					        'disabled': true },];
 			$scope.close=function () {
 				$modalInstance.close(false);
 			}

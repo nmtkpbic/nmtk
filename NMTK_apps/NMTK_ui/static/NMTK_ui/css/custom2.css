@@ -16,11 +16,11 @@ td.centered, th.centered, div.centered {
   text-align: center;
 }
 
-.modal input, .modal select {
+.modal input, .modal select, .model textarea {
     width: 100%;
 }
 textarea {
-    width: 90%;
+    width: 100%;
 }
 
 /*

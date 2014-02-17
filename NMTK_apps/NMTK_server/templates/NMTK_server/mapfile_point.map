@@ -108,7 +108,7 @@ MAP
       NAME "All Results"
       {% else %}
       NAME "Results between {{color.low}} and {{color.high}}"
-      EXPRESSION ([result] >= {{color.low}} and [result] <= {{color.high}}) 
+      EXPRESSION ([{{result_field}}] >= {{color.low}} and [{{result_field}}] <= {{color.high}}) 
       {% endif %}
       STYLE
         COLOR {{color.r}} {{color.g}} {{color.b}}

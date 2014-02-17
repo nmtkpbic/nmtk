@@ -178,10 +178,11 @@ def generate_sqlite_database(datafile, loader):
                 this_row['nmtk_geometry']=geometry
             if datafile.result_field:
                 try:
-                    min_result=min(float(this_row[datafile.result_field]), min_result)
-                    max_result=max(float(this_row[datafile.result_field]), max_result)
+                    logger.debug('Row is %s', this_row)
+                    min_result=min(float(this_row[datafile.result_field.lower()]), min_result)
+                    max_result=max(float(this_row[datafile.result_field.lower()]), max_result)
                 except Exception, e:
-                    logger.debug('Result field is not a float (ignoring)')
+                    logger.exception('Result field (%s) is not a float (ignoring)', datafile.result_field)
             else:
                 min_result=max_result=1
             m=user_model.Results(**this_row)
@@ -206,6 +207,7 @@ def generate_sqlite_database(datafile, loader):
                 v += step or 1
             res=render_to_string('NMTK_server/mapfile_{0}.map'.format(mapfile_type), 
                                  {'datafile': datafile,
+                                  'result_field': datafile.result_field,
                                   'static': min_result == max_result,
                                   'min': min_result,
                                   'max': max_result,

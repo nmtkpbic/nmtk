@@ -12,6 +12,8 @@ import logging
 import datetime
 logger=logging.getLogger(__name__)
 
+class NMTKAPIException(Exception): pass
+
 class NMTKClient(object):
     '''
     This client class is designed to perform the basic operations
@@ -54,6 +56,8 @@ class NMTKClient(object):
     
     def _generate_request(self, url, payload, type="post", files={},
                           headers={}):
+        if 'config' in files.keys():
+            raise NMTKAPIException('Reserved word "config" found in response')
         payload['job']={'timestamp': datetime.datetime.now().isoformat(),
                         'job_id': self.job_id,
                         'tool_server_id': self.public_key }
@@ -76,8 +80,8 @@ class NMTKClient(object):
         # so we always decode and return that response.
         return r.json()        
         
-    def updateResults(self, result_field, result_file=None, files={}, 
-                      failure=False):
+    def updateResults(self, result_field=None, result_file=None, files={}, 
+                      failure=False, payload={}):
         '''
         According to the docs here (http://fhwa.cgclientx.com/index.php/API_Specification#External_API_Specification)
         there are two methods the analysis tool uses to communicate with the
@@ -89,14 +93,14 @@ class NMTKClient(object):
               field used to send the file, and at least one of those keys should match
               the 'result_field' value.
         '''
+        logger.debug('Sending status update back with payload of %s', payload)
         url="%s/%s" % (self.url, "tools/result",)
         if failure:
-            payload={'status': 'error' }
+            payload['status']= 'error'
         else:
-            payload={'status': 'results',
-                     'results': {'results_field': result_field,
+            payload['status']= 'results'
+            payload['results']= {'field': result_field,
                                  'file': result_file }
-                     }
 
         result=self._generate_request(url, payload, "post", files=files)
         return result['status']
@@ -113,7 +117,8 @@ class NMTKClient(object):
         logger.debug("Logging result to %s", url)
         logger.debug('Payload is %s', payload)
         logger.debug('Status is %s', status)
-        result=self._generate_request(url, payload, "post", data=status)
+        result=self._generate_request(url, payload, "post", 
+                                      files={'data': status})
         logger.debug('Response from status update is %s', result)
         return result['status']
         

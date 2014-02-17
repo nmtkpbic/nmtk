@@ -122,14 +122,15 @@ def processResults(request):
         if (not config.has_key('results') or 
             not config['results'].has_key('field') or
             not config['results'].has_key('file')):
-            logger.error('Results received with no valid results key in config (old API?)')
-            raise HttpResponseServerError('Invalid result format')
+            logger.error('Results received with no valid results key ' +
+                         'in config (old API?) (%s)', config)
+            return HttpResponseServerError('Invalid result format')
         result_field=config['results']['field']
         result_file=config['results']['file']
         
         if config['results']['file'] not in request.FILES:
             logger.error('Specified file for results was not uploaded')
-            raise HttpResponseServerError('Invalid result file specified')
+            return HttpResponseServerError('Invalid result file specified')
         total=len(request.FILES)-1
         
         request.NMTK_JOB.status=request.NMTK_JOB.POST_PROCESSING
@@ -169,13 +170,18 @@ def processResults(request):
                                   datafile=result,
                                   primary=primary)
             rf.save()
+            models.JobStatus(message='COMPLETE',
+                             timestamp=timezone.now(),
+                             job=request.NMTK_JOB).save()
     elif config['status'] == 'error':
+        logger.debug('config is %s', config)
+        models.JobStatus(message='\n'.join(config['errors']),
+                         timestamp=timezone.now(),
+                         job=request.NMTK_JOB).save()
         request.NMTK_JOB.status=request.NMTK_JOB.FAILED
         request.NMTK_JOB.save()
 
-    models.JobStatus(message='COMPLETE',
-                     timestamp=timezone.now(),
-                     job=request.NMTK_JOB).save()
+   
     return HttpResponse(json.dumps({'status': 'Results saved'}),
                         content_type='application/json')
     
