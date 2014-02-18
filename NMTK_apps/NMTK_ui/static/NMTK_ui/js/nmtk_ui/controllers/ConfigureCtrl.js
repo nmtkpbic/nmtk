@@ -18,10 +18,10 @@ define(['underscore',
 			var INTEGER_REGEXP= /^\-?\d+$/;
 			$scope.loginCheck();
 			var jobid=$routeParams.jobid;
-			if ((typeof $scope.$parent.job_uri !== 'undefined') &&
-				($scope.$parent.job_uri != $location.path())) {
-				$scope.$parent.job_config=undefined;
+			if (typeof $scope.$parent.job_uri === 'undefined' || 
+			    ($scope.$parent.job_uri != $location.path())) {
 				$scope.$parent.job_uri=$location.path();
+				$scope.$parent.job_config=undefined;
 			} else {
 				$log.info('Continuing to configure existing job', $scope.$parent.job_config);
 			}
@@ -167,6 +167,7 @@ define(['underscore',
 			$scope.setConfigureJob(jobid);
 			$scope.enableRefresh([]);
 			$scope.changeTab('configurejob');
+
 			$scope.closeConfig=function () {
 				$scope.$parent.job_uri=null;
 				$scope.$parent.job_config={};

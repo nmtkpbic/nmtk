@@ -12,18 +12,75 @@ define(['underscore','leaflet'], function (_, L) {
 			$scope.loginCheck();
 			$scope.changeTab('datafile_view');
 			$scope.$parent.results_uri=$location.path();
-			
-			if ($routeParams.job_id) {
-				$scope.job_api=Restangular.one('job', $routeParams.job_id).get();
+			if (/^\d+$/.test($routeParams.id)) {
+				$scope.source_path='/files';
+				$timeout(function () { getDatafile($routeParams.id); }, 0);
 			} else {
-				$scope.job_api=null;
-				$scope.job=null;
-				$scope.datafile_id=$routeParams.datafile_id;
-				$scope.datafile_api=Restangular.one('datafile', $scope.datafile_id);
+				$scope.source_path='/job';
+				$timeout(function () { getJobInfo($routeParams.id); }, 0);
 			}
 			
-			$scope.$parent.preview_datafile=$scope.datafile_id;
+			$log.debug('Parameters are ', $routeParams);
+			/*
+			 * A function that, when given a job identifier, locates the 
+			 * primary results for that job and then loads it's respective
+			 * data file.
+			 */
+			var getJobInfo=function (job_id) {
+				$scope.rest['job'].then(function (data) {
+					$scope.job_api=_.find(data, function (row) {
+						if (row.id ==  job_id) {
+							return true;
+						}
+					});
+					if (typeof $scope.job_api === 'undefined') {
+						// Do something here, because the job is not defined,
+						// they probably used a bookmark for a deleted job
+						// or are trying to see something they don't have
+						// access to.
+						$scope.$parent.preview_datafile_api=undefined;
+						$scope.$parent.preview_job_api=undefined;
+						$location.path($scope.source_path);
+					}
+					var results_file=_.find($scope.job_api.results_files, function (datafile) {
+						return datafile.primary;
+					});
+
+					if (typeof results_file !== 'undefined') {
+						getDatafile(results_file.datafile.split('/').reverse()[1]);
+					} else {
+						// they specified a job that has no complete 
+						// primary results
+						$scope.$parent.preview_datafile_api=undefined;
+						$scope.$parent.preview_job_api=undefined;
+						$location.path($scope.source_path);
+					}
+				});
+			}
+				
+			var getDatafile=function (datafile_id) {
+				$scope.rest['datafile'].then(function (data) {
+					$scope.datafile_api=_.find(data, function(row) {
+						// Only allow viewing of complete files, since
+						// others are not visible for this page.
+						if ((datafile_id == row.id) &&
+							(/complete/i.test(row.status))) {
+							return true;
+						}
+					});
+					$log.info('Datafile API is ', $scope.datafile_api);
+					if (typeof $scope.datafile_api === 'undefined') {
+						$scope.$parent.preview_datafile_api=undefined;
+						$scope.$parent.preview_job_api=undefined;
+						$location.path($scope.source_path);
+					} else {			
+						
+						process_data();
+					}
+				});
+			}
 			
+						
 			$scope.filterOptions= { filterText: "",
 									userExternalFilter: true };
 							
@@ -54,14 +111,14 @@ define(['underscore','leaflet'], function (_, L) {
 			
 			$scope.getPagedDataAsync=function(pageSize, offset, searchText, order){
 				$scope.paging_offset=offset;
-				if ($scope.datafile) {
+				if ($scope.datafile_api) {
 					var options={offset: offset,
 							     limit: pageSize,
 							     search: searchText,
 							     order_by: order,
 							     format: 'pager'};
-					$log.info('Making request for ', $scope.datafile.download_url, options);
-					$http.get($scope.datafile.download_url, {params: options}).success(function (data) {
+					$log.info('Making request for ', $scope.datafile_api.download_url, options);
+					$http.get($scope.datafile_api.download_url, {params: options}).success(function (data) {
 						$scope.totalServerItems=data.meta.total;
 						$scope.pagingOptions.currentPage=(data.meta.offset/data.meta.limit)+1
 						if ($scope.paging_offset > 0) {
@@ -74,32 +131,25 @@ define(['underscore','leaflet'], function (_, L) {
 						if ($scope.columnOptions.length == 0) {
 							$scope.columnOptions=[]
 							var visible=false;
-							if ($scope.input_data) {
-								var fields=JSON.parse($scope.input_data.fields);
-								fields.push('nmtk_feature_id');
-								_.each(data.data[0], function (col_val, col_name) {
-									if (_.indexOf(fields, col_name) == -1) {
-										visible=true;
-									} else {
-										visible=false;
-									}
-									$scope.columnOptions.push({ field: col_name,
-										                        visible: visible });
-								});
-							} else {
-								var i=0;
-								_.each(data.data[0], function (col_val, col_name) {
-									if ((i <= 1) || (col_name=='nmtk_feature_id')) {
-										visible=true;
-									} else {
-										visible=false;
-									}
-									$scope.columnOptions.push({ field: col_name,
-										                        visible: visible});
-									i += 1;
-								});
+							var i=0;
+							var result_field=$scope.datafile_api.result_field;
+							if (result_field) {
+								// If there is a result field, no need to
+								// show others.
+								i=99;
 							}
-							$log.info($scope.columnOptions);
+							_.each(data.data[0], function (col_val, col_name) {
+								if ((i <= 1) || (col_name=='nmtk_id') || 
+								    (col_name == result_field)) {
+									visible=true;
+								} else {
+									visible=false;
+								}
+								$scope.columnOptions.push({ field: col_name,
+									                        visible: visible});
+								i += 1;
+							});
+//							}
 						}
 					});
 				}
@@ -125,7 +175,7 @@ define(['underscore','leaflet'], function (_, L) {
 					            name: 'Selected Layers',
 					            type: 'wms',
 					            visible: true,
-					            url: $scope.datafile.wms_url,
+					            url: $scope.datafile_api.wms_url,
 					            layerOptions: { layers: "highlight",
 					            	            ids: ids.join(','),
 					                    		format: 'image/png',
@@ -197,7 +247,7 @@ define(['underscore','leaflet'], function (_, L) {
 										 lon: e.leafletEvent.latlng.lng,
 										 zoom: leafletMap.getZoom(),
 										 format: 'query'}};
-					$http.get($scope.datafile.download_url, config).success(function (data) {
+					$http.get($scope.datafile_api.download_url, config).success(function (data) {
 						//$log.info('Result from query was %s', data);
 						$scope.selected_features=data.data;
 					})
@@ -324,54 +374,26 @@ define(['underscore','leaflet'], function (_, L) {
 			// job has a spatial component to it and get the various URLs for data
 			// display.
 			var process_data=function () {
-				$scope.datafile_api.get().then(function (datafile) {
-					// Store the job data, then get the input file data as well, so we
-					// can determine what the input file fields are, and also so we can
-					// figure out if there is a spatial component to the results.
-					$scope.datafile=datafile;
-					if ($scope.datafile.geom_type) {
-						$scope.bounds=getBounds($scope.datafile.bbox);
-						$scope.spatial=true;
-					} else {
-						$scope.spatial=false;
-					}
-					$scope.getPagedDataAsync($scope.page_size, 0, '', 'nmtk_id');	
-					if ($scope.spatial) {
-						$scope.leaflet.layers.overlays['results']= {
-					            name: 'Tool Results',
-					            type: 'wms',
-					            visible: true,
-					            url: $scope.datafile.wms_url,
-					            layerOptions: { layers: $scope.datafile.layer,
-					                    		format: 'image/png',
-					                    		transparent: true }
-					    };
-					}
-				}, function (error) {
-					$scope.$parent.results_uri=null;
-					$location.path('/files/');
-				});
+				if ($scope.datafile_api.geom_type) {
+					$scope.bounds=getBounds($scope.datafile_api.bbox);
+					$scope.spatial=true;
+				} else {
+					$scope.spatial=false;
+				}
+				$scope.getPagedDataAsync($scope.page_size, 0, '', 'nmtk_id');	
+				if ($scope.spatial) {
+					$scope.leaflet.layers.overlays['results']= {
+				            name: 'Tool Results',
+				            type: 'wms',
+				            visible: true,
+				            url: $scope.datafile_api.wms_url,
+				            layerOptions: { layers: $scope.datafile_api.layer,
+				                    		format: 'image/png',
+				                    		transparent: true }
+				    };
+				}
 			};
-			if ($scope.job_api) {
-				$scope.job_api.then(function (job) {
-					var source_uri=job.data_file.replace(/\/+$/, "");
-					var source_id=source_uri.substring(source_uri.lastIndexOf("/")+1)
-					var datafile_uri=job.results.replace(/\/+$/, "");
-					var id=datafile_uri.substring(datafile_uri.lastIndexOf("/")+1)
-					$scope.datafile_id=id;
-					$scope.job=job;
-					$scope.datafile_api=Restangular.one('datafile', id);
-					Restangular.one('datafile', source_id).get().then(function (source) {
-						$scope.input_data=source;
-						process_data();
-					});	
-				}, function (error) {
-					$scope.$parent.results_uri=null;
-					$location.path('/job/');
-				});
-			} else {
-				process_data();
-			}
+			
 			
 			
 			
@@ -382,7 +404,7 @@ define(['underscore','leaflet'], function (_, L) {
 		     
 			$scope.close=function () {
 				$scope.$parent.results_uri=null;
-				$scope.back();
+				$location.path($scope.source_path);
 			}
 		}
 	];
