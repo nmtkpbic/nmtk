@@ -8,7 +8,7 @@
             <h3 ng-show="job">Job Results - {{job.description}}</h3>            
             <h3 ng-hide="job">Data file - {{datafile.description}}</h3>
             <i ng-class="{'glyphicon-chevron-right': !isDivEnabled('job_result_help'), 'glyphicon-chevron-down': isDivEnabled('job_result_help')}" 
-               class="navbar-right glyphicon"></i>       
+               class="navbar-right glyphicon ic-right"></i>       
              </div> <!-- /widget-header -->
           <div ng-show="isDivEnabled('job_result_help') && job" class="widget-content">
             <p>
@@ -69,7 +69,8 @@
         <div ng-show="spatial" class="widget stacked">
           <div class="widget-header">
             <i class="glyphicon glyphicon-picture"></i>
-            <h3>Map Legend (all elements styled by Result)</h3>
+            <h3>Map Legend <span ng-show="datafile_api.result_field">(all elements styled by {{datafile_api.result_field}})</span>
+                           <span ng-hide="datafile_api.result_field">(all elements styled identically)</span></h3>
           </div> <!-- /widget-header -->
           <div style="text-align: center;" class="widget-content">
             <img ng-src="{{datafile_api.legend}}"></img>
@@ -79,7 +80,7 @@
           <div class="widget-header">
             <i class="glyphicon glyphicon-plus-sign"></i>
             <h3>{{selected_features.length}} Selected Features</h3>
-            <button class="navbar-right btn btn-xs btn-primary" ng-click="clearSelection()" ng-show="selected_features.length">Clear Selection</button>
+            <button class="navbar-right btn btn-xs btn-primary ic-right" ng-click="clearSelection()" ng-show="selected_features.length">Clear Selection</button>
           </div> <!-- /widget-header -->
           <div ng-show="selected_features.length" class="widget-content">  
             <div ng-show="selected_features.length" style="height: 200px; overflow: hidden;" class="gridStyle" ng-grid="gridOptions2"></div>

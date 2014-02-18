@@ -22,8 +22,6 @@ define(['underscore',
 			    ($scope.$parent.job_uri != $location.path())) {
 				$scope.$parent.job_uri=$location.path();
 				$scope.$parent.job_config=undefined;
-			} else {
-				$log.info('Continuing to configure existing job', $scope.$parent.job_config);
 			}
 			
 			// Get Job, tool, and file information, then use them to generate the form
@@ -35,12 +33,14 @@ define(['underscore',
 				$scope.sections[type]=!$scope.sections[type];
 			}
 			$scope.rest.job.then(function (jobs) {
-				var job_data=undefined;
-				_.each(jobs, function (job) {
-					if (job.id == jobid) {
-						job_data=job;
-					}
-				}); 
+				var job_data=_.find(jobs, function (job) {
+					return (job.id == jobid);
+				});
+				if (typeof job_data === 'undefined') {
+					$scope.$parent.job_uri=undefined;
+					$scope.$parent.job_config=undefined;
+					$location.path('/job');
+				}
 				$scope.job_data=job_data;
 				var tool_id=job_data.tool.split('/').reverse()[1];
 				if (job_data.data_file) {
@@ -48,7 +48,17 @@ define(['underscore',
 				} else {
 					var file_id=null;
 				}
-				$scope.disabled=(job_data.status != 'Configuration Pending');
+				
+				if (job_data.status != 'Configuration Pending') {
+					// Load the old job config if we are viewing an existing
+					// jobs configuration.
+					$scope.disabled=true;
+					$scope.$parent.job_config=JSON.parse(job_data.config);
+					$scope.$parent.job_config_files={};
+					_.each(job_data.job_files, function (jf) {
+						$scope.$parent.job_config_files[jf.namespace]=jf.datafile;
+					});
+				}
 				$log.info('Setting is ', $scope.disabled);
 				$scope.rest.tool.then(function (row) {
 					var tool_data=undefined;
@@ -136,31 +146,6 @@ define(['underscore',
 					
 					$scope.tool_name=tool_data.name;
 					$scope.tool_data=tool_data;
-//					/*
-//					 * regardless of whether a file is required, we'll do this
-//					 * for the sake of simplicity.  The file list ought to already
-//					 * be loaded anyways, so it's only the cost of doing this 
-//					 * async...
-//					 */
-//					$scope.rest.datafile.then(function (files) {
-//						var file_data=undefined;
-//						_.each(files, function (data) {
-//							if (data.id == file_id) {
-//								file_data=data;
-//							}
-//						});
-//						// Compute a list of fields to select from for property selection
-//						// dialogs
-//						if (file_id) {
-//							$scope.file_name=file_data.name;
-//							$scope.fields=[]
-//							_.each(JSON.parse(file_data.fields), function (v) {
-//								$scope.fields.push({'label': v,
-//									         		'value': v});
-//							});
-//						}
-//						
-//					});
 				});
 			});
 			$scope.file_fields={};
@@ -224,56 +209,58 @@ define(['underscore',
 			 */
 			$scope.setFieldDefaultValue=function (namespace, field) {
 				// The CURRENT type for this (property or something else.)
-				$scope.validation[namespace][field]['error']='This field is required.';
-				var type=$scope.$parent.job_config[namespace][field]['type'];
-				var name=$scope.validation[namespace][field]['name'];
-				var current_value=$scope.$parent.job_config[namespace][field]['value'];
-				var field_default=$scope.validation[namespace][field]['default'];
-				// If the type is property, the default must be one of the fields.
-				if (type == 'property') {
-					if (typeof $scope.file_fields[namespace] !== 'undefined') {
-						var file_fields=[];
-						_.each($scope.file_fields[namespace], function (f) { 
-							file_fields.push(f.value);
-						});
-						if (_.indexOf(file_fields, current_value) > -1) {
-					    	$scope.$parent.job_config[namespace][field]['value']= current_value;
-					    } else if (_.indexOf(file_fields, name) > -1) {
-					    	$scope.$parent.job_config[namespace][field]['value']= name;
-					    } else {
-					    	$scope.$parent.job_config[namespace][field]['value']=undefined;
-					    }
-					}
-				// If the type is choice, the default must be one of the choices.
-				} else if (typeof $scope.validation[namespace][field]['choices'] !== 'undefined') {
-					var options=$scope.get_options($scope.validation[namespace][field]['choices'])
-					var this_default=undefined;
-					
-					// First try to use the current value, if that doesn't work, use
-					// the field default value and return a suitable default value.
-					_.find([current_value, field_default], function (default_value) {
-						if (typeof default_value !== 'undefined') {
-							this_default=_.find(options, function (item) {
-								if (item.value == default_value) {
-									return true;
-								}
-							return false;
+				if ($scope.$parent.job_config) {
+					$scope.validation[namespace][field]['error']='This field is required.';
+					var type=$scope.$parent.job_config[namespace][field]['type'];
+					var name=$scope.validation[namespace][field]['name'];
+					var current_value=$scope.$parent.job_config[namespace][field]['value'];
+					var field_default=$scope.validation[namespace][field]['default'];
+					// If the type is property, the default must be one of the fields.
+					if (type == 'property') {
+						if (typeof $scope.file_fields[namespace] !== 'undefined') {
+							var file_fields=[];
+							_.each($scope.file_fields[namespace], function (f) { 
+								file_fields.push(f.value);
 							});
+							if (_.indexOf(file_fields, current_value) > -1) {
+						    	$scope.$parent.job_config[namespace][field]['value']= current_value;
+						    } else if (_.indexOf(file_fields, name) > -1) {
+						    	$scope.$parent.job_config[namespace][field]['value']= name;
+						    } else {
+						    	$scope.$parent.job_config[namespace][field]['value']=undefined;
+						    }
 						}
-						return (typeof this_default !== 'undefined');
-					});
-					if (typeof this_default === 'undefined' && $scope.validation[namespace][field]['choices'].length > 0) {
-						$scope.$parent.job_config[namespace][field]['value']=$scope.validation[namespace][field]['choices'][0].value;
-					} else if (typeof this_default !== 'undefined') {
-						$scope.$parent.job_config[namespace][field]['value']=this_default.value;
+					// If the type is choice, the default must be one of the choices.
+					} else if (typeof $scope.validation[namespace][field]['choices'] !== 'undefined') {
+						var options=$scope.get_options($scope.validation[namespace][field]['choices'])
+						var this_default=undefined;
+						
+						// First try to use the current value, if that doesn't work, use
+						// the field default value and return a suitable default value.
+						_.find([current_value, field_default], function (default_value) {
+							if (typeof default_value !== 'undefined') {
+								this_default=_.find(options, function (item) {
+									if (item.value == default_value) {
+										return true;
+									}
+								return false;
+								});
+							}
+							return (typeof this_default !== 'undefined');
+						});
+						if (typeof this_default === 'undefined' && $scope.validation[namespace][field]['choices'].length > 0) {
+							$scope.$parent.job_config[namespace][field]['value']=$scope.validation[namespace][field]['choices'][0].value;
+						} else if (typeof this_default !== 'undefined') {
+							$scope.$parent.job_config[namespace][field]['value']=this_default.value;
+						}
+						
+					// If the type is neither choice nor property, the current_value or field_default is used.
+					} else {
+						$scope.$parent.job_config[namespace][field]['value']=current_value || field_default || undefined;
 					}
-					
-				// If the type is neither choice nor property, the current_value or field_default is used.
-				} else {
-					$scope.$parent.job_config[namespace][field]['value']=current_value || field_default || undefined;
+					// Note: The validation code must be called to set the correct state here (if a field requires it)
+					// this is typically done in the controller by chaining a call to validation after this function.
 				}
-				// Note: The validation code must be called to set the correct state here (if a field requires it)
-				// this is typically done in the controller by chaining a call to validation after this function.
 			}
 			
 
@@ -306,33 +293,32 @@ define(['underscore',
 										}]
 						  };
 					var d=$modal.open(opts);
-				}
-				$scope.resources['job'].getList({'job_id': $scope.job_data.id}).then(function (response) {
-					var data=response[0];
-					data.config=$scope.$parent.job_config;
-					// Need to pass in the file configuration as well.
-					data.file_config=$scope.$parent.job_config_files;
-					data.put().then(function (response) {
-						$log.info(response);
-						// Return them to the job window.
-						$scope.$parent.job_config=undefined;
-						$scope.closeConfig();
-					}, function (response) {
-						/* Function called when an error is returned */
-						$scope.$parent.errors=response.data.job.config;
-						var opts = {
-							    resolve: {messages: function () { return $scope.$parent.errors; } },
-							    template: configureErrorsServerTemplate, // OR: templateUrl: 'path/to/view.html',
-							    controller: ['$scope','$modalInstance','messages', function ($scope, $modalInstance, messages) {
-												$scope.close=function () {
-													$modalInstance.close();
-												}
-												$scope.messages=messages;
-											}]
-					    };
-						var d=$modal.open(opts);
+				} else {
+					$scope.resources['job'].getList({'job_id': $scope.job_data.id}).then(function (response) {
+						var data=response[0];
+						data.config=$scope.$parent.job_config;
+						// Need to pass in the file configuration as well.
+						data.file_config=$scope.$parent.job_config_files;
+						data.put().then(function (response) {
+							// Return them to the job window.
+							$scope.closeConfig();
+						}, function (response) {
+							/* Function called when an error is returned */
+							$scope.$parent.errors=response.data.job.config;
+							var opts = {
+								    resolve: {messages: function () { return $scope.$parent.errors; } },
+								    template: configureErrorsServerTemplate, // OR: templateUrl: 'path/to/view.html',
+								    controller: ['$scope','$modalInstance','messages', function ($scope, $modalInstance, messages) {
+													$scope.close=function () {
+														$modalInstance.close();
+													}
+													$scope.messages=messages;
+												}]
+						    };
+							var d=$modal.open(opts);
+						});
 					});
-				});
+				}
 			}
 		
 			

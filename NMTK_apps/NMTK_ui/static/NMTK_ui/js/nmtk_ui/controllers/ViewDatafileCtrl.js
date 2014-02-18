@@ -28,6 +28,7 @@ define(['underscore','leaflet'], function (_, L) {
 			 */
 			var getJobInfo=function (job_id) {
 				$scope.rest['job'].then(function (data) {
+					$scope.refreshData('datafile');
 					$scope.job_api=_.find(data, function (row) {
 						if (row.id ==  job_id) {
 							return true;
