@@ -353,15 +353,32 @@ class DataFile(models.Model):
         '''
         Ensure files are deleted when the model instance is removed.
         '''
+        delete_candidates=[]
+        delete_fields=['processed_file','file','sqlite_db',
+                      'mapfile', 'legendgraphic']
+        # For spatialite, we need to leave the model file, otherwise
+        # we run into import issues.
+        db_name = 'default'
+        if instance._state.db is not None:
+            db_name = self._state.db
+        db_backend = settings.DATABASES[db_name]['ENGINE'].split('.')[-1]
+        if 'lite' not in db_backend.lower():
+            delete_fields.append('model')
+                      
+        for field in delete_fields:
+            try:
+                if getattr(self, field, None):
+                    delete_candidates.append(getattr(self, field).path)
+                    if field == 'model':
+                        compiled_module="{0}s".format(self.model.path)
+                        delete_candidates.append(compiled_module)
+            except Exception, e:
+                logger.exception('Failed to process delete for %s (%s)', 
+                                 field, self.pk)
         r=super(DataFile, self).delete()
-        for field in ['processed_file','file','results','sqlite_db',
-                      'mapfile', 'model', 'legendgraphic']:
-            if getattr(self, field, None):
-                os.unlink(getattr(self, field).path)
-                if field == 'model':
-                    compiled_module="{0}s".format(self.model.path)
-                    if os.path.exists(compiled_module):
-                        os.unlink(compiled_module)
+        for f in delete_candidates:
+            if os.path.exists(f):
+                os.unlink(f)
         return r
         
     def __str__(self):
