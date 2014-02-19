@@ -186,17 +186,29 @@ define(['underscore'
 						$scope.loginCheck();
 					});
 					
-					$scope.removeFile=function (api, id, name, type, operation) {
+					$scope.removeFile=function (api, item, name, type, operation) {
 						if ((typeof(operation) === 'undefined') || (! operation) ) {
 							operation='Delete';
 						}
+						var files=null;
+						if (api == 'datafile') {
+							files=function (id) {
+								return $q.all([
+									Restangular.all('job_file').getList({'datafile': item.id,
+							                                  		     'limit': 999}),
+									Restangular.all('job_results').getList({'datafile': item.id,
+                       		           										'limit': 999})
+                   		    ])}();
+						} 
 						var modal_dialog=$modal.open({
 							controller: 'DeleteCtrl',
 							resolve: {api: function () { return api; },
-								      id: function () { return id; },
+								      id: function () { return item.id; },
 								      name: function () { return name; },
 								      operation: function () { return operation; },
-								      type: function () { return type; },},
+								      type: function () { return type; },
+								      files: function () { return files; },
+								      jobdata: function () { return $scope.rest['job']}},
 							template: deleteModalTemplate
 						});
 						modal_dialog.result.then(function (result) {
@@ -392,11 +404,32 @@ define(['underscore'
 				        }
 				    };
 					
-					$scope.downloadDatafile=function (datafile, datafile_uri) {
+				    
+					$scope.downloadDatafile=function (datafile, job) {
 						if (! datafile) {
-							datafile_uri=datafile_uri.replace(/\/+$/, "");
-							var id=datafile_uri.substring(datafile_uri.lastIndexOf("/")+1)
-							var datafile=Restangular.one('datafile', id).get();
+							/*
+							 * If we are given a job, we need to return a promise
+							 * that gives back a single datafile object
+							 */
+							var primary_result=_.find(job.results_files, function (rf) {
+								return rf.primary;
+							});
+							if (typeof primary_result !== 'undefined') {
+								var datafile_func=function () {
+									var deferred=$q.defer();
+									$scope.rest['datafile'].then(function (datafiles) {
+										var this_df=_.find(datafiles, function (df) {
+											return (df.resource_uri == primary_result.datafile);
+										});
+										deferred.resolve(this_df);
+									})
+									return deferred.promise;
+								}
+								datafile=datafile_func();
+							} else {
+								$log.error('No primary result for this job?!?');
+							}
+							
 						} 
 						var d=$modal.open({ template:  downloadDatafileTemplate, 
 											controller: 'DownloadDatafileCtrl',

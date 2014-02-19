@@ -952,9 +952,6 @@ class JobResource(ModelResource):
     status=fields.CharField('status', readonly=True, null=True)
     tool_name=fields.CharField('tool_name', readonly=True, null=True)
     config=fields.CharField('config', readonly=True, null=True)
-    results=fields.ToOneField(DataFileResource, 'results',
-                              readonly=True, null=True,
-                              help_text='Results of job')
     
     def save_m2m(self, bundle):
         '''
@@ -974,7 +971,8 @@ class JobResource(ModelResource):
         allowed_methods=['get','put','post','delete']
         filtering= {'status': ALL,
                     'user': ALL,
-                    'job_id': ALL}
+                    'job_id': ALL,
+                    'results_files': ALL_WITH_RELATIONS}
 
     def pre_save(self, bundle):
         bundle.obj.user=bundle.request.user

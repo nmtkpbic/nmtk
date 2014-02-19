@@ -5,13 +5,30 @@
     </div>
     <div class="modal-body">
       <div class="row">
-        <div class="col-md-12">     
+        <div ng-hide="jobs_in.length + jobs_out.length" class="col-md-12">     
           Are you sure you wish to {{operation|lowercase}} the {{type}} {{name}}?
+        </div>
+        <div ng-show="jobs_in.length + jobs_out.length" class="col-md-12">
+        Sorry, these files are in use and may not be deleted.
+        </div>
+        <div ng-show="jobs_in" class="col-md-12">
+        This data file is currently the input of {{jobs_in.length}} jobs.  Deleting the file will
+        not be possible unless you delete the referencing job first.
+        <ul>
+        <li ng-repeat="job in jobs_in">{{job.description}} using {{job.tool_name}}</li>
+        </ul>
+        </div>
+        <div ng-show="jobs_out" class="col-md-12">
+        This data file is currently the output of {{jobs_out.length}} jobs.  Deleting the file will
+        mean that you can no longer view the job results.
+        <ul>
+        <li ng-repeat="job in jobs_out">{{job.description}} using {{job.tool_name}}</li>
+        </ul>
         </div>
       </div><br>
     </div>
     <div class="modal-footer">
       <button  ng-click="close()" class="btn">Cancel</button>
-      <button ng-click="delete()" class="btn btn-primary">Delete</button>
+      <button ng-click="delete()" ng-hide="jobs_in.length + jobs_out.length" class="btn btn-primary">Delete</button>
     </div>
     </div>
