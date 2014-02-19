@@ -9,26 +9,65 @@
           Are you sure you wish to {{operation|lowercase}} the {{type}} {{name}}?
         </div>
         <div ng-show="jobs_in.length + jobs_out.length" class="col-md-12">
-        Sorry, these files are in use and may not be deleted.
+	        <div ng-show="jobs_in" class="widget stacked">
+	          <div class="widget-header">
+	            <i class="glyphicon glyphicon-remove-circle"></i>
+	               <h3>Used as Job Input</h3>
+	          </div>
+	          <div class="widget-content">
+	            <p>This data file is currently the input of {{jobs_in.length}} job(s) (shown below.)  Deleting the file will
+	               not be possible unless you delete the referencing job first.
+	            </p>
+	            
+	            <table class="table table-bordered table-striped table-highlight"> 
+			      <thead>
+			        <tr>
+			          <th>Job Description</th>
+				      <th>Tool Name</th>
+			        </tr>
+			      </thead>
+			      <tbody>
+			        <tr ng-repeat="job in jobs_in">
+			          <td>{{job.description}}</td>
+			          <td>{{job.tool_name}}</td>
+			        </tr>
+			      </tbody>
+			    </table>
+	          </div>
+	        </div>
+	        <div ng-show="jobs_out" class="widget stacked">
+	          <div class="widget-header">
+	            <i class="glyphicon glyphicon-remove-circle"></i>
+	               <h3>Tied to Job Output</h3>
+	          </div>
+	          <div class="widget-content">
+	            <p>This data file is currently the output of 1 job (shown below.)  Deleting the file will
+	               not be possible unless you delete the referencing job first.
+	            </p>
+	            
+	            <table class="table table-bordered table-striped table-highlight"> 
+			      <thead>
+			        <tr>
+			          <th>Job Description</th>
+				      <th>Tool Name</th>
+			        </tr>
+			      </thead>
+			      <tbody>
+			        <tr ng-repeat="job in jobs_out">
+			          <td>{{job.description}}</td>
+			          <td>{{job.tool_name}}</td>
+			        </tr>
+			      </tbody>
+			    </table>
+	          </div>
+	        </div>
         </div>
-        <div ng-show="jobs_in" class="col-md-12">
-        This data file is currently the input of {{jobs_in.length}} jobs.  Deleting the file will
-        not be possible unless you delete the referencing job first.
-        <ul>
-        <li ng-repeat="job in jobs_in">{{job.description}} using {{job.tool_name}}</li>
-        </ul>
-        </div>
-        <div ng-show="jobs_out" class="col-md-12">
-        This data file is currently the output of {{jobs_out.length}} jobs.  Deleting the file will
-        mean that you can no longer view the job results.
-        <ul>
-        <li ng-repeat="job in jobs_out">{{job.description}} using {{job.tool_name}}</li>
-        </ul>
-        </div>
+        
       </div><br>
     </div>
     <div class="modal-footer">
-      <button  ng-click="close()" class="btn">Cancel</button>
+      <button  ng-click="close()" ng-hide="jobs_in.length + jobs_out.length" class="btn">Cancel</button>
+      <button  ng-click="close()" ng-show="jobs_in.length + jobs_out.length" class="btn btn-primary">Close</button>
       <button ng-click="delete()" ng-hide="jobs_in.length + jobs_out.length" class="btn btn-primary">Delete</button>
     </div>
     </div>
