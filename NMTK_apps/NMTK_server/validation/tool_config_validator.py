@@ -109,14 +109,14 @@ class ToolConfigValidator(object):
                         # but there is a default, then use the default.
                         # This would also work for hidden stuff.
                         if item.get('default', None) and not item.get('required', True):
-                            namespace_config[name]={'type': item['type'],
-                                                    'value': item['default']}
+                            namespace_config[item['name']]={'type': item['type'],
+                                                            'value': item['default']}
                             if id(self.tool_config) != id(namepsace_config):
                                 self.tool_config[config_entry['namespace']]=namespace_config
                         # if it is a required field, but there is no default, then
                         # we will give them an error message.
                         elif item.get('required', True):
-                            errors[config_entry['namespace']][name]='This field is required'
+                            errors[config_entry['namespace']][item['name']]='This field is required'
                         continue
                     else:
                         allowed_types=[]
@@ -130,14 +130,14 @@ class ToolConfigValidator(object):
                     data_type=data.get('type', None)
                     value=data.get('value', None)
                     if not data_type:
-                        errors[config_entry['namespace']][name]='A valid type must be specified with the config'
+                        errors[config_entry['namespace']][item['name']]='A valid type must be specified with the config'
                         continue
                     else:
                         error=self.validate(data_type, value, 
                                             item.get('required', True), 
                                             **validate_kwargs)
                         if error:
-                            errors[config_entry['namespace']][name]=error
+                            errors[config_entry['namespace']][item['name']]=error
         if len(errors): # Only return errors dict if there are errors.
             self.errors=errors
             return False

@@ -343,24 +343,31 @@ define(['underscore'
 							});
 						});
 					}
+					$scope.login_displayed=false;
 					$scope.login=function (options) {
-						var modal_instance=$modal.open({template: loginTemplate,
-								     				    scope: $scope,
-								     				    controller: 'LoginCtrl',
-								     				    backdrop: true});
-						
-						modal_instance.result.then(function (result) {
-							$scope.refreshData('user');
-							$scope.rest['user'].then(function (data) {
-								if (typeof options !== 'undefined') {
-									if (typeof options.redirect !== 'undefined') {
-										$location.path(options.redirect);
-									} else if (typeof options.post_func !== 'undefined') {
-										options.post_func();
+						if (! $scope.login_displayed) {
+							$scope.login_displayed=true;
+							var modal_instance=$modal.open({template: loginTemplate,
+									     				    scope: $scope,
+									     				    controller: 'LoginCtrl',
+									     				    backdrop: true});
+							
+							modal_instance.result.then(function (result) {
+								$scope.login_displayed=false;
+								$scope.refreshData('user');
+								$scope.rest['user'].then(function (data) {
+									if (typeof options !== 'undefined') {
+										if (typeof options.redirect !== 'undefined') {
+											$location.path(options.redirect);
+										} else if (typeof options.post_func !== 'undefined') {
+											options.post_func();
+										}
 									}
-								}
+								});
+							}, function (err) {
+								$scope.login_displayed=false;
 							});
-						});
+						}
 						
 					}
 					
