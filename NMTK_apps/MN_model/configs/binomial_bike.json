@@ -30,7 +30,8 @@
       ],
       "type":"ConfigurationPage",
       "name":"results",
-      "label":"Result Variable"
+      "label":"Result Variable",
+      "namespace":"results"
     }
   ],
   "input":[
