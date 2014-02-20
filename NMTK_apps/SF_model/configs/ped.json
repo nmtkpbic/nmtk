@@ -152,7 +152,8 @@
       "type":"ConfigurationPage",
       "name":"coefficients",
       "namespace":"coefficients",
-      "label":"Coefficients"
+      "label":"Coefficients",
+      "expanded":false
     }
   ]
 }

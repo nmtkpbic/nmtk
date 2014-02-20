@@ -61,9 +61,9 @@
           "description":"Median household income (1000's of dollars)"
         },
         {
-          "global":true,
-          "required":false,
-          "type":"property",
+          "required":true,
+          "type":"number",
+          "default":0,
           "name":"Crime",
           "description":"Average number of violent crimes/year"
         },
@@ -135,42 +135,6 @@
       "primary": true,
       "name":"data",
       "namespace":"data"
-    },
-    {
-      "description":"These model parameters are the same for each feature, and reflect background conditions that apply to the entire model scenario.  Certain parameters here can be specified either as fields for each input feature, or as global parameters.  You must set the corresponding Input File Field to \"Global\" in order to use the corresponding value from this section.",
-      "elements":[
-        {
-          "default":0,
-          "type":"number",
-          "name":"globalCrime",
-          "description":"Average number of \"nearby\" violent crimes/year (WARNING: not used if you provide a field for Crime in the input file)"
-        },
-        {
-          "default":23,
-          "required":true,
-          "type":"number",
-          "name":"globalTmax",
-          "description":"Recorded daily high temperature (Celsius)"
-        },
-        {
-          "default":0.0,
-          "required":true,
-          "type":"number",
-          "name":"globalPrecip",
-          "description":"Recorded precipitation (cm)"
-        },
-        {
-          "default":6,
-          "required":true,
-          "type":"number",
-          "name":"globalYear",
-          "description":"Level variable indicating year count occurred (offset from year 2007)"
-        }
-      ],
-      "type":"ConfigurationPage",
-      "name":"global",
-      "namespace":"global",
-      "label":"Global Parameters"
     },
     {
       "description":"These are the estimated coefficients for the Ordinary Least Squares Pedestrian hourly volume model. They are presented for reference only and should not be changed without a full model re-estimation.",
@@ -312,7 +276,8 @@
       "type":"ConfigurationPage",
       "name":"coefficients",
       "namespace":"coefficients",
-      "label":"Coefficients"
+      "label":"Coefficients",
+      "expanded":false
     }
   ]
 }
