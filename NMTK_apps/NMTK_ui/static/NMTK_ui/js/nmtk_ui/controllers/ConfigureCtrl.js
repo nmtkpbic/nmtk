@@ -77,7 +77,7 @@ define(['underscore',
 						if (_.has(data,'expanded')) {
 							$scope.sections['input:' + i]=data.expanded;
 						} else {
-							$scope.sections['input:'+i]=false
+							$scope.sections['input:'+i]=true;
 						}
 						i+=1;
 					});
@@ -85,7 +85,7 @@ define(['underscore',
 						if (_.has(data,'expanded')) {
 							$scope.sections['output:' + i]=data.expanded;
 						} else {
-							$scope.sections['output:'+i]=false
+							$scope.sections['output:'+i]=true;
 						}
 						i+=1;
 					});
@@ -256,7 +256,7 @@ define(['underscore',
 						
 					// If the type is neither choice nor property, the current_value or field_default is used.
 					} else {
-						$scope.$parent.job_config[namespace][field]['value']=current_value || field_default || undefined;
+						$scope.$parent.job_config[namespace][field]['value']=current_value || field_default;
 					}
 					// Note: The validation code must be called to set the correct state here (if a field requires it)
 					// this is typically done in the controller by chaining a call to validation after this function.

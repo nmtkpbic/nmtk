@@ -42,37 +42,43 @@
       "elements":[
         {
           "required":true,
-          "type":"property",
+          "type":"number",
+          "default":0.057,
           "name":"quarter_mile_households",
           "description":"Total households within 1/4 mile (10,000s)"
         },
         {
           "required":true,
-          "type":"property",
+          "type":"number",
+          "default":0.2274,
           "name":"quarter_mile_employment",
           "description":"Total employment within 1/4 mile (100,000s)"
         },
         {
           "required":true,
-          "type":"property",
+          "type":"number",
+          "default":0,
           "name":"high_activity_zone",
           "description":"Intersection is in a high-activity zone (== allows on-street parking)"
         },
         {
           "required":true,
-          "type":"property",
+          "type":"number",
+          "default":0.02,
           "name":"max_slope",
           "description":"Maximum slope on any intersection approach leg (100s)"
         },
         {
           "required":true,
-          "type":"property",
+          "type":"number",
+          "default":0,
           "name":"quarter_mile_campus",
           "description":"Intersection is within 1/4 mile of a university campus"
         },
         {
           "required":true,
-          "type":"property",
+          "type":"number",
+          "default":1,
           "name":"traffic_signal",
           "description":"Intersection is controlled by a traffic signal"
         }

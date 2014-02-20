@@ -1,5 +1,7 @@
 import logging
 import json
+import csv
+import cStringIO as StringIO
 from django.core.serializers.json import DjangoJSONEncoder
 
 
@@ -79,9 +81,38 @@ class ConfigIterator(object):
         return data
     
     def addResult(self, field, value):
-        self.this_row['properties'][field]=value
+        if (self.iterable):
+            self.this_row['properties'][field]=value
+        else:
+            # This is a CSV result - single line, add it to our
+            # static data
+            self._data[field]=value
+        
+        
+    @property
+    def extension(self):
+        if (self.iterable):
+            return 'json'
+        else:
+            return 'csv'
+        
+    @property
+    def content_type(self):
+        if (self.iterable):
+            return 'application/json'
+        else:
+            return 'text/csv'
         
     def getDataFile(self):
-        return json.dumps(self.data_parsed, 
-                          cls=DjangoJSONEncoder)
-        
+        if (self.iterable):
+            return json.dumps(self.data_parsed, 
+                              cls=DjangoJSONEncoder)
+        else:
+            output=StringIO.StringIO()
+            dw=csv.DictWriter(output, fieldnames=self._data.keys())
+            dw.writeheader()
+            dw.writerow(self._data)
+            del dw
+            output.seek(0)
+            return output.read()
+

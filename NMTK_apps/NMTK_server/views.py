@@ -8,6 +8,7 @@ from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.contrib.sites.models import get_current_site
 import requests
 import json
+import os.path
 import logging
 import collections
 from django.core.files.base import ContentFile
@@ -153,11 +154,13 @@ def processResults(request):
                 primary=False
             result=models.DataFile(user=request.NMTK_JOB.user,
                                    name="job_{0}_results".format(request.NMTK_JOB.pk),
+                                   #name=os.path.basename(request.FILES[result_file].name),
                                    description=description,
                                    content_type=request.FILES[namespace].content_type,
                                    type=models.DataFile.JOB_RESULT, 
                                    result_field=field)
-            result.file.save('results', ContentFile(request.FILES[result_file].read()), save=False)
+            filename=os.path.basename(request.FILES[result_file].name)
+            result.file.save(filename, ContentFile(request.FILES[result_file].read()), save=False)
             
             if namespace == result_file:
                 # Pass in the job here so that the data file processor knows to

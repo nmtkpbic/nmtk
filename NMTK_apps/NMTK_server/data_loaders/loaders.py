@@ -59,10 +59,16 @@ class NMTKDataLoader(object):
         '''
         Return true if the driver being used returns a spatial result.
         '''
-        return getattr(self.dl_instance, 'spatial', False)
+        if hasattr(self, 'dl_instance'):
+            return getattr(self.dl_instance, 'spatial', False)
+        else:
+            return False
     
     def fields(self):
-        return self.dl_instance.fields()
+        if hasattr(self, 'dl_instance'):
+            return self.dl_instance.fields()
+        else:
+            return False
      
     def __del__(self):
         '''

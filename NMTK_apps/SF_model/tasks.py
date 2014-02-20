@@ -91,7 +91,9 @@ def performModel(input_files,
         # model.
         client.updateResults(result_field=setup['results']['result']['value'],
                              result_file='data',
-                             files={'data': ('data',file_iterator.getDataFile())
+                             files={'data': ('data.{0}'.format(file_iterator.extension),
+                                             file_iterator.getDataFile(), 
+                                             file_iterator.content_type)
                                     })
     for namespace, fileinfo in input_files.iteritems():
         os.unlink(fileinfo[0])
