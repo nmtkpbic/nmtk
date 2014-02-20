@@ -21,3 +21,5 @@ cgi-bin/mapserv
 
 # Ignore site config files
 conf/*
+
+node/*
