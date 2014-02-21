@@ -75,17 +75,17 @@ define(['underscore',
 					var i=0;
 					_.each(tool_data.config.input, function (data) {
 						if (_.has(data,'expanded')) {
-							$scope.sections['input:' + i]=data.expanded;
+							$scope.sections[data.namespace]=data.expanded;
 						} else {
-							$scope.sections['input:'+i]=true;
+							$scope.sections[data.namespace]=true;
 						}
 						i+=1;
 					});
 					_.each(tool_data.config.output, function (data) {
 						if (_.has(data,'expanded')) {
-							$scope.sections['output:' + i]=data.expanded;
+							$scope.sections[data.namespace]=data.expanded;
 						} else {
-							$scope.sections['output:'+i]=true;
+							$scope.sections[data.namespace]=true;
 						}
 						i+=1;
 					});
@@ -114,12 +114,19 @@ define(['underscore',
 									} else if (data.type == 'File') {
 //										$scope.$parent.job_config[data.namespace][config_set.name]['value']=config_set.name;
 										$scope.$parent.job_config[data.namespace][config_set.name]['type']='property';
+										// Note: hidden and readonly don't work for file fields.
+										config_set.hidden=false;
 									}
+								}
+								if (typeof config_set.readonly === 'undefined') {
+									config_set.readonly=false;
 								}
 								$scope.validation[data.namespace][config_set.name]={ 'validation': config_set.validation,
 																					 'type': config_set.type,
 																					 'name': config_set.name,
 																					 'default': config_set.default,
+																					 'hidden': config_set.hidden,
+																					 'readonly': config_set.readonly,
 										        									 'choices': config_set.choices };
 								if (/boolean/i.test(config_set.type)) {
 									$scope.validation[data.namespace][config_set.name]['choices']={'True': true,
@@ -209,7 +216,7 @@ define(['underscore',
 			 */
 			$scope.setFieldDefaultValue=function (namespace, field) {
 				// The CURRENT type for this (property or something else.)
-				if ($scope.$parent.job_config) {
+				if (_.keys($scope.$parent.job_config).length > 0) {
 					$scope.validation[namespace][field]['error']='This field is required.';
 					var type=$scope.$parent.job_config[namespace][field]['type'];
 					var name=$scope.validation[namespace][field]['name'];

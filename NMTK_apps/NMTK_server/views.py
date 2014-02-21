@@ -127,6 +127,8 @@ def processResults(request):
                          'in config (old API?) (%s)', config)
             return HttpResponseServerError('Invalid result format')
         result_field=config['results']['field']
+        result_field_units=config['results'].get('units', None)
+
         result_file=config['results']['file']
         
         if config['results']['file'] not in request.FILES:
@@ -158,7 +160,8 @@ def processResults(request):
                                    description=description,
                                    content_type=request.FILES[namespace].content_type,
                                    type=models.DataFile.JOB_RESULT, 
-                                   result_field=field)
+                                   result_field=field,
+                                   result_field_units=result_field_units)
             filename=os.path.basename(request.FILES[result_file].name)
             result.file.save(filename, ContentFile(request.FILES[result_file].read()), save=False)
             

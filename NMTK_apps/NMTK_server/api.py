@@ -546,6 +546,7 @@ class DataFileResource(ModelResource):
     geom_type=fields.CharField('geom_type', readonly=True, null=True)
     file=fields.CharField('file', readonly=True, null=True)
     result_field=fields.CharField('result_field', readonly=True, null=True)
+    result_field_units=fields.CharField('result_field_units', readonly=True, null=True)
     type=fields.CharField('type', readonly=True, null=True)
     job=fields.ToOneField('NMTK_server.api.JobResource','job_result',
                            readonly=True, null=True)

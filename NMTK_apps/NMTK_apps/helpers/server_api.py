@@ -80,8 +80,8 @@ class NMTKClient(object):
         # so we always decode and return that response.
         return r.json()        
         
-    def updateResults(self, result_field=None, result_file=None, files={}, 
-                      failure=False, payload={}):
+    def updateResults(self, result_field=None, result_file=None, units=None,
+                      files={}, failure=False, payload={}):
         '''
         According to the docs here (http://fhwa.cgclientx.com/index.php/API_Specification#External_API_Specification)
         there are two methods the analysis tool uses to communicate with the
@@ -100,7 +100,8 @@ class NMTKClient(object):
         else:
             payload['status']= 'results'
             payload['results']= {'field': result_field,
-                                 'file': result_file }
+                                 'file': result_file,
+                                 'units': units }
 
         result=self._generate_request(url, payload, "post", files=files)
         return result['status']

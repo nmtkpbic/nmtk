@@ -3,16 +3,16 @@
           data mappings -->
      <div ng-if="config.type == 'File'" class="col-md-12" >
        <div class="widget stacked">
-         <div ng-click="toggleSection(section + ':' + $index)"  class="widget-header">
+         <div ng-click="toggleSection(config.namespace)"  class="widget-header">
            <i class="glyphicon glyphicon-edit"></i>
            <h3>{{config.label}}</h3>
-           <i ng-class="{'glyphicon-chevron-right': !sections[section + ':' + $index], 'glyphicon-chevron-down': sections[section + ':' + $index]}" 
+           <i ng-class="{'glyphicon-chevron-right': !sections[config.namespace], 'glyphicon-chevron-down': sections[config.namespace]}" 
               class="navbar-right glyphicon ic-right"></i> 
            <button class="navbar-right btn btn-xs btn-primary ic-right" ng-show="job_data.status=='Configuration Pending' && config.elements.length > 0" 
                    ng-click="cloneConfig(config.namespace)" stop-event='click'>Copy Mappings from Another Job</button>
            
          </div> <!-- /widget-header -->
-         <div ng-show="sections[section + ':' + $index]"  class="widget-content">
+         <div ng-show="sections[config.namespace]"  class="widget-content">
            <section>
              <p><label for="{{config.namespace}}">{{config.description}}</label></p>
 			 <h4>Choose a file: <select ng-model="$parent.job_config_files[config.namespace]" dynamic-name="config.namespace" 
@@ -32,7 +32,7 @@
 			  </tr>
 			  </thead>
 			  <tbody ng-if="$parent.job_config_files[config.namespace]">
-			    <tr ng-repeat="property in config.elements">
+			    <tr ng-repeat="property in config.elements" ng-hide="validation[config.namespace][property.name].hidden">
 			       <td >
 					 <button ng-if="($parent.job_config[config.namespace][property.name]['type'] == 'property' && validation[config.namespace][property.name]['type'] != 'property')" 
                              class="btn btn-xs btn-default" required
@@ -50,13 +50,13 @@
                              ng-options="o.value as o.label for o in file_fields[config.namespace]"></select>
                      <input ng-if="$parent.job_config[config.namespace][property.name]['type'] != 'property' && ! validation[config.namespace][property.name]['choices']"  
                             size="10" type="text" ng-model="$parent.job_config[config.namespace][property.name]['value']" 
-							ng-disabled="disabled" required 
+							ng-disabled="disabled || validation[config.namespace][property.name].readonly" required 
 							ng-init="setFieldDefaultValue(config.namespace,property.name) && validateEntry(config.namespace, property.name)"
 							ng-change="validateEntry(config.namespace, property.name)"
                             dynamic-name="config.namespace + ':' + property.name"  ></input>
 					 <select ng-if="$parent.job_config[config.namespace][property.name]['type'] != 'property' && validation[config.namespace][property.name]['choices']"
 							name="config.namespace + ':' + property.name"  required
-							ng-disabled="disabled" 
+							ng-disabled="disabled  || validation[config.namespace][property.name].readonly" 
 							ng-init="setFieldDefaultValue(config.namespace, property.name)"
                             ng-model="$parent.job_config[config.namespace][property.name]['value']" 
  							ng-options="item.value as item.label for item in get_options(validation[config.namespace][property.name]['choices'])"></select>
@@ -75,13 +75,13 @@
   <!--  Handle the case where the user needs to enter configuration data -->
      <div ng-if="config.type == 'ConfigurationPage'" class="col-md-12" >
        <div class="widget stacked">
-         <div ng-click="toggleSection(section + ':' + $index)"  class="widget-header">
+         <div ng-click="toggleSection(config.namespace)"  class="widget-header">
            <i class="glyphicon glyphicon-edit"></i>
            <h3>{{config.label}}</h3>
-           <i ng-class="{'glyphicon-chevron-right': !sections[section + ':' + $index], 'glyphicon-chevron-down': sections[section + ':' + $index]}" 
+           <i ng-class="{'glyphicon-chevron-right': !sections[config.namespace], 'glyphicon-chevron-down': sections[config.namespace]}" 
               class="navbar-right glyphicon ic-right"></i>
          </div> <!-- /widget-header -->
-         <div ng-show="sections[section + ':' + $index]"  class="widget-content">
+         <div ng-show="sections[config.namespace]"  class="widget-content">
            <section>
              <p>{{config.description}}</p>
              <table class="table table-bordered table-striped table-highlight"> 
@@ -93,17 +93,17 @@
 			  </tr>
 			  </thead>
 			  <tbody >
-			     <tr ng-repeat="property in config.elements">
+			     <tr ng-repeat="property in config.elements" ng-hide="validation[config.namespace][property.name].hidden">
 			       <td>
 			         <input ng-if="!validation[config.namespace][property.name]['choices']" 
 							type="text" ng-model="$parent.job_config[config.namespace][property.name]['value']" 
-							ng-disabled="disabled"
+							ng-disabled="disabled  || validation[config.namespace][property.name].readonly"
 							ng-change="validateEntry(config.namespace, property.name)"
 							ng-init="setFieldDefaultValue(config.namespace,property.name) && validateEntry(config.namespace, property.name)"
 			                dynamic-name="config.namespace + ':' + property.name"  required>
 					 <select ng-if="validation[config.namespace][property.name]['choices']"
 							dynamic-name="config.namespace + ':' + property.name"  required
-							ng-disabled="disabled"
+							ng-disabled="disabled  || validation[config.namespace][property.name].readonly"
 							ng-init="setFieldDefaultValue(config.namespace,property.name)"
                             ng-model="$parent.job_config[config.namespace][property.name]['value']" 
  							ng-options="item.value as item.label for item in get_options(validation[config.namespace][property.name]['choices'])"></select>

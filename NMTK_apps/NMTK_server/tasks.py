@@ -52,7 +52,9 @@ def pseudocolor(val, minval=0, maxval=255):
     g,r,b=colorsys.hsv_to_rgb(h/360,1.0,1.0)
     return int(r*255),int(g*255),int(b*255)
 
-def generateColorRampLegendGraphic(min_text, max_text, height=16, width=258, border=1):
+def generateColorRampLegendGraphic(min_text, max_text, 
+                                   height=16, width=258, border=1, units=None):
+    logger.debug('Units are %s', units)
     im=Image.new('RGB', (width, height), "black")
     draw=ImageDraw.Draw(im)
     start=border
@@ -71,16 +73,26 @@ def generateColorRampLegendGraphic(min_text, max_text, height=16, width=258, bor
     
     # Generate the legend text under the image
     font=ImageFont.truetype(settings.LEGEND_FONT,12)
+    
     if not fixed:
         min_text_width, min_text_height = font.getsize(min_text)
         max_text_width, max_text_height = font.getsize(max_text)
-        text_height=max(min_text_height, max_text_height)+2
+        text_height=max(min_text_height, max_text_height)
+        
         final_width=max(width, max_text_width, min_text_width)
     else:
-        max_text_width, max_text_height=font.getsize('All Features')
-        text_height=max_text_height+2
+        max_text_width, text_height=font.getsize('All Features')
         final_width=max(width, max_text_width)
-    im2=Image.new('RGB', (final_width, height+text_height), "white")
+    # The text height, plus the space between the image and text (1px)
+    total_text_height=text_height+1
+    logger.debug('Total text height is now %s', total_text_height)
+    if units:
+        units_width, units_height=font.getsize(units)
+        final_width=max(final_width, units_width)
+        # Another pixel for space, then the units text
+        total_text_height = total_text_height + units_height + 1
+        logger.debug('Total text height is now %s (post units)', total_text_height)
+    im2=Image.new('RGB', (final_width, height+total_text_height), "white")
     im2.paste(im, (int((final_width-width)/2),0))
     text_pos=height+1
     draw=ImageDraw.Draw(im2)
@@ -93,12 +105,20 @@ def generateColorRampLegendGraphic(min_text, max_text, height=16, width=258, bor
                   max_text, 
                   "black", 
                   font=font)
+        if units:
+            text_pos = text_pos + text_height + 1
+            placement=(int(final_width/2.0-((units_width+1)/2)), text_pos)
+            draw.text(placement, 
+                      units, 
+                      "black", 
+                      font=font)
     else:
         placement=(int(final_width/2.0-((max_text_width+1)/2)), text_pos)
         draw.text(placement, 
                   'All Features', 
                   "black", 
                   font=font)
+    
     del draw
     return im2
 
@@ -218,7 +238,8 @@ def generate_sqlite_database(datafile, loader):
             
             logger.debug('Creating a new legend graphic image %s', datafile.legendgraphic.path)
             im=generateColorRampLegendGraphic(min_text='{0}'.format(round(min_result,2)),
-                                              max_text='{0}'.format(round(max_result,2)))
+                                              max_text='{0}'.format(round(max_result,2)),
+                                              units=datafile.result_field_units)
             im.save(datafile.legendgraphic.path, 'png')
             logger.debug('Image saved at %s', datafile.legendgraphic.path)
     except Exception, e:

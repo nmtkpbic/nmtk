@@ -294,6 +294,7 @@ class DataFile(models.Model):
     fields=JSONField(null=True, blank=True)
     deleted=models.BooleanField(default=False)
     result_field=models.CharField(null=True, blank=True, max_length=32)
+    result_field_units=models.CharField(null=True, blank=True, max_length=64)
     sqlite_db=models.FileField(storage=fs_results,
                                    upload_to=lambda instance, filename: '%s/data_files/converted/%s.spatialite' % (instance.user.pk,
                                                                                                                    instance.pk,),

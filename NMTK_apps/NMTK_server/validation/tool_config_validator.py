@@ -24,7 +24,7 @@ class ToolConfigValidator(object):
             self._tool_config=self.tool_config
         return self._tool_config
     
-    def validate(self, type, v, required, fields=[], validation={}):
+    def validate(self, type, v, required, readonly, default, fields=[], validation={}):
         '''
         Handle all the validation criteria for the types here.
         '''
@@ -34,6 +34,9 @@ class ToolConfigValidator(object):
                 pass
             elif v not in fields:
                 error='Please choose from the available fields'
+        elif readonly:
+            if v != default:
+                error='Readonly field must have a value of {0}'.format(default)
         elif type == 'numeric':
             if required and not v:
                 error='Please enter a valid numeric value'
@@ -135,6 +138,8 @@ class ToolConfigValidator(object):
                     else:
                         error=self.validate(data_type, value, 
                                             item.get('required', True), 
+                                            item.get('readonly', False),
+                                            item.get('default', None),
                                             **validate_kwargs)
                         if error:
                             errors[config_entry['namespace']][item['name']]=error
