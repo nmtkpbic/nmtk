@@ -4,7 +4,7 @@
         <div class="widget stacked">
           <div ng-click="toggleDiv('nmtk_jobs')" class="widget-header">
             <i class="glyphicon glyphicon-info-sign"></i>
-            <h3>Your Jobs</h3>            
+            <h3>Jobs</h3>            
             <i ng-class="{'glyphicon-chevron-right': !isDivEnabled('nmtk_jobs'), 'glyphicon-chevron-down': isDivEnabled('nmtk_jobs')}" 
                class="navbar-right glyphicon ic-right"></i>          
           </div> <!-- /widget-header -->
@@ -23,24 +23,33 @@
       </div><!-- /span12 -->
     </div><!-- /row -->
     
-    <div class="row">
+    <div class="row"  ng-show="job_cache.length">
       <div class="col-md-12">
         <div class="widget stacked">
           <div ng-click="toggleDiv('nmtk_view_jobs')"  class="widget-header">
             <i class="glyphicon glyphicon-road"></i>
-            <h3>Your Current Jobs</h3>
+            <h3>Current Jobs</h3>
             <i ng-class="{'glyphicon-chevron-right': !isDivEnabled('nmtk_view_jobs'), 'glyphicon-chevron-down': isDivEnabled('nmtk_view_jobs')}" 
                class="navbar-right glyphicon ic-right"></i>  
             <button class="navbar-right btn btn-xs btn-primary ic-right" ng-click="createJob()" stop-event="click">Create a New Job</button>
                
           </div> <!-- /widget-header -->
-          <div ng-show="isDivEnabled('nmtk_view_jobs')"  class="widget-content">
+          <div ng-show="isDivEnabled('nmtk_view_jobs') && job_cache.length"  class="widget-content">
             <section id="tables">
-			  <h4>Displaying {{rest.job.metadata.total_count}} Jobs</h4>	
+			  <h4>Displaying {{job_cache.length}} Job<span ng-if="job_cache.length > 1">s</span></h4>	
 				<div ng-grid="gridOptions" class="gridStyle ngGridOverflow"></div>	
 			</section>
           </div> <!-- /widget-content -->
         </div><!-- /widget stacked -->
       </div><!-- /span12 -->
     </div><!-- /row -->
+    <div ng-hide="job_cache.length" class="row">
+      <div class="col-md-12">
+        <div class="widget stacked">
+          <div class="widget-content centered">
+            <button class="btn btn-primary" ng-click="createJob()" stop-event="click">Create a New Job</button>
+          </div> <!-- /widget-content -->
+        </div><!-- /widget stacked -->
+      </div><!-- /span12 -->
+    </div>
 </div> <!-- /container -->

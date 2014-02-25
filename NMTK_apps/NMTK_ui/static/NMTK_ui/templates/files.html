@@ -12,7 +12,7 @@
         <div class="widget stacked">
           <div ng-click="toggleDiv('nmtk_filehelp')" class="widget-header">
             <i class="glyphicon glyphicon-info-sign"></i>
-            <h3>Your Files</h3>            
+            <h3>Files</h3>            
             <i ng-class="{'glyphicon-chevron-right': !isDivEnabled('nmtk_filehelp'), 'glyphicon-chevron-down': isDivEnabled('nmtk_filehelp')}" 
                class="navbar-right glyphicon ic-right"></i>
           </div> <!-- /widget-header -->
@@ -77,16 +77,25 @@
         </div><!-- /widget stacked -->
       </div><!-- /span12 -->
     </div><!-- /row -->
-    <div class="row">
+    <div ng-hide="datafile_cache.length" class="row">
+      <div class="col-md-12">
+        <div class="widget stacked">
+          <div class="widget-content centered">
+            <button class="btn">File Library is Empty</button>
+          </div> <!-- /widget-content -->
+        </div><!-- /widget stacked -->
+      </div><!-- /span12 -->
+    </div>
+    <div class="row" ng-show="datafile_cache.length">
       <div class="col-md-12">
         <div class="widget stacked">
           <div class="widget-header">
             <i class="glyphicon glyphicon-wrench"></i>
-            <h3>Your Data Files</h3>
+            <h3>Data Files</h3>
           </div> <!-- /widget-header -->
           <div class="widget-content">
 			<section id="tables">
-			  <h4>Displaying {{rest.datafile.metadata.total_count}} Files</h4>	
+			  <h4>Displaying {{datafile_cache.length}} File<span ng-if="datafile_cache.length > 1">s</span></h4>	
 				<div ng-grid="gridOptions" class="gridStyle ngGridOverflow"></div>	
 			</section>
           </div> <!-- /widget-content -->
