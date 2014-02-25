@@ -281,7 +281,7 @@ define(['underscore','leaflet'], function (_, L) {
 
 		
 		    $scope.gridOptions2={data: 'selected_features',
-		    		             showColumnMenu: false,
+		    		             showColumnMenu: true,
 		    		             multiSelect: false,
 		    		             columnDefs: 'columnOptions',
 		    		             showFooter: false,
@@ -298,7 +298,7 @@ define(['underscore','leaflet'], function (_, L) {
 		//						 pagingOptions: $scope.pagingOptions,
 								 filterOptions: $scope.filterOptions,
 								 useExternalSorting: true,
-			                     showColumnMenu: false };
+			                     showColumnMenu: true };
 			_.each(['filterOptions', 'sortInfo'], function (item) {
 				$scope.$watch(item, function (newVal, oldVal) {
 					$log.info('Got change to ', item, newVal, oldVal);
