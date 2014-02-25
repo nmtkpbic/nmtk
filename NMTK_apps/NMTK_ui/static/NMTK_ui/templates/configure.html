@@ -19,7 +19,7 @@
 									    ng-change="updateFileFieldsFromResourceURI(config.namespace)" required
 										ng-disabled="disabled"
 										ng-init="updateFileFieldsFromResourceURI(config.namespace)"
-                     ng-options="o.resource_uri as getFileStr(o) for o in list_files(config.mime_types)"></select>
+                     ng-options="o.resource_uri as getFileStr(o) for o in list_files(config.mime_types, config.spatial_types)"></select>
 			     <p class="help-block error" ng-show="submit_attempted && job_config_form[config.namespace].$invalid">This field is required</p>
              </h4>
 

@@ -187,22 +187,42 @@ define(['underscore',
 						$scope.file_fields[key]=[];
 					}
 				}
-				$scope.list_files=function (types) {
+				$scope.list_files=function (types, spatial_types) {
+					/*
+					 * Tricky! Here we need to find only those files that
+					 * meet the requirements of type and spatial type,
+					 * and those files must have completed loading already...
+					 */
+					var files2=data_files;
 					var files=[];
 					if (typeof types !== 'undefined') {
-						_.each(data_files, function (file_entry) {
+						_.each(files2, function (file_entry) {
 							if (_.contains(types,file_entry.content_type)) {
 								files.push(file_entry);
 							}
 						});
-						
-					} else {
-						_.each(data_files, function (file_entry) {
-							if (/complete/i.exec(file_entry.status)) {
-								files.push(file_entry);
-							}
-						});
+						files2=files;
+						files=[];
 					}
+					
+					if (typeof spatial_types != 'undefined') {
+						_.each(files2, function (file_entry) {
+							_.find(spatial_types, function (st) {
+								if (file_entry.geom_type.indexOf(st) !== -1) {
+									files.push(file_entry);
+									return true;
+								}
+							});
+						});
+						files2=files;
+						files=[];
+					}
+					
+					_.each(files2, function (file_entry) {
+						if (/complete/i.exec(file_entry.status)) {
+							files.push(file_entry);
+						}
+					});
 					return files;
 				};
 			});

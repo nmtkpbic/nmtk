@@ -88,6 +88,11 @@ define([], function () {
 				 * sample data needs to be loaded.  So we use a deferred here
 				 * to ensure that things happen in the correct order.
 				 */
+				if (! $scope.user.is_active) {
+					$scope.login({'post_func': function () { $scope.loadSampleData(tool) }
+							     }
+					);
+				}
 				$scope.rest['datafile'].then(function (files) {
 					_.each(tool.config.sample.files, function (fdata) {
 						var f=_.find(files, function (user_file) {

@@ -112,7 +112,7 @@
   ],
   "input":[
     {
-      "description":"Required model inputs. Each entry here must identify the necessary field in the file you wish to analyze.",
+      "description":"Required model inputs. Each entry here must identify the necessary field in the file you wish to analyze.  Note that this tool only allows spatial files with a spatial type of POINT or POLYGON.",
       "elements":[
         {
           "required":true,
