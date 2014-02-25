@@ -126,7 +126,7 @@ class ToolConfigValidator(object):
                         validate_kwargs['validation']=item.get('validation',{})
                         if config_entry['type'].lower() == 'file':
                             # Get the list of allowable file fields.
-                            validate_kwargs['fields']=self.file_config_parsed.get(config_entry['namespace'], {'fields': []})['fields']
+                            validate_kwargs['fields']=getattr(self.file_config_parsed.get(config_entry['namespace']),'fields',[])
                             if item['type'] != 'property':
                                 allowed_types.append('property')
                         allowed_types.append(item['type'])
