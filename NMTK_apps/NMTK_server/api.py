@@ -543,6 +543,7 @@ class DataFileResource(ModelResource):
     extent=fields.CharField('extent', readonly=True, null=True)
     srs=fields.CharField('srs', readonly=True, null=True)
     status=fields.CharField('status', readonly=True, null=True)
+    checksum=fields.CharField('checksum',readonly=True, null=True)
     geom_type=fields.CharField('geom_type', readonly=True, null=True)
     file=fields.CharField('file', readonly=True, null=True)
     result_field=fields.CharField('result_field', readonly=True, null=True)
@@ -693,7 +694,9 @@ class DataFileResource(ModelResource):
         authentication=CSRFBypassSessionAuthentication()
         validation=DataFileResourceValidation()
         filtering= {'status': ALL,
-                    'user': ALL}
+                    'user': ALL,
+                    'type': ALL,
+                    'checksum': ('exact',)}
 
     def pre_save(self, bundle):
         '''

@@ -135,3 +135,7 @@ admin.site.register(models.Tool, ToolAdmin)
 admin.site.register(models.Job, JobAdmin)
 admin.site.register(models.JobStatus, JobStatusAdmin)
 admin.site.register(models.DataFile, DataFileAdmin)
+admin.site.register(models.ToolSampleFile, admin.ModelAdmin)
+admin.site.register(models.ToolSampleConfig, admin.ModelAdmin)
+
+# admin.site.register(models.ToolConfig, admin.ModelAdmin)

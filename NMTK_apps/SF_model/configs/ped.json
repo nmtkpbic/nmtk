@@ -8,7 +8,81 @@
     "version":"0.3",
     "name":"Pedestrian Intersection Volume Model (San Francisco)"
   },
-  "sample":{},
+  "sample":{
+             "files": [
+                 {
+                   "namespace":"data",
+                   "checksum": "3feaeed4c51a2eef65e5831882d0d36794db2baf",
+                   "uri": "/static/SF_model/SF_for_Model_4326.geojson",
+                   "content-type":"application/json"
+                 }
+            ],
+            "config": {
+			    "data": {
+			        "traffic_signal": {
+			            "type": "property",
+			            "value": "traffic_signal"
+			        },
+			        "high_activity_zone": {
+			            "type": "property",
+			            "value": "high_activity_zone"
+			        },
+			        "max_slope": {
+			            "type": "property",
+			            "value": "max_slope"
+			        },
+			        "quarter_mile_households": {
+			            "type": "property",
+			            "value": "quarter_mile_households"
+			        },
+			        "quarter_mile_employment": {
+			            "type": "property",
+			            "value": "quarter_mile_employment"
+			        },
+			        "quarter_mile_campus": {
+			            "type": "property",
+			            "value": "quarter_mile_campus"
+			        }
+			    },
+			    "results": {
+			        "result": {
+			            "type": "string",
+			            "value": "AnnualPeds"
+			        }
+			    },
+			    "coefficients": {
+			        "quarter_mile_households_coeff": {
+			            "type": "number",
+			            "value": 1.81
+			        },
+			        "constant": {
+			            "type": "number",
+			            "value": 12.9
+			        },
+			        "quarter_mile_campus_coeff": {
+			            "type": "number",
+			            "value": 0.635
+			        },
+			        "max_slope_coeff": {
+			            "type": "number",
+			            "value": -9.4
+			        },
+			        "traffic_signal_coeff": {
+			            "type": "number",
+			            "value": 1.16
+			        },
+			        "quarter_mile_employment_coeff": {
+			            "type": "number",
+			            "value": 2.43
+			        },
+			        "high_activity_zone_coeff": {
+			            "type": "number",
+			            "value": 1.27
+			        }
+			    }
+			},
+            "description":"Sample Job using San Francisco Data"
+  },
   "documentation":{
     "links":[
       {

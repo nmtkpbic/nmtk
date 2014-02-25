@@ -6,6 +6,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 import os
 from django.core.urlresolvers import reverse
+import hashlib
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
 from django.utils.safestring import mark_safe
@@ -27,6 +28,7 @@ class NMTKGeoJSONFileSystemStorage(FileSystemStorage):
         raise NotImplementedError
         return reverse('NMTK_server.download_geojson_datafile',
                        kwargs={'file_id': name})
+        
         
 class NMTKResultsFileSystemStorage(FileSystemStorage):
     '''
@@ -114,20 +116,68 @@ class Tool(models.Model):
     class Meta:
         verbose_name='Tool'
         verbose_name_plural='Tools'
+        
     
 class ToolConfig(models.Model):
     '''
     Each tool has a single configuration, which is stored as a configuration
     object (json encoded structure.)
     '''
-    tool=models.OneToOneField(Tool)
+    tool=models.OneToOneField(Tool, on_delete=models.CASCADE)
     json_config=JSONField()
     objects=models.GeoManager()
 
     class Meta:
         verbose_name='Tool Configuration'
         verbose_name_plural='Tool Configurations'
-      
+        
+class ToolSampleConfig(models.Model):
+    tool=models.OneToOneField(Tool, on_delete=models.CASCADE)
+    sample_config=JSONField()
+    objects=models.GeoManager()
+    
+    class Meta:
+        verbose_name='Tool Sample Configuration'
+        verbose_name_plural='Tool Sample Configurations'
+        
+class ToolSampleFile(models.Model):
+    '''
+    When we load up a tool we download it's data file and cache it on the
+    server.  Using this, a user can load the tool sample file into his/her
+    data library, and then use it.  The caching ensures that we only need to
+    download/manage the file once.
+    '''
+    tool=models.ForeignKey(Tool, on_delete=models.CASCADE)
+    namespace=models.CharField(max_length=32, null=False)
+    file=models.FileField(storage=fs, upload_to=lambda instance, 
+                          filename: 'tool_files/%s/%s' % (instance.tool.pk, filename,))
+    checksum=models.CharField(max_length=50, null=False)
+    content_type=models.CharField(max_length=64, null=True)
+    objects=models.GeoManager()
+    
+    class Meta:
+        verbose_name='Tool Sample File'
+        verbose_name_plural='Tool Sample Files'
+    
+    def delete(self):
+        '''
+        Ensure files are deleted when the model instance is removed.
+        '''
+        delete_candidates=[]
+        delete_fields=['file',]
+                      
+        for field in delete_fields:
+            try:
+                if getattr(self, field, None):
+                    delete_candidates.append(getattr(self, field).path)
+            except Exception, e:
+                logger.exception('Failed to process delete for %s (%s)', 
+                                 field, self.pk)
+        r=super(DataFile, self).delete()
+        for f in delete_candidates:
+            if os.path.exists(f):
+                os.unlink(f)
+        return r
         
 class Job(models.Model):
     UNCONFIGURED='U'
@@ -310,6 +360,7 @@ class DataFile(models.Model):
                            upload_to=lambda instance, filename: '%s/data_files/%s.py' % (instance.user.pk,
                                                                                          instance.pk,),
                            blank=True, null=True)
+    checksum=models.CharField(max_length=50, null=False)
     objects=models.GeoManager()
     
     @property
@@ -340,6 +391,11 @@ class DataFile(models.Model):
                 self.status=self.PROCESSING
             else:
                 self.status=self.PROCESSING_RESULTS
+        if self.file and not self.checksum:
+            cs=hashlib.sha1()
+            for line in self.file.chunks():
+                cs.update(line)
+            self.checksum=cs.hexdigest()
         result=super(DataFile, self).save(*args, **kwargs)
         if import_datafile:
             '''

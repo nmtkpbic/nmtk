@@ -2,6 +2,7 @@ from celery.task import task
 import simplejson as json
 import decimal
 import requests
+import urlparse
 import hmac
 import hashlib
 import uuid
@@ -30,6 +31,7 @@ import math
 import colorsys
 from PIL import Image, ImageDraw, ImageFont
 from django.contrib.gis.geos import GEOSGeometry
+import tempfile
 
 #from django.core.serializers.json import DjangoJSONEncoder
 logger=logging.getLogger(__name__)
@@ -293,6 +295,10 @@ def discover_tools(toolserver):
         try:
             t=models.Tool.objects.get(tool_server=toolserver,
                                       tool_path=tool)
+            # Clean up any sample files, we will reload them now.
+            if hasattr(t,'toolsampleconfig'):
+                t.toolsampleconfig.delete()    
+            t.toolsamplefile_set.all().delete()
         except ObjectDoesNotExist:
             t=models.Tool(tool_server=toolserver,
                           name=tool)
@@ -364,6 +370,77 @@ def updateToolConfig(tool):
     config_data=json_config.json()
     config.json_config=config_data
     config.save()
+    if hasattr(tool, 'toolsampleconfig'):
+        tool.toolsampleconfig.delete()
+    tool.toolsamplefile_set.all().delete()
+    try:
+        logger.debug('Trying to load sample config for %s', tool.name)
+        logger.debug('Config is %s', config_data)
+        if (isinstance(config_data.get('sample', None), (dict,)) and 
+            config_data['sample'].get('config')): 
+            objects_to_save=[]
+            objects_to_delete=[]
+            tsc=models.ToolSampleConfig(sample_config=config_data['sample']['config'], 
+                                        tool=tool)
+            objects_to_save.append(tsc)
+            reqd_fields=['namespace','checksum']
+            for fconfig in config_data['sample'].get('files',[]):
+                logger.debug('Working with %s', fconfig)
+                sample_config_fields={'tool': tool}
+                for f in reqd_fields:
+                    if fconfig.has_key(f): 
+                        sample_config_fields[f]=fconfig.get(f)
+                    else:
+                        raise Exception('Missing required field: %s' % (f,))
+                m=models.ToolSampleFile(**sample_config_fields)
+                if fconfig.has_key('uri'):
+                    parsed=urlparse.urlparse(fconfig.get('uri'))
+                    if not parsed.scheme:
+                        if parsed.path[0] == '/':
+                            p=urlparse.urlparse(tool.tool_server.server_url)
+                            fconfig['uri']=urlparse.urlunparse([p.scheme,
+                                                                p.netloc,
+                                                                fconfig['uri'],
+                                                                '',
+                                                                '',
+                                                                ''])
+                        else:
+                            raise Exception('Only absolute URLs or fully-aulified URLs allowed')
+                    logger.debug('Attempting to download %s', fconfig['uri'])       
+                    data=requests.get(fconfig['uri'], stream=True)
+                    checksum=hashlib.sha1()
+                    if data.status_code != 200:
+                        raise Exception('Failed to download data file %s',
+                                        fconfig['uri'])
+                    logger.debug('Download succeeded!')
+                    with tempfile.TemporaryFile() as f:
+                        for chunk in data.iter_content(chunk_size=1024): 
+                            if chunk: # filter out keep-alive new chunks
+                                f.write(chunk)
+                                checksum.update(chunk)
+                                f.flush()
+                        logger.debug('Checksum is %s=%s', fconfig['checksum'],
+                                     checksum.hexdigest())
+                        if checksum.hexdigest() == fconfig['checksum']:
+                            f.seek(0)
+                            # Get the file name
+                            name=os.path.basename(urlparse.urlparse(fconfig['uri']).path)
+                            if fconfig.has_key('content-type'):
+                                m.content_type=fconfig['content-type']
+                            elif data.headers.has_key('content-type'):
+                                m.content_type=data.headers['content-type'].partition(';')[0]
+                            else:
+                                t=mimetypes.guess_type(fconfig['uri'])[0]
+                                if t:
+                                    m.content_type=t
+                            m.file.save(name, File(f))
+                            objects_to_delete.append(m)
+            [m.save() for m in objects_to_save]
+    except:
+        logger.exception('Failed to load tool sample config.')
+        # If we fail, we need to delete any downloaded files we saved.
+        [m.delete() for m in objects_to_delete]
+
     # Note: We use update here instead of save, since we want to ensure that
     # we don't call the post_save handler, which would result in
     # a recursion loop.
