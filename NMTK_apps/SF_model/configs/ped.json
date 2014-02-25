@@ -161,7 +161,8 @@
       "name":"data",
       "namespace":"data",
       "primary": true,
-      "label":"Input File Fields"
+      "label":"Input File Fields",
+      "spatial_types": ["POLYGON","POINT"]
     },
     {
       "description":"These are the estimated coefficients for the San Francisco Pedestrian Intersection Volume model. They are presented for reference only and should not be changed without a full model re-estimation.",
