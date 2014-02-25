@@ -97,7 +97,7 @@ define([], function () {
 						});
 						if (typeof f === 'undefined') {
 							Restangular.all('tool_sample_file').getList({'checksum': fdata.checksum,
-							                                  		     'limit': 999}).then(function (sample_files) {
+							                                  		     'tool': tool.id}).then(function (sample_files) {
 							    var deferred_things=[]
                   		    	_.each(sample_files, function (data) {
                   		    		deferred_things.push($http.get(data.load_sample_data));

@@ -152,6 +152,38 @@ define(['underscore'
 								}
 								deferred.resolve();
 							});
+						} else if (api == 'datafile') {
+							$scope.rest[api].then(function (v) {
+								if (typeof $scope.datafile_cache === 'undefined') {
+									$scope.datafile_cache = v;
+								} else {
+									$scope.datafile_cache = v;
+								}
+								deferred.resolve();
+							}, function (error) {
+								if (error.status == 401) {
+									if ($scope.user.is_active) {
+										$scope.refreshData('user');
+									}
+								}
+								deferred.resolve();
+							})
+						} else if (api == 'job') {
+							$scope.rest[api].then(function (v) {
+								if (typeof $scope.datafile_cache === 'undefined') {
+									$scope.job_cache = v;
+								} else {
+									$scope.job_cache = v;
+								}
+								deferred.resolve();
+							}, function (error) {
+								if (error.status == 401) {
+									if ($scope.user.is_active) {
+										$scope.refreshData('user');
+									}
+								}
+								deferred.resolve();
+							})
 						} else {
 							$scope.rest[api].then(function (v) {
 								deferred.resolve();

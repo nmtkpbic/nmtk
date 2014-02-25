@@ -39,7 +39,7 @@ define(['text!jobActionsCellTemplate'
 				});
 			};		
 			$scope.gridOptions= {
-					 data: 'rest.job',
+					 data: 'job_cache',
 					 showFooter: false,
 					 showFilter: true,
 					 rowHeight: 75,

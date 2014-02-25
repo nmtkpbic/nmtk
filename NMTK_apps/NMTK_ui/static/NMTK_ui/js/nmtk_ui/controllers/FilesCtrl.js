@@ -51,7 +51,7 @@ define(['underscore', 'text!fileInfoTemplate', 'text!fileActionsCellTemplate'],
 			}
 
 			$scope.gridOptions= {
-					 data: 'rest.datafile',
+					 data: 'datafile_cache',
 					 showFooter: false,
 					 showFilter: true,
 					 enableColumnResize: true,
