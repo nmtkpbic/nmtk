@@ -797,6 +797,9 @@ class ToolSampleFileResource(ModelResource):
         always_return_data = True
         fields=['namespace','checksum','content_type']
         allowed_methods=['get',]
+        filtering= {'tool': ('exact',),
+                    'checksum': ('exact',),
+                    }
         
     def dehydrate(self, bundle):
         bundle.data['id']=bundle.obj.pk

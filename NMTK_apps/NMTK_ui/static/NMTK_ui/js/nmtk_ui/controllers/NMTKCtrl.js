@@ -88,6 +88,7 @@ define(['underscore'
 					}
 					
 					$scope.refreshData=function (api, offset) {
+						var deferred=$q.defer();
 						if (typeof $scope.restargs[api] === 'undefined') {
 							$scope.restargs[api]={};
 						}
@@ -119,7 +120,8 @@ define(['underscore'
 									 */
 									$scope.preferences=data[0];
 									$scope.preferences.divs=JSON.parse($scope.preferences.divs);
-								} 
+								}
+								deferred.resolve();
 							});
 						} else if (api == 'user') {
 							$scope.rest[api].then(function (data) {
@@ -134,6 +136,7 @@ define(['underscore'
 									$scope.user=data[0];
 									$scope.refreshAllData();
 								}
+								deferred.resolve();
 							}, function (error) {
 								/*
 								 * Here the user is logged out/not logged in.  In such
@@ -147,16 +150,21 @@ define(['underscore'
 									$scope.refreshAllData();
 									$scope.preferences={'divs': [] };
 								}
+								deferred.resolve();
 							});
 						} else {
-							$scope.rest[api].then(null, function (error) {
+							$scope.rest[api].then(function (v) {
+								deferred.resolve();
+							}, function (error) {
 								if (error.status == 401) {
 									if ($scope.user.is_active) {
 										$scope.refreshData('user');
 									}
 								}
+								deferred.resolve();
 							})
 						}
+						return deferred.promise;
 					};
 					
 					// When OK is pressed on the modal confirm dialog, delete the
@@ -451,22 +459,45 @@ define(['underscore'
 							return o.name;
 						}
 					}
-					$scope.createJob=function (tool_uri, data_file_uri) {
+					$scope.createJob=function (tool_uri, default_config, default_files) {
 						if (! $scope.user.is_active) {
-							$scope.login({'post_func': function () { $scope.createJob(tool_uri, data_file_uri) }});
+							$scope.login({'post_func': function () { $scope.createJob(tool_uri, 
+																					  default_config,
+																					  default_files) }
+									     }
+							);
 						} else {
 							var modal_instance=$modal.open({scope: $scope,
 															backdrop: true,
-															resolve: {'tool': function () { return tool_uri; },
-																      'data_file': function () { return data_file_uri; }},
+															resolve: {'tool': function () { return tool_uri; } },
 															template:  createJobTemplate, // OR: templateUrl: 'path/to/view.html',
 															controller: 'CreateJobCtrl'});
 							modal_instance.result.then(function(result) {
 								$scope.resources['job'].post(result).then(function (api_result) {
 									$scope.refreshData('job');
 									$scope.rest['job'].then(function () {
-										$location.path('/job/' +
-													   api_result.resource_uri.split('/').reverse()[1] + '/');
+										var uri='/job/' + api_result.resource_uri.split('/').reverse()[1] + '/';
+										if (typeof default_config !== 'undefined') {
+											$scope.rest['datafile'].then(function (user_files) {
+												if (typeof default_files !== 'undefined') {
+													$scope.job_config_files={};
+													_.each(default_files, function (sample_file) {
+														var f=_.find(user_files, function (user_file) {
+															return (sample_file.checksum == user_file.checksum);
+														});
+														if (typeof f !== 'undefined') {
+															$scope.job_config_files[sample_file.namespace]=f.resource_uri;
+														}
+													});
+												}
+												_.each()
+												$scope.job_uri=uri;
+												$scope.job_config=default_config;
+												$location.path(uri);
+											});
+										} else {
+											$location.path(uri);
+										}
 									});
 								});			
 							});

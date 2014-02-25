@@ -82,6 +82,18 @@
             </div>
           </div>
         </div>
+        <div class="col-md-6" ng-show="sample_job_exists">
+          <div class="widget ">
+            <div class="widget-content centered">
+              <button ng-click="loadSampleData(selections[0])" ng-hide="sample_data_loaded" class="btn btn-primary">Load Tool Sample Data</button>
+              <button ng-click="createJob(selections[0].resource_uri, selections[0].config.sample.config,
+                                          selections[0].config.sample.files)"
+                      ng-hide="!sample_data_loaded || sample_data_pending"
+                      class="btn btn-primary">Create Sample Job</button>
+              <button class="btn" ng-show="sample_data_pending">Sample Data Loading...</button>
+            </div>
+          </div>
+        </div>
         <div ng-show="selections[0]" class="col-md-6">
           <div ng-class="{'stacked': !selections[0]}" class="widget">
             <div class="widget-header">
