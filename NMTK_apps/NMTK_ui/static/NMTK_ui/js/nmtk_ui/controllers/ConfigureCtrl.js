@@ -98,6 +98,7 @@ define(['underscore',
 						$scope.$parent.job_config_files={};
 						new_config=true;
 					}
+					 
 					_.each(['input','output'], function (section) {
 						_.each(tool_data.config[section], function (data) {
 							if (new_config) {
@@ -136,6 +137,21 @@ define(['underscore',
 						});
 					});
 					
+					$scope.is_file_optional=function (namespace) {
+						/*
+						 * A file is only optional if all its properties allow a
+						 * non-property field type.
+						 */
+						var file_optional=true;
+						_.find($scope.validation[namespace], function (validation_data, field_name) {
+							if (validation_data.type == 'property') {
+								file_optional=false;
+								return true;
+							}
+						});
+						return file_optional;
+					}
+					
 					$scope.get_options=function (options) {
 						var dataset=[];
 						if (_.isArray(options)) {
@@ -165,34 +181,48 @@ define(['underscore',
 				$scope.$parent.job_config={};
 				$location.path('/job');
 			}
+			$scope.constants_only={};
 			$scope.rest.datafile.then(function (data_files) {
 				$scope.updateFileFieldsFromResourceURI=function (key) {
 					var resource_uri=$scope.$parent.job_config_files[key];
 					if (typeof resource_uri !== 'undefined') {
 						$log.info('Resource URI is ', resource_uri);
-						
-						var df=_.find(data_files, function (datafile) {
-							return (datafile.resource_uri == resource_uri);
-						});
-						
-						if (df) {
-							var fields=[];
-							_.each(JSON.parse(df.fields), function (v) {
-								fields.push({'label': v,
-									         'value': v});
+						if (resource_uri !== true) {
+							$scope.constants_only[key]=false;
+							var df=_.find(data_files, function (datafile) {
+								return (datafile.resource_uri == resource_uri);
 							});
-							$scope.file_fields[key]=fields;
+							
+							if (df) {
+								var fields=[];
+								_.each(JSON.parse(df.fields), function (v) {
+									fields.push({'label': v,
+										         'value': v});
+								});
+								$scope.file_fields[key]=fields;
+							}
+						} else {
+							/*
+							 * this is the case when the user says they want to
+							 * use all constants...
+							 */
+							$scope.constants_only[key]=true;
+							_.each($scope.validation[key], function (this_data, field_name) {
+								$scope.switchFieldMode(key, field_name, true);
+							});
 						}
 					} else {
 						$scope.file_fields[key]=[];
 					}
 				}
-				$scope.list_files=function (types, spatial_types) {
+				$scope.list_files=function (config) {
 					/*
 					 * Tricky! Here we need to find only those files that
 					 * meet the requirements of type and spatial type,
 					 * and those files must have completed loading already...
 					 */
+					var types=config.mime_types;
+					var spatial_types = config.spatial_types;
 					var files2=data_files;
 					var files=[];
 					if (typeof types !== 'undefined') {
@@ -208,7 +238,7 @@ define(['underscore',
 					if (typeof spatial_types != 'undefined') {
 						_.each(files2, function (file_entry) {
 							_.find(spatial_types, function (st) {
-								if (file_entry.geom_type.indexOf(st) !== -1) {
+								if (file_entry.geom_type && file_entry.geom_type.indexOf(st) !== -1) {
 									files.push(file_entry);
 									return true;
 								}
@@ -223,6 +253,24 @@ define(['underscore',
 							files.push(file_entry);
 						}
 					});
+					if ($scope.is_file_optional(config.namespace)) {
+						/*
+						 * This bit of hackery is required because when all the
+						 * fields in a file are optional, and the user chooses
+						 * to use a constant, then there is no file.  This
+						 * results in no file chosen for the namespace, and then
+						 * the section is collapsed.  By sticking true in, in
+						 * this special case, we ensure that it shows the "no
+						 * file" option and expands the field with constants.
+						 */
+						if (typeof $scope.job_config_files[config.namespace] === 'undefined' &&
+							$scope.disabled) {
+							$scope.constants_only[config.namespace]=true;
+							$scope.job_config_files[config.namespace] = true;
+						}
+						files.push({'resource_uri': true,
+							        'name': 'Use all Constants (no file)'})
+					}
 					return files;
 				};
 			});
@@ -291,11 +339,12 @@ define(['underscore',
 			}
 			
 
-			$scope.switchFieldMode=function (namespace, field) {
+			$scope.switchFieldMode=function (namespace, field, force_constant) {
 				// This is the valid type for this field.
 				var type=$scope.validation[namespace][field]['type'];
 				if (type != 'property') {
-					if ($scope.$parent.job_config[namespace][field]['type'] == 'property') {
+					if (force_constant || 
+					    ($scope.$parent.job_config[namespace][field]['type'] == 'property')) {
 						$scope.$parent.job_config[namespace][field]['type'] = type;
 						$scope.$parent.job_config[namespace][field]['value']=undefined;
 					} else {
@@ -326,6 +375,11 @@ define(['underscore',
 						data.config=$scope.$parent.job_config;
 						// Need to pass in the file configuration as well.
 						data.file_config=$scope.$parent.job_config_files;
+						_.each(data.file_config, function (this_data, namespace) {
+							if (this_data === true) {
+								data.file_config[namespace] = "";
+							}
+						})
 						data.put().then(function (response) {
 							// Return them to the job window.
 							$scope.closeConfig();

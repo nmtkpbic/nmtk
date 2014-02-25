@@ -19,9 +19,10 @@
 									    ng-change="updateFileFieldsFromResourceURI(config.namespace)" required
 										ng-disabled="disabled"
 										ng-init="updateFileFieldsFromResourceURI(config.namespace)"
-                     ng-options="o.resource_uri as getFileStr(o) for o in list_files(config.mime_types, config.spatial_types)"></select>
+                     ng-options="o.resource_uri as getFileStr(o) for o in list_files(config)"></select>
 			     <p class="help-block error" ng-show="submit_attempted && job_config_form[config.namespace].$invalid">This field is required</p>
              </h4>
+			
 
             <table ng-show="$parent.job_config_files[config.namespace] && config.elements.length > 0" class="table table-bordered table-striped table-highlight"> 
 			<thead>
@@ -35,10 +36,10 @@
 			    <tr ng-repeat="property in config.elements" ng-hide="validation[config.namespace][property.name].hidden">
 			       <td >
 					 <button ng-if="($parent.job_config[config.namespace][property.name]['type'] == 'property' && validation[config.namespace][property.name]['type'] != 'property')" 
-                             class="btn btn-xs btn-default" required
+                             class="btn btn-xs btn-default" ng-hide="constants_only[config.namespace]"
 							 ng-disabled="disabled"
                              ng-click="switchFieldMode(config.namespace, property.name)">Use Constant</button>
-                     <button class="btn btn-xs btn-default" 
+                     <button class="btn btn-xs btn-default" ng-hide="constants_only[config.namespace]"
 							 ng-disabled="disabled"
                              ng-if="($parent.job_config[config.namespace][property.name]['type'] != 'property' && validation[config.namespace][property.name]['type'] != 'property')"
                              ng-click="switchFieldMode(config.namespace, property.name)">Use Property</button>
