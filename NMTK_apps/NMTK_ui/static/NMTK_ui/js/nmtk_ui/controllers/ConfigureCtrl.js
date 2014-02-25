@@ -428,19 +428,36 @@ define(['underscore',
 				    template:  cloneConfigTemplate, // OR: templateUrl: 'path/to/view.html',
 				    controller: 'CloneConfigCtrl'
 				});
-				modal_dialog.result.then(function (job_config) {
-					var other_config=JSON.parse(job_config);
-					$log.info('Job config is ', job_config);
+				modal_dialog.result.then(function (job) {
+					var other_config=JSON.parse(job.config);
+					var other_files=job.job_files;
 					/*
 					 * For a config we should have 3 dimensions - the namespace (outer most)
 					 * Then the name of the setting (middle)
 					 * Then an object which contains the "type" and the value. (innermost)
 					 */
-					if (typeof job_config[target_namespace] !== 'undefined') {
-						_.each(job_config[target_namespace], function (properties, name) {
-							$scope.$parent.job_config[target_namespace + ":" + name]=properties.value
-						});
+					var nsp_config;
+					var nsp_file;
+					_.find(other_config, function (data, oc) {
+						if (oc == target_namespace) {
+							nsp_config=data;
+							return true;
+						}
+					});
+					_.find(other_files, function (fdata) {
+						if (fdata.namespace == target_namespace) {
+							nsp_file=fdata.datafile;
+							return true;
+						}
+					});
+					if (typeof nsp_config !== 'undefined') {
+						$scope.$parent.job_config[target_namespace]=nsp_config;
+					} 
+					if (typeof nsp_file !== 'undefined') {
+						$scope.$parent.job_config_files[target_namespace]=nsp_file;
+						$scope.updateFileFieldsFromResourceURI(target_namespace);
 					}
+					
 				});
 			}
 		}

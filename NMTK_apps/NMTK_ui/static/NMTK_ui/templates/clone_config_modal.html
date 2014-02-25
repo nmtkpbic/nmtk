@@ -19,7 +19,7 @@
 	            <p class="help-block">Unconfigured jobs are not available for cloning (since they use the default job config)</p>
 	            <select id="job" required
 	                    ng-model="selected.item" 
-	                    ng-options="o.config as o.description for o in rest.job|filter:{'status':'!Configuration Pending'}" >
+	                    ng-options="o as o.description for o in rest.job|filter:{'status':'!Configuration Pending'}" >
 	            </select>
 	          </div>
 	        </div>
