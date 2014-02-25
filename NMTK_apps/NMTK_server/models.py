@@ -416,8 +416,7 @@ class DataFile(models.Model):
         # For spatialite, we need to leave the model file, otherwise
         # we run into import issues.
         db_name = 'default'
-        if instance._state.db is not None:
-            db_name = self._state.db
+        db_name = self._state.db
         db_backend = settings.DATABASES[db_name]['ENGINE'].split('.')[-1]
         if 'lite' not in db_backend.lower():
             delete_fields.append('model')

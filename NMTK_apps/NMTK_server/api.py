@@ -775,6 +775,7 @@ class ToolResource(ModelResource):
                                  null=True)
     config=fields.CharField(readonly=True, null=True,
                             help_text='Tool Configuration (as JSON)')
+    
     class Meta:
         queryset = models.Tool.objects.filter(active=True)
         resource_name = 'tool'
@@ -787,14 +788,55 @@ class ToolResource(ModelResource):
         bundle.data['id']=bundle.obj.pk
         return bundle
 
+         
+class ToolSampleFileResource(ModelResource):
+    tool=fields.ToOneField(ToolResource,'tool')
+    class Meta:
+        queryset = models.ToolSampleFile.objects.filter(tool__active=True)
+        resource_name = 'tool_sample_file'
+        always_return_data = True
+        fields=['namespace','checksum','content_type']
+        allowed_methods=['get',]
         
-#class ToolConfigResource(ModelResource):
-#    class Meta:
-#        queryset = models.ToolConfig.objects.all()
-#        resource_name = 'tool_config'
-#        authentication=SessionAuthentication()
-#        fields=['json_config']
-#        allowed_methods=['get',]
+    def dehydrate(self, bundle):
+        bundle.data['id']=bundle.obj.pk
+        if bundle.request.user.is_authenticated():
+            bundle.data['load_sample_data']=reverse("api_%s_load_sample_data" % 
+                                            (self._meta.resource_name,),
+                                            kwargs={'resource_name': self._meta.resource_name,
+                                                    'pk': bundle.obj.pk,
+                                                    'api_name': 'v1'})
+        return bundle
+    
+    def load_sample_data(self, request, **kwargs):
+        if request.user.is_authenticated():
+            rec = self._meta.queryset.get(pk=kwargs['pk'])
+            if models.DataFile.objects.filter(checksum=rec.checksum,
+                                              user=request.user).count():
+                '''
+                Just return OK if the data file is already loaded - no need to
+                load it again.
+                '''
+                return HttpResponse('COMPLETE')
+            else:
+                fn=os.path.basename(rec.file.name)
+                df=models.DataFile(user=request.user,
+                                   description='Sample data for {0}'.format(rec.tool.name),
+                                   name=fn,
+                                   content_type=rec.content_type)
+                df.file.save(fn, rec.file)
+                return HttpResponse('PENDING')
+        else:
+            raise Http404
+    
+    def prepend_urls(self):
+        return [
+            url(r"^(?P<resource_name>%s)/(?P<pk>\w[\w/-]*)/load%s$" % (self._meta.resource_name, 
+                                                                           trailing_slash()), 
+                                                                           self.wrap_view('load_sample_data'), 
+                name="api_%s_load_sample_data" % (self._meta.resource_name,)),
+            ]
+
 
 class JobResourceAuthorization(Authorization):
     def read_list(self, object_list, bundle):
