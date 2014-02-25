@@ -5,7 +5,165 @@
     "version":"0.3",
     "name":"Bicycle Volume (OLS Method, UMN)"
   },
-  "sample":{},
+  "sample":{
+             "files": [
+                 {
+                   "namespace":"data",
+                   "checksum": "582f02ccf99e1f12b68b595aa56466d5f7a998e4",
+                   "uri": "/static/MN_model/ALX.geojson",
+                   "content-type":"application/json"
+                 }
+            ],
+            "config": {
+			    "data": {
+			        "Arterial": {
+			            "type": "property",
+			            "value": "Arterial"
+			        },
+			        "EmployAccess": {
+			            "type": "property",
+			            "value": "EmployAccess"
+			        },
+			        "MedHHInc": {
+			            "type": "property",
+			            "value": "MedHHInc"
+			        },
+			        "LUMix": {
+			            "type": "property",
+			            "value": "LUMix"
+			        },
+			        "CBDdist_km": {
+			            "type": "property",
+			            "value": "CBDdist_km"
+			        },
+			        "Pctw4ormore": {
+			            "type": "property",
+			            "value": "Pctw4ormore"
+			        },
+			        "Pctnonwhite": {
+			            "type": "property",
+			            "value": "Pctnonwhite"
+			        },
+			        "Crime": {
+			            "type": "property",
+			            "value": "Crime"
+			        },
+			        "OffstreetTrail": {
+			            "type": "property",
+			            "value": "OffstreetTrail"
+			        },
+			        "OnstreetFacility": {
+			            "type": "property",
+			            "value": "OnstreetFacility"
+			        },
+			        "PctU5_O65": {
+			            "type": "property",
+			            "value": "PctU5_O65"
+			        },
+			        "Collector": {
+			            "type": "property",
+			            "value": "Collector"
+			        },
+			        "WatDist_km": {
+			            "type": "property",
+			            "value": "WatDist_km"
+			        },
+			        "Principal": {
+			            "type": "property",
+			            "value": "Principal"
+			        },
+			        "PDperkm2": {
+			            "type": "property",
+			            "value": "PDperkm2"
+			        }
+			    },
+			    "results": {
+			        "result": {
+			            "type": "string",
+			            "value": "bike12ols"
+			        }
+			    },
+			    "coefficients": {
+			        "EmployAccess_coeff": {
+			            "type": "number",
+			            "value": 0.0011
+			        },
+			        "Collector_coeff": {
+			            "type": "number",
+			            "value": 3.3
+			        },
+			        "Tmax_coeff": {
+			            "type": "number",
+			            "value": -2.6
+			        },
+			        "Precip_coeff": {
+			            "type": "number",
+			            "value": -54.3
+			        },
+			        "constant": {
+			            "type": "number",
+			            "value": -20.9
+			        },
+			        "WatDist_km_coeff": {
+			            "type": "number",
+			            "value": 17.6
+			        },
+			        "LUMix_coeff": {
+			            "type": "number",
+			            "value": 12.9
+			        },
+			        "OnstreetFacility_coeff": {
+			            "type": "number",
+			            "value": 98.8
+			        },
+			        "Crime_coeff": {
+			            "type": "number",
+			            "value": -0.2
+			        },
+			        "OffstreetTrail_coeff": {
+			            "type": "number",
+			            "value": 690.8
+			        },
+			        "CBDdist_km_coeff": {
+			            "type": "number",
+			            "value": -55.2
+			        },
+			        "PctU5_O65_coeff": {
+			            "type": "number",
+			            "value": 461.7
+			        },
+			        "Pctnonwhite_coeff": {
+			            "type": "number",
+			            "value": 189.7
+			        },
+			        "Arterial_coeff": {
+			            "type": "number",
+			            "value": 140.6
+			        },
+			        "MedHHInc_coeff": {
+			            "type": "number",
+			            "value": -4.1
+			        },
+			        "Year_coeff": {
+			            "type": "number",
+			            "value": 61.6
+			        },
+			        "Pctw4ormore_coeff": {
+			            "type": "number",
+			            "value": 688.9
+			        },
+			        "PDperkm2_coeff": {
+			            "type": "number",
+			            "value": -0.0076
+			        },
+			        "Principal_coeff": {
+			            "type": "number",
+			            "value": -115.6
+			        }
+			    }
+			},
+            "description":"Sample Job using Minnesota Ordinary Least Squares Bike Model"
+  },
   "documentation":{
     "links":[
       {

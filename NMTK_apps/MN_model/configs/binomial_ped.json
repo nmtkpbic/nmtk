@@ -5,7 +5,165 @@
     "version":"0.3",
     "name":"Pedestrian Volume (Negative Binomial Method, UMN)"
   },
-  "sample":{},
+  "sample":{
+             "files": [
+                 {
+                   "namespace":"data",
+                   "checksum": "582f02ccf99e1f12b68b595aa56466d5f7a998e4",
+                   "uri": "/static/MN_model/ALX.geojson",
+                   "content-type":"application/json"
+                 }
+            ],
+            "config": {
+			    "data": {
+			        "Arterial": {
+			            "type": "property",
+			            "value": "Arterial"
+			        },
+			        "OffstreetTrail": {
+			            "type": "property",
+			            "value": "OffstreetTrail"
+			        },
+			        "MedHHInc": {
+			            "type": "property",
+			            "value": "MedHHInc"
+			        },
+			        "LUMix": {
+			            "type": "property",
+			            "value": "LUMix"
+			        },
+			        "PDperkm2": {
+			            "type": "property",
+			            "value": "PDperkm2"
+			        },
+			        "CBDdist_km": {
+			            "type": "property",
+			            "value": "CBDdist_km"
+			        },
+			        "Pctw4ormore": {
+			            "type": "property",
+			            "value": "Pctw4ormore"
+			        },
+			        "Pctnonwhite": {
+			            "type": "property",
+			            "value": "Pctnonwhite"
+			        },
+			        "Crime": {
+			            "type": "property",
+			            "value": "Crime"
+			        },
+			        "EmployAccess": {
+			            "type": "property",
+			            "value": "EmployAccess"
+			        },
+			        "BusRoute": {
+			            "type": "property",
+			            "value": "BusRoute"
+			        },
+			        "PctU5_O65": {
+			            "type": "property",
+			            "value": "PctU5_O65"
+			        },
+			        "Collector": {
+			            "type": "property",
+			            "value": "Collector"
+			        },
+			        "WatDist_km": {
+			            "type": "property",
+			            "value": "WatDist_km"
+			        },
+			        "Principal": {
+			            "type": "property",
+			            "value": "Principal"
+			        }
+			    },
+			    "results": {
+			        "result": {
+			            "type": "string",
+			            "value": "ped12nbin"
+			        }
+			    },
+			    "coefficients": {
+			        "EmployAccess_coeff": {
+			            "type": "number",
+			            "value": 0.000005
+			        },
+			        "Collector_coeff": {
+			            "type": "number",
+			            "value": 0.853
+			        },
+			        "Tmax_coeff": {
+			            "type": "number",
+			            "value": -0.012
+			        },
+			        "Precip_coeff": {
+			            "type": "number",
+			            "value": -0.15
+			        },
+			        "constant": {
+			            "type": "number",
+			            "value": 5.565
+			        },
+			        "WatDist_km_coeff": {
+			            "type": "number",
+			            "value": -0.116
+			        },
+			        "Pctw4ormore_coeff": {
+			            "type": "number",
+			            "value": 1.391
+			        },
+			        "LUMix_coeff": {
+			            "type": "number",
+			            "value": -0.532
+			        },
+			        "OffstreetTrail_coeff": {
+			            "type": "number",
+			            "value": 0.19
+			        },
+			        "Pctnonwhite_coeff": {
+			            "type": "number",
+			            "value": 0.743
+			        },
+			        "PctU5_O65_coeff": {
+			            "type": "number",
+			            "value": -0.919
+			        },
+			        "Arterial_coeff": {
+			            "type": "number",
+			            "value": 0.774
+			        },
+			        "CBDdist_km_coeff": {
+			            "type": "number",
+			            "value": -0.151
+			        },
+			        "Year_coeff": {
+			            "type": "number",
+			            "value": 0.001
+			        },
+			        "Crime_coeff": {
+			            "type": "number",
+			            "value": 0.002
+			        },
+			        "BusRoute_coeff": {
+			            "type": "number",
+			            "value": 0.211
+			        },
+			        "PDperkm2_coeff": {
+			            "type": "number",
+			            "value": 0.00001
+			        },
+			        "MedHHInc_coeff": {
+			            "type": "number",
+			            "value": 0.004
+			        },
+			        "Principal_coeff": {
+			            "type": "number",
+			            "value": -0.823
+			        }
+			    }
+			},
+            "description":"Sample Job using Minnesota Binomial Pedestrian Model"
+  },
   "documentation":{
     "links":[
       {

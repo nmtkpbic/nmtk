@@ -15,12 +15,13 @@ from django.core.files import File
 from django.core.files.base import ContentFile
 
 cdir=os.path.dirname(__file__)
-files=[('ALX.geojson', 
-        'Alexandria, VA Data Suitable for the Minnesota Models',
-        'application/json',),
-       ('SF_for_Model_4326.geojson',
-        'San Francisco Sample Data (for San Francisco Models)',
-        'application/json')]
+# files=[('ALX.geojson', 
+#         'Alexandria, VA Data Suitable for the Minnesota Models',
+#         'application/json',),
+#        ('SF_for_Model_4326.geojson',
+#         'San Francisco Sample Data (for San Francisco Models)',
+#         'application/json')]
+files=[]
 
 def setupAccount(user):
     from NMTK_server import models
