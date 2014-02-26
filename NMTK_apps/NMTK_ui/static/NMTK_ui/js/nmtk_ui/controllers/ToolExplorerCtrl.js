@@ -8,7 +8,7 @@ define([], function () {
 			$scope.enableRefresh(['datafile','tool']);
 			$scope.selections = [];
 			$scope.gridOptions= {
-					 data: 'rest.tool',
+					 data: 'tool_cache',
 					 showFooter: false,
 					 showFilter: true,
 					 enableColumnResize: false,

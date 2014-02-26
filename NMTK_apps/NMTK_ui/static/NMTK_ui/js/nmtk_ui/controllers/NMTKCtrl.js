@@ -168,6 +168,22 @@ define(['underscore'
 								}
 								deferred.resolve();
 							})
+						} else if (api == 'tool') {
+							$scope.rest[api].then(function (v) {
+								if (typeof $scope.datafile_cache === 'undefined') {
+									$scope.tool_cache = v;
+								} else {
+									$scope.tool_cache = v;
+								}
+								deferred.resolve();
+							}, function (error) {
+								if (error.status == 401) {
+									if ($scope.user.is_active) {
+										$scope.refreshData('user');
+									}
+								}
+								deferred.resolve();
+							})
 						} else if (api == 'job') {
 							$scope.rest[api].then(function (v) {
 								if (typeof $scope.datafile_cache === 'undefined') {

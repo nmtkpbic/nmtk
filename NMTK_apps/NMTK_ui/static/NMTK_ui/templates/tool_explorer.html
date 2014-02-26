@@ -50,7 +50,7 @@
             </div> <!-- /widget-header -->
             <div class="widget-content">
 	  		  <section>
-			    <h4>Select a tool to learn more about it ({{rest.tool.metadata.total_count}} tools available.)</h4>	
+			    <h4>Select a tool to learn more about it ({{tool_cache.length}} tools available.)</h4>	
 				<div ng-grid="gridOptions" class="gridStyle" style="height: 200px;"></div>
 			  </section>
             </div> <!-- /widget-content -->
@@ -78,19 +78,13 @@
         <div class="col-md-6">
           <div class="widget ">
             <div class="widget-content centered">
-              <button ng-click="createJob(selections[0].resource_uri)" class="btn btn-primary">Create Job with this Tool</button>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-6" ng-show="sample_job_exists">
-          <div class="widget ">
-            <div class="widget-content centered">
-              <button ng-click="loadSampleData(selections[0])" ng-hide="sample_data_loaded" class="btn btn-primary">Load Tool Sample Data</button>
+              <button ng-click="createJob(selections[0].resource_uri)" class="btn btn-sm btn-primary">Create Job with this Tool</button>
+              <button ng-click="loadSampleData(selections[0])" ng-hide="sample_data_loaded" class="btn btn-sm btn-primary">Load Tool Sample Data</button>
               <button ng-click="createJob(selections[0].resource_uri, selections[0].config.sample.config,
                                           selections[0].config.sample.files)"
                       ng-hide="!sample_data_loaded || sample_data_pending"
-                      class="btn btn-primary">Create Sample Job</button>
-              <button class="btn" ng-show="sample_data_pending">Sample Data Loading...</button>
+                      class="btn btn-sm btn-primary">Create Sample Job</button>
+              <button class="btn btn-sm" ng-show="sample_data_pending">Sample Data Loading...</button>
             </div>
           </div>
         </div>

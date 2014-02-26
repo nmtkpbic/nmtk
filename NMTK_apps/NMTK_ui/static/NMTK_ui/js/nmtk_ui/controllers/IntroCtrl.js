@@ -8,7 +8,7 @@ define([], function () {
 			
 			$scope.changeTab('introduction');
 			$scope.gridOptions= {
-					 data: 'rest.tool',
+					 data: 'tool_cache',
 					 showFooter: false,
 					 showFilter: true,
 					 enableRowSelection: false,

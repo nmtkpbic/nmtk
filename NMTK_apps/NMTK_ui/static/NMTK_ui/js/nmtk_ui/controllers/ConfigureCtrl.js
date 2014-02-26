@@ -142,7 +142,17 @@ define(['underscore',
 						 * A file is only optional if all its properties allow a
 						 * non-property field type.
 						 */
-						var file_optional=true;
+						var file_optional=false;
+						/*
+						 * If there is at least one validation element, we need
+						 * to ensure we default optional to true. If there are 0
+						 * then the file is required.
+						 */
+						_.find($scope.validation[namespace], function (k) {
+							file_optional=true;
+							return true;
+						});
+						
 						_.find($scope.validation[namespace], function (validation_data, field_name) {
 							if (validation_data.type == 'property') {
 								file_optional=false;
