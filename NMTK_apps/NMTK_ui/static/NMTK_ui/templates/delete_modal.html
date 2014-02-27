@@ -6,7 +6,7 @@
     <div class="modal-body">
       <div class="row">
         <div ng-hide="jobs_in.length + jobs_out.length" class="col-md-12">     
-          Are you sure you wish to {{operation|lowercase}} the {{type}} {{name}}?
+          Are you sure you wish to remove the {{type}} {{name}}?
         </div>
         <div ng-show="jobs_in.length + jobs_out.length" class="col-md-12">
 	        <div ng-show="jobs_in" class="widget stacked">
@@ -68,6 +68,6 @@
     <div class="modal-footer">
       <button  ng-click="close()" ng-hide="jobs_in.length + jobs_out.length" class="btn">Cancel</button>
       <button  ng-click="close()" ng-show="jobs_in.length + jobs_out.length" class="btn btn-primary">Close</button>
-      <button ng-click="delete()" ng-hide="jobs_in.length + jobs_out.length" class="btn btn-primary">Delete</button>
+      <button ng-click="delete()" ng-hide="jobs_in.length + jobs_out.length" class="btn btn-primary">Remove</button>
     </div>
     </div>

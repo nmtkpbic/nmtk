@@ -183,18 +183,18 @@ def pager_output(request, datafile):
         limit=int(request.GET.get('limit', 0))
     except: 
         limit=20
-    order=request.GET.get('order_by', 'nmtk_id')
+    order=request.GET.get('order_by', 'nmtk_id').lower()
     qs=getQuerySet(datafile)
     row=qs[0]
     db_map=[(field.db_column or field.name, field.name) for
-             field in row._meta.fields if field.name not in ('nmtk_geometry',
-                                                             'nmtk_feature_id')]
+             field in row._meta.fields if field.name.lower() not in ('nmtk_geometry',
+                                                                     'nmtk_feature_id')]
     # Detect user specified ordering, if provided.
     if order.startswith('-'):
-        order_field=order[1:]
+        order_field=order[1:].lower()
     else:
-        order_field=order
-    if order_field not in [col for col, name in db_map]:
+        order_field=order.lower()
+    if order_field not in [col.lower() for col, name in db_map]:
         order='nmtk_id'
     qs=qs.order_by(order)
     

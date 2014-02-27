@@ -1,8 +1,14 @@
-define(['underscore', 'text!fileInfoTemplate', 'text!fileActionsCellTemplate'], 
-		function (_, fileInfoTemplate, fileActionsCellTemplate) {	
+define(['underscore'
+        , 'text!fileInfoTemplate'
+        , 'text!fileActionsCellTemplate'
+        , 'text!viewJobModalTemplate'], 
+		function (_, fileInfoTemplate, fileActionsCellTemplate,
+				  viewJobModalTemplate) {	
 	"use strict";
 	var controller=['$scope','$timeout','$route','$modal','$location', '$log',
-        function ($scope, $timeout, $route, $modal, $location, $log) {
+	                '$q', 'Restangular',
+        function ($scope, $timeout, $route, $modal, $location, $log, $q,
+        		  Restangular) {
 			$scope.loginCheck();
 			$scope.enableRefresh(['datafile']);
 			$scope.changeTab('files');
@@ -30,6 +36,36 @@ define(['underscore', 'text!fileInfoTemplate', 'text!fileActionsCellTemplate'],
 					   }, 1000);
 				   }	 
 			});
+			
+			$scope.openJobViewDialog=function(datafile) {
+				$q.all([Restangular.all('job_results').getList({'datafile': datafile.id,
+														        'limit': 1}),
+						$scope.rest['job']]).then(function (results) {
+					var job_uri=results[0][0].job;
+					var job=_.find(results[1], function (this_job) {
+						return (this_job.resource_uri == job_uri)
+					});			
+					$scope.view_job_opts = {
+						backdrop: true,
+						keyboard: true,
+						backdropClick: true,
+						scope: $scope,
+						template:  viewJobModalTemplate,
+						controller: 'ViewJobCtrl',
+						resolve: { jobdata: function () { return job; } }
+					};
+					var d=$modal.open($scope.view_job_opts);
+					d.result.then(function(result) {
+						if (result) {
+							result.put().then(function () {
+								$scope.refreshData('job');
+							});
+						}
+					});
+
+				});
+			};
+			
 			
 			$scope.isComplete=function (record) {
 				return /complete/i.test(record.status);

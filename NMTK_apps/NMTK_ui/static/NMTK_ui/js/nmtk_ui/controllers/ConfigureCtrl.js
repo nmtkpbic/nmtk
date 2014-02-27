@@ -189,6 +189,7 @@ define(['underscore',
 			$scope.closeConfig=function () {
 				$scope.$parent.job_uri=null;
 				$scope.$parent.job_config={};
+				$scope.$parent.working_job_id=null;
 				$location.path('/job');
 			}
 			$scope.constants_only={};

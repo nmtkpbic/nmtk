@@ -90,7 +90,7 @@ def performModel(input_files,
         # the data with the new column (results) which contains the result of the 
         # model.
         client.updateResults(result_field=setup['results']['result']['value'],
-                             units='Average annual pedestrian count',
+                             units='Estimated annual pedestrian count',
                              result_file='data',
                              files={'data': ('data.{0}'.format(file_iterator.extension),
                                              file_iterator.getDataFile(), 

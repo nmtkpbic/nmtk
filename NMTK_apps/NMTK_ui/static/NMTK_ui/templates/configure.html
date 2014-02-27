@@ -9,7 +9,7 @@
            <i ng-class="{'glyphicon-chevron-right': !sections[config.namespace], 'glyphicon-chevron-down': sections[config.namespace]}" 
               class="navbar-right glyphicon ic-right"></i> 
            <button class="navbar-right btn btn-xs btn-primary ic-right" ng-show="job_data.status=='Configuration Pending' && config.elements.length > 0" 
-                   ng-click="cloneConfig(config.namespace)" stop-event='click'>Copy Mappings from Another Job</button>
+                   ng-click="cloneConfig(config.namespace)" stop-event='click'>Copy from Another Job</button>
            
          </div> <!-- /widget-header -->
          <div ng-show="sections[config.namespace]"  class="widget-content">
@@ -82,7 +82,7 @@
            <i ng-class="{'glyphicon-chevron-right': !sections[config.namespace], 'glyphicon-chevron-down': sections[config.namespace]}" 
               class="navbar-right glyphicon ic-right"></i>
 			<button class="navbar-right btn btn-xs btn-primary ic-right" ng-show="job_data.status=='Configuration Pending' && config.elements.length > 0" 
-                   ng-click="cloneConfig(config.namespace)" stop-event='click'>Copy Mappings from Another Job</button>
+                   ng-click="cloneConfig(config.namespace)" stop-event='click'>Copy from Another Job</button>
          </div> <!-- /widget-header -->
          <div ng-show="sections[config.namespace]"  class="widget-content">
            <section>

@@ -25,6 +25,7 @@ define(['text!jobActionsCellTemplate'
 					backdrop: true,
 					keyboard: true,
 					backdropClick: true,
+					scope: $scope,
 					template:  viewJobModalTemplate,
 					controller: 'ViewJobCtrl',
 					resolve: { jobdata: function () { return job; } }

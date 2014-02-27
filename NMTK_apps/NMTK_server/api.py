@@ -549,8 +549,8 @@ class DataFileResource(ModelResource):
     result_field=fields.CharField('result_field', readonly=True, null=True)
     result_field_units=fields.CharField('result_field_units', readonly=True, null=True)
     type=fields.CharField('type', readonly=True, null=True)
-    job=fields.ToOneField('NMTK_server.api.JobResource','job_result',
-                           readonly=True, null=True)
+#     job=fields.ToOneField('NMTK_server.api.JobResource','job_result',
+#                            readonly=True, null=True)
     def prepend_urls(self):
         return [
             url(r"^(?P<resource_name>%s)/(?P<pk>\w[\w/-]*)/download%s$" % (self._meta.resource_name, 

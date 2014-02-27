@@ -1,7 +1,7 @@
 define([], function () {	
 	"use strict";
-	var controller=['$scope','$modalInstance','$log', 'jobdata', 
-        function ($scope, $modalInstance, $log, jobdata) {
+	var controller=['$scope','$modalInstance','$log', 'jobdata', '$location',
+        function ($scope, $modalInstance, $log, jobdata, $location) {
 			$scope.jobdata=jobdata;
 			$scope.fields=[{'display_name': 'Job Description',
 							'field': 'description',
@@ -33,6 +33,23 @@ define([], function () {
 			}
 			$scope.save=function () {
 				$modalInstance.close($scope.jobdata)
+			}
+			
+			$scope.configureJob=function (jobdata) {
+				$scope.$parent.configureJob(jobdata);
+				$modalInstance.close(false);
+			}
+			$scope.downloadDatafile=function (jobdata) {
+				$scope.$parent.downloadDatafile(null, jobdata);
+				$modalInstance.close(false);
+			}
+			
+			$scope.complete= /complete/i.test(jobdata.status);
+			
+			$scope.viewResults=function () {
+				$log.info('New path will be ', '/view_results/' + jobdata.id);
+				$location.path('/view_results/' + jobdata.id);
+				$modalInstance.close(false);
 			}
 		}
 	];

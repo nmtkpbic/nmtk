@@ -91,6 +91,7 @@ def performModel(input_files,
         # model.
         client.updateResults(result_field=setup['results']['result']['value'],
                              result_file='data',
+                             units='12-hour volume',
                              files={'data': ('data.{0}'.format(file_iterator.extension),
                                              file_iterator.getDataFile(), 
                                              file_iterator.content_type)

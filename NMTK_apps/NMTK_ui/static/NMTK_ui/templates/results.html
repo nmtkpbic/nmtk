@@ -1,14 +1,25 @@
 
 <div class="container">
+<div class="row">
+      <div class="col-md-12">
+        <div class="widget stacked">
+          <div class="widget-content centered">
+            <button ng-click="close()" class="btn btn-primary">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
    <div class="row">   	  
       <div class="col-md-12">
         <div class="widget stacked">
           <div ng-click="toggleDiv('job_result_help')" class="widget-header">
             <i class="glyphicon glyphicon-info-sign"></i>
-            <h3 ng-show="job">Job Results - {{job.description}}</h3>            
-            <h3 ng-hide="job">Data file - {{datafile.description}}</h3>
+            <h3 ng-show="data_file_tab_name == 'Results'">Job Results <span ng-if="datafile_api.description">- {{datafile_api.description}}</span></h3>            
+            <h3 ng-hide="data_file_tab_name == 'Results'">Data file <span ng-if="datafile_api.description">- {{datafile_api.description}}</span></h3>
             <i ng-class="{'glyphicon-chevron-right': !isDivEnabled('job_result_help'), 'glyphicon-chevron-down': isDivEnabled('job_result_help')}" 
-               class="navbar-right glyphicon ic-right"></i>       
+               class="navbar-right glyphicon ic-right"></i> 
+            <button  stop-event='click' class="btn btn-xs btn-primary ic-right navbar-right" ng-click="downloadDatafile(datafile_api)">Download</button>
+                     
              </div> <!-- /widget-header -->
           <div ng-show="isDivEnabled('job_result_help') && job" class="widget-content">
             <p>
@@ -44,7 +55,7 @@
         <div class="widget stacked" ng-show="spatial">
           <div class="widget-header">
             <i class="glyphicon glyphicon-map-marker"></i>
-            <h3>Spatial Result</h3>
+            <h3>Spatial {{data_file_tab_name}}</h3>
           </div> <!-- /widget-header -->
           <div class="widget-content">
             <!-- <div id="map" class="angular-leaflet-map"></div> -->
@@ -55,7 +66,7 @@
         <div class="widget stacked">
           <div class="widget-header">
             <i class="glyphicon glyphicon-list"></i>
-            <h3>All Results</h3>
+            <h3>All {{data_file_tab_name}}</h3>
           </div> <!-- /widget-header -->
           <div class="widget-content">
             <div class="gridStyle" ng-grid="gridOptions">

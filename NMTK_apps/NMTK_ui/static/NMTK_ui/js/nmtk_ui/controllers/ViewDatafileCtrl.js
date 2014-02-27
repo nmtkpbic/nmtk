@@ -381,6 +381,11 @@ define(['underscore','leaflet'], function (_, L) {
 				} else {
 					$scope.spatial=false;
 				}
+				if ($scope.datafile_api.result_field) {
+					$scope.$parent.data_file_tab_name="Results";
+				} else {
+					$scope.$parent.data_file_tab_name="Data";
+				}
 				$scope.getPagedDataAsync($scope.page_size, 0, '', 'nmtk_id');	
 				if ($scope.spatial) {
 					$scope.leaflet.layers.overlays['results']= {
