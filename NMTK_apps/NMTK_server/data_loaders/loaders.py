@@ -219,7 +219,7 @@ class NMTKDataLoader(object):
             # only handle a few types, since some of the others might mess 
             # up some processing...like xlsx (which this will unpack.)
             logger.debug('Extension is %s', extension)
-            if extension.lower() in ('zip','gz','tgz'):
+            if extension.lower() in ('.zip','.gz','.tgz'):
                 try:
                     # Ensure that the files are output in the working dir, and 
                     # subdirectories are omitted (so it's a flat dir structure)
@@ -231,6 +231,7 @@ class NMTKDataLoader(object):
                                                                      dir),
                                             os.listdir(self.working_dir)) 
                                             if not os.path.isdir(fn)]
+                    self._files=files
                 except archive_util.UnrecognizedFormat, e:
                     logger.debug('Specified file (%s) is not a recognized archive',
                                  self.filename)
