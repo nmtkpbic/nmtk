@@ -61,11 +61,8 @@ define(['underscore',
 				}
 				$log.info('Setting is ', $scope.disabled);
 				$scope.rest.tool.then(function (row) {
-					var tool_data=undefined;
-					_.each(row, function(toolinfo) {
-						if (toolinfo.id==tool_id) {
-							tool_data=toolinfo;
-						}
+					var tool_data=_.find(row, function(toolinfo) {
+						return (toolinfo.id==tool_id);
 					});
 					$log.info('Got tool data of ', tool_data);
 					/*
