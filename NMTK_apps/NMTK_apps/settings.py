@@ -200,7 +200,7 @@ INSTALLED_APPS = (
     'tastypie',
 )
 # The test tool only gets installed if debug is set to true.
-if DEBUG:
+if not PRODUCTION:
     INSTALLED_APPS=INSTALLED_APPS + (
                                      'test_tool', # A sample tool designed for testing new stuff.
                                      )
