@@ -11,7 +11,7 @@ urlpatterns = patterns('',
     url(r'^MN_model/', include('MN_model.urls')),
     url(r'^SF_model/', include('SF_model.urls')),
 )
-if settings.DEBUG:
+if not settings.PRODUCTION:
    urlpatterns += patterns('',
                            url(r'^test_tool/', include('test_tool.urls')),
                            )
