@@ -38,7 +38,7 @@ define([], function () {
 					updateToolInfo($scope.selections[0]);
 				}
 			}, true);
-						
+					
 			var updateToolInfo=function (tool) {
 				$scope.sample_data_pending=false;
 				$scope.sample_job_exists=false;
@@ -118,7 +118,11 @@ define([], function () {
 					
 				});
 			};
-					
+			
+			$scope.$on('login', function (evt, args) {
+				$route.reload();
+			});
+			
 			if ($routeParams.toolid) {
 //				$log.info('Toolid is ', $routeParams.toolid)
 				$scope.$on('ngGridEventRows', function () {
