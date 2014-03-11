@@ -5,6 +5,10 @@ define([], function () {
 			var linkCellTemplate = '<div class="ngCellText" ng-class="col.colIndex()">' +
 								   '  <a href="#/tool-explorer/{{row.getProperty(col.field)}}">Explore</a>' +
 								   '</div>';
+
+			var toolCellTemplate = '<div class="ngCellText" ng-class="col.colIndex()">' +
+								   '  <a href="#/tool-explorer/{{row.entity.id}}">{{row.getProperty(col.field)}}</a>' +
+								   '</div>';
 			
 			$scope.changeTab('introduction');
 			$scope.gridOptions= {
@@ -16,15 +20,17 @@ define([], function () {
 					 multiSelect: false,
 					 plugins: [new ngGridFlexibleHeightPlugin()],
 					 selectedItems: $scope.selections,
-					 columnDefs: [{field: 'name',
-						           width: '85%',
-						           displayName: 'Tool Name'},
-						          {field: 'id',
-						           width: '15%',
-						           displayName: 'Explore',
-						           enableCellEdit: false,
-						           cellTemplate: linkCellTemplate
-						          }],
+					 columnDefs: [  {field: 'name',
+//						             width: '100%',
+						             cellTemplate: toolCellTemplate,
+						             displayName: 'Tool Name'}
+//						          , {field: 'id',
+//						             width: '15%',
+//						             displayName: 'Explore',
+//						             enableCellEdit: false,
+//						             cellTemplate: linkCellTemplate
+//						            }
+						           ],
 					 showColumnMenu: false };
 		}
 	];
