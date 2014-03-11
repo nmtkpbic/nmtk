@@ -35,6 +35,8 @@ MANAGERS = (
             ('Jeremy Raw', 'jeremy.raw@dot.gov'),
             )
 
+EMAIL_SUBJECT_PREFIX='[{0}] '.format(SITE_DOMAIN)
+
 # Indicates that once an account is created, an admin needs to approve it/enable it
 # basically results in new accounts being disabled.
 ADMIN_APPROVAL_REQUIRED=True
