@@ -346,25 +346,18 @@ define(['underscore','leaflet'], function (_, L) {
 						};
 				return geojsonMarkerOptions;
 			}
-			$scope.leaflet={'defaults': { tileLayer: 'http://{s}.tile.cloudmade.com/{key}/{styleId}/256/{z}/{x}/{y}.png',
-										  tileLayerOptions: { key: '0c9dbe8158f6482d84e3543b1a790dbb', styleId: 997 },
-										  maxZoom: 18
+			$scope.leaflet={'defaults': { maxZoom: 18
 										},
 					        'layers': {
-					        		   'baselayers': {cloudmade: { top: true,
-													               name: 'Cloudmade (OSM Data)',
-													               type: 'xyz',
-													               url: 'http://{s}.tile.cloudmade.com/{key}/{styleId}/256/{z}/{x}/{y}.png',
-													               layerParams: {
-													                   key: '0c9dbe8158f6482d84e3543b1a790dbb',
-													                   styleId: 997
-													               },
-													               layerOptions: {
-													                   subdomains: ['a', 'b', 'c'],
-													                   continuousWorld: false,
-														               opacity: .5,
-													               }
-													             }
+					        		   'baselayers': { osm: { name: 'OpenStreetMap',
+										                      type: 'xyz',
+										                      url: 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+										                      layerOptions: {
+										                         subdomains: ['a', 'b', 'c'],
+										                         attribution: '© OpenStreetMap contributors',
+										                         continuousWorld: true
+										                      }
+										                     }
 										        	 },
 									   'overlays': { }
 					        }

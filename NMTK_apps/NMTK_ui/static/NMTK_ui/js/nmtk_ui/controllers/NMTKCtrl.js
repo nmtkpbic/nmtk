@@ -26,6 +26,7 @@ define(['underscore'
 					$log.info('NMTK Controller running!');
 					$scope.csrftoken=CONFIG.csrftoken;
 					$scope.login_url=CONFIG.api_path + 'user/login/';
+					var first_login_complete=$q.defer();
 					$scope.register_url=CONFIG.register_url;
 					$scope.reset_url=CONFIG.reset_url;
 					$scope.browser_name=BrowserDetect.browser;
@@ -136,6 +137,7 @@ define(['underscore'
 									$scope.user=data[0];
 									$scope.refreshAllData();
 								}
+								first_login_complete.resolve([]);
 								deferred.resolve();
 							}, function (error) {
 								/*
@@ -150,6 +152,7 @@ define(['underscore'
 									$scope.refreshAllData();
 									$scope.preferences={'divs': [] };
 								}
+								first_login_complete.resolve([]);
 								deferred.resolve();
 							});
 						} else if (api == 'datafile') {
@@ -230,12 +233,14 @@ define(['underscore'
 						});
 					}
 					$scope.loginCheck=function () {
-						if (! $scope.user.is_active ) {
-							var path=$location.path();
-							$location.path('/');
-							$log.info('Running logincheck w/redirect to', path);
-							$scope.login({'redirect': path});
-						}
+						first_login_complete.promise.then(function () {
+							if (! $scope.user.is_active ) {
+								var path=$location.path();
+								$location.path('/');
+								$log.info('Running logincheck w/redirect to', path);
+								$scope.login({'redirect': path});
+							}
+						});
 					}
 
 					$scope.$watch('user', function () {

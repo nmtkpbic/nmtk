@@ -73,7 +73,7 @@ require.config({
 	// TODO: Remove the "bust" part of this before release - it's for
 	//       DEBUG only and forces a reload of all libs on each reload
 	//urlArgs: 'v=1.0' + "bust=" +  (new Date()).getTime()
-	, urlArgs: 'v=1.0' 
+	, urlArgs: 'v=1.1' 
 });
 
 
