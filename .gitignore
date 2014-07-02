@@ -22,4 +22,8 @@ cgi-bin/mapserv
 # Ignore site config files
 conf/*
 
+# Ignore the config file used to rebuild stuff
+config
+
+# Ignore the nodejs install
 node/*
