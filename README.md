@@ -18,7 +18,6 @@ these pre-reqs (and their install packages) translate easily (try google) to num
  * python-dev
  * python-setuptools
  * python-virtualenv
- * r-base
  * libapache2-mod-wsgi
  * libxslt-dev libxml2-dev
  * libspatialite3 libspatialite-dev spatialite-bin
@@ -49,22 +48,6 @@ In this installation, mapserver was compiled with the following configure argume
                 --with-png --with-jpeg --with-gif --with-zlib --with-gd 
                 --with-curl --with-geos --with-gdal --enable-python-mapscript
 
-PostgreSQL Installation
-=======================
-You need to install the PostgreSQL and PostGIS components as well, these can be downloaded from the PostgreSQL 
-repository.  The URL http://www.postgresql.org/download/linux/debian/ contains instructions for doing
-that.
-
-Once the PostgreSQL repository is installed, you'll need to install some additional packages::
-
- * postgresql-9.3
- * postgis
- * postgresql-9.3-postgis-2.1 
- * postgresql-9.3-postgis-2.1-scripts
- * libgdal-dev
- * gdal-bin
-
-
 Installation Instructions
 =========================
 
@@ -84,7 +67,7 @@ as some knowledge surrounding configuring a web server (such as Apache.)
 
    pip install $(cat requirements.txt|grep -i ^numpy)
 
- 5.  Install all the pre-requsite modules::
+ 5.  Install all the pre-requisite modules::
 
    pip install -r requirements.txt
 
@@ -112,11 +95,20 @@ as some knowledge surrounding configuring a web server (such as Apache.)
                   # By putting a # at the start of the line
      pip install --no-download pysqlite
 
- 6.  Install the celery and Apache components, configuration files exist for 
- these in the "celery" and "conf" directories (celery and apache, respectively)
+ 6.  Install the celery components, a configuration file and init script exists for 
+     this in the "celery" directory (celery and apache, respectively), 
+     you will need to make several changes::
+     
+       * Modify celeryd-nmtk.default to contain the path to the NMTK installation.
+         this file may then be copied to /etc/default/celeryd-nmtk
+       * Copy the celeryd-nmtk.init script to /etc/init.d/celeryd-nmtk
+       * Use the appropriate linux commands to ensure that the celery daemon
+         is started when the server boots (sudo update-rc.d celeryd-nmtk-dev 
+         defaults) 
  
  7.  By default, files for the NMTK server will go in the nmtk_files subdirectory,
- create this directory if it does not exist, and ensure that you have write access to it::
+     create this directory if it does not exist, and ensure that you have write 
+     access to it::
  
      mkdir nmtk_files
      chown www-data.${USER} nmtk_files

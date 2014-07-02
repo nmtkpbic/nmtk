@@ -3,7 +3,9 @@
 # it's name should match the name of the init script, and there should
 # be no extension (i.e., /etc/defaults/celeryd-nmtk)
 #
-NMTK_DIR=/var/www/vhosts/nmtk.otg-nc.com
+# Enter the path to the directory where NMTK is installed below
+NMTK_DIR=NMTK_INSTALL_PATH
+
 LOG_DIR=$NMTK_DIR/logs
 CELERYD_NODES=nmtk
 CELERYD_CONCURRENCY=2

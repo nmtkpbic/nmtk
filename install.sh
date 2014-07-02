@@ -30,8 +30,12 @@
 # Chander's script to reset his NMTK environment for testing.
 # First stop celery
 pushd $(dirname $0)
-if [ -f ./config ]; then
-  source ./config
+NMTK_INSTALL_PATH=$(pwd)
+if [ -f ./.nmtk_config ]; then
+  source ./.nmtk_config
+fi
+if [ ${#NMTK_NAME} == 0 ]; then
+  NMTK_NAME=$(hostname -s)
 fi
 if [ ${#USERNAME} == 0 ]; then
   echo -n "Username: " 
@@ -44,19 +48,46 @@ fi
 if [ ${#PASSWORD} == 0 ]; then
   echo -n "Password: "
   read -s PASSWORD
+  echo
 fi
 if [ ${#FIRSTNAME} == 0 ]; then
-  echo -n "Password: "
-  read -s FIRSTNAME
+  echo -n "First Name: "
+  read FIRSTNAME
 fi
 if [ ${#LASTNAME} == 0 ]; then
-  echo -n "Password: "
-  read -s LASTNAME
+  echo -n "Last Name: "
+  read LASTNAME
 fi
-export FIRSTNAME LASTNAME PASSWORD EMAIL USERNAME
+export FIRSTNAME LASTNAME PASSWORD EMAIL USERNAME NMTK_NAME
+if [ ! -f .nmtk_config ]; then
+   cat <<-EOT > .nmtk_config
+     USERNAME=$USERNAME
+     EMAIL=$EMAIL
+     FIRSTNAME=$FIRSTNAME
+     LASTNAME=$LASTNAME
+     NMTK_NAME=${NMTK_NAME}
+EOT
+fi
+
+sudo -s -- <<EOF
+# Install the celery startup scripts
+if [ ! -f "/etc/default/celeryd-$(hostname -s)" ]; then
+  sed -e 's|NMTK_INSTALL_PATH|'${NMTK_INSTALL_PATH}'|g' celery/celeryd-nmtk.default > /etc/default/celeryd-${NMTK_NAME}
+  cp celery/celeryd-nmtk.init /etc/init.d/celeryd-${NMTK_NAME}
+  update-rc.d celeryd-${NMTK_NAME} defaults 
+fi
+
+if [ ! -f "/etc/apache2/sites-available/${NMTK_NAME}.conf" ]; then
+  sed -e 's|NMTK_INSTALL_PATH|'${NMTK_INSTALL_PATH}'|g' \
+    -e 's|EMAIL|'${EMAIL}'|g' \
+    -e 's|HOSTNAME|'${HOSTNAME}'|g' \
+    conf/apache.conf > /etc/apache2/sites-available/${NMTK_NAME}.conf
+  a2ensite ${NMTK_NAME}.conf
+fi
+EOF
 
 BASEDIR=$(dirname $0)
-CELERYD_NAME=$(hostname -s)
+CELERYD_NAME=${NMTK_NAME}
 if [[ -f /var/run/celery/$CELERYD_NAME.pid ]]; then
    sudo kill $(cat /var/run/celery/$CELERYD_NAME.pid)
    sleep 15

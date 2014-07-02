@@ -23,7 +23,7 @@ cgi-bin/mapserv
 conf/*
 
 # Ignore the config file used to rebuild stuff
-config
+.nmtk_config
 
 # Ignore the nodejs install
 node/*
