@@ -126,14 +126,16 @@ as some knowledge surrounding configuring a web server (such as Apache.)
      therein. 
      
 ## Note
-The steps below allow you to manually complete the remainder of the installation.
-However, a script exists (install.sh) that will perform these tasks for you.
 
-On development sites the install.sh script is typically used to "reset" the server,
-running it on a non-development server (where you have real data) will cause
-the catastrophic loss of data.  You should be cautious as to when/where you run
-install.sh
+> The steps below allow you to manually complete the remainder of the installation.
+> However, a script exists (install.sh) that will perform these tasks for you.
 
+> On development sites the install.sh script is typically used to "reset" the server,
+> running it on a non-development server (where you have real data) will cause
+> the catastrophic loss of data.  You should be cautious as to when/where you run
+> install.sh
+
+***
 
  1.  Install the celery components, a configuration file and init script exists for 
      this in the "celery" directory (celery and apache, respectively), 
