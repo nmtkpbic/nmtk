@@ -33,10 +33,6 @@ import djcelery
 import socket
 
 BASE_PATH=os.path.dirname(__file__)
-# The path to where any files uploaded to the server are stored.
-FILES_PATH=os.path.abspath(os.path.join(BASE_PATH, '..','..','nmtk_files'))
-
-LOGFILE_PATH=os.path.abspath(os.path.join(BASE_PATH, '..','..','logs'))
 
 # Used to initialize the sites model (see: NMTK_server/management/__init__.py)
 # This should be overridden by the VHOST name, but it is defaulted to the FQDN
@@ -44,50 +40,11 @@ LOGFILE_PATH=os.path.abspath(os.path.join(BASE_PATH, '..','..','logs'))
 # It should be noted that if you use any kind of vhost setup, then this
 # probably won't work, and will result in all kinds of broken-ness :-) 
 
-SITE_DOMAIN=socket.getfqdn()
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = TASTYPIE_FULL_DEBUG = DEBUG
-# if production is set to true, then the minified version of the
-# code will be loaded instead of the regular version. This means that
-# python manage.py minify would have to be run before collectstatic
-PRODUCTION=False
+from local_settings import *
 
 djcelery.setup_loader()
-
-ACCOUNT_ACTIVATION_DAYS=3
-REGISTRATION_OPEN=True
-ADMINS = (
-     ('Chander Ganesan', 'chander@otg-nc.com'),
-)
-MANAGERS = (
-            ('Chander Ganesan', 'chander@otg-nc.com'),
-            ('Jeremy Raw', 'jeremy.raw@dot.gov'),
-            )
-
-EMAIL_SUBJECT_PREFIX='[{0}] '.format(SITE_DOMAIN)
-
-# Indicates that once an account is created, an admin needs to approve it/enable it
-# basically results in new accounts being disabled.
-ADMIN_APPROVAL_REQUIRED=True
-
-# The path to the MapServer executable
-MAPSERV_PATH=os.path.abspath(os.path.join(BASE_PATH, '..', '..', 'cgi-bin','mapserv'))
-# The path to where node.js binaries are installed.
-NODE_PATH=os.path.abspath(os.path.join(BASE_PATH, '..', '..', 'node','bin'))
-# The font used for legend text.
-LEGEND_FONT=os.path.abspath(os.path.join(BASE_PATH,'..','..','fonts','Amble-Regular.ttf'))
-MAPSERVER_TEMPLATE=os.path.abspath(os.path.join(BASE_PATH, '..','NMTK_server','templates','NMTK_server','mapserver_template.js'))
-SERVER_EMAIL=DEFAULT_FROM_EMAIL='nmtk@otg-nc.com'
-EMAIL_BACKEND='NMTK_apps.email_backend.EmailBackend'
-# If you wish to have django connect to a remote SMTP server, use these
-# settings.  The default config assumes you have sendmail (locally) setup 
-# properly.  The author has ssmtp (apt-get install ssmtp) setup to do this - 
-# which prevents him
-# from having to have a password in his checked-in configs.
-#EMAIL_USE_TLS = True 
-#EMAIL_HOST='smtp.gmail.com'
-#EMAIL_PORT = 587
-#EMAIL_HOST_PASSWORD = None
 
 MANAGERS = ADMINS
 ALLOWED_HOSTS=[SITE_DOMAIN,]
@@ -159,8 +116,7 @@ STATICFILES_FINDERS = (
 #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
-# Make this unique, and don't share it with anybody.
-SECRET_KEY = 'hk(f4*q-%yo9xf*x@_4#cv=wc8zp=%03=sukgl+_6sz2=zdmy='
+
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
@@ -246,8 +202,10 @@ SERIALIZATION_MODULES = { 'geojson' : 'NMTK_apps.serializers.geojson' }
 LOGIN_URL='/server/login/'
 
 # if you want to change the logging (to disable debug) do it here..
-MIN_LOG_LEVEL='DEBUG' # 'INFO' for non-debug, 'DEBUG' for debugging
-
+if DEBUG:
+    MIN_LOG_LEVEL='DEBUG' # 'INFO' for non-debug, 'DEBUG' for debugging
+else:
+    MIN_LOG_LEVEL='INFO'
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
 # the site admins on every HTTP 500 error when DEBUG=False.
@@ -304,26 +262,6 @@ LOGGING = {
     }
 }
 
-# This dictionary is used by NMTK tools to interact with the NMTK server
-# In particular, it stores the public/private keys for each tool server.
-#
-# Note: by design if you are using the NMTK_server app (which is a 
-# client-interface to NMTK tools that provides data management, among other
-# things) it won't use this data - it's for tools only.  The Server app will
-# use it's database records for managing this.  However, it's important to
-# note that what's here, and what's in the DB should match or requests to/from
-# the server will fail.
-
-# In the case below, the key is the public key that the server has assigned 
-# to this tool.  The url is the URL for the server, and the secret is the
-# shared secret key used for signing requests.  Note that the client identifies
-# the server using the public key - which is included in any dialog between 
-# the client and the server.
-NMTK_SERVERS={'d0461b9536eb483d9f23c157e809af35': {'url': 'http://{0}/server'.format(SITE_DOMAIN),
-                                                   'secret': '''yq@5u058y312%ebmyi85ytpfwjm9zv)1u2wu-m1s)%cngrvf_^''' },
-              '51d315f8f1c545dbb60505722ff85132': {'url': ' http://ec2-23-20-159-89.compute-1.amazonaws.com/demo/',
-                                                   'secret': '''1o782+$&*pyed1efg@nii7_9r&72%dxgm_2rm7v0jl((h#=4p0''' },
-              }
 
 BROKER_URL = 'django://'
 

@@ -27,8 +27,20 @@
 # AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, 
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-# Chander's script to reset his NMTK environment for testing.
-# First stop celery
+# Script to install/reset the NMTK environment for testing.
+cat <<-EOT
+	NOTICE: This script will cause the removal of all data, accounts, etc. 
+	        stored on this server.  For a new installation, it is acceptable
+	        to run this script once to set things up, but unless you 
+	        are running a development/test server and are trying to reset it, 
+	        you should answer "N" to the question below.
+EOT
+echo -n "Reset Server (remove all data) y/N? "
+read ANSWER
+if [[ "${ANSWER}" != 'Y' && "${ANSWER}" != 'y' ]]; then
+  echo "Cancelling execution"
+  exit 1
+fi
 pushd $(dirname $0)
 NMTK_INSTALL_PATH=$(pwd)
 if [ -f ./.nmtk_config ]; then
@@ -114,6 +126,7 @@ python manage.py collectstatic --noinput -l -c
 python manage.py createsuperuser --noinput --email=$EMAIL --username=$USERNAME
 echo "from django.contrib.auth.models import User; u = User.objects.get(username__exact='$USERNAME'); u.set_password('$PASSWORD'); u.first_name='$FIRSTNAME'; u.last_name='$LASTNAME'; u.save()"|python manage.py shell
 python manage.py discover_tools
+echo "Tool discovery has been initiated, note that this may take some time to complete"
 deactivate
 popd
 sudo chown -R www-data nmtk_files/*

@@ -1,0 +1,143 @@
+#
+# This file contains a set of user-tunable settings for the NMTK server,
+# it should be copied to local_settings.py and then modified based on the
+# installation needs.
+#
+__all__=['SITE_DOMAIN', 'PRODUCTION',
+         'ACCOUNT_ACTIVATION_DAYS', 'REGISTRATION_OPEN',
+         'ADMINS','MANAGERS','EMAIL_SUBJECT_PREFIX',
+         'EMAIL_HOST_USER', 'EMAIL_PORT', 'EMAIL_USE_TLS',
+         'EMAIL_HOST','EMAIL_HOST_PASSWORD','EMAIL_BACKEND',
+         'ADMIN_APPROVAL_REQUIRED', 'MAPSERV_PATH','DEBUG',
+         'TEMPLATE_DEBUG','TASTYPIE_FULL_DEBUG',
+         'NODE_PATH', 'LEGEND_FONT', 'MAPSERVER_TEMPLATE',
+         'SERVER_EMAIL','DEFAULT_FROM_EMAIL','SECRET_KEY']
+import os
+import socket
+
+BASE_PATH=os.path.dirname(__file__)
+
+# Enable debug only on development sites/servers
+DEBUG = False
+TEMPLATE_DEBUG = TASTYPIE_FULL_DEBUG = DEBUG
+
+#
+# The domain which will be used by users accessing this server via
+# the web server.  If a vhost is used, this should be the fully 
+# qualified name of the vhost.  If this is incorrect, it's likely that
+# things won't work, as this application will match the Host header
+# received in requests against this domain, and deny requests that 
+# don't match.
+#
+SITE_DOMAIN=socket.getfqdn()
+# if production is set to true, then the minified version of the
+# code will be loaded instead of the regular version. This means that
+# python manage.py minify would have to be run before collectstatic
+#
+# It's important to note that in such cases it is up to the user to
+# minify the code in advance of running collectstatic - not doing so
+# will result in (potentially) obsolete minified code being used.
+#
+PRODUCTION=False
+
+#
+# When an account activation request is sent, it will expire after this 
+# many days.
+# 
+ACCOUNT_ACTIVATION_DAYS=3
+#
+# Indicate that users can self-register (registration is "open"). Note that
+# if this is set to False then no new accounts may be created via the UI.
+#
+# Self service registration is disabled if this is False
+#
+REGISTRATION_OPEN=True
+
+#
+# A List of server administrators - they may get some emails
+# related to server status
+#
+ADMINS = (
+     ('Firstname Lastname', 'email_address'),
+)
+#
+# A List of server managers - these are folks that would approve new 
+# account requests.  Remove any sets (or add) as needed.
+#
+MANAGERS = (
+            ('Firstname Lastname', 'email_address'),
+            ('Firstname Lastname', 'email_address'),
+            )
+
+#
+# A set of email settings. You should contact your local server admin to 
+# determine the appropriate settings here.
+#
+EMAIL_SUBJECT_PREFIX='[{0}] '.format(SITE_DOMAIN)
+EMAIL_USE_TLS = True 
+EMAIL_HOST='smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_PASSWORD = None
+EMAIL_HOST_USER=None
+
+#
+# Optionally, you can uncomment the line below. This will cause 
+# nmtk to use the local mail service (sendmail) to send emails. 
+# in such cases it is assumed that you have the local MTA configured
+# and working properly.
+#
+#EMAIL_BACKEND='NMTK_apps.email_backend.EmailBackend'
+
+
+# Indicates that once an account is created, an admin needs to approve it/enable it
+# basically results in new accounts being disabled.
+#
+# This setting allows a user to request a new account, but the account will not be
+# active/usable until an administrator enables it.  So, self-service registration
+# assuming that REGISTRATION_OPEN is set to True, but only "approved" accounts 
+# get activated.  Note: This setting is ignored if REGISTRATION_OPEN is False
+#
+ADMIN_APPROVAL_REQUIRED=True
+
+# The default from address for email sent from NMTK
+SERVER_EMAIL=DEFAULT_FROM_EMAIL='email_address'
+# Make this unique, and don't share it with anybody.
+SECRET_KEY = 'hk(f4*q-%yo9xf*x@_4#cv=xc8zp=%03=sukgl+_6sz2=zdmy='
+
+# This dictionary is used by NMTK tools to interact with the NMTK server
+# In particular, it stores the public/private keys for each tool server.
+#
+# Note: by design if you are using the NMTK_server app (which is a 
+# client-interface to NMTK tools that provides data management, among other
+# things) it won't use this data - it's for tools only.  The Server app will
+# use it's database records for managing this.  However, it's important to
+# note that what's here, and what's in the DB should match or requests to/from
+# the server will fail.
+
+# In the case below, the key is the public key that the server has assigned 
+# to this tool.  The url is the URL for the server, and the secret is the
+# shared secret key used for signing requests.  Note that the client identifies
+# the server using the public key - which is included in any dialog between 
+# the client and the server.
+NMTK_SERVERS={'d0461b9536eb483d9f23c157e809af35': {'url': 'http://{0}/server'.format(SITE_DOMAIN),
+                                                   'secret': '''yq@5u058y312%ebmyi85ytpfwjm9zv)1u2wu-m1s)%cngrvf_^''' },
+              '51d315f8f1c545dbb60505722ff85132': {'url': ' http://ec2-23-20-159-89.compute-1.amazonaws.com/demo/',
+                                                   'secret': '''1o782+$&*pyed1efg@nii7_9r&72%dxgm_2rm7v0jl((h#=4p0''' },
+              }
+
+
+
+#
+# Note: The settings below are automatically determined based on the location
+#       of this file, you should not need to modify them, unless you are installing
+#       things in locations other than those specified in the installation instructions.
+#
+# The path to the MapServer executable
+MAPSERV_PATH=os.path.abspath(os.path.join(BASE_PATH, '..', '..', 'cgi-bin','mapserv'))
+# The path to where node.js binaries are installed.
+NODE_PATH=os.path.abspath(os.path.join(BASE_PATH, '..', '..', 'node','bin'))
+# The font used for legend text.
+LEGEND_FONT=os.path.abspath(os.path.join(BASE_PATH,'..','..','fonts','Amble-Regular.ttf'))
+MAPSERVER_TEMPLATE=os.path.abspath(os.path.join(BASE_PATH, '..','NMTK_server','templates','NMTK_server','mapserver_template.js'))
+FILES_PATH=os.path.abspath(os.path.join(BASE_PATH, '..','..','nmtk_files'))
+LOGFILE_PATH=os.path.abspath(os.path.join(BASE_PATH, '..','..','logs'))

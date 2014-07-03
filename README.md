@@ -94,6 +94,17 @@ as some knowledge surrounding configuring a web server (such as Apache.)
      vi setup.cfg # Comment out the line that contains define=SQLITE_OMIT_LOAD_EXTENSION
                   # By putting a # at the start of the line
      pip install --no-download pysqlite
+     
+     
+==================================== NOTE ====================================
+The steps below allow you to manually complete the remainder of the installation.
+However, a script exists (install.sh) that will perform these tasks for you.
+
+On development sites the install.sh script is typically used to "reset" the server,
+running it on a non-development server (where you have real data) will cause
+the catastrophic loss of data.  You should be cautious as to when/where you run
+install.sh
+==============================================================================
 
  6.  Install the celery components, a configuration file and init script exists for 
      this in the "celery" directory (celery and apache, respectively), 
