@@ -71,9 +71,11 @@ otherwise WMS services (view Geo-results) will not work.
 
 In this installation, mapserver was compiled with the following configure arguments:
 
+```
    ./configure  --with-postgis --with-ogr --with-proj --with-wms --with-wfs 
                 --with-png --with-jpeg --with-gif --with-zlib --with-gd 
                 --with-curl --with-geos --with-gdal --enable-python-mapscript
+```
 
 ###Installation Instructions
 
@@ -83,43 +85,55 @@ as some knowledge surrounding configuring a web server (such as Apache.)
  1.  Checkout the existing code and change into the root directory of the repository.
  2.  Initialize a virtual environment, using a command such as::
 
+```
     virtualenv venv
+```
 
  3.  Activate the virtual environment using the command::
 
+```
     source venv/bin/activate
+```
 
  4.  Install numpy by hand using requirements.txt (pip gets it wrong for some reason otherwise...)::
 
+```
    pip install $(cat requirements.txt|grep -i ^numpy)
+```
 
  5.  Install all the pre-requisite modules::
 
+```
    pip install -r requirements.txt
+```
 
   Note::
   
   Sometimes the GDAL installation will fail because pip gets the bindings, but not the entire GDAL library (which GDALs setup requires.)  This
   can be handled using the following procedure::
-    
-    pip install --no-install $(grep GDAL requirements.txt)
-    pushd venv/build/GDAL
-    python setup.py build_ext --include-dirs=/usr/local/include --library-dirs=/usr/local/lib
-    pip install --no-download GDAL
-    popd
-    sudo sh -c 'echo "/usr/local/lib" >> /etc/ld.so.conf' # Add the path to gdal libs to system
-    sudo ldconfig
+
+```    
+pip install --no-install $(grep GDAL requirements.txt)
+pushd venv/build/GDAL
+python setup.py build_ext --include-dirs=/usr/local/include --library-dirs=/usr/local/lib
+pip install --no-download GDAL
+popd
+sudo sh -c 'echo "/usr/local/lib" >> /etc/ld.so.conf' # Add the path to gdal libs to system
+sudo ldconfig
+```
     
    Note::
    
    The PySqlite Library requires some special handling::
-   
-     pip uninstall pysqlite # Answer yes when prompted
-     pip install --no-install $(grep pysqlite requirements.txt)
-     pushd venv/build/pysqlite/
-     vi setup.cfg # Comment out the line that contains define=SQLITE_OMIT_LOAD_EXTENSION
-                  # By putting a # at the start of the line
-     pip install --no-download pysqlite     
+
+```
+pip uninstall pysqlite # Answer yes when prompted
+pip install --no-install $(grep pysqlite requirements.txt)
+pushd venv/build/pysqlite/
+vi setup.cfg # Comment out the line that contains define=SQLITE_OMIT_LOAD_EXTENSION
+          # By putting a # at the start of the line
+pip install --no-download pysqlite     
+```
      
  6.  Copy NMTK_apps/NMTK_apps/local_settings.sample to NMTK_apps/NMTK_apps/local_settings.py,
      edit the file (NMTK_apps/NMTK_apps/local_settings.py) per the directions contained
@@ -152,52 +166,64 @@ as some knowledge surrounding configuring a web server (such as Apache.)
      create this directory if it does not exist, and ensure that you have write 
      access to it::
  
-     mkdir nmtk_files
-     chown www-data.${USER} nmtk_files
-     chmod g+rwxs nmtk_files
-     
+```
+mkdir nmtk_files
+chown www-data.${USER} nmtk_files
+chmod g+rwxs nmtk_files
+```
  
  3. Create the initial spatialite database::
      
-     pushd nmtk_files
-     spatialite nmtk.sqlite  "SELECT InitSpatialMetaData();"
-     # Note: Ignore the "table spatial_ref_sys already exists error"
-     chown www-data nmtk.sqlite
-    
+```
+pushd nmtk_files
+spatialite nmtk.sqlite  "SELECT InitSpatialMetaData();"
+# Note: Ignore the "table spatial_ref_sys already exists error"
+chown www-data nmtk.sqlite
+``` 
       
  4.  Change to the NMTK_apps subdirectory and initialize the database, and generate static media::
 
-     pushd NMTK_apps
-     python manage.py syncdb # Note: Here you should create an administrative user for yourself
-     python manage.py minify # Needed if running in production
-     python manage.py collectstatic  # Add -l to this for development systems, -c for production
-     popd
+```
+pushd NMTK_apps
+python manage.py syncdb # Note: Here you should create an administrative user for yourself
+python manage.py minify # Needed if running in production
+python manage.py collectstatic  # Add -l to this for development systems, -c for production
+popd
+```
 
  10.  Change the nmtk_files subdirectory so that it, and all it's subdirectories,
  are writeable by the www-data user (or whatever user the web server runs as.)::
- 
-   chown -R nmtk_files www-data.www-data
+
+``` 
+chown -R nmtk_files www-data.www-data
+```
 
  11.  Change the database and log locations so that the apache user will be able to access/write to them::
 
-  sudo chown -R www-data logs
-  sudo chmod g+rwxs logs
-  sudo g+rw logs/*
+```
+sudo chown -R www-data logs
+sudo chmod g+rwxs logs
+sudo g+rw logs/*
+```
 
  12.  Now ensure that the sample fixture data is correct - you need not load this,
      and it will probably go away eventually, but it provides a "default" config
      for the purposes of having a server communicate with the default client.
-     
+
+```     
   edit NMTK_apps/NMTK_server/fixtures/initial_data.json
-  
+```
+
     - in particular, ensure the host name there is correct.
      
  15.  Restart your apache server
  
  16.  Run the discover_tools command to discover new tools, and remove no-longer
       valid/published tools::
-    
-     python manage.py discover_tools   
+
+```    
+python manage.py discover_tools   
+```
      
 The remainder of configuration (such as removing the default tool server and/or
 adding a new tool server) can now be done via the Administrative pages of the 
