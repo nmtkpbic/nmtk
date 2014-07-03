@@ -58,7 +58,7 @@ if [ ${#EMAIL} == 0 ]; then
   read EMAIL
 fi
 if [ ${#PASSWORD} == 0 ]; then
-  echo -n "Password: "
+  echo -n "Enter Password for user $USERNAME (to access the NMTK ui): "
   read -s PASSWORD
   echo
 fi

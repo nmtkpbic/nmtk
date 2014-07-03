@@ -93,8 +93,11 @@ as some knowledge surrounding configuring a web server (such as Apache.)
      pushd venv/build/pysqlite/
      vi setup.cfg # Comment out the line that contains define=SQLITE_OMIT_LOAD_EXTENSION
                   # By putting a # at the start of the line
-     pip install --no-download pysqlite
+     pip install --no-download pysqlite     
      
+ 6.  Copy NMTK_apps/NMTK_apps/local_settings.sample to NMTK_apps/NMTK_apps/local_settings.py,
+     edit the file (NMTK_apps/NMTK_apps/local_settings.py) per the directions contained
+     therein. 
      
 ==================================== NOTE ====================================
 The steps below allow you to manually complete the remainder of the installation.
@@ -106,7 +109,7 @@ the catastrophic loss of data.  You should be cautious as to when/where you run
 install.sh
 ==============================================================================
 
- 6.  Install the celery components, a configuration file and init script exists for 
+ 1.  Install the celery components, a configuration file and init script exists for 
      this in the "celery" directory (celery and apache, respectively), 
      you will need to make several changes::
      
@@ -117,7 +120,7 @@ install.sh
          is started when the server boots (sudo update-rc.d celeryd-nmtk-dev 
          defaults) 
  
- 7.  By default, files for the NMTK server will go in the nmtk_files subdirectory,
+ 2.  By default, files for the NMTK server will go in the nmtk_files subdirectory,
      create this directory if it does not exist, and ensure that you have write 
      access to it::
  
@@ -126,7 +129,7 @@ install.sh
      chmod g+rwxs nmtk_files
      
  
- 7a. Create the initial spatialite database::
+ 3. Create the initial spatialite database::
      
      pushd nmtk_files
      spatialite nmtk.sqlite  "SELECT InitSpatialMetaData();"
@@ -134,15 +137,13 @@ install.sh
      chown www-data nmtk.sqlite
     
       
- 8.  Edit NMTK_apps/NMTK_apps/settings.py and change the SECRET_KEY, SITE_DOMAIN and any
- references to hostnames (based on the virtual hostname of your system.)
- 
- 9.  Change to the NMTK_apps subdirectory and initialize the database, and generate static media::
+ 4.  Change to the NMTK_apps subdirectory and initialize the database, and generate static media::
 
-   pushd NMTK_apps
-   python manage.py syncdb # Note: Here you should create an administrative user for yourself
-   python manage.py collectstatic
-   popd
+     pushd NMTK_apps
+     python manage.py syncdb # Note: Here you should create an administrative user for yourself
+     python manage.py minify # Needed if running in production
+     python manage.py collectstatic  # Add -l to this for development systems, -c for production
+     popd
 
  10.  Change the nmtk_files subdirectory so that it, and all it's subdirectories,
  are writeable by the www-data user (or whatever user the web server runs as.)::
@@ -163,13 +164,6 @@ install.sh
   
     - in particular, ensure the host name there is correct.
      
- 13.  Change the SECRET_KEY value in NMTK_apps/NMTK_apps/settings.py to 
-      be unique for your installation.  The SECRET_KEY is used for various 
-      hashing operations, and needs to be different for each site (for security
-      reasons.)
-      
- 14.  Ensure that the MAPSERV_PATH is set to the path to your Mapserver executable.
- 
  15.  Restart your apache server
  
  16.  Run the discover_tools command to discover new tools, and remove no-longer
@@ -185,39 +179,39 @@ To add a new tool::
  
 Here we will assume the NMTK server "base" URL is is http://nmtk.otg-nc.com)::
 
-0.  Ensure your tool server is working (accepting requests via the web) 
+1.  Ensure your tool server is working (accepting requests via the web) 
     otherwise adding it will be a futile task, since the server will immediately 
     try to query the tool server for a list of tools it provides.
     
-1.  Open your browser and point to the administrative page of the server::
+2.  Open your browser and point to the administrative page of the server::
 
   http://nmtk.otg-nc.com/server/admin
 
-2.  Login using the credentials you created in step 9 (above)
+3.  Login using the credentials you created in step 9 (above)
 
-3.  Click on "Tool Servers"
+4.  Click on "Tool Servers"
 
-4.  If you wish to not use the "default" tools, then click the check box next 
+5.  If you wish to not use the "default" tools, then click the check box next 
 	to the "Sample tool server", choose "delete" from the drop down, and 
 	press "Go" to delete the tool server.  Note that deleting the tool server 
 	will also delete all associated tools supplied by that server.
 
-5.  To add a new tool server, click on "Add Tool Server" (upper right of the page.)
+6.  To add a new tool server, click on "Add Tool Server" (upper right of the page.)
 
-6.  Give your tool server a sensible name, and provide it with a URL (the url
+7.  Give your tool server a sensible name, and provide it with a URL (the url
 for the tool server.)  Note that the URL with "/index" appended should return a
 list of the available tools as a JSON string.  
 
-7.  Copy the "auth token", which is the key used to sign requests between the 
+8.  Copy the "auth token", which is the key used to sign requests between the 
 	NMTK server and tool server.  This is commonly referred to as a 
 	"shared secret" and is used to authenticate requests between the NMTK
 	server and tool server.  You will need to share it with the tool server
 	admin.
 
-8.  Click "Save" to add the tool server (the NMTK server will immediately go 
+9.  Click "Save" to add the tool server (the NMTK server will immediately go 
 	out and query the tool server to get a list of tools!)
 
-9.  Copy the tool server ID that appears on the "Tool Servers" admin page
+10.  Copy the tool server ID that appears on the "Tool Servers" admin page
     and provide it, along with the shared secret you got in step 7 to the
     maintainer of the tool server.  You should also provide the tool admin
     the URL for the NMTK server.
@@ -227,7 +221,7 @@ Using the NMTK provided tool server::
 If you are using the NMTK provided tool server, you'll need to get a set of
 credentials (auth token and a tool server ID) from the NMTK server administrator.
 
-Once you have these credentials, open up NMTK_apps/NMTK_apps/settings.py and
+Once you have these credentials, open up NMTK_apps/NMTK_apps/local_settings.py and
 scroll to the end of the file.
 
 Add a new entry to the NMTK_SERVERS= dictionary.  The key should be
