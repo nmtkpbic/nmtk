@@ -232,7 +232,7 @@ application - via the web.
 
 To add a new tool:
  
-Here we will assume the NMTK server "base" URL is is http://nmtk.otg-nc.com):
+Here we will assume the NMTK server "base" URL is is http://nmtk.example.com):
 
 1.  Ensure your tool server is working (accepting requests via the web) 
     otherwise adding it will be a futile task, since the server will immediately 
@@ -240,7 +240,7 @@ Here we will assume the NMTK server "base" URL is is http://nmtk.otg-nc.com):
     
 2.  Open your browser and point to the administrative page of the server:
 
-  http://nmtk.otg-nc.com/server/admin
+  http://nmtk.example.com/server/admin
 
 3.  Login using the credentials you created in step 9 (above)
 
