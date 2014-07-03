@@ -278,5 +278,6 @@ two options::
 Minification/Optimization of UI Components
 ------------------------------------------
 1.  Run the node/install.sh script to install minification tools.
+2.  Activate the virtual environment (source venv/bin/activate)
 2.  Run "python manage.py minify" to minify code
 3.  Run "python manage.py collectstatic -c" to re-install the static media (along with minified stuff.)
