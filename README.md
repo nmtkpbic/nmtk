@@ -39,7 +39,7 @@ development and execution of non-motorized transportation models.
 ### Pre-Requisites
 
 There are some pre-requisites that should be installed, the assumption in this case is that you are using debian, but 
-these pre-reqs (and their install packages) translate easily (try google) to numerous other OSs::
+these pre-reqs (and their install packages) translate easily (try google) to numerous other OSs:
 
  * apache2
  * python-dev
@@ -83,34 +83,34 @@ The installation of this tool is predicated on an understanding of basic systems
 as some knowledge surrounding configuring a web server (such as Apache.)
 
  1.  Checkout the existing code and change into the root directory of the repository.
- 2.  Initialize a virtual environment, using a command such as::
+ 2.  Initialize a virtual environment, using a command such as:
 
   ```
   virtualenv venv
   ```
 
- 3.  Activate the virtual environment using the command::
+ 3.  Activate the virtual environment using the command:
 
   ```
   source venv/bin/activate
   ```
 
- 4.  Install numpy by hand using requirements.txt (pip gets it wrong for some reason otherwise...)::
+ 4.  Install numpy by hand using requirements.txt (pip gets it wrong for some reason otherwise...):
 
   ```
   pip install $(cat requirements.txt|grep -i ^numpy)
   ```
 
- 5.  Install all the pre-requisite modules::
+ 5.  Install all the pre-requisite modules:
 
   ```
   pip install -r requirements.txt
   ```
 
-  Note::
+  ###### Note
   
   Sometimes the GDAL installation will fail because pip gets the bindings, but not the entire 
-  GDAL library (which GDALs setup requires.)  This can be handled using the following procedure::
+  GDAL library (which GDALs setup requires.)  This can be handled using the following procedure:
 
   ```    
   pip install --no-install $(grep GDAL requirements.txt)
@@ -122,9 +122,9 @@ as some knowledge surrounding configuring a web server (such as Apache.)
   sudo ldconfig
   ```
     
-   Note::
+   ###### Note
    
-   The PySqlite Library requires some special handling::
+   The PySqlite Library requires some special handling:
 
   ```
   pip uninstall pysqlite # Answer yes when prompted
@@ -138,8 +138,9 @@ as some knowledge surrounding configuring a web server (such as Apache.)
  6.  Copy NMTK_apps/NMTK_apps/local_settings.sample to NMTK_apps/NMTK_apps/local_settings.py,
      edit the file (NMTK_apps/NMTK_apps/local_settings.py) per the directions contained
      therein. 
-     
-## Note
+
+***     
+### Note
 
 > The steps below allow you to manually complete the remainder of the installation.
 > However, a script exists (install.sh) that will perform these tasks for you.
@@ -153,7 +154,7 @@ as some knowledge surrounding configuring a web server (such as Apache.)
 
  1.  Install the celery components, a configuration file and init script exists for 
      this in the "celery" directory (celery and apache, respectively), 
-     you will need to make several changes::
+     you will need to make several changes:
      
        * Modify celeryd-nmtk.default to contain the path to the NMTK installation.
          this file may then be copied to /etc/default/celeryd-nmtk
@@ -164,7 +165,7 @@ as some knowledge surrounding configuring a web server (such as Apache.)
  
  2.  By default, files for the NMTK server will go in the nmtk_files subdirectory,
      create this directory if it does not exist, and ensure that you have write 
-     access to it::
+     access to it:
  
   ```
   mkdir nmtk_files
@@ -172,7 +173,7 @@ as some knowledge surrounding configuring a web server (such as Apache.)
   chmod g+rwxs nmtk_files
   ```
  
- 3. Create the initial spatialite database::
+ 3. Create the initial spatialite database:
      
   ```
   pushd nmtk_files
@@ -181,7 +182,7 @@ as some knowledge surrounding configuring a web server (such as Apache.)
   chown www-data nmtk.sqlite
   ``` 
       
- 4.  Change to the NMTK_apps subdirectory and initialize the database, and generate static media::
+ 4.  Change to the NMTK_apps subdirectory and initialize the database, and generate static media:
 
   ```
   pushd NMTK_apps
@@ -192,13 +193,13 @@ as some knowledge surrounding configuring a web server (such as Apache.)
   ```
 
  10.  Change the nmtk_files subdirectory so that it, and all it's subdirectories,
- are writeable by the www-data user (or whatever user the web server runs as.)::
+ are writeable by the www-data user (or whatever user the web server runs as.):
 
   ``` 
   chown -R nmtk_files www-data.www-data
   ```
 
- 11.  Change the database and log locations so that the apache user will be able to access/write to them::
+ 11.  Change the database and log locations so that the apache user will be able to access/write to them:
 
   ```
   sudo chown -R www-data logs
@@ -219,7 +220,7 @@ as some knowledge surrounding configuring a web server (such as Apache.)
  15.  Restart your apache server
  
  16.  Run the discover_tools command to discover new tools, and remove no-longer
-      valid/published tools::
+      valid/published tools:
 
   ```    
   python manage.py discover_tools   
@@ -229,15 +230,15 @@ The remainder of configuration (such as removing the default tool server and/or
 adding a new tool server) can now be done via the Administrative pages of the 
 application - via the web.
 
-To add a new tool::
+To add a new tool:
  
-Here we will assume the NMTK server "base" URL is is http://nmtk.otg-nc.com)::
+Here we will assume the NMTK server "base" URL is is http://nmtk.otg-nc.com):
 
 1.  Ensure your tool server is working (accepting requests via the web) 
     otherwise adding it will be a futile task, since the server will immediately 
     try to query the tool server for a list of tools it provides.
     
-2.  Open your browser and point to the administrative page of the server::
+2.  Open your browser and point to the administrative page of the server:
 
   http://nmtk.otg-nc.com/server/admin
 
@@ -270,7 +271,7 @@ list of the available tools as a JSON string.
     maintainer of the tool server.  You should also provide the tool admin
     the URL for the NMTK server.
     
-Using the NMTK provided tool server::
+Using the NMTK provided tool server:
 
 If you are using the NMTK provided tool server, you'll need to get a set of
 credentials (auth token and a tool server ID) from the NMTK server administrator.
@@ -290,7 +291,7 @@ Restart apache to ensure these settings are reloaded and the tool will properly
 accept and respond to authenticated requests from the tool server.
 
 Note: If you wish to re-discover tools that an NMTK server provides, you have 
-two options::
+two options:
   * python manage.py discover_tools
       - This command will re-discover the provided tools for each tool server
         that is configured.
