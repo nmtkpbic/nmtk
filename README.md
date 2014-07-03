@@ -28,8 +28,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
 OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-NMTK
-====
+### NMTK
 
 Non Motorized Transportation Tooklit
 
@@ -37,9 +36,7 @@ The Non Motorized Transportation Toolkit is a tool that facilitates the
 development and execution of non-motorized transportation models.
 
 
-==============
-Pre-Requisites
-==============
+### Pre-Requisites
 
 There are some pre-requisites that should be installed, the assumption in this case is that you are using debian, but 
 these pre-reqs (and their install packages) translate easily (try google) to numerous other OSs::
@@ -66,8 +63,8 @@ These directions also assume that you have placed the GDAL components in /usr/lo
 to modify NMTK_apps/manage.py and NMTK_apps/NMTK_apps/wsgi.py with the appropriate locations, otherwise GDAL
 specific operations will fail (due to the library not being found.)
 
-Mapserver Installation
-======================
+###Mapserver Installation
+
 Please be sure to build the MapServer executable and install it on your server.  Your
 settings.py will require that you provide the fully-qualified path to this program,
 otherwise WMS services (view Geo-results) will not work.
@@ -78,8 +75,7 @@ In this installation, mapserver was compiled with the following configure argume
                 --with-png --with-jpeg --with-gif --with-zlib --with-gd 
                 --with-curl --with-geos --with-gdal --enable-python-mapscript
 
-Installation Instructions
-=========================
+###Installation Instructions
 
 The installation of this tool is predicated on an understanding of basic systems administration skills, as well
 as some knowledge surrounding configuring a web server (such as Apache.)
@@ -129,7 +125,7 @@ as some knowledge surrounding configuring a web server (such as Apache.)
      edit the file (NMTK_apps/NMTK_apps/local_settings.py) per the directions contained
      therein. 
      
-==================================== NOTE ====================================
+## Note
 The steps below allow you to manually complete the remainder of the installation.
 However, a script exists (install.sh) that will perform these tasks for you.
 
@@ -137,7 +133,7 @@ On development sites the install.sh script is typically used to "reset" the serv
 running it on a non-development server (where you have real data) will cause
 the catastrophic loss of data.  You should be cautious as to when/where you run
 install.sh
-==============================================================================
+
 
  1.  Install the celery components, a configuration file and init script exists for 
      this in the "celery" directory (celery and apache, respectively), 
