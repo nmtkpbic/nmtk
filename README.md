@@ -85,27 +85,27 @@ as some knowledge surrounding configuring a web server (such as Apache.)
  1.  Checkout the existing code and change into the root directory of the repository.
  2.  Initialize a virtual environment, using a command such as::
 
-```
-    virtualenv venv
-```
+  ```
+  virtualenv venv
+  ```
 
  3.  Activate the virtual environment using the command::
 
-```
-    source venv/bin/activate
-```
+  ```
+  source venv/bin/activate
+  ```
 
  4.  Install numpy by hand using requirements.txt (pip gets it wrong for some reason otherwise...)::
 
-```
-   pip install $(cat requirements.txt|grep -i ^numpy)
-```
+  ```
+  pip install $(cat requirements.txt|grep -i ^numpy)
+  ```
 
  5.  Install all the pre-requisite modules::
 
-```
-   pip install -r requirements.txt
-```
+  ```
+  pip install -r requirements.txt
+  ```
 
   Note::
   
