@@ -61,11 +61,15 @@ fi
 export FIRSTNAME LASTNAME PASSWORD EMAIL USERNAME NMTK_NAME
 if [ ! -f .nmtk_config ]; then
    cat <<-EOT > .nmtk_config
-     USERNAME=$USERNAME
-     EMAIL=$EMAIL
-     FIRSTNAME=$FIRSTNAME
-     LASTNAME=$LASTNAME
-     NMTK_NAME=${NMTK_NAME}
+	# These settings were built from the first run of the install.sh script
+	# to change them, remove this file and re-run the install script.
+	# it is advisable not to change the NMTK_NAME, as doing so might
+	# result in duplicate config/startup scripts.
+	USERNAME=$USERNAME
+	EMAIL=$EMAIL
+	FIRSTNAME=$FIRSTNAME
+	LASTNAME=$LASTNAME
+	NMTK_NAME=${NMTK_NAME}
 EOT
 fi
 
