@@ -30,15 +30,15 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ### NMTK
 
-Non Motorized Transportation Tooklit
+Non Motorized Travel Analysis Toolkit
 
-The Non Motorized Transportation Toolkit is a tool that facilitates the 
+The Non Motorized Travel Analysis Toolkit is a tool that facilitates the 
 development and execution of non-motorized transportation models.
 
 
 ### Pre-Requisites
 
-There are some pre-requisites that should be installed, the assumption in this case is that you are using debian, but 
+There are some pre-requisites that should be installed. The assumption in this case is that you are using debian, but 
 these pre-reqs (and their install packages) translate easily (try google) to numerous other OSs:
 
  * apache2
@@ -110,7 +110,7 @@ as some knowledge surrounding configuring a web server (such as Apache.)
   ###### Note
   
   Sometimes the GDAL installation will fail because pip gets the bindings, but not the entire 
-  GDAL library (which GDALs setup requires.)  This can be handled using the following procedure:
+  GDAL library (which GDAL's setup requires.)  This can be handled using the following procedure:
 
   ```    
   pip install --no-install $(grep GDAL requirements.txt)
@@ -295,8 +295,8 @@ two options:
   * python manage.py discover_tools
       - This command will re-discover the provided tools for each tool server
         that is configured.
-  * Return to the admin page, edit the tool server you wish to refresh, and hit
-    "save" (no need to make any changes, the act of saving will kick off a 
+  * Return to the admin page, open the tool server you wish to refresh for editing,
+    and hit "save" (no need to make any changes, the act of saving will kick off a 
     refresh for the tools provided by that tool server.)
 
 
