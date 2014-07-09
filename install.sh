@@ -57,6 +57,13 @@ fi
 if [ ${#NMTK_NAME} == 0 ]; then
   NMTK_NAME=$(hostname -s)
 fi
+if [ ${#URL} == 0 ]; then
+  echo -n "Enter URL for this tool server (Enter for http://$(hostname --fqdn)/): "
+  read URL
+  if [ ${#URL} == 0 ]; then
+    URL="http://$(hostname --fqdn)/"
+  fi
+fi
 if [ ${#USERNAME} == 0 ]; then
   echo -n "Username: " 
   read USERNAME
@@ -78,7 +85,7 @@ if [ ${#LASTNAME} == 0 ]; then
   echo -n "Last Name: "
   read LASTNAME
 fi
-export FIRSTNAME LASTNAME PASSWORD EMAIL USERNAME NMTK_NAME
+export FIRSTNAME LASTNAME PASSWORD EMAIL USERNAME NMTK_NAME URL
 if [ ! -f .nmtk_config ]; then
    cat <<-EOT > .nmtk_config
 	# These settings were built from the first run of the install.sh script
@@ -90,6 +97,7 @@ if [ ! -f .nmtk_config ]; then
 	FIRSTNAME=$FIRSTNAME
 	LASTNAME=$LASTNAME
 	NMTK_NAME=${NMTK_NAME}
+	URL=${URL}
 EOT
 fi
 
@@ -133,6 +141,7 @@ python manage.py syncdb --noinput
 python manage.py collectstatic --noinput -l -c
 python manage.py createsuperuser --noinput --email=$EMAIL --username=$USERNAME
 echo "from django.contrib.auth.models import User; u = User.objects.get(username__exact='$USERNAME'); u.set_password('$PASSWORD'); u.first_name='$FIRSTNAME'; u.last_name='$LASTNAME'; u.save()"|python manage.py shell
+echo "from NMTK_server.models import ToolServer; m = ToolServer.objects.all()[0]; m.server_url='${URL}'; m.save()"|python manage.py shell
 python manage.py discover_tools
 echo "Tool discovery has been initiated, note that this may take some time to complete"
 deactivate

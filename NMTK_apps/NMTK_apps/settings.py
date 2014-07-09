@@ -31,6 +31,7 @@
 import os
 import djcelery
 import socket
+import warnings 
 
 BASE_PATH=os.path.dirname(__file__)
 
@@ -43,7 +44,8 @@ BASE_PATH=os.path.dirname(__file__)
 DEBUG = False
 TEMPLATE_DEBUG = TASTYPIE_FULL_DEBUG = DEBUG
 from local_settings import *
-
+warnings.filterwarnings('ignore',r"'NoneType' object has no attribute 'finishGEOS_r'")
+warnings.filterwarnings('ignore',r"'NoneType' object has no attribute 'destroy_geom'")
 djcelery.setup_loader()
 
 MANAGERS = ADMINS
