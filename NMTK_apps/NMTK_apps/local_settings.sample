@@ -152,8 +152,6 @@ SECRET_KEY = 'hk(f4*q-%yo9xf*x@_4#cv=xc8zp=%03=sukgl+_6sz2=zdmy='
 # the client and the server.
 NMTK_SERVERS={'d0461b9536eb483d9f23c157e809af35': {'url': 'http://{0}/server'.format(SITE_DOMAIN),
                                                    'secret': '''yq@5u058y312%ebmyi85ytpfwjm9zv)1u2wu-m1s)%cngrvf_^''' },
-              '51d315f8f1c545dbb60505722ff85132': {'url': ' http://ec2-23-20-159-89.compute-1.amazonaws.com/demo/',
-                                                   'secret': '''1o782+$&*pyed1efg@nii7_9r&72%dxgm_2rm7v0jl((h#=4p0''' },
               }
 
 
@@ -164,7 +162,8 @@ NMTK_SERVERS={'d0461b9536eb483d9f23c157e809af35': {'url': 'http://{0}/server'.fo
 #       things in locations other than those specified in the installation instructions.
 #
 # The path to the MapServer executable
-MAPSERV_PATH=os.path.abspath(os.path.join(BASE_PATH, '..', '..', 'cgi-bin','mapserv'))
+#MAPSERV_PATH=os.path.abspath(os.path.join(BASE_PATH, '..', '..', 'cgi-bin','mapserv'))
+MAPSERV_PATH='/usr/lib/cgi-bin/mapserv'
 # The path to where node.js binaries are installed.
 NODE_PATH=os.path.abspath(os.path.join(BASE_PATH, '..', '..', 'node','bin'))
 # The font used for legend text.
