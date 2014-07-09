@@ -93,8 +93,9 @@ def generateColorRampLegendGraphic(min_text, max_text,
         final_width=max(final_width, units_width)
         # Another pixel for space, then the units text
         total_text_height = total_text_height + units_height + 1
-        logger.debug('Total text height is now %s (post units)', total_text_height)
-    im2=Image.new('RGB', (final_width, height+total_text_height), "white")
+        logger.debug('Total text height is now %s (post units)', 
+                     total_text_height)
+    im2=Image.new('RGB', (final_width, height+total_text_height+6), "white")
     im2.paste(im, (int((final_width-width)/2),0))
     text_pos=height+1
     draw=ImageDraw.Draw(im2)
