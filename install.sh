@@ -41,8 +41,16 @@ if [[ "${ANSWER}" != 'Y' && "${ANSWER}" != 'y' ]]; then
   echo "Cancelling execution"
   exit 1
 fi
-pushd $(dirname $0)
+pushd $(dirname $0) &>/dev/null
 NMTK_INSTALL_PATH=$(pwd)
+for DIR in nmtk_files logs htdocs/static; do
+  if [[ ! -d $DIR ]]; then
+    mkdir -p $DIR
+  fi
+  sudo chown -R $USER.www-data $DIR
+  sudo find $DIR -type d -exec chmod -R g+rwxs {} \;
+  sudo find $DIR -exec chmod -R g+rw {} \;
+done
 if [ -f ./.nmtk_config ]; then
   source ./.nmtk_config
 fi
@@ -113,13 +121,13 @@ if [[ -f /var/run/celery/$CELERYD_NAME.pid ]]; then
    fi
 fi
 
-pushd $BASEDIR
+pushd $BASEDIR &> /dev/null
 sudo rm -rf nmtk_files/*
 source venv/bin/activate
-pushd NMTK_apps
-pushd ../nmtk_files
+pushd NMTK_apps &> /dev/null
+pushd ../nmtk_files &> /dev/null
 spatialite nmtk.sqlite  "SELECT InitSpatialMetaData();"
-popd
+popd &> /dev/null
 python manage.py syncdb --noinput
 # Use the -l argument for development, otherwise js/css changes require recopying
 python manage.py collectstatic --noinput -l -c
@@ -128,13 +136,16 @@ echo "from django.contrib.auth.models import User; u = User.objects.get(username
 python manage.py discover_tools
 echo "Tool discovery has been initiated, note that this may take some time to complete"
 deactivate
-popd
-sudo chown -R www-data nmtk_files/*
-sudo chmod g+rw nmtk_files/*
-popd
-
+popd &> /dev/null
+for DIR in nmtk_files logs; do
+  sudo chown -R www-data.$USER $DIR
+  sudo find $DIR -type d -exec chmod -R g+rwxs {} \;
+  sudo find $DIR -exec chmod -R g+rw {} \;
+done
+popd &> /dev/null
+sudo a2dissite 000-default.conf &> /dev/null
 sudo /etc/init.d/apache2 restart
 sudo /etc/init.d/celeryd-$CELERYD_NAME start
-popd
+popd &> /dev/null
 
 
