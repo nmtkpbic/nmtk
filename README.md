@@ -181,8 +181,18 @@ as some knowledge surrounding configuring a web server (such as Apache.)
   # Note: Ignore the "table spatial_ref_sys already exists error"
   chown www-data nmtk.sqlite
   ``` 
+     
+ 5.  Now ensure that the sample fixture data is correct - you need not load this,
+     and it will probably go away eventually, but it provides a "default" config
+     for the purposes of having a server communicate with the default client.  It's likely
+     that you will need to changed the server URL contained in the file to match
+     that of your NMTK tool server.
+
+  ```     
+  vi NMTK_apps/NMTK_server/fixtures/initial_data.json
+  ```
       
- 4.  Change to the NMTK_apps subdirectory and initialize the database, and generate static media:
+ 6.  Change to the NMTK_apps subdirectory and initialize the database, and generate static media:
 
   ```
   pushd NMTK_apps
@@ -192,14 +202,14 @@ as some knowledge surrounding configuring a web server (such as Apache.)
   popd
   ```
 
- 5.  Change the nmtk_files subdirectory so that it, and all it's subdirectories,
+ 7.  Change the nmtk_files subdirectory so that it, and all it's subdirectories,
  are writeable by the www-data user (or whatever user the web server runs as.):
 
   ``` 
   chown -R nmtk_files www-data.www-data
   ```
 
- 6.  Change the database and log locations so that the apache user will be able to access/write to them:
+ 8.  Change the database and log locations so that the apache user will be able to access/write to them:
 
   ```
   sudo chown -R www-data logs
@@ -207,25 +217,27 @@ as some knowledge surrounding configuring a web server (such as Apache.)
   sudo g+rw logs/*
   ```
 
- 7.  Now ensure that the sample fixture data is correct - you need not load this,
-     and it will probably go away eventually, but it provides a "default" config
-     for the purposes of having a server communicate with the default client.
-
-  ```     
-  edit NMTK_apps/NMTK_server/fixtures/initial_data.json
-  ```
-
-    - in particular, ensure the host name there is correct.
      
- 8.  Restart your apache server
+ 9.  Run the "python manage.py syncdb" command.  This will populate the initial
+     database and get things so they are ready to run.  
  
- 9.  Run the discover_tools command to discover new tools, and remove no-longer
+ 10.  Restart your apache server
+ 
+ 11.  Run the discover_tools command to discover new tools, and remove no-longer
       valid/published tools:
 
   ```    
   python manage.py discover_tools   
   ```
      
+ 12.  It is likely you will want to have a superuser you can use to administer 
+      the server, this can be done using the following command, then following
+      the prompts:
+      
+  ```
+  python manage.py createsuperuser
+  ```    
+ 
 The remainder of configuration (such as removing the default tool server and/or
 adding a new tool server) can now be done via the Administrative pages of the 
 application - via the web.
