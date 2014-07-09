@@ -89,7 +89,10 @@ as some knowledge surrounding configuring a web server (such as Apache.)
   ```
   sudo mkdir -p /var/www/vhosts/$(hostname --fqdn)
   sudo chown $USER /var/www/vhosts/$(hostname --fqdn)
+  # If you have an ssh key installed for GIT, use this command
   git clone git@github.com:chander/nmtk.git /var/www/vhosts/$(hostname --fqdn)
+  # To download the repo using your userid/password, use this command
+  git clone https://github.com/chander/nmtk.git /var/www/vhosts/$(hostname --fqdn)
   ```
   
  2.  Initialize a virtual environment, using a command such as:
@@ -135,8 +138,8 @@ as some knowledge surrounding configuring a web server (such as Apache.)
   sudo ldconfig
   ```
      
- 6.  Copy NMTK_apps/NMTK_apps/local_settings.sample to NMTK_apps/NMTK_apps/local_settings.py,
-     edit the file (NMTK_apps/NMTK_apps/local_settings.py) per the directions contained
+ 6.  Copy `NMTK_apps/NMTK_apps/local_settings.sample` to `NMTK_apps/NMTK_apps/local_settings.py`,
+     edit the file (`NMTK_apps/NMTK_apps/local_settings.py`) per the directions contained
      therein. 
 
 ***     
