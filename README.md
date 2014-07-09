@@ -36,6 +36,11 @@ The Non Motorized Travel Analysis Toolkit is a tool that facilitates the
 development and execution of non-motorized transportation models.
 
 
+## Installation Instructions
+
+The installation instructions below are tested and work on Ubuntu 14.02 LTS .  Other distributions may require
+different packages or steps to satisfy NMTK pre-requisites; and may require different steps to perform installation steps (such as installing celery daemons, Apache configuration files, etc.)
+
 ### Pre-Requisites
 
 There are some pre-requisites that should be installed. The assumption in this case is that you are using debian, but 
@@ -47,10 +52,14 @@ these pre-reqs (and their install packages) translate easily (try google) to num
  * python-virtualenv
  * libapache2-mod-wsgi
  * libxslt-dev libxml2-dev
- * libspatialite3 libspatialite-dev spatialite-bin
+ * libspatialite5 libspatialite-dev spatialite-bin
  * libgd2-xpm-dev
  * libproj-dev
  * libfreetype6-dev
+ * cgi-mapserver
+ * libgdal-dev gdal-bin
+ * gfortran libopenblas-dev liblapack-dev
+
 
 You must also download, compile, and install (from source) GDAL version 1.10 or greater.  GDAL v1.10 added
 support for CRS values in GeoJSON files - which are a requirement for NMTK.  Also, please note
@@ -60,32 +69,33 @@ These directions assume that you install GDAL source in /usr/local/src/gdal-1.10
 the directions below if you installed the source elsewhere.)
 
 These directions also assume that you have placed the GDAL components in /usr/local/lib , if not, you will need
-to modify NMTK_apps/manage.py and NMTK_apps/NMTK_apps/wsgi.py with the appropriate locations, otherwise GDAL
+to modify `NMTK_apps/manage.py` and `NMTK_apps/NMTK_apps/wsgi.py` with the appropriate locations, otherwise GDAL
 specific operations will fail (due to the library not being found.)
 
-###Mapserver Installation
+#### Optional Installs
 
-Please be sure to build the MapServer executable and install it on your server.  Your
-settings.py will require that you provide the fully-qualified path to this program,
-otherwise WMS services (view Geo-results) will not work.
+Currently NMTK does not use these components, but it's likely that some tools and/or the server will in the future.  Strictly speaking they are not a current pre-requisite, but it may be useful to install these:
 
-In this installation, mapserver was compiled with the following configure arguments:
-
-```
-   ./configure  --with-postgis --with-ogr --with-proj --with-wms --with-wfs 
-                --with-png --with-jpeg --with-gif --with-zlib --with-gd 
-                --with-curl --with-geos --with-gdal --enable-python-mapscript
-```
+  * R (follow instructions here: http://cran.r-project.org/bin/linux/ubuntu/README)
 
 ###Installation Instructions
 
 The installation of this tool is predicated on an understanding of basic systems administration skills, as well
 as some knowledge surrounding configuring a web server (such as Apache.)
 
- 1.  Checkout the existing code and change into the root directory of the repository.
+ 1.  Checkout the existing code and change into the root directory of the repository.  It is recommended that 
+     you use the commands below to accomplish this task:
+
+  ```
+  sudo mkdir -p /var/www/vhosts/$(hostname --fqdn)
+  sudo chown $USER /var/www/vhosts/$(hostname --fqdn)
+  git clone git@github.com:chander/nmtk.git /var/www/vhosts/$(hostname --fqdn)
+  ```
+  
  2.  Initialize a virtual environment, using a command such as:
 
   ```
+  pushd /var/www/vhosts/$(hostname --fqdn)
   virtualenv venv
   ```
 
@@ -95,16 +105,19 @@ as some knowledge surrounding configuring a web server (such as Apache.)
   source venv/bin/activate
   ```
 
- 4.  Install numpy by hand using requirements.txt (pip gets it wrong for some reason otherwise...):
+ 4.  Install numpy and pysqlite by hand using requirements.txt (pip gets it wrong for some reason otherwise...):
 
   ```
   pip install $(cat requirements.txt|grep -i ^numpy)
+  pip install --no-install $(grep pysqlite requirements.txt)
+  sed -i "s/define=SQLITE_OMIT_LOAD_EXTENSION/#define=SQLITE_OMIT_LOAD_EXTENSION/g" venv/build/pysqlite/setup.cfg
+  pip install --no-download pysqlite 
   ```
 
  5.  Install all the pre-requisite modules:
 
   ```
-  pip install -r requirements.txt
+  CPLUS_INCLUDE_PATH=/usr/include/gdal C_INCLUDE_PATH=/usr/include/gdal pip install -r requirements.txt
   ```
 
   ###### Note
@@ -115,24 +128,11 @@ as some knowledge surrounding configuring a web server (such as Apache.)
   ```    
   pip install --no-install $(grep GDAL requirements.txt)
   pushd venv/build/GDAL
-  python setup.py build_ext --include-dirs=/usr/local/include --library-dirs=/usr/local/lib
+  python setup.py build_ext --include-dirs=/usr/include/gdal --library-dirs=/usr/lib/gdal
   pip install --no-download GDAL
   popd
   sudo sh -c 'echo "/usr/local/lib" >> /etc/ld.so.conf' # Add the path to gdal libs to system
   sudo ldconfig
-  ```
-    
-   ###### Note
-   
-   The PySqlite Library requires some special handling:
-
-  ```
-  pip uninstall pysqlite # Answer yes when prompted
-  pip install --no-install $(grep pysqlite requirements.txt)
-  pushd venv/build/pysqlite/
-  vi setup.cfg # Comment out the line that contains define=SQLITE_OMIT_LOAD_EXTENSION
-               # By putting a # at the start of the line
-  pip install --no-download pysqlite     
   ```
      
  6.  Copy NMTK_apps/NMTK_apps/local_settings.sample to NMTK_apps/NMTK_apps/local_settings.py,
@@ -192,14 +192,14 @@ as some knowledge surrounding configuring a web server (such as Apache.)
   popd
   ```
 
- 10.  Change the nmtk_files subdirectory so that it, and all it's subdirectories,
+ 5.  Change the nmtk_files subdirectory so that it, and all it's subdirectories,
  are writeable by the www-data user (or whatever user the web server runs as.):
 
   ``` 
   chown -R nmtk_files www-data.www-data
   ```
 
- 11.  Change the database and log locations so that the apache user will be able to access/write to them:
+ 6.  Change the database and log locations so that the apache user will be able to access/write to them:
 
   ```
   sudo chown -R www-data logs
@@ -207,7 +207,7 @@ as some knowledge surrounding configuring a web server (such as Apache.)
   sudo g+rw logs/*
   ```
 
- 12.  Now ensure that the sample fixture data is correct - you need not load this,
+ 7.  Now ensure that the sample fixture data is correct - you need not load this,
      and it will probably go away eventually, but it provides a "default" config
      for the purposes of having a server communicate with the default client.
 
@@ -217,9 +217,9 @@ as some knowledge surrounding configuring a web server (such as Apache.)
 
     - in particular, ensure the host name there is correct.
      
- 15.  Restart your apache server
+ 8.  Restart your apache server
  
- 16.  Run the discover_tools command to discover new tools, and remove no-longer
+ 9.  Run the discover_tools command to discover new tools, and remove no-longer
       valid/published tools:
 
   ```    
@@ -254,22 +254,22 @@ Here we will assume the NMTK server "base" URL is is http://nmtk.example.com):
 6.  To add a new tool server, click on "Add Tool Server" (upper right of the page.)
 
 7.  Give your tool server a sensible name, and provide it with a URL (the url
-for the tool server.)  Note that the URL with "/index" appended should return a
-list of the available tools as a JSON string.  
+    for the tool server.)  Note that the URL with "/index" appended should return a
+    list of the available tools as a JSON string.  
 
 8.  Copy the "auth token", which is the key used to sign requests between the 
-	NMTK server and tool server.  This is commonly referred to as a 
-	"shared secret" and is used to authenticate requests between the NMTK
-	server and tool server.  You will need to share it with the tool server
-	admin.
+    NMTK server and tool server.  This is commonly referred to as a 
+    "shared secret" and is used to authenticate requests between the NMTK
+    server and tool server.  You will need to share it with the tool server
+    admin.
 
 9.  Click "Save" to add the tool server (the NMTK server will immediately go 
-	out and query the tool server to get a list of tools!)
+    out and query the tool server to get a list of tools!)
 
 10.  Copy the tool server ID that appears on the "Tool Servers" admin page
-    and provide it, along with the shared secret you got in step 7 to the
-    maintainer of the tool server.  You should also provide the tool admin
-    the URL for the NMTK server.
+     and provide it, along with the shared secret you got in step 7 to the
+     maintainer of the tool server.  You should also provide the tool admin
+     the URL for the NMTK server.
     
 Using the NMTK provided tool server:
 
