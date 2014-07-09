@@ -118,6 +118,7 @@ EMAIL_HOST_USER=None
 # and working properly.
 #
 #EMAIL_BACKEND='NMTK_apps.email_backend.EmailBackend'
+EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend'
 
 
 # Indicates that once an account is created, an admin needs to approve it/enable it
