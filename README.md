@@ -200,6 +200,31 @@ as some knowledge surrounding configuring a web server (such as Apache.)
      edit the file (`NMTK_apps/NMTK_apps/local_settings.py`) per the directions contained
      therein. 
 
+## Validating Your Installation
+
+Once NMTK is installed, it makes sense to do some basic validation to ensure 
+things are working properly.  Generally, this is done using a core set of
+unit tests that exist in the tests/ subdirectory.  Follow the steps below to run 
+the tests, they should all pass.  
+
+The unit tests verify that tool discovery works properly, basic security
+is working properly, user account login/logout/creation/passwords work 
+properly, file imports work properly, and that jobs can be submitted to 
+one of the built-in (umn) tools properly.
+
+'''
+  source venv/bin/activate
+  pushd tests
+  nosetests -v
+  popd
+'''
+
+Generally, tests will take a few minutes to run, be patient.  If any of the tests
+fail it could indicate that your server is mis-configured, or otherwise not working
+properly.  A large file import test exists, but is skipped by default, due to 
+the fact that in some systems it will require more than the allocated amount of
+memory in order to successfully complete.
+
 ***     
 ### Note
 

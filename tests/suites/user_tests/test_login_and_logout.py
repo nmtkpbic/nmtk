@@ -34,6 +34,8 @@
 #sys.path.insert(0, call(['git', 'rev-parse', '--show-toplevel']))
 from tests.utils.NMTKTestCase import NMTKTestCase
 from tests.utils.client import NMTKClient
+import logging
+logger=logging.getLogger(__name__)
 
 class TestLoginAndLogout(NMTKTestCase):
 
@@ -56,15 +58,18 @@ class TestLoginAndLogout(NMTKTestCase):
         that the correct redirect URL is provided for login after a user has
         logged out.
         '''
+        
         client=NMTKClient(self.site_url)
+        test_url='%s%s' % (client.getURL('api'),
+                           'job/')
         result=client.login(self.username, self.password)
         self.assertEqual(result.status_code, 302)
+        result=client.get(test_url, params={'format': 'json'})
+        self.assertEqual(result.status_code, 200)
         result=client.logout()
         self.assertEqual(result.status_code, 302)
-        result=client.get(client.getURL(path='/server/ui/'),
-                          allow_redirects=False)
         login_url=client.getURL('login')[:-1]
-        if not result.headers['location'].startswith(login_url):
-            self.fail('Got login redirect to here: %s' % result.headers['location'])
-        self.assertEqual(result.status_code, 302)
+        
+        result=client.get(test_url, params={'format': 'json'})
+        self.assertEqual(result.status_code, 401)
         

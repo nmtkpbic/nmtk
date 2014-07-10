@@ -45,7 +45,7 @@ class TestToolList(NMTKTestCase):
         
     def test_list_tools(self):
         '''
-        Verify that a logged-in user can retrieve a list of tools.
+        Verify that any user (even without login) can retrieve a list of tools.
         '''
         username, password=self.getUsernamePassword()
         user_uri=self._create_user(username,password)
@@ -54,8 +54,8 @@ class TestToolList(NMTKTestCase):
         logger.debug('Attempting to get tool list (%s) as not-logged-in user',
                      tool_url)
         response=client.get(tool_url, params={'format': 'json'})
-        self.assertEqual(401, response.status_code,
-                         'expected 401, not %s' % (response.status_code,))
+        self.assertEqual(200, response.status_code,
+                         'expected 200, not %s' % (response.status_code,))
         response=client.login(username=username,
                               password=password)
         response=client.get(tool_url, params={'format': 'json'})

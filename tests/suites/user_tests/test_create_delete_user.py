@@ -41,7 +41,8 @@ class TestAPIUserManagement(NMTKTestCase):
         '''
         Verify that the API can be used to retrieve a list of users
         '''
-        payload={'format': 'json' }
+        payload={'format': 'json',
+                 'all': True }
         result=self.client.get(self.api_user_url, params=payload)
         response=result.json()
         # Verify that at least 1 record was returned
@@ -58,7 +59,9 @@ class TestAPIUserManagement(NMTKTestCase):
         effectively neutered via the UI.  The same is true for a logged in user
         whose account is deleted while the user is logged in.
         '''
-        payload={'format': 'json' }
+        payload={'format': 'json',
+                 'limit': 999,
+                 'all': True }
         response=self.client.get(self.api_user_url, params=payload)
         user_count=response.json()['meta']['total_count']
         # Create the user
@@ -68,16 +71,19 @@ class TestAPIUserManagement(NMTKTestCase):
                          'Expected status code of 201, not %s' % 
                          (response.status_code))
         user_uri=response.headers['location']
-        
+        response=self.client.get(user_uri, params=payload)
+        self.assertEqual(response.status_code, 200, 'Expected to get user data, not %s (%s)'%
+                         (response.status_code, response.text))
+        logger.debug('Response was %s', response.json())
         # Get a list of users, verifying that user is there
         response=self.client.get(self.api_user_url, params=payload)
+        
         json_data=response.json()
         # Verify we have one more user than before
         self.assertEqual(user_count+1, json_data['meta']['total_count'],
                          'Final count of users is %s, expected %s' % 
                          (json_data['meta']['total_count'],
                           user_count+1))
-        
         # Verify that the user we created exists
         usernames=[rec['username'] for rec in json_data['objects']]
         self.assertTrue(username in usernames, 
@@ -209,7 +215,8 @@ class TestAPIUserManagement(NMTKTestCase):
         
         # User tries to change another users password
         client2_data['password']=password
-        response=client.put(user2_url, data=json.dumps(client2_data))
+        response=client.put(user2_url, data=json.dumps(client2_data),
+                            headers={'Content-Type': 'application/json',})
         self.assertEqual(401, response.status_code,
                          'Expected to get a 401 (Unauthorized) when a ' +
                          'non-superuser tries to change another users password')
@@ -221,7 +228,12 @@ class TestAPIUserManagement(NMTKTestCase):
                          'attempt with original password')
         
         # Superuser tries to change user password.
-        response=self.client.put(user2_url, data=json.dumps(client2_data))
+        logger.debug(self.client.get(self.api_user_url, params={'format': 'json'}).json())
+        logger.debug('Client data is %s', client2_data)
+        response=self.client.put(user2_url, 
+                                 data=json.dumps(client2_data),
+                                 headers={'Content-Type': 'application/json',})
+        logger.debug('Response from put was %s: %s', response.status_code, response.text)
         self.assertTrue(response.status_code in (202,204),
                          'Expected to get a 204 when a ' +
                          'superuser tries to change another users password')

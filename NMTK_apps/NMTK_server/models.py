@@ -218,7 +218,7 @@ class Job(models.Model):
     # This will contain the config data to be sent along with the job, in 
     # a JSON format of a multi-post operation.
     config=JSONField(null=True)
-    description=models.CharField(max_length=2048, null=True, blank=True,
+    description=models.CharField(max_length=2048, null=False, blank=False,
                                  help_text='A free-form description of this job')
     # The user that created the job (used to restrict who can view the job.)
     user=models.ForeignKey(settings.AUTH_USER_MODEL, null=False)

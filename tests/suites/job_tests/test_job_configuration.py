@@ -328,11 +328,11 @@ users cannot download results.
         # Get a list of all the Tool Resource URIs for Minnesota models,
         # since the test1.geojson file is a MN model-specific data file.
         for tool in tools:
-            if 'minnesota' in tool['name'].lower():
+            if 'umn' in tool['name'].lower():
                 tool_uri=tool['resource_uri']
                 break
         data={'tool': client.neuter_url(tool_uri),
-              'data_file': client.neuter_url(test_file)}
+              'description': 'how now brown cow'}
         logger.debug('Verifying that user A cannot create a job with User B data')
         response=client2.post(job_url, 
                               data=json.dumps(data),
@@ -366,11 +366,11 @@ users cannot download results.
         # Get a list of all the Tool Resource URIs for Minnesota models,
         # since the test1.geojson file is a MN model-specific data file.
         for tool in tools:
-            if 'minnesota' in tool['name'].lower():
+            if 'umn' in tool['name'].lower():
                 tool_uri=tool['resource_uri']
                 break
         data={'tool': client.neuter_url(tool_uri),
-              'data_file': client.neuter_url(test_file)}
+              'description': 'how now brown cow'}
         
         response=client.post(job_url, 
                              data=json.dumps(data),

@@ -23,7 +23,7 @@ def post_activation_setup(sender, user, **kwargs):
         #if user.datafile_set.count() == 0:
           #  setupAccount(user)
         if settings.ADMIN_APPROVAL_REQUIRED:
-            logger.debug('Deactivating account since approval is required')
+#             logger.debug('Deactivating account since approval is required')
             user.is_active=False
             
             mail_managers('User {0} requires activation'.format(user.username),
@@ -40,12 +40,12 @@ def delete_user_data(sender, instance, **kwargs):
     user (depending on the backend used.)  Generally, inactivating a user is
     a better strategy than removing the user.
     '''
-    logger.debug('Got post delete for user %s (%s)', instance.username,
-                 instance.pk)
+#     logger.debug('Got post delete for user %s (%s)', instance.username,
+#                  instance.pk)
     user_file_path=os.path.join(settings.FILES_PATH, 'NMTK_server', 'files',
                                 str(instance.pk))
-    logger.debug('Removing all files for user %s (%s)', instance.pk,
-                 user_file_path)
+#     logger.debug('Removing all files for user %s (%s)', instance.pk,
+#                  user_file_path)
     shutil.rmtree(user_file_path, ignore_errors=True)
 
 

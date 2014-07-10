@@ -29,6 +29,7 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from tests.utils.NMTKTestCase import NMTKTestCase
 from tests.utils.client import NMTKClient
+from unittest import skip
 import logging
 import simplejson as json
 import subprocess
@@ -38,7 +39,7 @@ import time
 logger=logging.getLogger(__name__)
 
 class TestFileUpload(NMTKTestCase):
-    
+    timeout=120
     def setUp(self):
         super(TestFileUpload, self).setUp()
         
@@ -56,7 +57,7 @@ class TestFileUpload(NMTKTestCase):
         response=client.post(self.api_file_url, data=payload, 
                              files=files)
         return response
-    
+    @skip
     def test_basic_large_zipped_shapefile_upload(self):
         '''
         Test the upload and processing of a large zipped shapefile
@@ -75,16 +76,17 @@ class TestFileUpload(NMTKTestCase):
         logger.debug('Response was %s', response.status_code)
         logger.debug('Location of data file is %s', data_file_url)
         
-        end=time.time() + 60*2 # 2 minutes for processing
+        end=time.time() + self.timeout # 2 minutes for processing
         while time.time() < end :
             response=client.get(data_file_url,
                                 params={'format': 'json'})
+            logger.debug('Response is %s', response.json())
             if response.json()['status'] == 'Import Complete':
                 break
             time.sleep(1)
         self.assertEqual(response.json()['status'],
                          'Import Complete',
-                         'Expected import to successfully complete within 120 seconds')
+                         'Expected import to successfully complete within %s seconds' % (self.timeout,))
 
     def test_basic_different_srid_shapefile_upload(self):
         '''
@@ -96,7 +98,7 @@ class TestFileUpload(NMTKTestCase):
         client=NMTKClient(self.site_url)
         client.login(username=username,
                      password=password)
-        files=[('file', ('test1.json', json_file, 'application/json')),]
+        files=[('file', ('shapefile_odd_srid.zip', json_file, 'application/zip')),]
         response=client.post(self.api_file_url, files=files)
         logger.debug('Response from POST was %s', response)
         self.assertEqual(response.status_code, 201)
@@ -104,16 +106,18 @@ class TestFileUpload(NMTKTestCase):
         logger.debug('Response was %s', response.status_code)
         logger.debug('Location of data file is %s', data_file_url)
         
-        end=time.time() + 60*2 # 2 minutes for processing
+        end=time.time() + self.timeout # 5 minutes for processing
         while time.time() < end :
             response=client.get(data_file_url,
                                 params={'format': 'json'})
+            logger.debug('Response is %s', response.json())
+
             if response.json()['status'] == 'Import Complete':
                 break
             time.sleep(1)
         self.assertEqual(response.json()['status'],
                          'Import Complete',
-                         'Expected import to successfully complete within 120 seconds')
+                         'Expected import to successfully complete within %s seconds' % (self.timeout,))
 
     def test_post_upload_delete_of_datafile(self):
         '''
@@ -133,16 +137,17 @@ class TestFileUpload(NMTKTestCase):
         logger.debug('Response was %s', response.status_code)
         logger.debug('Location of data file is %s', data_file_url)
         
-        end=time.time() + 60*2 # 2 minutes for processing
+        end=time.time() + self.timeout # 2 minutes for processing
         while time.time() < end :
             response=client.get(data_file_url,
                                 params={'format': 'json'})
+            logger.debug('Response is %s', response.json())
             if response.json()['status'] == 'Import Complete':
                 break
             time.sleep(1)
         self.assertEqual(response.json()['status'],
                          'Import Complete',
-                         'Expected import to successfully complete within 120 seconds')    
+                         'Expected import to successfully complete within %s seconds' % (self.timeout,))    
         response=client.delete(data_file_url)
         logger.debug('Delete of file returned %s', response.status_code)
         self.assertEqual(response.status_code, 204,
@@ -174,6 +179,8 @@ class TestFileUpload(NMTKTestCase):
         while time.time() < end :
             response=client.get(data_file_url,
                                 params={'format': 'json'})
+            logger.debug('Response is %s', response.json())
+
             if response.json()['status'] == 'Import Complete':
                 break
             time.sleep(1)
