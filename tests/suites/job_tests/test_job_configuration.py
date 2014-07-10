@@ -113,14 +113,15 @@ users cannot download results.
         job_url=client.getURL('api','job/')
         response=client.get(tool_url, params={'format': 'json'})
         tools=response.json()['objects']
+
         # Get a list of all the Tool Resource URIs for Minnesota models,
         # since the test1.geojson file is a MN model-specific data file.
         for tool in tools:
-            if 'minnesota' in tool['name'].lower():
+            if 'umn' in tool['name'].lower():
                 tool_uri=tool['resource_uri']
                 break
         data={'tool': client.neuter_url(tool_uri),
-              'data_file': client.neuter_url(test_file)}
+              'description': 'Test job for testing by the automated test!'}
         
         response=client.post(job_url, 
                              data=json.dumps(data),
@@ -130,41 +131,107 @@ users cannot download results.
                          ('Expected job to be created - ' +
                           'got back %s instead') % (response.status_code,))
         job_uri=response.headers['location']
+        
         # Now we have a job, let's get the form, generate the response, and
         # submit it back to the user.
-        response=client.get(job_uri, params={'format': 'json'}).json()
-#        logger.debug(response['form']['fields'])
-        job_id=response['job_id']
-        form = '<form method="POST" action="%s/configure/">' % (job_uri,)
-        form +='\n'.join([field['field'] for field_name, field in 
-                        response['form']['fields'].iteritems()])
-        form += '</form>'
-#        logger.debug('Parsed form as %s', form)
-        
-        mform=ParseFile(StringIO.StringIO(form), job_uri,
-                        backwards_compat=False)
-        #logger.debug('Parsed form was %s', mform[0])
+        payload={ "config": { "coefficients": {"Arterial_coeff": { "type": "number",
+                                                                   "value": 391.8 },
+                                               "BusRoute_coeff": { "type": "number",
+                                                                   "value": 100.3 },
+                                               "CBDdist_km_coeff": { "type": "number",
+                                                                     "value": -40.3 },
+                                               "Collector_coeff": { "type": "number",
+                                                                    "value": 611.1 },
+                                               "Crime_coeff": { "type": "number",
+                                                                "value": 2.9 },
+                                               "EmployAccess_coeff": { "type": "number",
+                                                                       "value": 0 },
+                                               "LUMix_coeff": { "type": "number",
+                                                                "value": -919.9 },
+                                               "MedHHInc_coeff": { "type": "number",
+                                                                   "value": 2.1 },
+                                               "OffstreetTrail_coeff": { "type": "number",
+                                                                         "value": 253.8  },
+                                               "PDperkm2_coeff": { "type": "number",
+                                                                   "value": -0.035  },
+                                               "PctU5_O65_coeff": { "type": "number",
+                                                                    "value": 32.5 },
+                                               "Pctnonwhite_coeff": { "type": "number",
+                                                                      "value": -29.8 },
+                                               "Pctw4ormore_coeff": { "type": "number",
+                                                                      "value": 371.4  },
+                                               "Precip_coeff": { "type": "number",
+                                                                 "value": -127.8 },
+                                               "Principal_coeff": { "type": "number",
+                                                                    "value": 66.4 },
+                                               "Tmax_coeff": { "type": "number",
+                                                               "value": -26 },
+                                               "WatDist_km_coeff": { "type": "number",
+                                                                     "value": -21.6 },
+                                               "Year_coeff": { "type": "number",
+                                                               "value": -5.9 },
+                                               "constant": { "type": "number",
+                                                             "value": 788.6 }
+                                               },
+                             "data": { "Arterial": { "type": "property",
+                                                     "value": "Arterial" },
+                                      "BusRoute": { "type": "property",
+                                                    "value": "BusRoute" },
+                                      "CBDdist_km": { "type": "property",
+                                                      "value": "CBDdist_km" },
+                                      "Collector": { "type": "property",
+                                                     "value": "Collector" },
+                                      "Crime": { "type": "property",
+                                                 "value": "Crime" },
+                                      "EmployAccess": { "type": "property",
+                                                        "value": "EmployAccess" },
+                                      "LUMix": { "type": "property",
+                                                 "value": "LUMix" },
+                                      "MedHHInc": { "type": "property",
+                                                    "value": "MedHHInc" },
+                                      "OffstreetTrail": { "type": "property",
+                                                          "value": "OffstreetTrail" },
+                                      "PDperkm2": { "type": "property",
+                                                    "value": "PDperkm2" },
+                                      "PctU5_O65": { "type": "property",
+                                                     "value": "PctU5_O65" },
+                                      "Pctnonwhite": { "type": "property",
+                                                       "value": "Pctnonwhite" },
+                                      "Pctw4ormore": { "type": "property",
+                                                       "value": "Pctw4ormore" },
+                                      "Principal": { "type": "property",
+                                                     "value": "Principal" },
+                                      "WatDist_km": { "type": "property",
+                                                     "value": "WatDist_km" }
+                                      },
+                             "results": { "result": { "type": "string",
+                                                      "value": "ped12ols" }
+                                         }
+                             },
+                 "file_config": {
+                                 "data": test_file
+                                 }
+                 }
+        data=client.get(job_uri,
+                        params={'format': 'json'}).json()
+        data.update(payload)
+        job_id=data['id']
 
-        post_dict=dict([(f.name, f.value) for f in mform[0].controls])
-        for k, v in post_dict.iteritems():
-            if isinstance(v, (list, tuple)) and len(v) == 1:
-                post_dict[k]=v[0]
-        #logger.debug('Form parsed is %s', post_dict)
-        response['config']=post_dict
         response=client.put(job_uri, 
                             headers={'Content-Type': 'application/json',},
-                            data=json.dumps(response))
+                            data=json.dumps(data))
         logger.debug('Response from job update was %s', response.text)
         self.assertTrue(response.status_code in (204,202),
-                         'Expected a return code of 204 with valid ' + 
+                         'Expected a return code of 204/202 with valid ' + 
                          'data provided got (%s)' % (response.status_code))
+        
         # Now check the status to wait for completion
         timeout=time.time() + 120
         status_url=client.getURL('api','job_status/')
         params={'job': job_id,
                 'format': 'json',
                 'limit': 1 }
-        steps=['Parameter validation complete.','COMPLETE']
+        steps=['Parameter & data file validation complete.','COMPLETE']
         prev_response=''
         while time.time() < timeout:
             response=client.get(status_url, params=params)
@@ -186,9 +253,25 @@ users cannot download results.
         
         response=client.get(job_uri, params={'format': 'json'})
         json_response=response.json()
-        self.assertEqual(json_response['status'], 'Complete',
+        self.assertTrue(json_response['status'] in ('Post-processing results', 'Complete'),
                          'Expected a status of Complete, not %s' % (json_response['status']))
         
+        timeout=time.time() + 120
+        while time.time() < timeout:
+            if json_response['status'] == 'Complete':
+                break
+            response=client.get(job_uri, params={'format': 'json'})
+            json_response=response.json()
+            time.sleep(.1)
+        else:
+            self.fail('Expected status to be complete after 120s timeout, not %s' % (json_response['status']))
+        results_uri=None
+        for row in json_response['results_files']:
+            if row['primary']:
+                logger.debug("Primary results were %s", row)
+                results_uri=client.getURL(path=row['datafile'])
+        if not results_uri:
+            self.fail('Expected to get back a primary result, none found in %s' % (json_response,))
         # Try to see if another user can download this job or results..
         username2, password2=self.getUsernamePassword()
         user_uri=self._create_user(username2,password2)
@@ -198,14 +281,14 @@ users cannot download results.
         response=client2.get(job_uri, params={'format': 'json'})
         self.assertEqual(response.status_code, 401,
                          ('Expected 401 forbidden when ' +
-                          'another user tried to get result (not %s)') % (response.status_code,))
-        response=client2.get('%sresults/' % (job_uri,), 
+                          'another user tried to get job info (not %s)') % (response.status_code,))
+        response=client2.get(results_uri, 
                              params={'format': 'json'})
-        self.assertEqual(response.status_code, 404,
+        self.assertEqual(response.status_code, 401,
                          ('Expected 401 forbidden when ' +
                           'another user tried to get result (not %s)') % (response.status_code,))
         
-        response=client.get('%sresults/' % (job_uri,), 
+        response=client.get(results_uri, 
                             params={'format': 'json'})
         self.assertEqual(response.status_code, 200,
                          'Status code expected was 200, not %s' % (response.status_code,))

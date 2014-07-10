@@ -60,6 +60,10 @@ TEMPLATE_DEBUG = TASTYPIE_FULL_DEBUG = DEBUG
 # received in requests against this domain, and deny requests that 
 # don't match.
 #
+# If you are accessing this site via an IP address directly (such as 1.1.1.1), then
+# this should be set to that IP address.  However, it is recommended that you
+# assign a resolvable hostname, rather than rely on using an IP address directly. 
+#
 SITE_DOMAIN=socket.getfqdn()
 # if production is set to true, then the minified version of the
 # code will be loaded instead of the regular version. This means that
