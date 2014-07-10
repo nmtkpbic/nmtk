@@ -7,7 +7,7 @@ import site
 dir=os.path.dirname(__file__)
 if dir:
     os.chdir(dir)
-venv_dir='../venv/lib/python2.6/site-packages'
+venv_dir='../venv/lib/python2.7/site-packages'
 
 prev_sys_path=sys.path[:]
 site.addsitedir(venv_dir)

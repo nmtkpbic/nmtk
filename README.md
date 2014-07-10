@@ -35,6 +35,46 @@ Non Motorized Travel Analysis Toolkit
 The Non Motorized Travel Analysis Toolkit is a tool that facilitates the 
 development and execution of non-motorized transportation models.
 
+## System Requirements
+
+While the NMTK Server/Tool Server(s) may run on systems with less than those
+specified in the recommendations below, doing so is likely to result in 
+degraded performance.
+
+  * 1 GB Physical memory (on systems running only the NMTK systems.)
+  * A Minimum of 2 GB RAM+Swap
+  
+Note: There are no specific CPU requirements, but it recommended that systems
+      running the NMTK Server contain a CPU produced after 2010 .
+
+The NMTK architecture uses an asychnronous processing model that submits "jobs"
+for execution in the background, then returns results to the user when those
+jobs are complete.  As a result, the lower the system specifications/performance
+the longer the user would have to potentially wait from a response.
+
+NMTK compatible tools will vary on computational resources required, refer to
+tool documentation for any tool-specific system requirements.
+
+## Version requirements
+
+This document is written to use specific versions of various software components,
+it is important to ensure that the versions of software that you are using meets
+these minumim requirements (generally, newer versions are acceptable, but might
+require additional testing to ensure they are compatible.)  Using an older version
+than the recommended version may not result in an immediately visible incompatibility,
+but may fail in certain use cases.
+
+- GDAL 1.10 or later
+- MapServer 6.1 or later
+- Spatialite 3 or later
+- mod_wsgi 3.3 or later
+- Python 2.7 or later
+
+Note that many of the python components installed in the Virtual Environment
+specify required version information, for that reason they are not listed here.
+
+Reference the requirements.txt file in the repository root for details about
+python sub-component requirements.
 
 ## Installation Instructions
 
@@ -60,23 +100,41 @@ these pre-reqs (and their install packages) translate easily (try google) to num
  * libgdal-dev gdal-bin
  * gfortran libopenblas-dev liblapack-dev
 
-
-You must also download, compile, and install (from source) GDAL version 1.10 or greater.  GDAL v1.10 added
+You may also need to download, compile, and install (from source) GDAL version 1.10 or greater if your
+operating system does not provide a version greater than 1.10.  GDAL v1.10 added
 support for CRS values in GeoJSON files - which are a requirement for NMTK.  Also, please note
 that when compiling, be sure to provide the --with-python argument.
 
-These directions assume that you install GDAL source in /usr/local/src/gdal-1.10.0 (you may need to change
-the directions below if you installed the source elsewhere.)
-
-These directions also assume that you have placed the GDAL components in /usr/local/lib , if not, you will need
-to modify `NMTK_apps/manage.py` and `NMTK_apps/NMTK_apps/wsgi.py` with the appropriate locations, otherwise GDAL
-specific operations will fail (due to the library not being found.)
+These directions assume that GDAL was installed from the OS repository.
 
 #### Optional Installs
 
 Currently NMTK does not use these components, but it's likely that some tools and/or the server will in the future.  Strictly speaking they are not a current pre-requisite, but it may be useful to install these:
 
   * R (follow instructions here: http://cran.r-project.org/bin/linux/ubuntu/README)
+
+### Configuring Swap Space
+
+If your system has less than 2 GB of RAM, it is recommended that you set up
+some swap space.  This can be done using the following commands:
+
+  1.  First, compute the number of "blocks" required to allocate swap space 
+      of the size you want/need.  Each block is 1MB in size, there are 1024
+      MB in 1 GB .  The number of "blocks" will be substituted into the command 
+      below in place of "$COUNT"
+
+  2.  Run the commands below to allocate the swap space.
+
+    '''
+    sudo dd if=/dev/zero of=/swapfile bs=$((1024*1024) count=$COUNT
+    sudo mkswap /swapfile
+    # Add a line to the end of /etc/fstab so the swap will be available on boot
+    sudo sed -i '$ a /swapfile       none    swap    sw      0       0 ' /etc/fstab
+    # Enable the newly allocated swap space
+    sudo swapon -a
+    '''
+    
+  3.  Use the command "swapon -s" to verify that the swap file you created is in use.
 
 ###Installation Instructions
 
