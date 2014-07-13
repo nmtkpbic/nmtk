@@ -125,14 +125,14 @@ some swap space.  This can be done using the following commands:
 
   2.  Run the commands below to allocate the swap space.
 
-    '''
+    ```
     sudo dd if=/dev/zero of=/swapfile bs=$((1024*1024) count=$COUNT
     sudo mkswap /swapfile
     # Add a line to the end of /etc/fstab so the swap will be available on boot
     sudo sed -i '$ a /swapfile       none    swap    sw      0       0 ' /etc/fstab
     # Enable the newly allocated swap space
     sudo swapon -a
-    '''
+    ```
     
   3.  Use the command "swapon -s" to verify that the swap file you created is in use.
 
