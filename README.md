@@ -212,12 +212,12 @@ is working properly, user account login/logout/creation/passwords work
 properly, file imports work properly, and that jobs can be submitted to 
 one of the built-in (umn) tools properly.
 
-'''
+```
   source venv/bin/activate
   pushd tests
   nosetests -v
   popd
-'''
+```
 
 Generally, tests will take a few minutes to run, be patient.  If any of the tests
 fail it could indicate that your server is mis-configured, or otherwise not working
