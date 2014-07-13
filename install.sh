@@ -138,6 +138,7 @@ spatialite nmtk.sqlite  "SELECT InitSpatialMetaData();"
 popd &> /dev/null
 python manage.py syncdb --noinput
 # Use the -l argument for development, otherwise js/css changes require recopying
+python manage.py minify
 python manage.py collectstatic --noinput -l -c
 python manage.py createsuperuser --noinput --email=$EMAIL --username=$USERNAME
 echo "from django.contrib.auth.models import User; u = User.objects.get(username__exact='$USERNAME'); u.set_password('$PASSWORD'); u.first_name='$FIRSTNAME'; u.last_name='$LASTNAME'; u.save()"|python manage.py shell
@@ -156,5 +157,4 @@ sudo a2dissite 000-default.conf &> /dev/null
 sudo /etc/init.d/apache2 restart
 sudo /etc/init.d/celeryd-$CELERYD_NAME start
 popd &> /dev/null
-
 

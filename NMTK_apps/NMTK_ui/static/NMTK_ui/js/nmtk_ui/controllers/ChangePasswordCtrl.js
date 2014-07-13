@@ -35,14 +35,14 @@ define([], function () {
 		function ($scope, $modalInstance) {
 			$scope.password={'password': '',
 					         'password_repeat': '',
-					         'old_password': ''};
+					         'current_password': ''};
 			$scope.close=function () {
 				$modalInstance.dismiss();
 			};
 			$scope.matchPassword=function () {
 				if ($scope.password.password && $scope.password.password_repeat) {
 					if (($scope.password.password == $scope.password.password_repeat) &&
-						 $scope.password.old_password.length && $scope.password.password.length){
+						 $scope.password.current_password.length && $scope.password.password.length){
 						return true;
 					}
 				}

@@ -240,6 +240,7 @@ class TestFileUpload(NMTKTestCase):
         while time.time() < end :
             response=client.get(data_file_url,
                                 params={'format': 'json'})
+            logger.debug('Response was %s', response.text)
             if response.json()['status'] == 'Import Complete':
                 break
             time.sleep(1)

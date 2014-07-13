@@ -185,7 +185,7 @@ class TestAPIUserManagement(NMTKTestCase):
                          'Redirect not expected after unsuccessful login (pw not changed)') 
           
         # user changes his own password, but supplys bad old password
-        client_data['old_password']='%s_1' % (password,)
+        client_data['current_password']='%s_1' % (password,)
         response=client.put(user_url, data=json.dumps(client_data))
         self.assertEqual(response.status_code, 400,
                          'Without old password password change should fail')
@@ -197,7 +197,7 @@ class TestAPIUserManagement(NMTKTestCase):
                          'Redirect not expected after unsuccessful login (pw not changed)')   
                 
         # user changes his own password, but fails to supply old password
-        client_data['old_password']=password
+        client_data['current_password']=password
         client.put(user_url, data=json.dumps(client_data))    
         
         # login with new password

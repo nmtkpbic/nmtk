@@ -479,8 +479,10 @@ class Feedback(models.Model):
 
 class UserPreference(models.Model):
     user=models.ForeignKey(settings.AUTH_USER_MODEL, null=False)
-    divs=models.CharField(null=True, blank=True, max_length=1024,
-                          help_text='A JSON list of divs that are "enabled" in the UI')
+#     divs=models.CharField(null=True, blank=True, max_length=1024,
+#                           help_text='A JSON list of divs that are "enabled" in the UI')
+    config=models.TextField(null=False, blank=False,
+                            help_text='A JSON encoded string containing user preferences')
     class Meta:
         verbose_name='User Preference'
         verbose_name_plural='User Preferences'

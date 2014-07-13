@@ -55,7 +55,7 @@ def create_user_profile(sender, instance, created, **kwargs):
     if created:
         setupAccount(instance)
         UserPreference.objects.create(user=instance,
-                                      divs=json.dumps([]))
+                                      config=json.dumps({}))
 
 def find_models_with_filefield(): 
     result = []

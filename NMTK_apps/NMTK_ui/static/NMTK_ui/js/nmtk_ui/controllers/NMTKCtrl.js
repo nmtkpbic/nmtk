@@ -87,14 +87,17 @@ define(['underscore'
 					}
 					$scope.user={};
 					$scope.toggleDiv=function(div) {
-						if (_.indexOf($scope.preferences.divs, div) > -1) {
-							$scope.preferences.divs=_.without($scope.preferences.divs, div);
+						if (_.isUndefined($scope.preferences.config.divs)) {
+							$scope.preferences.config.divs=[];
+						}
+						if (_.indexOf($scope.preferences.config.divs, div) > -1) {
+							$scope.preferences.config.divs=_.without($scope.preferences.config.divs, div);
 						} else {
-							$scope.preferences.divs.push(div);
+							$scope.preferences.config.divs.push(div);
 						}
 						if ($scope.logged_in) {
 							var copy=Restangular.copy($scope.preferences);
-							copy.divs=JSON.stringify($scope.preferences.divs);
+							copy.config=JSON.stringify($scope.preferences.config);
 							copy.put();
 						}
 					}
@@ -102,10 +105,14 @@ define(['underscore'
 					// Check to see if a div is enabled and return a true/false response.
 					$scope.isDivEnabled=function(div) {
 						// Preferences loaded yet?
-						if (typeof $scope.preferences === 'undefined') {
+						if (_.isUndefined($scope.preferences)) {
 							return true;
+						} else if (_.isUndefined($scope.preferences.config)) {
+							$scope.preferences.config= {'divs': [] };
+						} else if (_.isUndefined($scope.preferences.config.divs)) {
+							$scope.preferences.config.divs=[];
 						}
-						return _.indexOf($scope.preferences.divs, div) == -1;
+						return _.indexOf($scope.preferences.config.divs, div) == -1;
 					}
 					/*
 					 * A simple function that returns an empty list as it's
@@ -151,7 +158,7 @@ define(['underscore'
 									 * be collapsed in the UI.
 									 */
 									$scope.preferences=data[0];
-									$scope.preferences.divs=JSON.parse($scope.preferences.divs);
+									$scope.preferences.config=JSON.parse($scope.preferences.config);
 								}
 								deferred.resolve();
 							});
@@ -181,7 +188,7 @@ define(['underscore'
 									$scope.logged_in=false;
 									$scope.user={};
 									$scope.refreshAllData();
-									$scope.preferences={'divs': [] };
+									$scope.preferences={};
 								}
 								first_login_complete.resolve([]);
 								deferred.resolve();
@@ -327,7 +334,7 @@ define(['underscore'
 							$scope.rest['user'].then(function (data) {
 								var user_info=data[0];
 								user_info['password']=password.password;
-								user_info['old_password']=password.old_password;
+								user_info['current_password']=password.current_password;
 								user_info.put().then(function () {
 									$scope.message='Password changed successfully.';
 									$scope.result='Complete';

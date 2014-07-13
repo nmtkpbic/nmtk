@@ -46,9 +46,9 @@ class UserResourceValidation(Validation):
                 errors['username']='Sorry, that username is not available'
         if bundle.request.method in ('PUT','PATCH'):
             if (bundle.data.has_key('password') and not bundle.request.user.is_superuser):
-                if not bundle.data.has_key('old_password'):
-                    errors['__all__']='old_password must be supplied when changing password'
-                elif not bundle.request.user.check_password(bundle.data['old_password']):
+                if not bundle.data.has_key('current_password'):
+                    errors['__all__']='current_password must be supplied when changing password'
+                elif not bundle.request.user.check_password(bundle.data['current_password']):
                     errors['__all__']='Old password supplied is invalid'                
         return errors
 
