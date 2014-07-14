@@ -37,32 +37,32 @@ development and execution of non-motorized transportation models.
 
 ## System Requirements
 
-While the NMTK Server/Tool Server(s) may run on systems with less than those
-specified in the recommendations below, doing so is likely to result in 
+While the NMTK Server/Tool Server(s) may run on systems with less resources than
+those specified in the recommendations below, doing so is likely to result in
 degraded performance.
 
   * 1 GB Physical memory (on systems running only the NMTK systems.)
   * A Minimum of 2 GB RAM+Swap
   
-Note: There are no specific CPU requirements, but it recommended that systems
-      running the NMTK Server contain a CPU produced after 2010 .
+Note: There are no specific CPU requirements, but it is recommended that systems
+      running the NMTK Server contain a CPU produced after 2010.
 
 The NMTK architecture uses an asychnronous processing model that submits "jobs"
 for execution in the background, then returns results to the user when those
 jobs are complete.  As a result, the lower the system specifications/performance
-the longer the user would have to potentially wait from a response.
+the longer the user would have to potentially wait for a response.
 
-NMTK compatible tools will vary on computational resources required, refer to
-tool documentation for any tool-specific system requirements.
+NMTK compatible tools will vary with respect to computational resources required;
+refer to tool documentation for any tool-specific system requirements.
 
 ## Version requirements
 
-This document is written to use specific versions of various software components,
-it is important to ensure that the versions of software that you are using meets
-these minumim requirements (generally, newer versions are acceptable, but might
-require additional testing to ensure they are compatible.)  Using an older version
-than the recommended version may not result in an immediately visible incompatibility,
-but may fail in certain use cases.
+The current NMTK relies on specific versions of various software components, so it is
+important to ensure that the versions of software that you are using meet these
+minimum requirements (generally, newer versions are acceptable, but might require
+additional testing to ensure they are compatible.)  Using an older (and in some
+cases, a newer) version than what is recommended may not result in an immediately
+visible incompatibility, but may fail in certain use cases.
 
 - GDAL 1.10 or later
 - MapServer 6.1 or later
@@ -73,19 +73,27 @@ but may fail in certain use cases.
 Note that many of the python components installed in the Virtual Environment
 specify required version information, for that reason they are not listed here.
 
-Reference the requirements.txt file in the repository root for details about
+Refer to the requirements.txt file in the repository root for details about
 python sub-component requirements.
 
 ## Installation Instructions
 
-The installation instructions below are tested and work on Ubuntu 14.02 LTS .  Other distributions may require
-different packages or steps to satisfy NMTK pre-requisites; and may require different steps to perform installation steps (such as installing celery daemons, Apache configuration files, etc.)
+The installation instructions below are tested and work on Ubuntu 14.02 LTS.  Other
+distributions may require different packages or steps to satisfy NMTK pre-requisites;
+and may require different steps to perform installation (such as installing celery
+daemons, Apache configuration files, etc.)
 
 ### Pre-Requisites
 
-There are some pre-requisites that should be installed. The assumption in this case is that you are using debian, but 
-these pre-reqs (and their install packages) translate easily (try google) to numerous other OSs:
+There are some pre-requisites that should be installed at the system level.  You may
+wish to install additional suggested packages (such as documentation) related to each
+of these, but doing so is unnecessary simply to run the NMTK system.  The assumption
+in this case is that you are using Debian Linux or one of its derivatives such as
+Ubuntu, but these pre-requisites (and their install packages) are commonly available
+for other operating systems:
 
+ * build-essentials
+ * git
  * apache2
  * python-dev
  * python-setuptools
@@ -100,35 +108,37 @@ these pre-reqs (and their install packages) translate easily (try google) to num
  * libgdal-dev gdal-bin
  * gfortran libopenblas-dev liblapack-dev
 
-You may also need to download, compile, and install (from source) GDAL version 1.10 or greater if your
-operating system does not provide a version greater than 1.10.  GDAL v1.10 added
-support for CRS values in GeoJSON files - which are a requirement for NMTK.  Also, please note
-that when compiling, be sure to provide the --with-python argument.
-
-These directions assume that GDAL was installed from the OS repository.
+You may also need to download, compile, and install (from source) GDAL version 1.10
+or greater if your operating system does not provide a version greater than 1.10.
+Ubuntu 14.04 LTS does provide a suitable GDAL version.  GDAL v1.10 added support for
+CRS values in GeoJSON files - which are a requirement for NMTK.  Also, should you
+compile GDAL locally, you should be sure to provide the --with-python argument and
+that the location of the installed files is correctly recognized.
 
 #### Optional Installs
 
-Currently NMTK does not use these components, but it's likely that some tools and/or the server will in the future.  Strictly speaking they are not a current pre-requisite, but it may be useful to install these:
+Currently NMTK does not use these components, but it's likely that some tools and/or
+the server may use these in the future.  Strictly speaking they are not a current
+pre-requisite, but it may be useful to install these:
 
   * R (follow instructions here: http://cran.r-project.org/bin/linux/ubuntu/README)
 
 ### Configuring Swap Space
 
 If your system has less than 2 GB of RAM, it is recommended that you set up
-some swap space.  This can be done using the following commands:
+a swap space of at least 2 GB.  This can be done using the following commands:
 
-  1.  First, compute the number of "blocks" required to allocate swap space 
-      of the size you want/need.  Each block is 1MB in size, there are 1024
-      MB in 1 GB .  The number of "blocks" will be substituted into the command 
-      below in place of "$COUNT"
+  1.  First, compute the number of "blocks" required to allocate swap space of the
+	  size you want/need.  In the instructions below, each block is set to 1 megabyte
+	  (1024 x 1024) in size, there are 1024MB in 1 gigabyte.  So a 2 gigabyte swap
+	  composed of 1 MB blocks would replace $COUNT with 2048.
 
   2.  Run the commands below to allocate the swap space.
 
     ```
     sudo dd if=/dev/zero of=/swapfile bs=$((1024*1024)) count=$COUNT
     sudo mkswap /swapfile
-    # Add a line to the end of /etc/fstab so the swap will be available on boot
+    # Add a line to the end of /etc/fstab so the swap will be available after a reboot
     sudo sed -i '$ a /swapfile       none    swap    sw      0       0 ' /etc/fstab
     # Enable the newly allocated swap space
     sudo swapon -a
@@ -138,11 +148,17 @@ some swap space.  This can be done using the following commands:
 
 ###Installation Instructions
 
-The installation of this tool is predicated on an understanding of basic systems administration skills, as well
-as some knowledge surrounding configuring a web server (such as Apache.)
+The installation of this tool expects you to have an understanding of basic systems
+administration skills, as well as some knowledge surrounding configuring a web server
+(such as Apache.)
 
- 1.  Checkout the existing code and change into the root directory of the repository.  It is recommended that 
-     you use the commands below to accomplish this task:
+The instructions below presume that you are logged in to a non-root account ($USER)
+that has "sudo" privileges (e.g. in Ubuntu, by assigning $USER to the the "sudoers"
+group).  While the instructions may be performed from a root account, doing so runs
+the risk of inadvertently leaving security holes.
+
+ 1.  Checkout the existing code and change into the root directory of the repository.
+     It is recommended that you use the commands below to accomplish this task:
 
   ```
   sudo mkdir -p /var/www/vhosts/$(hostname --fqdn)
@@ -166,7 +182,8 @@ as some knowledge surrounding configuring a web server (such as Apache.)
   source venv/bin/activate
   ```
 
- 4.  Install numpy and pysqlite by hand using requirements.txt (pip gets it wrong for some reason otherwise...):
+ 4.  Install numpy and pysqlite by hand using requirements.txt (pip gets it wrong for
+     some reason otherwise...):
 
   ```
   pip install $(cat requirements.txt|grep -i ^numpy)
@@ -175,7 +192,8 @@ as some knowledge surrounding configuring a web server (such as Apache.)
   pip install --no-download pysqlite 
   ```
 
- 5.  Install all the pre-requisite modules:
+ 5.  Install all the pre-requisite modules (adjust the include paths to point at
+     GDAL, especially if you compiled and installed it manually:
 
   ```
   CPLUS_INCLUDE_PATH=/usr/include/gdal C_INCLUDE_PATH=/usr/include/gdal pip install -r requirements.txt
@@ -183,7 +201,7 @@ as some knowledge surrounding configuring a web server (such as Apache.)
 
   ###### Note
   
-  Sometimes the GDAL installation will fail because pip gets the bindings, but not the entire 
+  Sometimes the GDAL installation will still fail because pip gets the bindings, but not the entire 
   GDAL library (which GDAL's setup requires.)  This can be handled using the following procedure:
 
   ```    
@@ -196,34 +214,16 @@ as some knowledge surrounding configuring a web server (such as Apache.)
   sudo ldconfig
   ```
      
- 6.  Copy `NMTK_apps/NMTK_apps/local_settings.sample` to `NMTK_apps/NMTK_apps/local_settings.py`,
-     edit the file (`NMTK_apps/NMTK_apps/local_settings.py`) per the directions contained
-     therein. 
+ 6.  Copy the sample settings file to your own local settings, and edit the required local
+     setup parameters according to the instructions in the file:
 
-## Validating Your Installation
-
-Once NMTK is installed, it makes sense to do some basic validation to ensure 
-things are working properly.  Generally, this is done using a core set of
-unit tests that exist in the tests/ subdirectory.  Follow the steps below to run 
-the tests, they should all pass.  
-
-The unit tests verify that tool discovery works properly, basic security
-is working properly, user account login/logout/creation/passwords work 
-properly, file imports work properly, and that jobs can be submitted to 
-one of the built-in (umn) tools properly.
-
-```
-  source venv/bin/activate
-  pushd tests
-  nosetests -v
+  ...
+  pushd NMTK_apps/NMTK_apps
+  cp local_settings.sample local_settings.py
+  # edit local_settings.py per instructions contained within using your favorite editor
+  # e.g:  nano local_settings.py
   popd
-```
-
-Generally, tests will take a few minutes to run, be patient.  If any of the tests
-fail it could indicate that your server is mis-configured, or otherwise not working
-properly.  A large file import test exists, but is skipped by default, due to 
-the fact that in some systems it will require more than the allocated amount of
-memory in order to successfully complete.
+  ...
 
 ***     
 ### Note
@@ -324,11 +324,56 @@ memory in order to successfully complete.
   python manage.py createsuperuser
   ```    
  
-The remainder of configuration (such as removing the default tool server and/or
-adding a new tool server) can now be done via the Administrative pages of the 
-application - via the web.
+Minification/Optimization of UI Components
+------------------------------------------
+To speed the system and reduce bandwidth consumption when interacting with the NMTK system through its
+built-in UI, it is recommended that the Javascript be "minified". However, the Javascript should not be
+minified if you plan to work on the UI code for some reason.  Follow these steps to minify:
 
-To add a new tool:
+1.  Run the node/install.sh script to install minification tools.
+2.  Activate the virtual environment (source venv/bin/activate)
+2.  From the NMTK_apps folder, run "python manage.py minify" to minify code
+3.  Run "python manage.py collectstatic -c" to re-install the static media (along with minified stuff.)
+
+## Validating Your Installation
+
+Once NMTK is installed, it makes sense to do some basic validation to ensure 
+things are working properly.  Generally, this is done using a core set of
+unit tests that exist in the tests/ subdirectory.  Follow the steps below to run 
+the tests.  They should all pass.  
+
+The unit tests verify that tool discovery works properly, basic security
+is working properly, user account login/logout/creation/passwords work 
+properly, file imports work properly, and that jobs can be submitted to 
+one of the built-in tools properly.
+
+```
+  source venv/bin/activate
+  pushd tests
+  nosetests -v
+  popd
+```
+
+Generally, tests will take a few minutes to run.  Be patient.  If any of the tests
+fail it could indicate that your server is mis-configured, or otherwise not working
+properly (possibly because of insufficient memory -- see the swapfile section above).
+A large file import test exists, but is skipped by default, due to the fact that in
+some systems it will require more than the allocated amount of memory in order to
+successfully complete.
+
+## Managing Tools and Tool Servers
+
+The remainder of configuration (such as creating or authorizing users, removing the
+default tool server and/or adding a new tool server) can now be done via the
+Administrative pages of the application - via the web.
+
+The administrative server will be available at this URL (change the domain name to
+whatever location you are running your server):
+
+  http://nmtk.example.com/server/admin
+
+To add a new tool
+-----------------
  
 Here we will assume the NMTK server "base" URL is is http://nmtk.example.com):
 
@@ -369,10 +414,13 @@ Here we will assume the NMTK server "base" URL is is http://nmtk.example.com):
      maintainer of the tool server.  You should also provide the tool admin
      the URL for the NMTK server.
     
-Using the NMTK provided tool server:
+Using the NMTK provided tool server
+-----------------------------------
 
 If you are using the NMTK provided tool server, you'll need to get a set of
-credentials (auth token and a tool server ID) from the NMTK server administrator.
+credentials (auth token and a tool server ID) from the NMTK server administrator
+(see the previous section on adding a tool server regarding how to generate that
+information).
 
 Once you have these credentials, open up NMTK_apps/NMTK_apps/local_settings.py and
 scroll to the end of the file.
@@ -398,9 +446,3 @@ two options:
     refresh for the tools provided by that tool server.)
 
 
-Minification/Optimization of UI Components
-------------------------------------------
-1.  Run the node/install.sh script to install minification tools.
-2.  Activate the virtual environment (source venv/bin/activate)
-2.  Run "python manage.py minify" to minify code
-3.  Run "python manage.py collectstatic -c" to re-install the static media (along with minified stuff.)
