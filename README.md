@@ -217,13 +217,13 @@ the risk of inadvertently leaving security holes.
  6.  Copy the sample settings file to your own local settings, and edit the required local
      setup parameters according to the instructions in the file:
 
-  ...
+  ```
   pushd NMTK_apps/NMTK_apps
   cp local_settings.sample local_settings.py
   # edit local_settings.py per instructions contained within using your favorite editor
   # e.g:  nano local_settings.py
   popd
-  ...
+  ```
 
 ***     
 ### Note
