@@ -462,7 +462,10 @@ def importDataFile(datafile, job_id=None):
             datafile.srs=loader.info.srs
             datafile.geom_type=loader.info.type
         datafile.feature_count=loader.info.feature_count
-        if not job_id:
+        if loader.is_spatial and not datafile.srid:
+            datafile.status=datafile.IMPORT_FAILED
+            datafile.status_message='Please specify SRID for this file (unable to auto-identify SRID)'
+        elif not job_id:
             datafile.status=datafile.IMPORTED
         else:
             datafile.status=datafile.IMPORT_RESULTS_COMPLETE
@@ -473,10 +476,11 @@ def importDataFile(datafile, job_id=None):
             suffix='geojson'
         else: 
             suffix='json'
-        datafile.processed_file.save('{0}.{1}'.format(datafile.pk, suffix), 
-                                     ContentFile(''))
-        loader.export_json(datafile.processed_file.path)
-        generate_sqlite_database(datafile, loader)
+        if datafile.status in (datafile.IMPORTED, datafile.IMPORT_RESULTS_COMPLETE):
+            datafile.processed_file.save('{0}.{1}'.format(datafile.pk, suffix), 
+                                         ContentFile(''))
+            loader.export_json(datafile.processed_file.path)
+            generate_sqlite_database(datafile, loader)
         if job_id:
             try:
                 job=models.Job.objects.get(pk=job_id)
