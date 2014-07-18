@@ -93,7 +93,7 @@ define([], function () {
 					       {'display_name': 'Spatial Reference Identifier (SRID)',
 				            'field': 'srid',
 				            'description':srid_description, 
-				            'disabled': ($scope.filedata.status != 'Import Failed'), 
+				            'disabled': ($scope.filedata.status != 'Unrecognized Type'), 
 				            'hide_empty': false,
 				            'spatial': true }	           
 				            ]
