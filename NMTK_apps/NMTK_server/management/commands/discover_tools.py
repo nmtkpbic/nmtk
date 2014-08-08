@@ -3,6 +3,7 @@ from NMTK_server import models
 from optparse import make_option
 import datetime
 from NMTK_server import tasks
+from django.conf import settings
 
 
 class Command(BaseCommand):
@@ -20,6 +21,8 @@ class Command(BaseCommand):
         A save of the toolserver model will trigger an update of the config
         for that toolserver.
         '''
+        if not settings.NMTK_SERVER:
+            raise CommandError('The NMTK Server is not currently enabled')
         qs=models.ToolServer.objects.all()
         for m in qs:
             self.stdout.write('Updating ToolServer record for %s' % m.name)

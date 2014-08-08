@@ -166,30 +166,32 @@ TEMPLATE_CONTEXT_PROCESSORS=("django.contrib.auth.context_processors.auth",
                               )
 
 INSTALLED_APPS = (
-    'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'registration',
-    'widget_tweaks',
-    # Uncomment the next line to enable the admin:
-#    'django_admin_bootstrapped',
-    'NMTK_server', # A test NMTK server for NMTK validating tools locally.
-    'NMTK_ui', # the UI components for NMTK server
-    'django.contrib.admin',
-    # Uncomment the next line to enable admin documentation:
-    # 'django.contrib.admindocs',
-    'NMTK_tools', # An app used to generate a list of tools.
-    'MN_model', # The tool for the Minnesota pedestrian/cycle models
-    'SF_model', # The tool for the SF pedestrian model
     'djcelery',
     'kombu.transport.django',
-    'tastypie',
-)
+    )
+
+if TOOL_SERVER:
+    INSTALLED_APPS = INSTALLED_APPS + ('NMTK_tools', # An app used to generate a list of tools.
+                                       'MN_model', # The tool for the Minnesota pedestrian/cycle models
+                                       'SF_model', # The tool for the SF pedestrian model
+                                       )
+if NMTK_SERVER:
+    INSTALLED_APPS = INSTALLED_APPS + ('django.contrib.auth',        
+                                       'django.contrib.admin',
+                                       'registration',
+                                       'widget_tweaks',
+                                       'NMTK_server', # The NMTK Server
+                                       'NMTK_ui', # the UI components for NMTK server
+                                       'tastypie',
+                                       )
+
 # The test tool only gets installed if debug is set to true.
-if not PRODUCTION:
+if not PRODUCTION and TOOL_SERVER:
     INSTALLED_APPS=INSTALLED_APPS + (
                                      'test_tool', # A sample tool designed for testing new stuff.
                                      )

@@ -1,11 +1,13 @@
 from django.core.management.base import BaseCommand, CommandError
 from django.contrib.auth.models import User
 from NMTK_server.default_data.init_account import setupAccount
-
+from django.conf import settings
 class Command(BaseCommand):
-    help = 'Add default files to user accounts '
+    help = 'Add default files to user accounts ' + \
            '(all accounts, or specify space-separate names on the command line).'
     def handle(self, *args, **options):
+        if not settings.NMTK_SERVER:
+            raise CommandError('The NMTK Server is not currently enabled')
         if args:
             qs = User.objects.filter(username__in=args)
         else:

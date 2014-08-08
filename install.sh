@@ -138,13 +138,18 @@ spatialite nmtk.sqlite  "SELECT InitSpatialMetaData();"
 popd &> /dev/null
 python manage.py syncdb --noinput
 # Use the -l argument for development, otherwise js/css changes require recopying
-python manage.py minify
+
+python manage.py server_enabled
+if [[ $? == 0 ]]; then
+  echo "NMTK Server is enabled, setting up default account, etc."
+  python manage.py createsuperuser --noinput --email=$EMAIL --username=$USERNAME
+  echo "from django.contrib.auth.models import User; u = User.objects.get(username__exact='$USERNAME'); u.set_password('$PASSWORD'); u.first_name='$FIRSTNAME'; u.last_name='$LASTNAME'; u.save()"|python manage.py shell
+  echo "from NMTK_server.models import ToolServer; m = ToolServer.objects.all()[0]; m.server_url='${URL}'; m.save()"|python manage.py shell
+  python manage.py discover_tools
+  echo "Tool discovery has been initiated, note that this may take some time to complete"
+  python manage.py minify
+fi
 python manage.py collectstatic --noinput -l -c
-python manage.py createsuperuser --noinput --email=$EMAIL --username=$USERNAME
-echo "from django.contrib.auth.models import User; u = User.objects.get(username__exact='$USERNAME'); u.set_password('$PASSWORD'); u.first_name='$FIRSTNAME'; u.last_name='$LASTNAME'; u.save()"|python manage.py shell
-echo "from NMTK_server.models import ToolServer; m = ToolServer.objects.all()[0]; m.server_url='${URL}'; m.save()"|python manage.py shell
-python manage.py discover_tools
-echo "Tool discovery has been initiated, note that this may take some time to complete"
 deactivate
 popd &> /dev/null
 for DIR in nmtk_files logs; do

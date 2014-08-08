@@ -159,6 +159,15 @@ NMTK_SERVERS={'d0461b9536eb483d9f23c157e809af35': {'url': 'http://{0}/server'.fo
                                                    'secret': '''yq@5u058y312%ebmyi85ytpfwjm9zv)1u2wu-m1s)%cngrvf_^''' },
               }
 
+#
+# When TOOL_SERVER Is set to True, the NMTK server and UI components
+# are automatically disabled, and only the NMTK Tool Server will be available.
+#
+# When NMTK_SERVER is set to True the NMTK Server and UI Components are enabled.
+#
+TOOL_SERVER=True
+NMTK_SERVER=True
+
 
 
 #

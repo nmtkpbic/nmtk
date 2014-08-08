@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand, CommandError
 from optparse import make_option
 import datetime
 from NMTK_server import tasks
-
+from django.conf import settings
 class Command(BaseCommand):
     help = 'Add a new tool server for use by the NMTK API.'
     option_list = BaseCommand.option_list + (
@@ -26,6 +26,8 @@ class Command(BaseCommand):
                     help='Provide the username for the user that is adding the server.'),             
                 )
     def handle(self, *args, **options):
+        if not settings.NMTK_SERVER:
+            raise CommandError('The NMTK Server is not currently enabled')
         if not len(args):
             raise CommandError('Please the name of the tool to add')
         if not options['url']:

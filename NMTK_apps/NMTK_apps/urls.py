@@ -33,17 +33,17 @@ from django.views.generic import RedirectView
 
 
 
-
-urlpatterns = patterns('',
-    # This one is used to generate the tool index for this tool server.
-    url(r'^index/$', 'NMTK_tools.views.toolIndex', {}, name='tool_index'),
-    url(r'^MN_model/', include('MN_model.urls')),
-    url(r'^SF_model/', include('SF_model.urls')),
-)
-if not settings.PRODUCTION:
-   urlpatterns += patterns('',
-                           url(r'^test_tool/', include('test_tool.urls')),
-                           )
+if settings.TOOL_SERVER:
+    urlpatterns = patterns('',
+        # This one is used to generate the tool index for this tool server.
+        url(r'^index/$', 'NMTK_tools.views.toolIndex', {}, name='tool_index'),
+        url(r'^MN_model/', include('MN_model.urls')),
+        url(r'^SF_model/', include('SF_model.urls')),
+    )
+    if not settings.PRODUCTION:
+       urlpatterns += patterns('',
+                               url(r'^test_tool/', include('test_tool.urls')),
+                               )
 
 # If the NMTK_server app is installed, then we need to include this
 # other stuff - the views, etc. for the server.

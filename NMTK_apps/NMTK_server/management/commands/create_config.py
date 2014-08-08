@@ -15,6 +15,8 @@ class Command(BaseCommand):
               Note: This requires the NMTK_BASE_URL setting in settings.py to 
               function.'''
     def handle(self, *args, **options):
+        if not settings.NMTK_SERVER:
+            raise CommandError('The NMTK Server is not currently enabled')
         # Get the current
         site_id=getattr(settings, 'SITE_ID', 1)
         site_domain = sites.models.Site.objects.get(pk=site_id).domain
