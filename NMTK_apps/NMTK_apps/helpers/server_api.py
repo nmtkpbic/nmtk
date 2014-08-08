@@ -24,7 +24,7 @@ class NMTKClient(object):
     the json format.
     '''
     def __init__(self, url, tool_server_id=None, 
-                 private_key=None,
+                 shared_secret=None,
                  job_id=None):
         '''
         Since it's likely the caller will have the public/private keys already
@@ -33,7 +33,7 @@ class NMTKClient(object):
         self.url=url.rstrip('/') # Remove the trailing slash if there is one..
         try:
             self.tool_server_id=tool_server_id
-            self.private_key=private_key
+            self.shared_secret=shared_secret
         except Exception, e:
             raise Exception('A private and public key must be provided somehow.')
         self.job_id=job_id or self.tool_server_id
@@ -46,7 +46,7 @@ class NMTKClient(object):
         HTTP protocol standard authorization header.
         '''
         logger.error("%s: %s", type(payload), payload)
-        digest_maker =hmac.new(self.private_key, 
+        digest_maker =hmac.new(self.shared_secret, 
                                payload, 
                                hashlib.sha1)
         digest=digest_maker.hexdigest()
