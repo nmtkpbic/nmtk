@@ -247,9 +247,9 @@ the system.
 
 In the local_settings.py file there are two settings that control this:
 
-  #.  The NMTK_SERVER variable, when set to "True" enables the NMTK Server
+  1.  The NMTK_SERVER variable, when set to "True" enables the NMTK Server
       and UI components, as well as the administrative pages for NMTK Server.
-  #.  The TOOL_SERVER variable, when set to "True" enables the "reference
+  2.  The TOOL_SERVER variable, when set to "True" enables the "reference
       implementation" set of tools, allowing a user to run the system with
       some basic pre-set tools.
 
@@ -267,6 +267,10 @@ would need to add one or more tool servers in order to have an available set of 
 It should also be noted that the unit tests (to validate an installation) rely on 
 both the NMTK_SERVER and TOOL_SERVER being enabled.  If either is not enabled,
 then the test suite will fail to execute successfully.
+
+The two settings (NMTK_SERVER and TOOL_SERVER) work by omitting the Django applications
+that are relevant to the two (the design is such that the Tool Server components reside in one
+set of applications, and the NMTK Server components reside in another set.)
 
 
 ***     
