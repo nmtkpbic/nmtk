@@ -268,6 +268,10 @@ It should also be noted that the unit tests (to validate an installation) rely o
 both the NMTK_SERVER and TOOL_SERVER being enabled.  If either is not enabled,
 then the test suite will fail to execute successfully.
 
+The two settings (NMTK_SERVER and TOOL_SERVER) work by omitting the Django applications
+that are relevant to the two (the design is such that the Tool Server components reside in one
+set of applications, and the NMTK Server components reside in another set.)
+
 
 ***     
 ### Note
