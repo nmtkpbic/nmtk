@@ -247,9 +247,9 @@ the system.
 
 In the local_settings.py file there are two settings that control this:
 
-  #.  The NMTK_SERVER variable, when set to "True" enables the NMTK Server
+  1.  The NMTK_SERVER variable, when set to "True" enables the NMTK Server
       and UI components, as well as the administrative pages for NMTK Server.
-  #.  The TOOL_SERVER variable, when set to "True" enables the "reference
+  2.  The TOOL_SERVER variable, when set to "True" enables the "reference
       implementation" set of tools, allowing a user to run the system with
       some basic pre-set tools.
 
