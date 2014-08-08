@@ -23,22 +23,20 @@ class NMTKClient(object):
     the json format.  A "payload" is a payload that requires encoding to
     the json format.
     '''
-    def __init__(self, url, public_key=None, 
+    def __init__(self, url, tool_server_id=None, 
                  private_key=None,
-                 job_id=None,
-                 public_key_file=None,
-                 private_key_file=None):
+                 job_id=None):
         '''
         Since it's likely the caller will have the public/private keys already
         loaded up, we'll require either them, or a filename containing them.
         '''
         self.url=url.rstrip('/') # Remove the trailing slash if there is one..
         try:
-            self.public_key=public_key or open(public_key_file).read().strip()
-            self.private_key=private_key or open(private_key_file).read().strip()
+            self.tool_server_id=tool_server_id
+            self.private_key=private_key
         except Exception, e:
             raise Exception('A private and public key must be provided somehow.')
-        self.job_id=job_id or self.public_key
+        self.job_id=job_id or self.tool_server_id
         
     
     def _getSignature(self, payload):
@@ -60,7 +58,7 @@ class NMTKClient(object):
             raise NMTKAPIException('Reserved word "config" found in response')
         payload['job']={'timestamp': datetime.datetime.now().isoformat(),
                         'job_id': self.job_id,
-                        'tool_server_id': self.public_key }
+                        'tool_server_id': self.tool_server_id }
         payload_json=json.dumps(payload)
         signature=self._getSignature(payload_json)
         headers.update({'authorization': signature })
@@ -83,8 +81,7 @@ class NMTKClient(object):
     def updateResults(self, result_field=None, result_file=None, units=None,
                       files={}, failure=False, payload={}):
         '''
-        According to the docs here (http://fhwa.cgclientx.com/index.php/API_Specification#External_API_Specification)
-        there are two methods the analysis tool uses to communicate with the
+        There are two methods the analysis tool uses to communicate with the
         server - one of which is analyses/results (a URL).  This is used
         to send final results back to the server.
         
@@ -108,8 +105,7 @@ class NMTKClient(object):
     
     def updateStatus(self, status):
         '''
-        According to the docs here (http://fhwa.cgclientx.com/index.php/API_Specification#External_API_Specification)
-        there are two methods the analysis tool uses to communicate with the
+        There are two methods the analysis tool uses to communicate with the
         server - one of which is analyses/update (a URL).  This is used
         to send status updates back to the server.
         '''

@@ -36,7 +36,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import SuspiciousOperation, PermissionDenied
 from django.forms.models import model_to_dict
 from django.conf import settings
-from NMTK_apps.helpers import server_api
 from NMTK_apps import decorators
 import os
 import tempfile
