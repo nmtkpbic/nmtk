@@ -315,6 +315,30 @@ def discover_tools(toolserver):
         row.save()
 
 @task(ignore_result=False)
+def cancelJob(job_id, tool_id):
+    '''
+    Whenever a job that is active is cancelled, we need to notify the tool
+    server to cancel the job as well.
+    
+    The tool doesn't support this (yet), since each tool might be different
+    '''
+    from NMTK_server import models
+    logger=cancelJob.get_logger()
+    tool=models.Tool.objects.get(pk=tool_id)
+    logger.debug('Cancelling job %s to tool %s for processing', job_id,
+                 tool)
+    config_data=job_id
+    digest_maker =hmac.new(str(job.tool.tool_server.auth_token), 
+                           config_data, 
+                           hashlib.sha1)
+    digest=digest_maker.hexdigest()
+    files={'cancel': ('cancel', job_id) }
+    r=requests.delete(job.tool.analyze_url, files=files,
+                    headers={'Authorization': digest })
+    logger.debug("Submitted cancellation request for job to %s tool, response was %s (%s)", 
+                 tool, r.text, r.status_code)
+        
+@task(ignore_result=False)
 def submitJob(job_id):
     '''
     Whenever a job status is set to active in the database, the 

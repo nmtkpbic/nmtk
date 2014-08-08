@@ -225,6 +225,13 @@ class Job(models.Model):
     email=models.BooleanField(default=False, help_text='Email user upon job completion')
     objects=models.GeoManager()
 
+    def delete(self, *args, **kwargs):
+        result=super(Job, self).delete(*args, **kwargs)
+        if self.status == self.ACTIVE:
+            logger.error('TODO: Send cancel request to tool server')
+            tasks.cancelJob.delay(str(self.pk), self.tool.pk)
+        return result
+    
     @property
     def results_link(self):
         return reverse('viewResults', kwargs={'job_id': self.job_id})
