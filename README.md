@@ -225,6 +225,50 @@ the risk of inadvertently leaving security holes.
   popd
   ```
 
+***
+### NMTK Toolkit Modes of Operation
+
+This repository contains two distinct components of the NMTK system, which (by default)
+are integrated into a single installation::
+
+  - The NMTK Server and UI components provide the "user facing" components to the
+    NMTK system.  These components manage user preferences and data, and coordinate
+    configuration and sending tasks to individual NMTK servers for processing.
+    
+  - The NMTK Tool Server has no UI components, and is not designed to operate as
+    a "user facing" service.  Instead, it is designed to be accessed by an NMTK
+    Server, which will submit jobs to it (and coordinate the work that the 
+    NMTK Tool Server does.)  
+    
+By default, the NMTK Server and the NMTK Tool Server are enabled, providing
+the user that installs this software an NMTK Server and UI, as well as a
+set of "Reference Implementation" tools that can be used to exercise/demonstrate
+the system.
+
+In the local_settings.py file there are two settings that control this:
+
+  #.  The NMTK_SERVER variable, when set to "True" enables the NMTK Server
+      and UI components, as well as the administrative pages for NMTK Server.
+  #.  The TOOL_SERVER variable, when set to "True" enables the "reference
+      implementation" set of tools, allowing a user to run the system with
+      some basic pre-set tools.
+
+If both NMTK_SERVER and TOOL_SERVER are set to "False", then no services will be
+provided - this is not a recommended configuration (for obvious reasons.)
+
+If either of these settings are changed, the administrator should re-install the
+system, as certain components/dependencies may be missing, or "extraneous"
+data that should be purged.
+
+It should be noted that if the NMTK_SERVER is enabled, and the TOOL_SERVER is not,
+then the reference set of tools will not be present.  In such cases the administrator
+would need to add one or more tool servers in order to have an available set of tools.
+
+It should also be noted that the unit tests (to validate an installation) rely on 
+both the NMTK_SERVER and TOOL_SERVER being enabled.  If either is not enabled,
+then the test suite will fail to execute successfully.
+
+
 ***     
 ### Note
 
