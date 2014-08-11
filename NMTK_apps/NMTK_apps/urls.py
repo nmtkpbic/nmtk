@@ -31,33 +31,20 @@ from django.conf.urls import patterns, include, url
 from django.conf import settings
 from django.views.generic import RedirectView
 
-
-
-if settings.TOOL_SERVER:
-    urlpatterns = patterns('',
-        # This one is used to generate the tool index for this tool server.
-        url(r'^index/$', 'NMTK_tools.views.toolIndex', {}, name='tool_index'),
-        url(r'^MN_model/', include('MN_model.urls')),
-        url(r'^SF_model/', include('SF_model.urls')),
-    )
-    if not settings.PRODUCTION:
-       urlpatterns += patterns('',
-                               url(r'^test_tool/', include('test_tool.urls')),
-                               )
-
 # If the NMTK_server app is installed, then we need to include this
 # other stuff - the views, etc. for the server.
 #
 # The same is true for the django admin interface - it is only available
 # on the NMTK server, not any tool server(s)
 #if getattr(settings, 'NMTK_ENABLE_SERVER', True):
+
 if 'NMTK_server' in settings.INSTALLED_APPS:
-    urlpatterns += patterns('',
+    urlpatterns = patterns('',
         url(r'^$', RedirectView.as_view(url='/server/')),
         url(r'^server/', include('NMTK_server.urls')),
     )
 else:
-    urlpatterns += patterns('',
+    urlpatterns = patterns('',
         url(r'^$', RedirectView.as_view(url='/index/')),
     )
 # Enable the UI if the app is in the list of installed applications.
@@ -66,8 +53,41 @@ if 'NMTK_ui' in settings.INSTALLED_APPS:
         url(r'^ui/', include('NMTK_ui.urls')),
     )
     
-from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
-# ... the rest of your URLconf here ...
+# Staticfiles here...
+if settings.DEBUG:
+    from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+    urlpatterns += staticfiles_urlpatterns()
 
-urlpatterns += staticfiles_urlpatterns()
+
+# So the tool server must always be last, because it's URL patterns are somewhat 
+# more generic.
+if settings.TOOL_SERVER:
+    urlpatterns += patterns('',
+        # This one is used to generate the tool index for this tool server.
+        url(r'^index/$', 'NMTK_tools.views.toolIndex', {}, name='tool_index'),
+        # These are for the actual tools we have supported.
+        )
+    urlpatterns += patterns('', 
+                    url(r'^(?P<tool_name>[^/]+)/analyze/?$',
+                        'NMTK_tools.views.runModel', {'subtool_name': None}, name='tool_analyze'),
+                    url(r'^(?P<tool_name>[^/]+)(?:/(?P<subtool_name>[^/]+))/analyze/?$',
+                        'NMTK_tools.views.runModel', {}, name='tool_analyze'),
+                            )
+    # Generic - even if we don't have a tool these will get triggered,
+        # so the need to be smart enough to just return an error if/when
+        # necessary.
+    urlpatterns += patterns('', url(r'^(?P<tool_name>[^/]+)/config/?$',
+                                    'NMTK_tools.views.generateToolConfiguration', {'subtool_name': None}, name='tool_config'),
+                                url(r'^(?P<tool_name>[^/]+)(?:/(?P<subtool_name>[^/]+))/config/?$',
+                                    'NMTK_tools.views.generateToolConfiguration', {}, name='tool_config'),
+                                url(r'^(?P<tool_name>[^/]+)(?:/(?P<subtool_name>[^/]+)/?)?$',
+                                    'NMTK_tools.views.tool_base_view', {}, name='tool_base'),
+                            )
+    if not settings.PRODUCTION:
+       urlpatterns += patterns('',
+                               url(r'^test_tool/', include('test_tool.urls')),
+                               )
+
+
+    

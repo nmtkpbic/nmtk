@@ -28,13 +28,8 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from django.conf.urls import patterns, include, url
-
+from django.http import HttpResponse
+tool_name=__name__.split('.',1)[0]
 urlpatterns = patterns('',
-   url('^(?P<tool_name>[^/]*)$', 'SF_model.views.toolBase', {}, name='tool_base'),
-   url('^(?P<tool_name>[^/]*)/analyze$', 'SF_model.views.runModel', { }, 
-       name='runModel'),
-   url('^(?P<tool_name>[^/]*)/config$', 'SF_model.views.generateToolConfiguration', {},
-       name='ToolConfiguration'),
-   url('^(?P<tool_name>[^/]*)/docs', 'SF_model.views.generateDocs', {}, 
-       name='SF_Documentation'),
+   url('^analyze$', 'SF_model.views.runModel', { }, name='{0}-runModel'.format(tool_name,)),
 )

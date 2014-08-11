@@ -43,7 +43,7 @@ from NMTK_apps.helpers.config_iterator import ConfigIterator
 def performModel(input_files,
                  tool_config,
                  client,
-                 perform_exp=False):
+                 subtool_name=False):
     '''
     This is where the majority of the work occurs related to this tool.
     The data_file is the input (probably spatial) data.

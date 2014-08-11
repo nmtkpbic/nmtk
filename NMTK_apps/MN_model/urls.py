@@ -27,14 +27,11 @@
 # AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, 
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+from django.http import HttpResponse
 from django.conf.urls import patterns, include, url
+tool_name=__name__.split('.',1)[0]
 
 urlpatterns = patterns('',
-   url('^(?P<tool_name>[^/]*)$', 'MN_model.views.toolBase', {}, name='tool_base'),
-   url('^(?P<tool_name>[^/]*)/analyze$', 'MN_model.views.runModel', { }, 
-       name='runModel'),
-   url('^(?P<tool_name>[^/]*)/config$', 'MN_model.views.generateToolConfiguration', {},
-       name='ToolConfiguration'),
-   url('^(?P<tool_name>[^/]*)/docs', 'MN_model.views.generateDocs', {}, 
-       name='MN_Documentation'),
+   url('^(?P<subtool_name>[^/]*)/analyze$', '{0}.views.runModel'.format(tool_name), 
+       { }, name='{0}-runModel'.format(tool_name)),
 )

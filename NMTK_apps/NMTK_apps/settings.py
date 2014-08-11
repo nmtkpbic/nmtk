@@ -175,11 +175,13 @@ INSTALLED_APPS = (
     'kombu.transport.django',
     )
 
+NMTK_TOOL_APPS=('MN_model', # The tool for the Minnesota pedestrian/cycle models
+                'SF_model', # The tool for the SF pedestrian model
+                'demo_tool',)
+
 if TOOL_SERVER:
     INSTALLED_APPS = INSTALLED_APPS + ('NMTK_tools', # An app used to generate a list of tools.
-                                       'MN_model', # The tool for the Minnesota pedestrian/cycle models
-                                       'SF_model', # The tool for the SF pedestrian model
-                                       )
+                                       ) + NMTK_TOOL_APPS
 if NMTK_SERVER:
     INSTALLED_APPS = INSTALLED_APPS + ('django.contrib.auth',        
                                        'django.contrib.admin',

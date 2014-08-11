@@ -29,11 +29,45 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # Create your views here.
 from django.conf import settings
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
+from django.core.urlresolvers import reverse
 from NMTK_apps import urls
+from NMTK_apps import decorators
 import json
+from django.template.loader import render_to_string
+from django.views.decorators.csrf import csrf_exempt
+import os
 import logging
 logger=logging.getLogger(__name__)
+
+# @csrf_exempt
+def tool_base_view(request, tool_name, subtool_name=None):
+    '''
+    Just return the URL for a tool.
+    '''
+    if not subtool_name:
+        return HttpResponse(tool_name)
+    else:
+        return HttpResponse('{0}/{1}'.format(tool_name,subtool_name))
+
+@csrf_exempt
+def generateToolConfiguration(request, tool_name, subtool_name=None):
+    config_file='{0}.json'.format(subtool_name or 'tool_config')
+    try:
+        config=json.loads(render_to_string(os.path.join(tool_name, config_file)))
+    except Exception, e:
+        logger.exception('Failed to get config for tool!')
+        raise Http404
+    # Add in the host and route data...
+    kwargs={'tool_name': tool_name,
+            'subtool_name': subtool_name }
+    if not subtool_name:
+        del kwargs['subtool_name']
+    config['host']={'url': request.build_absolute_uri('/'),
+                    'route': reverse('tool_base',  
+                                     kwargs=kwargs) }
+    return HttpResponse(json.dumps(config),
+                        content_type='application/json')
 
 def toolIndex(request):
     '''
@@ -47,32 +81,84 @@ def toolIndex(request):
     the urlpatterns defined in the tool.
     '''
     tool_apps={}
+    result=[]
     for app in settings.INSTALLED_APPS:
         module="%s.tool_configs" % (app,)
         try:
             config=__import__(module)
             tool_apps[app]=[config.tool_configs]
-            logger.debug('Located tool config for %s (%s)', app, config)
-        except:
-            logger.debug('App %s has no tool config', module)
-    for pattern in urls.urlpatterns:
-        if not hasattr(pattern,'urlconf_name') or not \
-               hasattr(pattern.urlconf_name, '__name__'):
-            continue
-        app_name=getattr(pattern, 'urlconf_name').__name__.rsplit('.urls',1)[0]
-        logger.debug('App Name is %s', app_name)
-        if tool_apps.has_key(app_name):
-            tool_apps[app_name].append(getattr(pattern,'_regex').strip('^$'))
-            logger.debug('Found path for %s as %s', app_name, 
-                         tool_apps[app_name])
-    result=[]
-    for app, data in tool_apps.iteritems():
-        tool_config=data[0]
-        for tool in data[0].tools:
-            if isinstance(data[-1],str):
-                url="%s%s" % (data[-1], tool,)
-                result.append(url)
-    logger.debug("Tool list is %s" , result)
+#             logger.debug('Located tool config for %s (%s)', app, config)
+            if hasattr(config.tool_configs, 'tools'):
+                for tool in getattr(config.tool_configs, 'tools',[]):
+                    result.append(reverse('tool_base', kwargs={'tool_name': app,
+                                                               'subtool_name': tool }))
+            else:
+                result.append(reverse('tool_base', kwargs={'tool_name': app}))
+        except Exception, e:
+            if 'No module named' not in str(e):
+                logger.exception('App %s has no tool config', module)
+#     logger.debug("Tool list is %s" , result)
     return HttpResponse(json.dumps(result), 
                         content_type='application/json')
-            
+    
+
+@csrf_exempt
+@decorators.nmtk # Valid request required to run the model.
+def runModel(request, tool_name, subtool_name=None):
+    '''
+    This view will receive a request to run a tool and perform all the 
+    relevant security/content checks.  It then calls the tool processing
+    function via a celery task.  This allows us to immediately return
+    a response to the client, and then the processing task can update the
+    status to the NMTK server.
+    '''
+
+    try:
+        config=json.loads(generateToolConfiguration(request, tool_name, subtool_name).content)
+    except:
+        raise Http404
+    
+    # Grab the uploaded files and store them on the file system, preserve
+    # the extension, since OGR might need it to determine the driver
+    # to use to read the file. 
+    
+    # Parse the configuration provided by the tool.
+    try:
+        config=json.loads(request.FILES['config'].read())
+        logger.debug('Job Config is: %s', config)
+        request.FILES['config'].seek(0)
+    except Exception, e:
+        logger.exception('Job configuration not parseable (%s)!', e)
+        raise SuspiciousOperation('Job configuration is not parseable!')
+    
+    input_files={}
+    # Grab all the files that were passed to the tool and 
+    # store them in temp storage.  input_files will contain
+    # the namespace --> filename mappings.
+    for namespace in request.FILES.keys():
+        filedata=request.FILES[namespace]
+        extension=os.path.splitext(filedata.name)[1]
+        outfile=tempfile.NamedTemporaryFile(suffix=extension, 
+                                            prefix='nmtk_upload_',
+                                            delete=False)
+        outfile.write(request.FILES[namespace].read())
+        outfile.close() 
+        input_files[namespace]=(outfile.name, filedata.content_type)
+    logger.debug('Input files are: %s', input_files)
+    
+    # This is here because the celery job isn't running as the www-data user
+    # and as a result has issues reading the tempfile that is created.
+
+    for namespace, filedata in input_files.iteritems():
+        os.chmod(filedata[0],stat.S_IROTH|stat.S_IREAD|stat.S_IWRITE)
+    # We should now be able to load the configuration and process the 
+    # job...
+    
+    # here we call the task for the model.
+    module="{0}.{1}".format(tool_name, 'tasks')
+    tasks=__import__(module)
+    ret = tasks.performModel.delay(input_files=input_files,
+                                   tool_config=config,
+                                   client=request.NMTK.client,
+                                   subtool_name=subtool_name)
+    return HttpResponse('OK')        
