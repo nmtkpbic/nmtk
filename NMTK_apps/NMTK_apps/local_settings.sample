@@ -168,6 +168,15 @@ NMTK_SERVERS={'d0461b9536eb483d9f23c157e809af35': {'url': 'http://{0}/server'.fo
 TOOL_SERVER=True
 NMTK_SERVER=True
 
+#
+# If a custom tool has been built it can be added to this list of tool
+# apps, so the NMTK Server will properly parse and provide access to the
+# tool.
+#
+NMTK_TOOL_APPS=('MN_model', # The tool for the Minnesota pedestrian/cycle models
+                'SF_model', # The tool for the SF pedestrian model
+                )
+
 
 
 #
