@@ -288,8 +288,11 @@ def add_toolserver(name, url, username, remote_ip=None):
 @task(ignore_result=False)
 def discover_tools(toolserver):
     from NMTK_server import models
-
-    url="%s/index" % (toolserver.server_url) # index returns a json list of tools.
+    if not toolserver.server_url.endswith('/'):
+        append_slash='/'
+    else:
+        append_slash=''
+    url="{0}{1}index".format(toolserver.server_url, append_slash) # index returns a json list of tools.
     tool_list=requests.get(url).json()
     logger.debug('Retrieved tool list of: %s', tool_list)
     for tool in tool_list:

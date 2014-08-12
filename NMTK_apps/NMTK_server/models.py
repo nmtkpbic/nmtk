@@ -100,8 +100,8 @@ class Tool(models.Model):
                                   self.tool_path)
     @property
     def config_url(self):
-        return "%s/%s/config" % (self.tool_server.server_url,
-                                 self.tool_path)    
+        return "%s/%s/config" % (self.tool_server.server_url.rstrip('/'),
+                                 self.tool_path.lstrip('/'))    
         
     def save(self, *args, **kwargs):
         result=super(Tool, self).save(*args, **kwargs)
@@ -173,7 +173,7 @@ class ToolSampleFile(models.Model):
             except Exception, e:
                 logger.exception('Failed to process delete for %s (%s)', 
                                  field, self.pk)
-        r=super(DataFile, self).delete()
+        r=super(ToolSampleFile, self).delete()
         for f in delete_candidates:
             if os.path.exists(f):
                 os.unlink(f)

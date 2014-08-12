@@ -65,7 +65,7 @@ if settings.DEBUG:
 if settings.TOOL_SERVER:
     urlpatterns += patterns('',
         # This one is used to generate the tool index for this tool server.
-        url(r'^index/$', 'NMTK_tools.views.toolIndex', {}, name='tool_index'),
+        url(r'^index/?$', 'NMTK_tools.views.toolIndex', {}, name='tool_index'),
         # These are for the actual tools we have supported.
         )
     urlpatterns += patterns('', 
