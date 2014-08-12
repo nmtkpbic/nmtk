@@ -42,7 +42,8 @@ __all__=['SITE_DOMAIN', 'PRODUCTION',
          'TEMPLATE_DEBUG','TASTYPIE_FULL_DEBUG',
          'NODE_PATH', 'LEGEND_FONT', 'MAPSERVER_TEMPLATE',
          'SERVER_EMAIL','DEFAULT_FROM_EMAIL','SECRET_KEY',
-         'FILES_PATH','LOGFILE_PATH','NMTK_SERVERS',]
+         'FILES_PATH','LOGFILE_PATH','NMTK_SERVERS',
+         'NMTK_TOOL_APPS']
 import os
 import socket
 
@@ -175,6 +176,7 @@ NMTK_SERVER=True
 #
 NMTK_TOOL_APPS=('MN_model', # The tool for the Minnesota pedestrian/cycle models
                 'SF_model', # The tool for the SF pedestrian model
+                'demo_tool',
                 )
 
 
