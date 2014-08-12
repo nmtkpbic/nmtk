@@ -96,12 +96,12 @@ class Tool(models.Model):
 
     @property
     def analyze_url(self):
-        return "%s/%s/analyze" % (self.tool_server.server_url, 
-                                  self.tool_path)
+        return "%s/%s/analyze" % (self.tool_server.server_url.rstrip('/'), 
+                                  self.tool_path.strip('/'))
     @property
     def config_url(self):
         return "%s/%s/config" % (self.tool_server.server_url.rstrip('/'),
-                                 self.tool_path.lstrip('/'))    
+                                 self.tool_path.strip('/'))    
         
     def save(self, *args, **kwargs):
         result=super(Tool, self).save(*args, **kwargs)

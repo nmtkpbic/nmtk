@@ -33,10 +33,13 @@ from django.http import HttpResponse, Http404
 from django.core.urlresolvers import reverse
 from NMTK_apps import urls
 from NMTK_apps import decorators
+from django.core.exceptions import SuspiciousOperation, PermissionDenied
 import json
 from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
-import os
+from importlib import import_module
+import os, stat
+import tempfile
 import logging
 logger=logging.getLogger(__name__)
 
@@ -128,8 +131,8 @@ def runModel(request, tool_name, subtool_name=None):
         logger.debug('Job Config is: %s', config)
         request.FILES['config'].seek(0)
     except Exception, e:
-        logger.exception('Job configuration not parseable (%s)!', e)
-        raise SuspiciousOperation('Job configuration is not parseable!')
+        logger.exception('Job configuration not parsable (%s)!', e)
+        raise SuspiciousOperation('Job configuration is not parsable!')
     
     input_files={}
     # Grab all the files that were passed to the tool and 
@@ -155,10 +158,15 @@ def runModel(request, tool_name, subtool_name=None):
     # job...
     
     # here we call the task for the model.
-    module="{0}.{1}".format(tool_name, 'tasks')
-    tasks=__import__(module)
-    ret = tasks.performModel.delay(input_files=input_files,
-                                   tool_config=config,
-                                   client=request.NMTK.client,
-                                   subtool_name=subtool_name)
-    return HttpResponse('OK')        
+    module_name="{0}.tasks".format(tool_name)
+    tasks=import_module(module_name)
+    logger.info('Task module (%s) is %s (%s)', module_name, 
+                tasks.__name__, tasks.__file__)
+    if hasattr(tasks, 'performModel'):
+        ret = tasks.performModel.delay(input_files=input_files,
+                                       tool_config=config,
+                                       client=request.NMTK.client,
+                                       subtool_name=subtool_name)
+        return HttpResponse('OK') 
+    else:
+        raise SuspiciousOperation('Invalid tool!')   
