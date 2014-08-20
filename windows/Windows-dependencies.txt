@@ -1,0 +1,118 @@
+- GDAL 1.10 or later
+- MapServer 6.1 or later
+- Spatialite 3 or later
+- mod_wsgi 3.3 or later
+- Python 2.7 or later
+
+Also:
+
+Apache2
+Git
+Proj.4
+
+Need python bindings to GDAL/OGR.
+
+Strategies (for a 64-bit windows isntall)
+
+1. Install Git
+   project source code is at https://github.com/chander/nmtk
+   put that in a folder we'll call $NMTK (e.g. c:\Users\Jeremy\Documents\GitHub\nmtk)
+
+2. Install Python 2.7 (Because of likely desire to use numpy/scipy, you are limited to
+   32-bit Python until numpy and scipy catch up to the 64-bit world)
+   Install as administrator for all users (to support Apache mod_wsgi)
+   https://www.python.org/download
+   https://www.python.org/ftp/python/2.7.8/python-2.7.8.msi
+
+2A.Setuptools
+   In Powershell (easiest):
+   (Invoke-WebRequest https://bootstrap.pypa.io/ez_setup.py).Content | c:\python27\python -
+   (Invoke-WebRequest https://bootstrap.pypa.io/get-pip.py).Content | c:\python27\python -
+
+2B.Virtualenv
+   Open a command window (CMD.EXE), then do this:
+   pip install virtualenv
+   cd $NMTK
+   virtualenv venv
+
+   To activate the virtual environment:
+   venv\Scripts\activate.bat
+
+   You can keep running in Powershell, but it gets icky:
+   To activate a virtualenv in Powershell, there's a script, but you need to
+   activate Powershell scripts.  Run Powershell as an administrator and do this:
+     Set-ExecutionPolicy RemoteSigned
+   After doing that once, you can continue to run Powershell as a regular user
+   Then you can do this in a Powershell window to activate the virtualenv:
+     cd $NMTK # if you weren't already
+     . .\venv\Scripts\activate.ps1
+
+3. Install Spatialite
+   http://www.gaia-gis.it/gaia-sins/
+   The windows binaries folder has .7z (7-Zip) files for download.
+   You need the spatiliate.exe executable in order to be able to initialize an
+   appropriate database.
+   pysqlite (a requirement) comes pre-built in the standard Windows python
+   installation, and it doesn't need to interact with the Spatialite binary.
+
+4. Install GDAL/OGR
+   http://pythongisandstuff.wordpress.com/2011/07/07/installing-gdal-and-ogr-for-python-on-windows/
+	1. Get the GDAL core files (http://www.gisinternals.com/sdk/)
+	   http://www.gisinternals.com/sdk/Download.aspx?file=release-1600-gdal-1-11-0-mapserver-6-4-1\gdal-111-1600-core.msi
+	2. Get the Python bindings
+	   http://www.gisinternals.com/sdk/Download.aspx?file=release-1600-gdal-1-11-0-mapserver-6-4-1\GDAL-1.11.0.win32-py2.7.msi
+	3. Install GDAL
+	   Just double click the GDAL installer and let it do a typical install
+	4. Edit Environment Variables
+           Put C:\Program Files (x86)\GDAL in the path
+           Create a new environment variable GDAL_DATA=C:\Program Files (x86)\GDAL\gdal-data
+	5. Install Python bindings
+	   IMPORTANT: Do NOT install to the standard Python location
+	   Instead, choose an "alternate Python" and use this path (adjusted to wherever your virtualenv is):
+	   c:\Users\Jeremy\Documents\GitHub\nmtk\venv\
+	   Otherwise the bindings end up in a place not on the python path.
+	6. Test installation
+	   Start python from within the virtualenv, and do "from osgeo import ogr"
+
+5. Install Mapserver
+   Use the zipped Mapserver binaries from gisinternals.org:
+   http://gisinternals.com/sdk/Download.aspx?file=release-1600-gdal-1-11-0-mapserver-6-4-1.zip
+   (the Mapserver executable therein should work with the OGR/GDAL version)
+
+6. Install Python requirements using pip
+6A.Numpy has its own installer (Warning: 32 bits)
+   http://sourceforge.net/projects/numpy/files/NumPy/1.8.1/numpy-1.8.1-win32-superpack-python2.7.exe/download
+   Open that file with 7-zip or a similar unarchive utility and extract this element:
+   numpy-1.8.1-sse3.exe
+   Then open the virtual environment and run this command (use sse or sse2 depending on processor, sse3 works with most modern ones)
+   and run this command:
+   easy_install c:\path\to\extracted\numpy-1.8.1-sse3.exe
+6B.scipy has its own installer:
+   http://downloads.sourceforge.net/project/scipy/scipy/0.14.0/scipy-0.14.0-win32-superpack-python2.7.exe
+   Open that file with 7-zip or a similar unarchive utility and extract this element:
+   scipy-0.14.0-sse3.exe
+   Then open the virtual environment and run this command (use sse or sse2 depending on processor, sse3 works with most modern ones)
+   and run this command:
+   easy_install c:\path\to\extracted\scipy-0.14.0-sse3.exe
+6C.lxml has its own installer:
+   lxml-3.3.5.win-amd64-py2.7.exe
+   Use easy_install with it after activating the virtualenv:
+   easy_install c:\path\to\lxml-3.3.5.win-amd64-py2.7.exe
+6D.Run pip with the remaining requirements inside the venv:
+   pip install -r win-requirements.txt
+   
+7. Install Celery
+   http://mrtn.me/blog/2012/07/04/django-on-windows-run-celery-as-a-windows-service/
+8. Install NMTK code into Python virtualenv
+	Run nosestests on the APIs etc.
+9A. Install Apache2
+   Trying 2.4.10 from apachelounge
+   http://www.apachelounge.com/download/win64/binaries/httpd-2.4.10-win64.zip
+   Goes in C:\Apache2\
+9B  VC10 Redistributable (if not already present):
+   http://www.microsoft.com/en-us/download/details.aspx?id=13523
+10.Install mod_wsgi
+   At http://www.lfd.uci.edu/~gohlke/pythonlibs/#mod_wsgi
+   Get mod_wsgi-3.5.ap24.win-amd64-py2.7.zip
+   Goes in C:\Apache2\modules
+
