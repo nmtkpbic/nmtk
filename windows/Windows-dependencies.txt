@@ -12,7 +12,7 @@ Proj.4
 
 Need python bindings to GDAL/OGR.
 
-Strategies (for a 64-bit windows isntall)
+Strategies (for a 32-bit windows install)
 
 1. Install Git
    project source code is at https://github.com/chander/nmtk
@@ -100,6 +100,8 @@ Strategies (for a 64-bit windows isntall)
    easy_install c:\path\to\lxml-3.3.5.win-amd64-py2.7.exe
 6D.Run pip with the remaining requirements inside the venv:
    pip install -r win-requirements.txt
+
+   This is as far as I've gotten... (JR, 2014-08-19)
    
 7. Install Celery
    http://mrtn.me/blog/2012/07/04/django-on-windows-run-celery-as-a-windows-service/
