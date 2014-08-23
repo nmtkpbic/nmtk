@@ -16,6 +16,9 @@ from NMTK_server import signals
 import logging
 logger=logging.getLogger(__name__)
 
+class IPAddressFieldNullable(models.IPAddressField) :
+    def get_db_prep_save(self, value, connection):
+        return value or None
 
 class NMTKDataFileSystemStorage(FileSystemStorage):
     def url(self, name):
@@ -51,10 +54,10 @@ class ToolServer(models.Model):
     tool_server_id = UUIDField(auto=True, primary_key=True)
     auth_token=models.CharField(max_length=50,
                              default=lambda: ''.join([choice('abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)') for i in range(50)]))
-    remote_ip=models.IPAddressField(blank=True,null=True,
-                                    help_text=('The IP where the tool resides' +
-                                               ' so we can verify the request' +
-                                               ' source IP as well if needed'))
+    remote_ip=IPAddressFieldNullable(blank=True,null=True,
+                                     help_text=('The IP where the tool resides' +
+                                                ' so we can verify the request' +
+                                                ' source IP as well if needed'))
     active=models.BooleanField(default=True)
     last_modified=models.DateTimeField(auto_now=True)
     server_url=models.URLField()
