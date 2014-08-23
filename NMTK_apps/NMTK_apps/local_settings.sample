@@ -78,20 +78,26 @@ if platform.system() != 'Windows':
         }
     }
 else:
-	# The default database to use is spatialite, however on 
-	# windows installations it should be PostgreSQL, since spatialite
-	# seems to not function properly.
+    # The default database to use is spatialite, however on 
+    # windows installations it should be PostgreSQL, since spatialite
+    # seems to not function properly.
     DATABASES = {
         'default': {
             'ENGINE': 'django.contrib.gis.db.backends.postgis', 
+            # This database must be created, generally, this is done
+            # using the following commands:
+            # create database nmtk;
+            # \c nmtk;
+            # create extension postgis;
             'NAME': 'nmtk',  
+            # On windows this USER and PASSWORD must match the user and
+            # password you have set.
             'USER': 'postgres',                
             'PASSWORD': 'secret',    
             'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
             'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
         }
     }
-
 
 
 # Enable debug only on development sites/servers
