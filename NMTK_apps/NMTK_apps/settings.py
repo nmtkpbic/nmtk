@@ -193,10 +193,10 @@ if NMTK_SERVER:
                                        )
 
 # The test tool only gets installed if debug is set to true.
-if not PRODUCTION and TOOL_SERVER:
-    INSTALLED_APPS=INSTALLED_APPS + (
-                                     'test_tool', # A sample tool designed for testing new stuff.
-                                     )
+# if not PRODUCTION and TOOL_SERVER:
+#     INSTALLED_APPS=INSTALLED_APPS + (
+#                                      'test_tool', # A sample tool designed for testing new stuff.
+#                                      )
 
 
 # Define a GeoJSON serializer so we can serialize and return results of
