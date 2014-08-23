@@ -43,11 +43,56 @@ __all__=['SITE_DOMAIN', 'PRODUCTION',
          'NODE_PATH', 'LEGEND_FONT', 'MAPSERVER_TEMPLATE',
          'SERVER_EMAIL','DEFAULT_FROM_EMAIL','SECRET_KEY',
          'FILES_PATH','LOGFILE_PATH','NMTK_SERVERS',
-         'NMTK_TOOL_APPS', 'NMTK_SERVER','TOOL_SERVER']
+         'NMTK_TOOL_APPS', 'NMTK_SERVER','TOOL_SERVER',
+         'DATABASES']
 import os
 import socket
+import platform
 
 BASE_PATH=os.path.dirname(__file__)
+#
+# Note: The settings below are automatically determined based on the location
+#       of this file, you should not need to modify them, unless you are installing
+#       things in locations other than those specified in the installation instructions.
+#
+# The path to the MapServer executable
+#MAPSERV_PATH=os.path.abspath(os.path.join(BASE_PATH, '..', '..', 'cgi-bin','mapserv'))
+MAPSERV_PATH='/usr/lib/cgi-bin/mapserv'
+# The path to where node.js binaries are installed.
+NODE_PATH=os.path.abspath(os.path.join(BASE_PATH, '..', '..', 'node','bin'))
+# The font used for legend text.
+LEGEND_FONT=os.path.abspath(os.path.join(BASE_PATH,'..','..','fonts','Amble-Regular.ttf'))
+MAPSERVER_TEMPLATE=os.path.abspath(os.path.join(BASE_PATH, '..','NMTK_server','templates','NMTK_server','mapserver_template.js'))
+FILES_PATH=os.path.abspath(os.path.join(BASE_PATH, '..','..','nmtk_files'))
+LOGFILE_PATH=os.path.abspath(os.path.join(BASE_PATH, '..','..','logs'))
+
+if platform.system() != 'Windows':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.contrib.gis.db.backends.spatialite', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+            'NAME': os.path.join(FILES_PATH,'nmtk.sqlite'),  # Or path to database file if using sqlite3.
+            'USER': '',                      # Not used with sqlite3.
+            'PASSWORD': '',                  # Not used with sqlite3.
+            'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
+            'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+        }
+    }
+else:
+	# The default database to use is spatialite, however on 
+	# windows installations it should be PostgreSQL, since spatialite
+	# seems to not function properly.
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.contrib.gis.db.backends.postgis', 
+            'NAME': 'nmtk',  
+            'USER': 'postgres',                
+            'PASSWORD': 'secret',    
+            'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
+            'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+        }
+    }
+
+
 
 # Enable debug only on development sites/servers
 DEBUG = False
@@ -180,18 +225,4 @@ NMTK_TOOL_APPS=('MN_model', # The tool for the Minnesota pedestrian/cycle models
 
 
 
-#
-# Note: The settings below are automatically determined based on the location
-#       of this file, you should not need to modify them, unless you are installing
-#       things in locations other than those specified in the installation instructions.
-#
-# The path to the MapServer executable
-#MAPSERV_PATH=os.path.abspath(os.path.join(BASE_PATH, '..', '..', 'cgi-bin','mapserv'))
-MAPSERV_PATH='/usr/lib/cgi-bin/mapserv'
-# The path to where node.js binaries are installed.
-NODE_PATH=os.path.abspath(os.path.join(BASE_PATH, '..', '..', 'node','bin'))
-# The font used for legend text.
-LEGEND_FONT=os.path.abspath(os.path.join(BASE_PATH,'..','..','fonts','Amble-Regular.ttf'))
-MAPSERVER_TEMPLATE=os.path.abspath(os.path.join(BASE_PATH, '..','NMTK_server','templates','NMTK_server','mapserver_template.js'))
-FILES_PATH=os.path.abspath(os.path.join(BASE_PATH, '..','..','nmtk_files'))
-LOGFILE_PATH=os.path.abspath(os.path.join(BASE_PATH, '..','..','logs'))
+

@@ -49,19 +49,19 @@ warnings.filterwarnings('ignore',r"'NoneType' object has no attribute 'destroy_g
 djcelery.setup_loader()
 
 MANAGERS = ADMINS
-ALLOWED_HOSTS=[SITE_DOMAIN,]
-if DEBUG:
-   ALLOWED_HOSTS.append('127.0.0.1')
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.spatialite', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': os.path.join(FILES_PATH,'nmtk.sqlite'),  # Or path to database file if using sqlite3.
-        'USER': '',                      # Not used with sqlite3.
-        'PASSWORD': '',                  # Not used with sqlite3.
-        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+ALLOWED_HOSTS=[SITE_DOMAIN,'127.0.0.1']
+
+if not DATABASES:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.contrib.gis.db.backends.spatialite', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+            'NAME': os.path.join(FILES_PATH,'nmtk.sqlite'),  # Or path to database file if using sqlite3.
+            'USER': '',                      # Not used with sqlite3.
+            'PASSWORD': '',                  # Not used with sqlite3.
+            'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
+            'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+        }
     }
-}
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
