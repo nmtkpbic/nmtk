@@ -84,10 +84,6 @@ if settings.TOOL_SERVER:
                                 url(r'^(?P<tool_name>[^/]+)(?:/(?P<subtool_name>[^/]+)/?)?$',
                                     'NMTK_tools.views.tool_base_view', {}, name='tool_base'),
                             )
-    if not settings.PRODUCTION:
-       urlpatterns += patterns('',
-                               url(r'^test_tool/', include('test_tool.urls')),
-                               )
 
 
     
