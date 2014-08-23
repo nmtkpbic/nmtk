@@ -43,7 +43,7 @@ __all__=['SITE_DOMAIN', 'PRODUCTION',
          'NODE_PATH', 'LEGEND_FONT', 'MAPSERVER_TEMPLATE',
          'SERVER_EMAIL','DEFAULT_FROM_EMAIL','SECRET_KEY',
          'FILES_PATH','LOGFILE_PATH','NMTK_SERVERS',
-         'NMTK_TOOL_APPS']
+         'NMTK_TOOL_APPS', 'NMTK_SERVER','TOOL_SERVER']
 import os
 import socket
 
@@ -176,7 +176,6 @@ NMTK_SERVER=True
 #
 NMTK_TOOL_APPS=('MN_model', # The tool for the Minnesota pedestrian/cycle models
                 'SF_model', # The tool for the SF pedestrian model
-                'demo_tool',
                 )
 
 

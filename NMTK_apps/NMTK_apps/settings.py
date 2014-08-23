@@ -50,6 +50,8 @@ djcelery.setup_loader()
 
 MANAGERS = ADMINS
 ALLOWED_HOSTS=[SITE_DOMAIN,]
+if DEBUG:
+   ALLOWED_HOSTS.append('127.0.0.1')
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.spatialite', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
