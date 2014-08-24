@@ -14,6 +14,7 @@ import logging
 import os
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.gis.db.backends.spatialite.creation import SpatiaLiteCreation 
+from django.contrib.gis.db.backends.spatialite.operations import SpatiaLiteOperations
 from NMTK_server.data_loaders.loaders import NMTKDataLoader
 from django.core.files import File
 from django.contrib.gis import geos
@@ -183,7 +184,7 @@ def generate_sqlite_database(datafile, loader):
                 # without a package.
                 user_model=imp.load_source('%s.models' % (datafile.pk,),datafile.model.path)
                 connection=connections[database]
-                connection.ops.spatial_version=(3,0,1)
+                connection.ops=SpatiaLiteOperations(connection)
                 SpatiaLiteCreation(connection).load_spatialite_sql() 
                 cursor=connection.cursor()
                 for statement in connection.creation.sql_create_model(user_model.Results, no_style())[0]:
