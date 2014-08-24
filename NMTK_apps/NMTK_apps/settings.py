@@ -41,6 +41,9 @@ BASE_PATH=os.path.dirname(__file__)
 # It should be noted that if you use any kind of vhost setup, then this
 # probably won't work, and will result in all kinds of broken-ness :-) 
 
+# For systems using older versions of SQLITE (like Windows) we need to provide
+# the init script to initialize a new database
+SPATIALITE_SQL=os.path.join(BASE_PATH, 'init_spatialite-2.3.sql')
 DEBUG = False
 TEMPLATE_DEBUG = TASTYPIE_FULL_DEBUG = DEBUG
 from local_settings import *
