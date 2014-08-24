@@ -32,6 +32,7 @@ import os
 import djcelery
 import socket
 import warnings 
+import platform
 
 BASE_PATH=os.path.dirname(__file__)
 
@@ -43,7 +44,10 @@ BASE_PATH=os.path.dirname(__file__)
 
 # For systems using older versions of SQLITE (like Windows) we need to provide
 # the init script to initialize a new database
-SPATIALITE_SQL=os.path.join(BASE_PATH, 'init_spatialite-2.3.sql')
+if platform.system() != 'Windows':
+    SPATIALITE_SQL=os.path.join(BASE_PATH, 'init_spatialite-2.3.sql')
+    SPATIALITE_LIBRARY_PATH='libspatialite-2.dll'
+
 DEBUG = False
 TEMPLATE_DEBUG = TASTYPIE_FULL_DEBUG = DEBUG
 from local_settings import *
