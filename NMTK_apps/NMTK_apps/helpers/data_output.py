@@ -57,11 +57,11 @@ def getQuerySet(datafile):
         if db_id not in settings.DATABASES:
             settings.DATABASES[db_id]={'ENGINE': 'django.contrib.gis.db.backends.spatialite', 
                                        'NAME': datafile.sqlite_db.path }
-        qs=getattr(models, 'Results_{0}'.format(datafile.pk)).objects.using(db_id).all()
+        qs=getattr(model, 'Results_{0}'.format(datafile.pk)).objects.using(db_id).all()
     else:
         # In this case we need to use the model stored inside the PostGIS database,
         # so we omit the using() and instead go right for the data...
-        qs=getattr(models, 'Results_{0}'.format(datafile.pk)).objects.all()
+        qs=getattr(model, 'Results_{0}'.format(datafile.pk)).objects.all()
     return qs
 
 def stream_csv(datafile):

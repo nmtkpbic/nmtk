@@ -174,6 +174,8 @@ def generate_datamodel(datafile, loader):
                                          format(' '*4, model_type))
                 model_content.append('''{0}objects=models.GeoManager()'''.format(' '*4,))
                 
+                model_content.append('''{0}class Meta:'''.format(' '*4,))
+                model_content.append('''{0}db_table='userdata_results_{1}' '''.format(' '*8,datafile.pk))
                 datafile.model.save('model.py', ContentFile('\n'.join(model_content)),
                                     save=False)
                 #logger.debug('\n'.join(model_content))
