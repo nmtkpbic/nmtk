@@ -51,12 +51,17 @@ def getQuerySet(datafile):
     '''
     Given a datafile record, return a spatialite queryset representing the datafile results.
     '''
-    db_id='{0}'.format(datafile.pk)
-    if db_id not in settings.DATABASES:
-        settings.DATABASES[db_id]={'ENGINE': 'django.contrib.gis.db.backends.spatialite', 
-                                   'NAME': datafile.sqlite_db.path }
     model=imp.load_source('%s.models' % (datafile.pk,),datafile.model.path)
-    qs=model.Results.objects.using(db_id).all()
+    if getattr(settings,'USER_MODELS_LOCATION','spatialite')=='spatialite':
+        db_id='{0}'.format(datafile.pk)
+        if db_id not in settings.DATABASES:
+            settings.DATABASES[db_id]={'ENGINE': 'django.contrib.gis.db.backends.spatialite', 
+                                       'NAME': datafile.sqlite_db.path }
+        qs=getattr(models, 'Results_{0}'.format(datafile.pk)).objects.using(db_id).all()
+    else:
+        # In this case we need to use the model stored inside the PostGIS database,
+        # so we omit the using() and instead go right for the data...
+        qs=getattr(models, 'Results_{0}'.format(datafile.pk)).objects.all()
     return qs
 
 def stream_csv(datafile):

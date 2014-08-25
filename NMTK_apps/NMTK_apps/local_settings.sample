@@ -44,7 +44,7 @@ __all__=['SITE_DOMAIN', 'PRODUCTION',
          'SERVER_EMAIL','DEFAULT_FROM_EMAIL','SECRET_KEY',
          'FILES_PATH','LOGFILE_PATH','NMTK_SERVERS',
          'NMTK_TOOL_APPS', 'NMTK_SERVER','TOOL_SERVER',
-         'DATABASES']
+         'DATABASES','USER_MODELS_LOCATION']
 import os
 import socket
 import platform
@@ -66,6 +66,9 @@ MAPSERVER_TEMPLATE=os.path.abspath(os.path.join(BASE_PATH, '..','NMTK_server','t
 FILES_PATH=os.path.abspath(os.path.join(BASE_PATH, '..','..','nmtk_files'))
 LOGFILE_PATH=os.path.abspath(os.path.join(BASE_PATH, '..','..','logs'))
 
+
+DATABASE_TYPE='postgis'
+
 if platform.system() != 'Windows':
     DATABASES = {
         'default': {
@@ -75,8 +78,10 @@ if platform.system() != 'Windows':
             'PASSWORD': '',                  # Not used with sqlite3.
             'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
             'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
-        }
+        }        
     }
+	USER_MODELS_LOCATION='spatialite' # Store user data in flat files on disk using spatialite.
+    
 else:
     # The default database to use is spatialite, however on 
     # windows installations it should be PostgreSQL, since spatialite
@@ -98,6 +103,8 @@ else:
             'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
         }
     }
+	USER_MODELS_LOCATION='postgis' # Store user data in postgis.
+    
 
 
 # Enable debug only on development sites/servers

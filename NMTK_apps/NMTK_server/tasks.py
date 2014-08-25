@@ -127,7 +127,8 @@ def generateColorRampLegendGraphic(min_text, max_text,
 
 # This actually does not get done as a task - it is inline with the
 # response from the tool server.
-def generate_sqlite_database(datafile, loader):
+def generate_datamodel(datafile, loader):
+    models_spatialite=('spatialite' == getattr(settings,'USER_MODELS_LOCATION','spatialite'))
     def propertymap(data):
         output={}
         used=[]
@@ -157,10 +158,10 @@ def generate_sqlite_database(datafile, loader):
                 db_created=True
                 if datafile.result_field:
                     min_result=max_result=float(row[datafile.result_field])
-                database='%s'% (datafile.pk,)
+                
                 field_map=propertymap(row.keys())
                 # Create the model for this data
-                model_content.append('class Results(models.Model):')
+                model_content.append('class Results_{0}(models.Model):'.format(datafile.pk))
                 # Add an auto-increment field for it (the PK)
                 model_content.append('{0}nmtk_id=models.IntegerField(primary_key=True)'.format(' ' * 4))
                 model_content.append('{0}nmtk_feature_id=models.IntegerField()'.format(' '*4))
@@ -176,20 +177,31 @@ def generate_sqlite_database(datafile, loader):
                 datafile.model.save('model.py', ContentFile('\n'.join(model_content)),
                                     save=False)
                 #logger.debug('\n'.join(model_content))
-                datafile.sqlite_db.save('db', ContentFile(''), save=False)
-                settings.DATABASES[database]={'ENGINE': 'django.contrib.gis.db.backends.spatialite', 
-                                              'NAME': datafile.sqlite_db.path }
+                user_models=imp.load_source('%s.models' % (datafile.pk,),datafile.model.path)
+                Results_model=getattr(user_models,'Results_{0}'.format(datafile.pk))
+                if models_spatialite:
+                    # if we are using spatialite, we need to create the 
+                    # database file on disk and intiailize it.
+                    datafile.sqlite_db.save('db', ContentFile(''), save=False)
+                    database='%s'% (datafile.pk,)
+                    settings.DATABASES[database]={'ENGINE': 'django.contrib.gis.db.backends.spatialite', 
+                                                  'NAME': datafile.sqlite_db.path }
                 # Must stick .model in there 'cause django doesn't like models
                 # without a package.
-                user_model=imp.load_source('%s.models' % (datafile.pk,),datafile.model.path)
-                connection=connections[database]
-                connection.ops.spatial_version=(3,0,1)
-                SpatiaLiteCreation(connection).load_spatialite_sql() 
+                    connection=connections[database]
+                    connection.ops.spatial_version=(3,0,1)
+                    SpatiaLiteCreation(connection).load_spatialite_sql()
+                    dbtype='sqlite'
+                else:
+                    database='default'
+                    # If using PostgreSQL, then just create the model and go...
+                    dbtype='postgis'
+                    connection=connections[database] 
                 cursor=connection.cursor()
-                for statement in connection.creation.sql_create_model(user_model.Results, no_style())[0]:
+                for statement in connection.creation.sql_create_model(Results_model, no_style())[0]:
                     #logger.debug(statement)
                     cursor.execute(statement)
-                for statement in connection.creation.sql_indexes_for_model(user_model.Results, no_style()):
+                for statement in connection.creation.sql_indexes_for_model(Results_model, no_style()):
                     #logger.debug(statement)
                     cursor.execute(statement)
             
@@ -208,10 +220,10 @@ def generate_sqlite_database(datafile, loader):
                     logger.exception('Result field (%s) is not a float (ignoring)', datafile.result_field)
             else:
                 min_result=max_result=1
-            m=user_model.Results(**this_row)
+            m=Results_model(**this_row)
             m.save(using=database)
 #             logger.debug('Saved model with pk of %s', m.pk)
-        logger.debug('Completing transferring results to sqlite database %s', datafile.pk,)
+        logger.debug('Completing transferring results to %s database %s', dbtype,datafile.pk,)
         if spatial:
             logger.debug('Spatial result generating styles (%s-%s)', min_result, max_result)
             step=math.fabs((max_result-min_result)/256)
@@ -228,14 +240,18 @@ def generate_sqlite_database(datafile, loader):
                                'high': v})
                 low=v
                 v += step or 1
+            data={'datafile': datafile,
+                  'dbtype': dbtype,
+                  'result_field': datafile.result_field,
+                  'static': min_result == max_result,
+                  'min': min_result,
+                  'max': max_result,
+                  'colors': colors,
+                  'mapserver_template': settings.MAPSERVER_TEMPLATE }
+            if dbtype == 'postgis':
+                data['dbsettings']=settings.DATABASES['default']
             res=render_to_string('NMTK_server/mapfile_{0}.map'.format(mapfile_type), 
-                                 {'datafile': datafile,
-                                  'result_field': datafile.result_field,
-                                  'static': min_result == max_result,
-                                  'min': min_result,
-                                  'max': max_result,
-                                  'colors': colors,
-                                  'mapserver_template': settings.MAPSERVER_TEMPLATE })
+                                 data)
             datafile.mapfile.save('mapfile.map', ContentFile(res), save=False)
             datafile.legendgraphic.save('legend.png', ContentFile(''), save=False)
             
@@ -507,7 +523,7 @@ def importDataFile(datafile, job_id=None):
             datafile.processed_file.save('{0}.{1}'.format(datafile.pk, suffix), 
                                          ContentFile(''))
             loader.export_json(datafile.processed_file.path)
-            generate_sqlite_database(datafile, loader)
+            generate_datamodel(datafile, loader)
         if job_id:
             try:
                 job=models.Job.objects.get(pk=job_id)
