@@ -53,10 +53,14 @@ def registerUser(request):
                   {'form': userform,
                    'site': site })    
 
-def nmtk_index(request):
+def nmtk_index(request, page_name='nmtk_index'):
+    data=models.PageContent.objects.filter(page__name='nmtk_index',
+                                           enabled=True)
+    
     return render(request, 'NMTK_server/index.html',
                   {'registration_open': settings.REGISTRATION_OPEN,
-                   'ui_installed': 'NMTK_ui' in settings.INSTALLED_APPS})
+                   'ui_installed': 'NMTK_ui' in settings.INSTALLED_APPS,
+                   'page_data': data})
 
 def nmtk_ui(request):
     '''

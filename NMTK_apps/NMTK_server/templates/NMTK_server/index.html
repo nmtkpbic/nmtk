@@ -27,21 +27,9 @@
 		<div class="span12">				
 				<div class="error-details">
 					<br />
-					<p class="lead">The US Federal Highway Administration Non-Motorized Toolkit (NMTK) is a
-					tool designed to facilitate the planning of non motorized forms of transportation
-					through the implementation and application of transportation models using region
-					specific data.  Transportation planning tools may be provided by a variety
-					of entities (commercial, education, government, etc.) and integrated into 
-					the toolkit via a well-defined API.</p>  
-					<p class="lead">The toolkit can then utilize these tools
-					using user-provided data and user-specified model parameters to execute
-					a variety of transportation models (tools.)  These results may then be
-					viewed (and downloaded) using the Toolkit server.</p>
-					<p class="lead">
-					This product is currently in development, and is not currently available to the 
-					public.
-					</p>
-
+					{% for row in page_data %}
+					<p class="lead">{{row.content}}</p>  
+					{% endfor %}
 				</div> <!-- /error-details -->
 												
 		</div> <!-- /span12 -->

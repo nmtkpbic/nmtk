@@ -88,6 +88,14 @@ class JobStatusAdmin(admin.ModelAdmin):
 
 class FeedbackAdmin(admin.ModelAdmin):
     list_display=['user', 'uri', 'date_created']
+    
+    
+class PageContentAdmin(admin.ModelAdmin):
+    list_display=['page', 'order', 'enabled']
+
+class PageNameAdmin(admin.ModelAdmin):
+    list_display=['pk', 'name']
+
 
 class DataFileAdmin(admin.ModelAdmin):
 #    def data_file(self, obj):
@@ -128,7 +136,8 @@ class DataFileAdmin(admin.ModelAdmin):
 
     
 
-
+admin.site.register(models.PageContent, PageContentAdmin)
+admin.site.register(models.PageName, PageNameAdmin)
 admin.site.register(models.Feedback, FeedbackAdmin)
 admin.site.register(models.ToolServer, ToolServerAdmin)
 admin.site.register(models.Tool, ToolAdmin)

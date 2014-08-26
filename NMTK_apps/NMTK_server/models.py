@@ -49,6 +49,29 @@ fs = NMTKDataFileSystemStorage(location=location)
 fs_geojson = NMTKGeoJSONFileSystemStorage(location=location)
 fs_results = NMTKResultsFileSystemStorage(location=location)
 
+
+class PageName(models.Model):
+    '''
+    Valid page names (current valid value is nmtk_index)
+    '''
+    name=models.CharField(max_length=16, null=False,
+                          blank=False, help_text='The name for the page this text belongs to')
+    class Meta:
+        db_table='nmtk_pagename'
+        
+    def __str__(self):
+        return self.name
+
+
+class PageContent(models.Model):
+    page=models.ForeignKey(PageName)
+    order=models.IntegerField(default=0)
+    content=models.TextField()
+    enabled=models.BooleanField(default=True)
+    class Meta:
+        db_table='nmtk_content'
+        ordering=['order',]
+        
 class ToolServer(models.Model):
     name=models.CharField(max_length=64,
                           help_text='A descriptive name for this tool server.')
@@ -79,7 +102,7 @@ class ToolServer(models.Model):
         return result
     
     class Meta:
-       
+        db_table='nmtk_tool_server'
         verbose_name='Tool Server'
         verbose_name_plural='Tool Servers'
     
@@ -120,6 +143,7 @@ class Tool(models.Model):
     class Meta:
         verbose_name='Tool'
         verbose_name_plural='Tools'
+        db_table='nmtk_tool'
         
     
 class ToolConfig(models.Model):
@@ -134,6 +158,8 @@ class ToolConfig(models.Model):
     class Meta:
         verbose_name='Tool Configuration'
         verbose_name_plural='Tool Configurations'
+        db_table='nmtk_tool_config'
+
         
 class ToolSampleConfig(models.Model):
     tool=models.OneToOneField(Tool, on_delete=models.CASCADE)
@@ -143,7 +169,8 @@ class ToolSampleConfig(models.Model):
     class Meta:
         verbose_name='Tool Sample Configuration'
         verbose_name_plural='Tool Sample Configurations'
-        
+        db_table='nmtk_tool_sample_config'
+
 class ToolSampleFile(models.Model):
     '''
     When we load up a tool we download it's data file and cache it on the
@@ -162,6 +189,8 @@ class ToolSampleFile(models.Model):
     class Meta:
         verbose_name='Tool Sample File'
         verbose_name_plural='Tool Sample Files'
+        db_table='nmtk_tool_sample_file'
+
     
     def delete(self):
         '''
@@ -276,6 +305,8 @@ class Job(models.Model):
         ordering=['-date_created']
         verbose_name='Job'
         verbose_name_plural='Jobs'
+        db_table='nmtk_job'
+
 
 
 class ResultsFile(models.Model):
@@ -289,6 +320,9 @@ class ResultsFile(models.Model):
     job=models.ForeignKey('Job', on_delete=models.CASCADE)
     datafile=models.ForeignKey('DataFile', on_delete=models.PROTECT)
     primary=models.BooleanField(default=False)
+    class Meta:
+        db_table='nmtk_results_file'
+
 
 class JobFile(models.Model):
     job = models.ForeignKey('Job', on_delete=models.CASCADE)
@@ -299,6 +333,8 @@ class JobFile(models.Model):
         return {'job': str(self.job.pk),
                 'datafile': self.datafile.pk,
                 'namespace': self.namespace}
+    class Meta:
+        db_table='nmtk_job_file'
   
 class DataFile(models.Model):
     PENDING=1
@@ -459,6 +495,7 @@ class DataFile(models.Model):
         ordering=['-date_created']
         verbose_name='Data File'
         verbose_name_plural='Data Files'
+        db_table='nmtk_data_file'
     
 class JobStatus(models.Model):
     '''
@@ -474,6 +511,7 @@ class JobStatus(models.Model):
         ordering=['job__pk','-timestamp']
         verbose_name='Job Status'
         verbose_name_plural='Job Status'
+        db_table='nmtk_job_status'
     
 class Feedback(models.Model):
     CHOICES=('No Opinion', 'Works', 'Needs Help', 'No Way');
@@ -490,7 +528,7 @@ class Feedback(models.Model):
         ordering=['-date_created']
         verbose_name='Feedback'
         verbose_name_plural='Feedback Items'
-
+        db_table='nmtk_feedback'
 
 class UserPreference(models.Model):
     user=models.ForeignKey(settings.AUTH_USER_MODEL, null=False)
@@ -501,4 +539,4 @@ class UserPreference(models.Model):
     class Meta:
         verbose_name='User Preference'
         verbose_name_plural='User Preferences'
-    
+        db_table='nmtk_user_preference'
