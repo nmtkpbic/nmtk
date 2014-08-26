@@ -451,7 +451,7 @@ def updateToolConfig(tool):
                                                                 '',
                                                                 ''])
                         else:
-                            raise Exception('Only absolute URLs or fully-aulified URLs allowed')
+                            raise Exception('Only absolute URLs or fully-qualified URLs allowed')
                     logger.debug('Attempting to download %s', fconfig['uri'])       
                     data=requests.get(fconfig['uri'], stream=True)
                     checksum=hashlib.sha1()

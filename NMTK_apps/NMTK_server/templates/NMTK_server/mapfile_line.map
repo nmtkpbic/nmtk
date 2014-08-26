@@ -79,9 +79,7 @@ MAP
 
   LAYER
     NAME "results"
-    CONNECTIONTYPE OGR
-    CONNECTION "{{datafile.sqlite_db.path}}"
-    DATA "{{datafile.pk}}_results"
+    {% include "NMTK_server/mapfile_conninfo.map" %}
 #    DATA 'SELECT nmtk_geometry,* FROM "{{datafile.pk}}_results"'
     TYPE LINE
 #    STATUS ON
