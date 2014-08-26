@@ -1,0 +1,5 @@
+    CONNECTIONTYPE {{connectiontype}}
+    CONNECTION "{{connection}}"
+    # Generate a query to get those features that are requested for highlighting.
+    #DATA 'SELECT nmtk_geometry FROM "{{datafile.pk}}_results" WHERE nmtk_id in (%ids%)'
+    DATA '{{highlight_data}}'
