@@ -251,7 +251,21 @@ def generate_datamodel(datafile, loader):
                   'colors': colors,
                   'mapserver_template': settings.MAPSERVER_TEMPLATE }
             if dbtype == 'postgis':
-                data['dbsettings']=settings.DATABASES['default']
+                data['connectiontype']='POSTGIS'
+                dbs=settings.DATABASES['default']
+                data['connection']='''host={0} dbname={1} user={2} password={3} port={4}'''.format(dbs.get('HOST', None) or 'localhost',
+                                                                                                   dbs.get('NAME'),
+                                                                                                   dbs.get('USER'),
+                                                                                                   dbs.get('PASSWORD'),
+                                                                                                   dbs.get('PORT', None) or '5432')
+                data['data']='nmtk_geometry from userdata_results_{0}'.format(datafile.pk)
+                data['highlight_data']='''nmtk_geometry from (select * from userdata_results{0} where nmtk_id in (%ids%)) as subquery
+                                          using unique nmtk_id'''.format(datafile.pk)
+            else:
+                data['connectiontype']='OGR'
+                data['connection']=datafile.sqlite_db.path
+                data['data']='userdata_results_{0}'.format(datafile.pk)
+                data['highlight_data']='''SELECT nmtk_geometry FROM "userdata_results_{0}" WHERE nmtk_id in (%ids%)'''.format(datafile.pk)
             res=render_to_string('NMTK_server/mapfile_{0}.map'.format(mapfile_type), 
                                  data)
             datafile.mapfile.save('mapfile.map', ContentFile(res), save=False)

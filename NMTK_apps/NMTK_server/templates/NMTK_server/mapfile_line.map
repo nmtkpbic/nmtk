@@ -121,10 +121,7 @@ MAP
 
   LAYER
     NAME "highlight"
-    CONNECTIONTYPE OGR
-    CONNECTION "{{datafile.sqlite_db.path}}"
-    # Generate a query to get those features that are requested for highlighting.
-    DATA 'SELECT nmtk_geometry FROM "{{datafile.pk}}_results" WHERE nmtk_id in (%ids%)'
+	{% include "NMTK_server/mapfile_highlight_conninfo.map" %}
     VALIDATION
       "ids" "[0-9,]+"
     END

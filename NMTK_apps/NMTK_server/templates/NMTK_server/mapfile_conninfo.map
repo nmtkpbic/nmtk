@@ -1,9 +1,3 @@
-{% if dbsettings %}
-    CONNECTIONTYPE POSTGIS
-    CONNECTION "{% if dbsettings.HOST %}host={{dbsettings.HOST}}{% endif %} dbname={{dbsettings.NAME}} user={{dbsettings.USER}} password={{dbsettings.PASSWORD}} {% if dbsettings.PORT %}port={{dbsettings.PORT}}{% endif %}"
-    DATA "nmtk_geometry from userdata_results_{{datafile.pk}}"
-{% else %}
-    CONNECTIONTYPE OGR
-    CONNECTION "{{datafile.sqlite_db.path}}"
-    DATA "userdata_results_{{datafile.pk}}"
-{% endif %}
+    CONNECTIONTYPE {{connectiontype}}
+    CONNECTION "{{connection}}"
+    DATA "{{data}}"
