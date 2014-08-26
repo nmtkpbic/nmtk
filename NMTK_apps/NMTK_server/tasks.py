@@ -495,6 +495,10 @@ def updateToolConfig(tool):
                                     m.content_type=t
                             m.file.save(name, File(f))
                             objects_to_delete.append(m)
+            for m in objects_to_save:
+                m2=models.ToolSampleConfig.objects.filter(tool=m.tool)
+                if len(m2) == 1:
+                    m.pk=m2[0].pk
             [m.save() for m in objects_to_save]
     except:
         logger.exception('Failed to load tool sample config.')
