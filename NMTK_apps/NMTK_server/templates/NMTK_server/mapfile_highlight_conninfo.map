@@ -1,5 +1,5 @@
-    CONNECTIONTYPE {{connectiontype}}
-    CONNECTION "{{connection}}"
+    CONNECTIONTYPE {{connectiontype|safe}}
+    CONNECTION "{{connection|safe}}"
     # Generate a query to get those features that are requested for highlighting.
-    #DATA 'SELECT nmtk_geometry FROM "{{datafile.pk}}_results" WHERE nmtk_id in (%ids%)'
-    DATA '{{highlight_data}}'
+    #DATA 'SELECT nmtk_geometry FROM {{datafile.pk}}_results WHERE nmtk_id in (%ids%)'
+    DATA '{{highlight_data|safe}}'

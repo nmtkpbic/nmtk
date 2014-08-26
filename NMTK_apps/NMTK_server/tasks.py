@@ -259,7 +259,7 @@ def generate_datamodel(datafile, loader):
                                                                                                    dbs.get('PASSWORD'),
                                                                                                    dbs.get('PORT', None) or '5432')
                 data['data']='nmtk_geometry from userdata_results_{0}'.format(datafile.pk)
-                data['highlight_data']='''nmtk_geometry from (select * from userdata_results{0} where nmtk_id in (%ids%)) as subquery
+                data['highlight_data']='''nmtk_geometry from (select * from userdata_results_{0} where nmtk_id in (%ids%)) as subquery
                                           using unique nmtk_id'''.format(datafile.pk)
             else:
                 data['connectiontype']='OGR'

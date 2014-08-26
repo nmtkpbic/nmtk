@@ -133,8 +133,16 @@ pushd $BASEDIR &> /dev/null
 sudo rm -rf nmtk_files/*
 source venv/bin/activate
 pushd NMTK_apps &> /dev/null
+DB_TYPE=$(python manage.py db_type -t)
+DB_NAME=$(python manage.py db_type -d)
 pushd ../nmtk_files &> /dev/null
-spatialite nmtk.sqlite  "SELECT InitSpatialMetaData();"
+if [[ $DB_TYPE == 'spatialite' ]]; then
+  spatialite nmtk.sqlite  "SELECT InitSpatialMetaData();"
+else
+  dropdb $DB_NAME
+  createdb $DB_NAME
+  psql $DB_NAME -c "create extension postgis;"
+fi
 popd &> /dev/null
 python manage.py syncdb --noinput
 # Use the -l argument for development, otherwise js/css changes require recopying
