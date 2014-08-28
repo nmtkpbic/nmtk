@@ -80,6 +80,7 @@ if platform.system() != 'Windows' and DATABASE_TYPE != 'postgis':
             'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
         }        
     }
+    DATABASE_TYPE='spatialite'
 	USER_MODELS_LOCATION='spatialite' # Store user data in flat files on disk using spatialite.
 else:
     # The default database to use is spatialite, however on 
@@ -102,6 +103,7 @@ else:
             'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
         }
     }
+    DATABASE_TYPE='postgis'
 	USER_MODELS_LOCATION='postgis' # Store user data in postgis.
     
 
