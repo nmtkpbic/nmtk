@@ -35,6 +35,11 @@ cat <<-EOT
 	        are running a development/test server and are trying to reset it, 
 	        you should answer "N" to the question below.
 EOT
+if [[ "${OS}" == "Windows_NT" ]]; then
+  WINDOWS=1
+else
+  WINDOWS=0
+fi
 echo -n "Reset Server (remove all data) y/N? "
 read ANSWER
 if [[ "${ANSWER}" != 'Y' && "${ANSWER}" != 'y' ]]; then
@@ -47,22 +52,29 @@ for DIR in nmtk_files logs htdocs/static; do
   if [[ ! -d $DIR ]]; then
     mkdir -p $DIR
   fi
-  sudo chown -R $USER.www-data $DIR
-  sudo find $DIR -type d -exec chmod -R g+rwxs {} \;
-  sudo find $DIR -exec chmod -R g+rw {} \;
+  if [[ $WINDOWS == 0 ]]; then
+    sudo chown -R $USER.www-data $DIR
+    sudo find $DIR -type d -exec chmod -R g+rwxs {} \;
+    sudo find $DIR -exec chmod -R g+rw {} \;
+  fi
 done
 if [ -f ./.nmtk_config ]; then
   source ./.nmtk_config
 fi
-if [ ${#NMTK_NAME} == 0 ]; then
-  NMTK_NAME=$(hostname -s)
-fi
-if [ ${#URL} == 0 ]; then
-  echo -n "Enter URL for this tool server (Enter for http://$(hostname --fqdn)/): "
-  read URL
-  if [ ${#URL} == 0 ]; then
-    URL="http://$(hostname --fqdn)/"
+if [[ $WINDOWS == 0 ]] ; then
+  if [ ${#NMTK_NAME} == 0 ]; then
+    NMTK_NAME=$(hostname -s)
   fi
+  if [ ${#URL} == 0 ]; then
+    echo -n "Enter URL for this tool server (Enter for http://$(hostname --fqdn)/): "
+    read URL
+    if [ ${#URL} == 0 ]; then
+      URL="http://$(hostname --fqdn)/"
+    fi
+  fi
+else
+  echo "Windows uses http://127.0.0.1:8000"
+  URL="http://127.0.0.1:8000"
 fi
 if [ ${#USERNAME} == 0 ]; then
   echo -n "Username: " 
@@ -101,6 +113,7 @@ if [ ! -f .nmtk_config ]; then
 EOT
 fi
 
+if [[ $WINDOWS == 0 ]]; then
 sudo -s -- <<EOF
 # Install the celery startup scripts
 if [ ! -f "/etc/default/celeryd-$(hostname -s)" ]; then
@@ -128,17 +141,31 @@ if [[ -f /var/run/celery/$CELERYD_NAME.pid ]]; then
       exit 1
    fi
 fi
-
+else
+  BASEDIR=$(dirname $0)
+fi
 pushd $BASEDIR &> /dev/null
-sudo rm -rf nmtk_files/*
-source venv/bin/activate
+if [[ $WINDOWS == 0 ]]; then
+  sudo rm -rf nmtk_files/*
+  source venv/bin/activate
+else
+  rm -rf nmtk_files/*
+  source venv/scripts/activate
+fi
+
 pushd NMTK_apps &> /dev/null
 DB_TYPE=$(python manage.py db_type -t)
 DB_NAME=$(python manage.py db_type -d)
 pushd ../nmtk_files &> /dev/null
+
 if [[ $DB_TYPE == 'spatialite' ]]; then
   spatialite nmtk.sqlite  "SELECT InitSpatialMetaData();"
 else
+  read -p "PostgreSQL Username (press enter for $USER): " PGUSER 
+  if [[ ${#PGUSER} ]]; then
+    PGUSER=$USER
+  fi
+  read -p "PostgreSQL Password for $PGUSER (will not echo): " PGPASSWORD
   dropdb $DB_NAME
   createdb $DB_NAME
   psql $DB_NAME -c "create extension postgis;"
@@ -160,14 +187,22 @@ fi
 python manage.py collectstatic --noinput -l -c
 deactivate
 popd &> /dev/null
-for DIR in nmtk_files logs; do
-  sudo chown -R www-data.$USER $DIR
-  sudo find $DIR -type d -exec chmod -R g+rwxs {} \;
-  sudo find $DIR -exec chmod -R g+rw {} \;
-done
+if [[ $WINDOWS == 0 ]]; then
+  for DIR in nmtk_files logs; do
+    sudo chown -R www-data.$USER $DIR
+    sudo find $DIR -type d -exec chmod -R g+rwxs {} \;
+    sudo find $DIR -exec chmod -R g+rw {} \;
+  done
+fi
 popd &> /dev/null
-sudo a2dissite 000-default.conf &> /dev/null
-sudo /etc/init.d/apache2 restart
-sudo /etc/init.d/celeryd-$CELERYD_NAME start
+if [[ $WINDOWS == 0 ]]; then
+  sudo a2dissite 000-default.conf &> /dev/null
+  sudo /etc/init.d/apache2 restart
+  sudo /etc/init.d/celeryd-$CELERYD_NAME start
+else
+  echo "To start the Windows development server run the commands:  "
+  echo "start python NMTK_apps/manage.py celeryd"
+  echo "start python NMTK_apps/manage.py runserver"
+fi
 popd &> /dev/null
 
