@@ -161,14 +161,14 @@ pushd ../nmtk_files &> /dev/null
 if [[ $DB_TYPE == 'spatialite' ]]; then
   spatialite nmtk.sqlite  "SELECT InitSpatialMetaData();"
 else
-  read -p "PostgreSQL Username (press enter for $USER): " PGUSER 
+  read -p "PostgreSQL Username (press enter for ${USER:=$USERNAME}): " PGUSER 
   if [[ ${#PGUSER} ]]; then
     PGUSER=$USER
   fi
   read -s -p "PostgreSQL Password for $PGUSER (will not echo): " PGPASSWORD
   export PGPASSWORD PGUSER
-  dropdb $DB_NAME
-  createdb $DB_NAME
+  dropdb "user=$PGUSER password=$PGPASSWORD" $DB_NAME
+  createdb "user=$PGUSER password=$PGPASSWORD" $DB_NAME
   psql $DB_NAME -c "create extension postgis;"
 fi
 popd &> /dev/null

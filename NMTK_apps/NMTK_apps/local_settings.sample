@@ -67,44 +67,29 @@ FILES_PATH=os.path.abspath(os.path.join(BASE_PATH, '..','..','nmtk_files'))
 LOGFILE_PATH=os.path.abspath(os.path.join(BASE_PATH, '..','..','logs'))
 
 
-DATABASE_TYPE='postgis' # can be spatialite or postgis
 
-if platform.system() != 'Windows' and DATABASE_TYPE != 'postgis':
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.contrib.gis.db.backends.spatialite', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-            'NAME': os.path.join(FILES_PATH,'nmtk.sqlite'),  # Or path to database file if using sqlite3.
-            'USER': '',                      # Not used with sqlite3.
-            'PASSWORD': '',                  # Not used with sqlite3.
-            'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
-            'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
-        }        
+# The default database to use is spatialite, however on 
+# windows installations it should be PostgreSQL, since spatialite
+# seems to not function properly.
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.contrib.gis.db.backends.postgis', 
+        # This database must be created, generally, this is done
+        # using the following commands:
+        # create database nmtk;
+        # \c nmtk;
+        # create extension postgis;
+        'NAME': 'nmtk',  
+        # On windows this USER and PASSWORD must match the user and
+        # password you have set.
+        'USER': 'postgres',                
+        'PASSWORD': 'secret',    
+        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
+        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
     }
-    DATABASE_TYPE='spatialite'
-    USER_MODELS_LOCATION='spatialite' # Store user data in flat files on disk using spatialite.
-else:
-    # The default database to use is spatialite, however on 
-    # windows installations it should be PostgreSQL, since spatialite
-    # seems to not function properly.
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.contrib.gis.db.backends.postgis', 
-            # This database must be created, generally, this is done
-            # using the following commands:
-            # create database nmtk;
-            # \c nmtk;
-            # create extension postgis;
-            'NAME': 'nmtk',  
-            # On windows this USER and PASSWORD must match the user and
-            # password you have set.
-            'USER': 'postgres',                
-            'PASSWORD': 'secret',    
-            'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
-            'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
-        }
-    }
-    DATABASE_TYPE='postgis'
-    USER_MODELS_LOCATION='postgis' # Store user data in postgis.
+}
+DATABASE_TYPE='postgis'
+USER_MODELS_LOCATION='postgis' # Store user data in postgis.
     
 
 
