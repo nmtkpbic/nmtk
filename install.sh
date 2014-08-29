@@ -77,7 +77,7 @@ else
   URL="http://127.0.0.1:8000"
 fi
 if [ ${#NMTK_USERNAME} == 0 ]; then
-  echo -n "NMTK_USERNAME: " 
+  echo -n "NMTK Username: " 
   read NMTK_USERNAME
 fi
 if [ ${#EMAIL} == 0 ]; then
@@ -161,11 +161,12 @@ pushd ../nmtk_files &> /dev/null
 if [[ $DB_TYPE == 'spatialite' ]]; then
   spatialite nmtk.sqlite  "SELECT InitSpatialMetaData();"
 else
-  read -p "PostgreSQL NMTK_USERNAME (press enter for $USER): " PGUSER 
+  read -p "PostgreSQL Username (press enter for $USER): " PGUSER 
   if [[ ${#PGUSER} ]]; then
     PGUSER=$USER
   fi
-  read -p "PostgreSQL Password for $PGUSER (will not echo): " PGPASSWORD
+  read -s -p "PostgreSQL Password for $PGUSER (will not echo): " PGPASSWORD
+  export PGPASSWORD PGUSER
   dropdb $DB_NAME
   createdb $DB_NAME
   psql $DB_NAME -c "create extension postgis;"
