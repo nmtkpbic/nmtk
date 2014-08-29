@@ -97,7 +97,17 @@ if [ ${#LASTNAME} == 0 ]; then
   echo -n "Last Name: "
   read LASTNAME
 fi
-export FIRSTNAME LASTNAME PASSWORD EMAIL NMTK_USERNAME NMTK_NAME URL
+if [ ${#PGUSER} == 0 ]; then
+  read -p "PostgreSQL Username (press enter for ${USER:=$USERNAME}): " PGUSER 
+  if [[ ${#PGUSER} ]]; then
+    PGUSER=$USER
+  fi
+fi
+
+if [ ${#PGUSER} == 0 ]; then
+  read -s -p "PostgreSQL Password for $PGUSER (will not echo): " PGPASSWORD
+fi
+export FIRSTNAME LASTNAME PASSWORD EMAIL NMTK_USERNAME NMTK_NAME URL PGUSER PGPASSWORD
 if [ ! -f .nmtk_config ]; then
    cat <<-EOT > .nmtk_config
 	# These settings were built from the first run of the install.sh script
@@ -110,6 +120,7 @@ if [ ! -f .nmtk_config ]; then
 	LASTNAME=$LASTNAME
 	NMTK_NAME=${NMTK_NAME}
 	URL=${URL}
+	PGUSER=${PGUSER}
 EOT
 fi
 
@@ -158,19 +169,11 @@ DB_TYPE=$(python manage.py db_type -t)
 DB_NAME=$(python manage.py db_type -d)
 pushd ../nmtk_files &> /dev/null
 
-if [[ $DB_TYPE == 'spatialite' ]]; then
-  spatialite nmtk.sqlite  "SELECT InitSpatialMetaData();"
-else
-  read -p "PostgreSQL Username (press enter for ${USER:=$USERNAME}): " PGUSER 
-  if [[ ${#PGUSER} ]]; then
-    PGUSER=$USER
-  fi
-  read -s -p "PostgreSQL Password for $PGUSER (will not echo): " PGPASSWORD
-  export PGPASSWORD PGUSER
-  dropdb "user=$PGUSER password=$PGPASSWORD" $DB_NAME
-  createdb "user=$PGUSER password=$PGPASSWORD" $DB_NAME
+
+  dropdb $DB_NAME
+  createdb $DB_NAME
   psql $DB_NAME -c "create extension postgis;"
-fi
+
 popd &> /dev/null
 python manage.py syncdb --noinput
 # Use the -l argument for development, otherwise js/css changes require recopying
