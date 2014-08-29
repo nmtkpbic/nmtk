@@ -58,9 +58,11 @@ BASE_PATH=os.path.dirname(__file__)
 # The path to the MapServer executable
 #MAPSERV_PATH=os.path.abspath(os.path.join(BASE_PATH, '..', '..', 'cgi-bin','mapserv'))
 if platform.system() == 'Windows':
-	MAPSERV_PATH='C:\\osgeo4w\\bin\\mapserv'
+   MAPSERV_PATH='C:\\osgeo4w\\bin\\mapserv'
+   PORT=":8000"
 else:
-	MAPSERV_PATH='/usr/lib/cgi-bin/mapserv'
+   PORT=""
+   MAPSERV_PATH='/usr/lib/cgi-bin/mapserv'
 
 # The path to where node.js binaries are installed.
 NODE_PATH=os.path.abspath(os.path.join(BASE_PATH, '..', '..', 'node','bin'))
@@ -204,7 +206,7 @@ SECRET_KEY = 'hk(f4*q-%yo9xf*x@_4#cv=xc8zp=%03=sukgl+_6sz2=zdmy='
 # shared secret key used for signing requests.  Note that the client identifies
 # the server using the public key - which is included in any dialog between 
 # the client and the server.
-NMTK_SERVERS={'d0461b9536eb483d9f23c157e809af35': {'url': 'http://{0}/server'.format(SITE_DOMAIN),
+NMTK_SERVERS={'d0461b9536eb483d9f23c157e809af35': {'url': 'http://{0}{1}/server'.format(SITE_DOMAIN, PORT),
                                                    'secret': '''yq@5u058y312%ebmyi85ytpfwjm9zv)1u2wu-m1s)%cngrvf_^''' },
               }
 
