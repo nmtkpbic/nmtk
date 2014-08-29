@@ -76,16 +76,16 @@ else
   echo "Windows uses http://127.0.0.1:8000"
   URL="http://127.0.0.1:8000"
 fi
-if [ ${#USERNAME} == 0 ]; then
-  echo -n "Username: " 
-  read USERNAME
+if [ ${#NMTK_USERNAME} == 0 ]; then
+  echo -n "NMTK_USERNAME: " 
+  read NMTK_USERNAME
 fi
 if [ ${#EMAIL} == 0 ]; then
   echo -n "Email Address: "
   read EMAIL
 fi
 if [ ${#PASSWORD} == 0 ]; then
-  echo -n "Enter Password for user $USERNAME (to access the NMTK ui): "
+  echo -n "Enter Password for user $NMTK_USERNAME (to access the NMTK ui): "
   read -s PASSWORD
   echo
 fi
@@ -97,14 +97,14 @@ if [ ${#LASTNAME} == 0 ]; then
   echo -n "Last Name: "
   read LASTNAME
 fi
-export FIRSTNAME LASTNAME PASSWORD EMAIL USERNAME NMTK_NAME URL
+export FIRSTNAME LASTNAME PASSWORD EMAIL NMTK_USERNAME NMTK_NAME URL
 if [ ! -f .nmtk_config ]; then
    cat <<-EOT > .nmtk_config
 	# These settings were built from the first run of the install.sh script
 	# to change them, remove this file and re-run the install script.
 	# it is advisable not to change the NMTK_NAME, as doing so might
 	# result in duplicate config/startup scripts.
-	USERNAME=$USERNAME
+	NMTK_USERNAME=$NMTK_USERNAME
 	EMAIL=$EMAIL
 	FIRSTNAME=$FIRSTNAME
 	LASTNAME=$LASTNAME
@@ -161,7 +161,7 @@ pushd ../nmtk_files &> /dev/null
 if [[ $DB_TYPE == 'spatialite' ]]; then
   spatialite nmtk.sqlite  "SELECT InitSpatialMetaData();"
 else
-  read -p "PostgreSQL Username (press enter for $USER): " PGUSER 
+  read -p "PostgreSQL NMTK_USERNAME (press enter for $USER): " PGUSER 
   if [[ ${#PGUSER} ]]; then
     PGUSER=$USER
   fi
@@ -177,8 +177,8 @@ python manage.py syncdb --noinput
 python manage.py server_enabled
 if [[ $? == 0 ]]; then
   echo "NMTK Server is enabled, setting up default account, etc."
-  python manage.py createsuperuser --noinput --email=$EMAIL --username=$USERNAME
-  echo "from django.contrib.auth.models import User; u = User.objects.get(username__exact='$USERNAME'); u.set_password('$PASSWORD'); u.first_name='$FIRSTNAME'; u.last_name='$LASTNAME'; u.save()"|python manage.py shell
+  python manage.py createsuperuser --noinput --email=$EMAIL --username=$NMTK_USERNAME
+  echo "from django.contrib.auth.models import User; u = User.objects.get(username__exact='$NMTK_USERNAME'); u.set_password('$PASSWORD'); u.first_name='$FIRSTNAME'; u.last_name='$LASTNAME'; u.save()"|python manage.py shell
   echo "from NMTK_server.models import ToolServer; m = ToolServer.objects.all()[0]; m.server_url='${URL}'; m.save()"|python manage.py shell
   python manage.py discover_tools
   echo "Tool discovery has been initiated, note that this may take some time to complete"
