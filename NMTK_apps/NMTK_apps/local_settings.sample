@@ -81,7 +81,7 @@ if platform.system() != 'Windows' and DATABASE_TYPE != 'postgis':
         }        
     }
     DATABASE_TYPE='spatialite'
-	USER_MODELS_LOCATION='spatialite' # Store user data in flat files on disk using spatialite.
+    USER_MODELS_LOCATION='spatialite' # Store user data in flat files on disk using spatialite.
 else:
     # The default database to use is spatialite, however on 
     # windows installations it should be PostgreSQL, since spatialite
@@ -104,7 +104,7 @@ else:
         }
     }
     DATABASE_TYPE='postgis'
-	USER_MODELS_LOCATION='postgis' # Store user data in postgis.
+    USER_MODELS_LOCATION='postgis' # Store user data in postgis.
     
 
 
