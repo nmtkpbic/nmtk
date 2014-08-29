@@ -1,9 +1,9 @@
 #!/bin/bash
 pushd $(dirname $0)
+echo "Renaming C:\\python27\\dlls\sqlite3.dll to C:\\python27\\dlls\\sqlite3.dll.old"
+mv /c/python27/dlls/sqlite3.dll /c/python27/dlls/sqlite3.dll.old
 WIN_DIR=$(pwd)
 cd ..
-pushd /c/python2*/dlls/
-mv sqlite.dll sqlite.dll.old
 mkdir tmp
 pushd tmp
 curl http://python-distribute.org/distribute_setup.py > distribute_setup.py
@@ -27,9 +27,11 @@ done
 echo "Press enter once your downloads are complete, and moved to the directory"
 read
 for FILE in *.exe; do
-   easy_install $FILE
+   easy_install "$FILE"
 done
-echo "Please rename the sqlite.dll file in your Python installation to sqlite.dll.old"
-echo "Please add the path '$(find venv -name gdal111.dll|dirname)' to the end of your Windows PATH, then close this window and open a new one"
 popd
+GDAL_PATH=$(pwd)/$(dirname $(find venv -name gdal111.dll))|sed -e 's/\///' -e 's/\//\\/g' -e 's/\\/:\\/')
+VENV_PATH="\$PATH:/c/python27/dlls:/c/python27/scripts:$(pwd)/$(dirname $(find venv -name gdal111.dll)):/c/osgeo4w/bin:"
+echo "PATH=$VENV_PATH" >> venv/scripts/activate
+echo "export PATH" >> venv/scripts/activate
 popd
