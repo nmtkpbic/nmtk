@@ -36,7 +36,8 @@ cat <<-EOT
 	        you should answer "N" to the question below.
 EOT
 if [[ "${OS}" == "Windows_NT" ]]; then
-  WINDOWS=1
+  echo "This script does not work on Windows platforms"
+  exit 1
 else
   WINDOWS=0
 fi

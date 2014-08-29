@@ -2,6 +2,8 @@
 pushd $(dirname $0)
 WIN_DIR=$(pwd)
 cd ..
+pushd /c/python2*/dlls/
+mv sqlite.dll sqlite.dll.old
 mkdir tmp
 pushd tmp
 curl http://python-distribute.org/distribute_setup.py > distribute_setup.py
