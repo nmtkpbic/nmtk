@@ -29,5 +29,7 @@ read
 for FILE in *.exe; do
    easy_install $FILE
 done
+echo "Please rename the sqlite.dll file in your Python installation to sqlite.dll.old"
+echo "Please add the path '$(find venv -name gdal111.dll|dirname)' to the end of your Windows PATH, then close this window and open a new one"
 popd
 popd
