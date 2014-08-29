@@ -1,7 +1,9 @@
 #!/bin/bash
 pushd $(dirname $0)
 echo "Renaming C:\\python27\\dlls\sqlite3.dll to C:\\python27\\dlls\\sqlite3.dll.old"
-mv /c/python27/dlls/sqlite3.dll /c/python27/dlls/sqlite3.dll.old
+if [[ -f /c/python27/dlls/sqlite3.dll ]]; then
+  mv /c/python27/dlls/sqlite3.dll /c/python27/dlls/sqlite3.dll.old
+fi
 WIN_DIR=$(pwd)
 cd ..
 mkdir tmp
