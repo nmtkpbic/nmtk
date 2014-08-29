@@ -30,7 +30,7 @@ for FILE in *.exe; do
    easy_install "$FILE"
 done
 popd
-GDAL_PATH=$(pwd)/$(dirname $(find venv -name gdal111.dll))|sed -e 's/\///' -e 's/\//\\/g' -e 's/\\/:\\/')
+GDAL_PATH=$(echo "$(pwd)/$(dirname $(find venv -name gdal111.dll))"|sed -e 's/\///' -e 's/\//\\/g' -e 's/\\/:\\/')
 VENV_PATH="\$PATH:/c/python27/dlls:/c/python27/scripts:$(pwd)/$(dirname $(find venv -name gdal111.dll)):/c/osgeo4w/bin:"
 echo "PATH=$VENV_PATH" >> venv/scripts/activate
 echo "export PATH" >> venv/scripts/activate
