@@ -456,7 +456,6 @@ class DataFile(models.Model):
         delete_candidates=[]
         delete_fields=['processed_file','file',
                       'mapfile', 'legendgraphic']
-        # For spatialite, we need to leave the model file, otherwise
         # we run into import issues.
         connection=delete_sql=None
         # If we are using PostGIS we need to also delete the table from the database.

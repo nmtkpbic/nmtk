@@ -18,6 +18,6 @@ class Command(BaseCommand):
                 )
     def handle(self, *args, **options):
         if options['type']:
-            print getattr(settings,'DATABASE_TYPE','spatialite')
+            print getattr(settings,'DATABASE_TYPE')
         elif options['database']:
             print settings.DATABASES['default']['NAME']

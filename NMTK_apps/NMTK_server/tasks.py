@@ -13,7 +13,6 @@ from django.db import connections, transaction
 import logging
 import os
 from django.core.exceptions import ObjectDoesNotExist
-from django.contrib.gis.db.backends.spatialite.creation import SpatiaLiteCreation 
 from NMTK_server.data_loaders.loaders import NMTKDataLoader
 from django.core.files import File
 from django.contrib.gis import geos
@@ -128,7 +127,6 @@ def generateColorRampLegendGraphic(min_text, max_text,
 # This actually does not get done as a task - it is inline with the
 # response from the tool server.
 def generate_datamodel(datafile, loader):
-    models_spatialite=('spatialite' == getattr(settings,'USER_MODELS_LOCATION','spatialite'))
     def propertymap(data):
         output={}
         used=[]
