@@ -7,7 +7,7 @@ if [[ ${FILE_PATH} > 0 ]]; then
 fi
 NODE_PREFIX=$(pwd)
 if [[ ! -f $(basename $NODE_URL) ]]; then
-  wget ${NODE_URL}
+  curl ${NODE_URL}  > $(basename $NODE_URL)
   if [[ $? != 0 ]]; then
     echo "Failed to download node source from ${NODE_URL}"
     FAIL=1
