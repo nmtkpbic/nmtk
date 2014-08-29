@@ -392,10 +392,6 @@ class DataFile(models.Model):
     deleted=models.BooleanField(default=False)
     result_field=models.CharField(null=True, blank=True, max_length=32)
     result_field_units=models.CharField(null=True, blank=True, max_length=64)
-    sqlite_db=models.FileField(storage=fs_results,
-                               upload_to=lambda instance, filename: '%s/data_files/converted/%s.spatialite' % (instance.user.pk,
-                                                                                                               instance.pk,),
-                               blank=True, null=True)
     mapfile=models.FileField(storage=fs_results,
                              upload_to=lambda instance, filename: '%s/data_files/wms/%s.map' % (instance.user.pk,
                                                                                                 instance.pk,),
@@ -458,16 +454,16 @@ class DataFile(models.Model):
         Ensure files are deleted when the model instance is removed.
         '''
         delete_candidates=[]
-        delete_fields=['processed_file','file','sqlite_db',
+        delete_fields=['processed_file','file',
                       'mapfile', 'legendgraphic']
         # For spatialite, we need to leave the model file, otherwise
         # we run into import issues.
         connection=delete_sql=None
         # If we are using PostGIS we need to also delete the table from the database.
-        if getattr(settings, 'USER_MODELS_LOCATION', 'spatialite') == 'postgis':
-            delete_fields.append('model')
-            connection=connections['default']
-            delete_sql='''drop table if exists userdata_results_{0};'''.format(self.pk)
+    
+        delete_fields.append('model')
+        connection=connections['default']
+        delete_sql='''drop table if exists userdata_results_{0};'''.format(self.pk)
         for field in delete_fields:
             try:
                 if getattr(self, field, None):

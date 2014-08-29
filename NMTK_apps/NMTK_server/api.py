@@ -690,7 +690,7 @@ class DataFileResource(ModelResource):
         resource_name = 'datafile'
         allowed_methods=['get','post','delete','put',]
         excludes=['file','processed_file','status', 'geom_type','fields',
-                  'deleted', 'sqlite_db','model','mapfile','legendgraphic',
+                  'deleted', 'model','mapfile','legendgraphic',
                   'type',]
         authentication=CSRFBypassSessionAuthentication()
         validation=DataFileResourceValidation()

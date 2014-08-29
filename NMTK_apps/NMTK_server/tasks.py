@@ -181,24 +181,11 @@ def generate_datamodel(datafile, loader):
                 #logger.debug('\n'.join(model_content))
                 user_models=imp.load_source('%s.models' % (datafile.pk,),datafile.model.path)
                 Results_model=getattr(user_models,'Results_{0}'.format(datafile.pk))
-                if models_spatialite:
-                    # if we are using spatialite, we need to create the 
-                    # database file on disk and intiailize it.
-                    datafile.sqlite_db.save('db', ContentFile(''), save=False)
-                    database='%s'% (datafile.pk,)
-                    settings.DATABASES[database]={'ENGINE': 'django.contrib.gis.db.backends.spatialite', 
-                                                  'NAME': datafile.sqlite_db.path }
-                # Must stick .model in there 'cause django doesn't like models
-                # without a package.
-                    connection=connections[database]
-                    connection.ops.spatial_version=(3,0,1)
-                    SpatiaLiteCreation(connection).load_spatialite_sql()
-                    dbtype='sqlite'
-                else:
-                    database='default'
-                    # If using PostgreSQL, then just create the model and go...
-                    dbtype='postgis'
-                    connection=connections[database] 
+               
+                database='default'
+                # If using PostgreSQL, then just create the model and go...
+                dbtype='postgis'
+                connection=connections[database] 
                 cursor=connection.cursor()
                 for statement in connection.creation.sql_create_model(Results_model, no_style())[0]:
                     #logger.debug(statement)
@@ -250,22 +237,16 @@ def generate_datamodel(datafile, loader):
                   'max': max_result,
                   'colors': colors,
                   'mapserver_template': settings.MAPSERVER_TEMPLATE }
-            if dbtype == 'postgis':
-                data['connectiontype']='POSTGIS'
-                dbs=settings.DATABASES['default']
-                data['connection']='''host={0} dbname={1} user={2} password={3} port={4}'''.format(dbs.get('HOST', None) or 'localhost',
-                                                                                                   dbs.get('NAME'),
-                                                                                                   dbs.get('USER'),
-                                                                                                   dbs.get('PASSWORD'),
-                                                                                                   dbs.get('PORT', None) or '5432')
-                data['data']='nmtk_geometry from userdata_results_{0}'.format(datafile.pk)
-                data['highlight_data']='''nmtk_geometry from (select * from userdata_results_{0} where nmtk_id in (%ids%)) as subquery
-                                          using unique nmtk_id'''.format(datafile.pk)
-            else:
-                data['connectiontype']='OGR'
-                data['connection']=datafile.sqlite_db.path
-                data['data']='userdata_results_{0}'.format(datafile.pk)
-                data['highlight_data']='''SELECT nmtk_geometry FROM "userdata_results_{0}" WHERE nmtk_id in (%ids%)'''.format(datafile.pk)
+            data['connectiontype']='POSTGIS'
+            dbs=settings.DATABASES['default']
+            data['connection']='''host={0} dbname={1} user={2} password={3} port={4}'''.format(dbs.get('HOST', None) or 'localhost',
+                                                                                               dbs.get('NAME'),
+                                                                                               dbs.get('USER'),
+                                                                                               dbs.get('PASSWORD'),
+                                                                                               dbs.get('PORT', None) or '5432')
+            data['data']='nmtk_geometry from userdata_results_{0}'.format(datafile.pk)
+            data['highlight_data']='''nmtk_geometry from (select * from userdata_results_{0} where nmtk_id in (%ids%)) as subquery
+                                      using unique nmtk_id'''.format(datafile.pk)
             res=render_to_string('NMTK_server/mapfile_{0}.map'.format(mapfile_type), 
                                  data)
             datafile.mapfile.save('mapfile.map', ContentFile(res), save=False)

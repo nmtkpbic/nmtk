@@ -42,8 +42,6 @@ BASE_PATH=os.path.dirname(__file__)
 # It should be noted that if you use any kind of vhost setup, then this
 # probably won't work, and will result in all kinds of broken-ness :-) 
 
-# For systems using older versions of SQLITE (like Windows) we need to provide
-# the init script to initialize a new database
 
 DEBUG = False
 TEMPLATE_DEBUG = TASTYPIE_FULL_DEBUG = DEBUG
@@ -55,17 +53,6 @@ djcelery.setup_loader()
 MANAGERS = ADMINS
 ALLOWED_HOSTS=[SITE_DOMAIN,'127.0.0.1']
 
-if not DATABASES:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.contrib.gis.db.backends.spatialite', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-            'NAME': os.path.join(FILES_PATH,'nmtk.sqlite'),  # Or path to database file if using sqlite3.
-            'USER': '',                      # Not used with sqlite3.
-            'PASSWORD': '',                  # Not used with sqlite3.
-            'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
-            'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
-        }
-    }
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
