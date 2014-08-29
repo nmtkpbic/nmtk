@@ -50,6 +50,11 @@ import socket
 import platform
 
 BASE_PATH=os.path.dirname(__file__)
+
+# Enable debug only on development sites/servers
+DEBUG = False
+TEMPLATE_DEBUG = TASTYPIE_FULL_DEBUG = DEBUG
+
 #
 # Note: The settings below are automatically determined based on the location
 #       of this file, you should not need to modify them, unless you are installing
@@ -60,6 +65,7 @@ BASE_PATH=os.path.dirname(__file__)
 if platform.system() == 'Windows':
    MAPSERV_PATH='C:\\osgeo4w\\bin\\mapserv'
    PORT=":8000"
+   DEBUG=True
 else:
    PORT=""
    MAPSERV_PATH='/usr/lib/cgi-bin/mapserv'
@@ -99,9 +105,6 @@ USER_MODELS_LOCATION='postgis' # Store user data in postgis.
     
 
 
-# Enable debug only on development sites/servers
-DEBUG = False
-TEMPLATE_DEBUG = TASTYPIE_FULL_DEBUG = DEBUG
 
 #
 # The domain which will be used by users accessing this server via
