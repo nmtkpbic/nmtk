@@ -107,6 +107,7 @@ fi
 
 if [ ${#PGPASSWORD} == 0 ]; then
   read -s -p "PostgreSQL Password for $PGUSER (will not echo): " PGPASSWORD
+  echo ""
 fi
 export FIRSTNAME LASTNAME PASSWORD EMAIL NMTK_USERNAME NMTK_NAME URL PGUSER PGPASSWORD
 if [ ! -f .nmtk_config ]; then
@@ -145,9 +146,11 @@ EOF
 
 BASEDIR=$(dirname $0)
 CELERYD_NAME=${NMTK_NAME}
+echo -n "Stopping the celery daemon (this might take a few seconds)."
 if [[ -f /var/run/celery/$CELERYD_NAME.pid ]]; then
    sudo kill $(cat /var/run/celery/$CELERYD_NAME.pid)
    sleep 15
+   echo -n "."
    if [[ -f /var/run/celery/$CELERYD_NAME.pid ]]; then
       echo "Unable to stop celery daemon!"
       exit 1
@@ -156,6 +159,7 @@ fi
 else
   BASEDIR=$(dirname $0)
 fi
+echo ""
 pushd $BASEDIR &> /dev/null
 if [[ $WINDOWS == 0 ]]; then
   sudo rm -rf nmtk_files/*
