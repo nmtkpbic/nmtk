@@ -69,6 +69,7 @@ visible incompatibility, but may fail in certain use cases.
 - Spatialite 3 or later
 - mod_wsgi 3.3 or later
 - Python 2.7 or later
+- PostgreSQL 9.3 or later
 
 Note that many of the python components installed in the Virtual Environment
 specify required version information, for that reason they are not listed here.
@@ -92,7 +93,7 @@ in this case is that you are using Debian Linux or one of its derivatives such a
 Ubuntu, but these pre-requisites (and their install packages) are commonly available
 for other operating systems:
 
- * build-essentials
+ * build-essential
  * git
  * apache2
  * python-dev
@@ -100,7 +101,6 @@ for other operating systems:
  * python-virtualenv
  * libapache2-mod-wsgi
  * libxslt-dev libxml2-dev
- * libspatialite5 libspatialite-dev spatialite-bin
  * libgd2-xpm-dev
  * libproj-dev
  * libfreetype6-dev
@@ -115,6 +115,92 @@ CRS values in GeoJSON files - which are a requirement for NMTK.  Also, should yo
 compile GDAL locally, you should be sure to provide the --with-python argument and
 that the location of the installed files is correctly recognized.
 
+In Ubuntu 14.04, the following command may be used to install all these pre-requisites:
+
+  ```
+  sudo apt-get install build-essential git apache2 python-dev python-setuptools \
+               python-virtualenv libapache2-mod-wsgi libxslt-dev libxml2-dev \
+               libgd2-xpm-dev libproj-dev  libfreetype6-dev cgi-mapserver \
+               libgdal-dev gdal-bin gfortran libopenblas-dev liblapack-dev
+  ```
+  
+  
+### PostgreSQL Installation
+
+PostgreSQL is a required component for the NMTK server.  While other spatial 
+databases may work, the development team makes no effort to validate the existing
+code against those databases.
+
+You may follow the installation instructions for PostgreSQL available here:
+
+http://www.postgresql.org/download/
+
+For Ubuntu 14.04 LTS you can use the following commands to install the database:
+
+   ```
+   echo "deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main" > /etc/apt/sources.list.d/pgdg.list
+   wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc |   sudo apt-key add -
+   sudo apt-get update
+   sudo apt-get install postgresql postgis
+   ```
+
+Once PostgreSQL is installed you should make several configuration changes to the
+configuration files:
+
+  1.  Create an administrative user with a valid password (repace <USERNAME> and <PASSWORD> 
+      with the desired username and password for the account, respectively.):
+  
+    ```
+    sudo -u postgres psql -c "create role <USERNAME> login superuser password '<PASSWORD>';"
+    ```
+  
+  2.  Locate the pg_hba.conf file using the command below:
+    
+    ```
+    sudo -u postgres psql -tc "show hba_file;"|sed '/^\s*$/d    
+    ``` 
+  
+  3.  Edit the pg_hba.conf file (use the file found in step #2 above):
+    
+    ```
+    sudo nano /etc/postgresql/9.3/main/pg_hba.conf
+    ```
+
+  4.  Go to the end of the file and locate the line that reads as below, and
+      replace the word "peer" with "md5":
+  
+    ```
+    local   all             all                                     peer
+    
+    # Above line changes to 
+    
+    local   all             all                                     md5
+    ```
+   
+  5.  Reload the PostgreSQL configuration files:
+  
+    ```
+    sudo service postgresql reload
+    ```
+    
+  6.  Create a database user for the NMTK Server to use (replace <USERNAME> 
+      with the name chosen in step #1, when promopted for a password, use the
+      password chosen in step #1):
+    
+    ```
+    psql postgres -U <USERNAME> -c "create role nmtk password '<NMTK_SERVER_PASSWORD>'"
+    ```
+    
+    *Note: <NMTK_SERVER_PASSWORD> should be a secure password chosen for the nmtk_server account.
+           this password will go in the local_settings.py file (later), so be sure to retain it.
+    
+  7.  Create a database for NMTK:
+  
+    ```
+    psql postgres -U <USERNAME> -c "create database nmtk owner nmtk;"
+    psql nmtk -U <USERNAME> -c "create extension postgis;"
+    ```
+    
 #### Optional Installs
 
 Currently NMTK does not use these components, but it's likely that some tools and/or
@@ -182,14 +268,11 @@ the risk of inadvertently leaving security holes.
   source venv/bin/activate
   ```
 
- 4.  Install numpy and pysqlite by hand using requirements.txt (pip gets it wrong for
+ 4.  Install numpy by hand using requirements.txt (pip gets it wrong for
      some reason otherwise...):
 
   ```
   pip install $(cat requirements.txt|grep -i ^numpy)
-  pip install --no-install $(grep pysqlite requirements.txt)
-  sed -i "s/define=SQLITE_OMIT_LOAD_EXTENSION/#define=SQLITE_OMIT_LOAD_EXTENSION/g" venv/build/pysqlite/setup.cfg
-  pip install --no-download pysqlite 
   ```
 
  5.  Install all the pre-requisite modules (adjust the include paths to point at
@@ -212,6 +295,7 @@ the risk of inadvertently leaving security holes.
   popd
   sudo sh -c 'echo "/usr/local/lib" >> /etc/ld.so.conf' # Add the path to gdal libs to system
   sudo ldconfig
+  pip install -r requirements.txt
   ```
      
  6.  Copy the sample settings file to your own local settings, and edit the required local

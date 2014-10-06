@@ -105,7 +105,7 @@ if [ ${#PGUSER} == 0 ]; then
   fi
 fi
 
-if [ ${#PGUSER} == 0 ]; then
+if [ ${#PGPASSWORD} == 0 ]; then
   read -s -p "PostgreSQL Password for $PGUSER (will not echo): " PGPASSWORD
 fi
 export FIRSTNAME LASTNAME PASSWORD EMAIL NMTK_USERNAME NMTK_NAME URL PGUSER PGPASSWORD
@@ -168,12 +168,15 @@ fi
 pushd NMTK_apps &> /dev/null
 DB_TYPE=$(python manage.py db_type -t)
 DB_NAME=$(python manage.py db_type -d)
+DB_USER=$(python manage.py db_type -u)
 pushd ../nmtk_files &> /dev/null
 
-
+  echo "Removing existing database (if it exists)"
   dropdb $DB_NAME
-  createdb $DB_NAME
-  psql $DB_NAME -c "create extension postgis;"
+  echo "Creating new database $DB_NAME"
+  createdb $DB_NAME -O $DB_USER
+  echo "Installing PostGIS in database $DB_NAME"
+  psql -U $PGUSER $DB_NAME -c "create extension postgis;"
 
 popd &> /dev/null
 python manage.py syncdb --noinput
