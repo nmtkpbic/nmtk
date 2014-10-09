@@ -159,7 +159,7 @@ configuration files:
   2.  Locate the pg_hba.conf file using the command below:
     
     ```
-    sudo -u postgres psql -tc "show hba_file;"|sed '/^\s*$/d    
+    sudo -u postgres psql -tc "show hba_file;"|sed '/^\s*$/d'  
     ``` 
   
   3.  Edit the pg_hba.conf file (use the file found in step #2 above):
