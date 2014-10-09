@@ -138,7 +138,9 @@ http://www.postgresql.org/download/
 For Ubuntu 14.04 LTS you can use the following commands to install the database:
 
    ```
-   echo "deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main" > /etc/apt/sources.list.d/pgdg.list
+   echo "deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main" > /tmp/pgdg.list
+   sudo mv /tmp/pgdg.list /etc/apt/sources.list.d
+   sudo chown root.root /etc/apt/sources.list.d/pgdg.list
    wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc |   sudo apt-key add -
    sudo apt-get update
    sudo apt-get install postgresql postgis
@@ -171,9 +173,11 @@ configuration files:
   
     ```
     local   all             all                                     peer
+	```
     
-    # Above line changes to 
-    
+    Should change to the line below:
+
+    ```
     local   all             all                                     md5
     ```
    
