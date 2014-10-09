@@ -100,7 +100,7 @@ if [ ${#LASTNAME} == 0 ]; then
 fi
 if [ ${#PGUSER} == 0 ]; then
   read -p "PostgreSQL Username (press enter for ${USER:=$USERNAME}): " PGUSER 
-  if [[ ${#PGUSER} ]]; then
+  if [[ ${#PGUSER} == 0 ]]; then
     PGUSER=$USER
   fi
 fi
