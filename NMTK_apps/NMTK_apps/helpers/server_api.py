@@ -45,7 +45,7 @@ class NMTKClient(object):
         private key of the application.  This'll go in the 
         HTTP protocol standard authorization header.
         '''
-        logger.error("%s: %s", type(payload), payload)
+        logger.debug("%s: %s", type(payload), payload)
         digest_maker =hmac.new(self.shared_secret, 
                                payload, 
                                hashlib.sha1)
