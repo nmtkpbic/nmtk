@@ -160,8 +160,8 @@ def runModel(request, tool_name, subtool_name=None):
     # here we call the task for the model.
     module_name="{0}.tasks".format(tool_name)
     tasks=import_module(module_name)
-    logger.info('Task module (%s) is %s (%s)', module_name, 
-                tasks.__name__, tasks.__file__)
+    logger.debug('Task module (%s) is %s (%s)', module_name, 
+                 tasks.__name__, tasks.__file__)
     if hasattr(tasks, 'performModel'):
         ret = tasks.performModel.delay(input_files=input_files,
                                        tool_config=config,
