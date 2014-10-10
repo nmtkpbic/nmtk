@@ -192,7 +192,7 @@ configuration files:
       password chosen in step #1):
     
     ```
-    psql postgres -U <USERNAME> -c "create role nmtk password '<NMTK_SERVER_PASSWORD>'"
+    psql postgres -U <USERNAME> -c "create role nmtk login password '<NMTK_SERVER_PASSWORD>'"
     ```
     
     *Note: <NMTK_SERVER_PASSWORD> should be a secure password chosen for the nmtk_server account.
