@@ -76,8 +76,8 @@ def generateColorRampLegendGraphic(min_text, max_text,
     font=ImageFont.truetype(settings.LEGEND_FONT,12)
     
     if not fixed:
-        min_text_width, min_text_height = font.getsize(min_text)
-        max_text_width, max_text_height = font.getsize(max_text)
+        min_text_width, min_text_height = font.getsize('{0}'.format(min_text))
+        max_text_width, max_text_height = font.getsize('{0}'.format(max_text))
         text_height=max(min_text_height, max_text_height)
         
         final_width=max(width, max_text_width, min_text_width)
@@ -100,11 +100,11 @@ def generateColorRampLegendGraphic(min_text, max_text,
     draw=ImageDraw.Draw(im2)
     if not fixed:
         draw.text((1, text_pos),
-                  min_text,
+                  '{0}'.format(min_text),
                   "black",
                   font=font)
         draw.text((final_width-(max_text_width+1), text_pos), 
-                  max_text, 
+                  '{0}'.format(max_text), 
                   "black", 
                   font=font)
         if units:
@@ -252,8 +252,16 @@ def generate_datamodel(datafile, loader):
             datafile.legendgraphic.save('legend.png', ContentFile(''), save=False)
             
             logger.debug('Creating a new legend graphic image %s', datafile.legendgraphic.path)
-            im=generateColorRampLegendGraphic(min_text='{0}'.format(math.floor(min_result*100.0)/100.0),
-                                              max_text='{0}'.format(math.ceil(max_result*100.0)/100.0),
+#             im=generateColorRampLegendGraphic(min_text='{0}'.format(math.floor(min_result*100.0)/100.0),
+#                                               max_text='{0}'.format(math.ceil(max_result*100.0)/100.0),
+#                                               units=datafile.result_field_units)
+
+            round_to_n = lambda x, n: round(x, -int(math.floor(math.log10(x))) + (n - 1))
+#             round_digits = lambda x, n: round(x, int(n - math.ceil(math.log10(abs(x)))))
+            # Round to 4 significant digits here, but first make sure we floor/ceil as needed to ensure
+            # we might include the correct min/max values.
+            im=generateColorRampLegendGraphic(min_text=round_to_n(min_result,4),
+                                              max_text=round_to_n(max_result,4),
                                               units=datafile.result_field_units)
             im.save(datafile.legendgraphic.path, 'png')
             logger.debug('Image saved at %s', datafile.legendgraphic.path)
