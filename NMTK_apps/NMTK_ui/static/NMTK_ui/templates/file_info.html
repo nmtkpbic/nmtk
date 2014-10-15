@@ -6,10 +6,15 @@
     <div class="modal-body">
       <div class="row">
         <div class="col-md-12">
-          <div class="control-group" ng-repeat="field in fields|filter:filterSpatial">
-             <label class="control-group" for="{{field.field}}">{{field.display_name}}</label>
+          <!--  The non-editable fields -->
+          <div class="control-group">
+             <div ng-grid="gridOptions" class="gridStyle"></div>
+          </div>
+          <!--  The editable fields -->
+          <hr />
+          <div class="control-group" ng-repeat="field in fields|filter:filterEditable">
+             <label class="control-group" for="{{field.field}}">{{field.display_name}}</label> - {{field.description}}
              <div class="controls">
-                <p class="help-block">{{field.description}}</p>
                 <input ng-disabled="field.disabled" type="text" class="input" 
                  name="{{field.field}}" id="{{field.field}}" ng-model="filedata[field.field]"></input>
              </div>
