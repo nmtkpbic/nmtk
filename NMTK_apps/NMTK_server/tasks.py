@@ -217,7 +217,7 @@ def generate_datamodel(datafile, loader):
             colors=[]
             low=min_result
             v=min_result
-            while v <= max_result:
+            while v <= max_result+step:
                 #logger.debug('Value is now %s', v)
                 r,g,b=pseudocolor(v, min_result, max_result)
                 colors.append({'r': r,
@@ -227,6 +227,7 @@ def generate_datamodel(datafile, loader):
                                'high': v})
                 low=v
                 v += step or 1
+            
             data={'datafile': datafile,
                   'dbtype': dbtype,
                   'result_field': datafile.result_field,
@@ -251,8 +252,8 @@ def generate_datamodel(datafile, loader):
             datafile.legendgraphic.save('legend.png', ContentFile(''), save=False)
             
             logger.debug('Creating a new legend graphic image %s', datafile.legendgraphic.path)
-            im=generateColorRampLegendGraphic(min_text='{0}'.format(round(min_result,2)),
-                                              max_text='{0}'.format(round(max_result,2)),
+            im=generateColorRampLegendGraphic(min_text='{0}'.format(math.floor(min_result*100.0)/100.0),
+                                              max_text='{0}'.format(math.ceil(max_result*100.0)/100.0),
                                               units=datafile.result_field_units)
             im.save(datafile.legendgraphic.path, 'png')
             logger.debug('Image saved at %s', datafile.legendgraphic.path)
