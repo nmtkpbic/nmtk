@@ -114,7 +114,14 @@ MAP
       END # END STYLE
     END
     {% endfor %}
-
+    CLASS
+      NAME "Non numeric results"
+      STYLE
+        COLOR 239 0 255
+	    WIDTH 3
+        ANTIALIAS TRUE
+      END # END STYLE
+     END
   END
 
   LAYER
