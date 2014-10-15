@@ -28,6 +28,7 @@
 			<thead>
 			  <tr>
 			      <th>Setting</th>
+			      <th>Type</th>
 				  <th>Description</th>
 			  	  <th>Field Name</th>
 			  </tr>
@@ -35,15 +36,7 @@
 			  <tbody ng-if="$parent.job_config_files[config.namespace]">
 			    <tr ng-repeat="property in config.elements" ng-hide="validation[config.namespace][property.name].hidden">
 			       <td >
-					 <button ng-if="($parent.job_config[config.namespace][property.name]['type'] == 'property' && validation[config.namespace][property.name]['type'] != 'property')" 
-                             class="btn btn-xs btn-default" ng-hide="constants_only[config.namespace]"
-							 ng-disabled="disabled"
-                             ng-click="switchFieldMode(config.namespace, property.name)">Use Constant</button>
-                     <button class="btn btn-xs btn-default" ng-hide="constants_only[config.namespace]"
-							 ng-disabled="disabled"
-                             ng-if="($parent.job_config[config.namespace][property.name]['type'] != 'property' && validation[config.namespace][property.name]['type'] != 'property')"
-                             ng-click="switchFieldMode(config.namespace, property.name)">Use Property</button>
-			         <select ng-if="$parent.job_config[config.namespace][property.name]['type'] == 'property'" 
+					 <select ng-if="$parent.job_config[config.namespace][property.name]['type'] == 'property'" 
                              ng-model="$parent.job_config[config.namespace][property.name]['value']" required
                              dynamic-name="config.namespace + ':' + property.name" 
 							 ng-init="setFieldDefaultValue(config.namespace, property.name)"
@@ -63,6 +56,17 @@
  							ng-options="item.value as item.label for item in get_options(validation[config.namespace][property.name]['choices'])"></select>
 			         <p class="help-block error" ng-show="(submit_attempted || job_config_form[config.namespace+':'+property.name].$dirty) && job_config_form[config.namespace+':'+property.name].$invalid" ng-bind="validation[config.namespace][property.name]['error']"></p>
 			       </td>
+                   <td>
+                      <select ng-change="switchFieldMode(config.namespace, property.name)" ng-model="$parent.job_config[config.namespace][property.name]['type']" ng-if="validation[config.namespace][property.name]['type'] != 'property'">
+						<option value="{{validation[config.namespace][property.name]['type']}}">Use {{validation[config.namespace][property.name]['type']}}</option>
+                        <option ng-if="validation[config.namespace][property.name]['choices']" value="choices">Select from value list</option>
+						<option value="property">Use file field</option>
+                      </select>
+					  <span ng-if="validation[config.namespace][property.name]['type'] == 'property'">
+                        Use file field
+                      </span>
+					  
+                   </td>
 			       <td><label for="{{config.namespace}}:{{property.name}}">{{property.description}}</label></td>
 			       <td>{{property.display_name||property.name}}</td>
 			     </tr>

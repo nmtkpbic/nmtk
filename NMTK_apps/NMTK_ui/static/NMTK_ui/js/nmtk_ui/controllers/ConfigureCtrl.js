@@ -73,6 +73,7 @@ define(['underscore',
 					$location.path('/job');
 				}
 				$scope.job_data=job_data;
+				$log.debug('Job data is', job_data);
 				var tool_id=job_data.tool.split('/').reverse()[1];
 				if (job_data.data_file) {
 					var file_id=job_data.data_file.split('/').reverse()[1];
@@ -90,12 +91,12 @@ define(['underscore',
 						$scope.$parent.job_config_files[jf.namespace]=jf.datafile;
 					});
 				}
-				$log.info('Setting is ', $scope.disabled);
+				$log.debug('Setting is ', $scope.disabled);
 				$scope.rest.tool.then(function (row) {
 					var tool_data=_.find(row, function(toolinfo) {
 						return (toolinfo.id==tool_id);
 					});
-					$log.info('Got tool data of ', tool_data);
+					$log.debug('Got tool data of ', tool_data);
 					/*
 					 * Go through and setup the default state of the different 
 					 * sections here.
@@ -225,7 +226,7 @@ define(['underscore',
 				$scope.updateFileFieldsFromResourceURI=function (key) {
 					var resource_uri=$scope.$parent.job_config_files[key];
 					if (typeof resource_uri !== 'undefined') {
-						$log.info('Resource URI is ', resource_uri);
+						$log.debug('Resource URI is ', resource_uri);
 						if (resource_uri !== true) {
 							$scope.constants_only[key]=false;
 							var df=_.find(data_files, function (datafile) {
@@ -379,15 +380,16 @@ define(['underscore',
 			
 
 			$scope.switchFieldMode=function (namespace, field, force_constant) {
+				$log.debug('Called SwithFieldMode with ', namespace, field)
 				// This is the valid type for this field.
 				var type=$scope.validation[namespace][field]['type'];
+				$log.debug('The type is ', type)
+				$log.debug('Current bound value is ', $scope.$parent.job_config[namespace][field]['type'])
 				if (type != 'property') {
 					if (force_constant || 
-					    ($scope.$parent.job_config[namespace][field]['type'] == 'property')) {
-						$scope.$parent.job_config[namespace][field]['type'] = type;
+					    ($scope.$parent.job_config[namespace][field]['type'] != 'property')) {
+//						$scope.$parent.job_config[namespace][field]['type'] = type;
 						$scope.$parent.job_config[namespace][field]['value']=undefined;
-					} else {
-						$scope.$parent.job_config[namespace][field]['type'] = 'property';
 					}
 				}
 				$scope.setFieldDefaultValue(namespace, field);
@@ -396,7 +398,7 @@ define(['underscore',
 			
 			$scope.submit_attempted=false;
 			$scope.submit_job=function () {
-				$log.info($scope.job_config_form, $scope.validation);
+				$log.debug($scope.job_config_form, $scope.validation);
 				if ($scope.job_config_form.$invalid) {
 					$scope.submit_attempted=true;
 					var opts = {
@@ -502,11 +504,11 @@ define(['underscore',
     				error="This field is required";
     			}
     			$scope.validation[namespace][property_name]['error']=error;
-    			$log.info('Setting validity for', namespace+':'+property_name, 'to', valid);
+    			$log.debug('Setting validity for', namespace+':'+property_name, 'to', valid);
 				$scope.job_config_form[namespace+':'+property_name].$setValidity('nmtk',valid);
 				
 				if (! valid) {
-					$log.info($scope.job_config_form);
+					$log.debug($scope.job_config_form);
 					$log.debug('INVALID?', valid, 'Value:', value, 'Error:',error, namespace + ':'+ property_name);
 				}
 				$log.debug('VALID?', valid, 'Value:', value, 'Error:',error, namespace + ':'+ property_name);
