@@ -1,6 +1,7 @@
 from osgeo import ogr, osr
 import logging
 import collections
+import datetime
 from BaseDataLoader import *
 
 logger=logging.getLogger(__name__)
@@ -103,7 +104,19 @@ class OGRLoader(BaseDataLoader):
         return feature 
     
     def fields(self):
-        return self.data.fields
+        '''
+        This was changed so now our field list is actually a list of fields
+        and their respective data types.  So now we need to preserve the support
+        of retrieval of fields for backwards compatibility.
+        '''
+        return [field for field, type in self.data.fields]
+    
+    def fields_types(self):
+        '''
+        This returns a list of tuples, with the first being a field name
+        and the second element of each being the python type of the field.
+        '''
+        return self.fields
     
     @property
     def extent(self):
@@ -153,12 +166,27 @@ class OGRLoader(BaseDataLoader):
                 raise FormatException('Unable to determine valid SRID ' + 
                                       'for this data')
                 
-            # Get fields by looping over one row of features.
+            # Get fields and their types by looping over one row of features.
             fields=[]
+            type_lookups={ogr.OFTReal: float,
+                          ogr.OFTInteger: int,
+                          ogr.OFTString: str,
+                          ogr.OFTIntegerList: None,
+                          ogr.OFTRealList: None,
+                          ogr.OFTStringList: None,
+                          ogr.OFTDate: datetime.date,
+                          ogr.OFTTime: datetime.time,
+                          ogr.OFTDateTime: datetime.datetime }
             for feat in layer:
                 for i in range(feat.GetFieldCount()):
                     field_definition=feat.GetFieldDefnRef(i)
-                    fields.append(field_definition.GetNameRef ())
+                    field_type=type_lookups.get(field_definition.GetType(), None)
+                    field_name=field_definition.GetNameRef()
+                    if field_type:
+                        fields.append((field_name,
+                                       field_type,))
+                    else: 
+                        raise FormatException('The field {0} is of an unsupported type'.format(field_name))
                 break
     #         logger.debug('Fields are %s', fields)
             # Just to be on the safe side..
@@ -173,7 +201,8 @@ class OGRLoader(BaseDataLoader):
                                               'ogr',
                                               'type',
                                               'type_text',
-                                              'fields','reprojection', 
+                                              'fields',
+                                              'reprojection', 
                                               'dest_srs'])
             # Note that we must preserve the OGR object here (even though
             # we do not use it elsewhere), because
