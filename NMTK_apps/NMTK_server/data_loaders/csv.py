@@ -16,13 +16,13 @@ from csvkit import convert # guess_format
 from csvkit.typeinference import normalize_column_type
 import decimal
 import csv
+from dateutil.parser import parse
 from mimetypes import MimeTypes
 import cStringIO as StringIO
 from django.contrib.gis.geos import GEOSGeometry
 from BaseDataLoader import *
 
 logger=logging.getLogger(__name__)
-
 class CSVLoader(BaseDataLoader):
     name='csv'
     def __init__(self, *args, **kwargs):
@@ -89,6 +89,7 @@ class CSVLoader(BaseDataLoader):
         geometry data.  Otherwise a single value is returned that is 
         a dictionary of the field data.
         '''
+        base_
         try:
             data=self.csv.next()
             # We found the types for the fields in our first pass through the
@@ -96,7 +97,19 @@ class CSVLoader(BaseDataLoader):
             # to cast it to the expected type.  Otherwise it won't work properly...
             for field_name, expected_type in self._fields:
                 if field_name in data:
-                    data[field_name]=expected_type(data[field_name])
+                    # if the expected type is one of these we use dateutil.parser.parse to parse
+                    if expected_type in (datetime.date, datetime.time, datetime.datetime):
+                        # Get a value of datetime.datetime.
+                        v=parse(data[field_name])
+                        # Pare it down to date if needed.
+                        if expected_type == datetime.date:
+                            v=v.date()
+                        # pare it down to time if needed.
+                        elif expected_type == datetime.time:    
+                            v=v.time()
+                        data[field_name]=v
+                    else:
+                        data[field_name]=expected_type(data[field_name])
             if not hasattr(self ,'_feature_count'):
                 self.feature_counter += 1
         except StopIteration, e:
