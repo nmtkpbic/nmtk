@@ -69,6 +69,12 @@ class NMTKDataLoader(object):
             return self.dl_instance.fields()
         else:
             return False
+    
+    def fields_types(self):
+        if hasattr(self, 'dl_instance'):
+            return self.dl_instance.fields_types()
+        else:
+            return False
      
     def __del__(self):
         '''
@@ -120,6 +126,7 @@ class NMTKDataLoader(object):
                                                  'type',
                                                  'feature_count',
                                                  'fields',
+                                                 'fields_types',
                                                  'format',
                                                  'loader',
                                                  'extent',
@@ -130,6 +137,7 @@ class NMTKDataLoader(object):
                                              getattr(self.dl_instance,'spatial_type', None),
                                              self.dl_instance.feature_count,
                                              self.fields(),
+                                             self.fields_types(),
                                              self.dl_instance.format,
                                              self.dl_instance.name,
                                              getattr(self.dl_instance,'extent', None),

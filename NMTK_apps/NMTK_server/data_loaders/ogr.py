@@ -56,7 +56,7 @@ class OGRLoader(BaseDataLoader):
             raise StopIteration
         else:
             feature=self.geomTransform(feature)
-            data=dict((field, getattr(feature, field)) for field in self.data.fields)
+            data=dict((field, getattr(feature, field)) for field in self.fields())
             # Try to use a column name of geometry, but in the case that 
             # is already in use, choose another one numbered from geometry_1-10
             wkt=feature.geometry().ExportToWkt()
@@ -116,7 +116,7 @@ class OGRLoader(BaseDataLoader):
         This returns a list of tuples, with the first being a field name
         and the second element of each being the python type of the field.
         '''
-        return self.fields
+        return self.data.fields
     
     @property
     def extent(self):

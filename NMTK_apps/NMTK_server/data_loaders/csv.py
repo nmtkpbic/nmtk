@@ -91,6 +91,12 @@ class CSVLoader(BaseDataLoader):
         '''
         try:
             data=self.csv.next()
+            # We found the types for the fields in our first pass through the
+            # csv file, but when we get the data back out, we need to be sure
+            # to cast it to the expected type.  Otherwise it won't work properly...
+            for field_name, expected_type in self._fields:
+                if field_name in data:
+                    data[field_name]=expected_type(data[field_name])
             if not hasattr(self ,'_feature_count'):
                 self.feature_counter += 1
         except StopIteration, e:
@@ -176,8 +182,10 @@ class CSVLoader(BaseDataLoader):
         Here we have a CSV file that we need to process...
         '''
         try:
-            data=open(filename,'r').read(1024)
-            logger.debug('Data is %s', data)
+            with open(filename,'r') as csvfile:
+                data='{0}{1}'.format(csvfile.readline(),
+                                     csvfile.readline())
+            logger.debug('First 2 lines of data data is %s', data)
             self.dialect=csvkit.sniffer.sniff_dialect(data)
             logger.debug('Dialect is %s', self.dialect)
             if self.dialect:
@@ -242,6 +250,7 @@ class CSVLoader(BaseDataLoader):
                 self.longitude_field=long
                 self.spatial=True
                 self.spatial_type=ogr.wkbPoint
+                # We assume this based on the lat/long values we validate against.
                 self.srid=4326
                 srs=osr.SpatialReference()
                 epsg=str('EPSG:%s' % (self.srid,))

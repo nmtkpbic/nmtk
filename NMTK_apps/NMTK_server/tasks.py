@@ -27,6 +27,7 @@ from django.shortcuts import render
 from osgeo import ogr
 import imp
 import math
+import datetime
 import colorsys
 from PIL import Image, ImageDraw, ImageFont
 from django.contrib.gis.geos import GEOSGeometry
@@ -156,17 +157,33 @@ def generate_datamodel(datafile, loader):
                 db_created=True
                 if datafile.result_field:
                     min_result=max_result=float(row[datafile.result_field])
-                
-                field_map=propertymap(row.keys())
                 # Create the model for this data
                 model_content.append('class Results_{0}(models.Model):'.format(datafile.pk))
                 # Add an auto-increment field for it (the PK)
                 model_content.append('{0}nmtk_id=models.IntegerField(primary_key=True)'.format(' ' * 4))
                 model_content.append('{0}nmtk_feature_id=models.IntegerField()'.format(' '*4))
                 # Add an entry for each of the fields
-                for orig_field, new_field in field_map.iteritems():
-                    model_content.append("""{0}{1}=models.TextField(null=True, db_column='''{2}''')""".
-                                         format(' '*4, new_field, orig_field))    
+                # So instead of doing this - getting the keys to figure out the fields
+                fields_types=loader.info.fields_types
+                field_map=propertymap((field_name for field_name, type in fields_types))
+                type_mapping={str: ('models.TextField',''),
+                              unicode: ('models.TextField',''),
+                              int: ('models.DecimalField','max_digits=32, decimal_places=0, '), # We support up to a 32 digit integer.
+                              float: ('models.FloatField',''),
+                              datetime.date: ('models.DateField',''),
+                              datetime.time: ('models.TimeField',''),
+                              datetime.datetime: ('models.DateTimeField',''),}
+                for field_name, field_type in fields_types:
+                    if field_type not in type_mapping:
+                        logger.error('No type mapping exists for type %s (using TextField)!', field_type)
+                        field_type=str
+                    model_content.append("""{0}{1}={2}({3} null=True, db_column='''{4}''')""".
+                                         format(' '*4, 
+                                                field_map[field_name], 
+                                                type_mapping[field_type][0],
+                                                type_mapping[field_type][1],
+                                                field_name)
+                                         )    
                 if spatial:
                     model_content.append('''{0}nmtk_geometry={1}(null=True, srid=4326)'''.
                                          format(' '*4, model_type))
@@ -208,7 +225,11 @@ def generate_datamodel(datafile, loader):
             else:
                 min_result=max_result=1
             m=Results_model(**this_row)
-            m.save(using=database)
+            try:
+                m.save(using=database)
+            except Exception, e:
+                logger.error('Failed to save record from data file (%s)', this_row)
+                raise e
 #             logger.debug('Saved model with pk of %s', m.pk)
         logger.debug('Completing transferring results to %s database %s', dbtype,datafile.pk,)
         if spatial:
