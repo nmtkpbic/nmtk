@@ -122,7 +122,13 @@ def stream_xls(datafile):
         logger.exception('Something went wrong!')
     
 def data_query(request, datafile):
+    '''
+    This is the case where we are requesting a paged result set - typically from
+    the results view page of the UI.
+    '''
+    # Get a queryset that is unfiltered.
     qs=getQuerySet(datafile)
+   
     # if lat, lon, and zoom were provided, then we can do a bbox generation...
     if min([request.GET.has_key(key) for key in ('lat','lon','zoom')]):
         try:
@@ -183,6 +189,20 @@ def pager_output(request, datafile):
         limit=20
     order=request.GET.get('order_by', 'nmtk_id').lower()
     qs=getQuerySet(datafile)
+    # Our requests for data come in as GET requests - so we're somewhat
+    # limited in terms of filter sizes here.  However, in this case we
+    # can do our best.  The assumption is that a JSON string is provided 
+    # for the filters GET parameter.  We parse that and get a set of key/value
+    # pairs in an object form, that we can then pass in as filter parameters
+    # to the ORM.
+    if request.GET.has_key('filters'):
+        try:
+            filters=json.loads(request.GET['filters'])
+            logger.info('Got filters of %s', filters)
+            qs=qs.filter(**filters)
+        except Exception, e:
+            logger.exception('Got invalid JSON string for filters (%s), skipping filters',
+                             request.GET['filters'])
     row=qs[0]
     db_map=[(field.db_column or field.name, field.name) for
              field in row._meta.fields if field.name.lower() not in ('nmtk_geometry',

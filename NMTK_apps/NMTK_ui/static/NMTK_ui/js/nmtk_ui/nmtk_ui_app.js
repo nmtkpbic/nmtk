@@ -46,6 +46,7 @@ define(['jquery'
         , 'restangular'
         , 'ng-grid'
         , 'angular-bootstrap'
+        , 'bootstrap-slider'
         ],
 		function ($, angular, _, controllers, deleteModalTemplate,
 				  resultsTemplate, jobTemplate, filesTemplate, configureTemplate,

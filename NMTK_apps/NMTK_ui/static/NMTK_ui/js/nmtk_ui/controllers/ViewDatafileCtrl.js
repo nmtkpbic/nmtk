@@ -229,14 +229,12 @@ define(['underscore','leaflet'], function (_, L) {
 					    }
 					}
 				}
-				$log.info('Got items selected!');
 			}, true);
 			
 			// When someone selects items via the "results" grid it goes
 			// into selections, which we then need to copy over to selected_features
 			
 			$scope.$watch('selections', function (newVal, oldVal) {
-				$log.info('Got selections!')
 				// If we're working with results from a map-click, then clicking on
 				// a row will remove those results.
 				if ($scope.feature_query_results) {

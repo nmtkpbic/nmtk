@@ -49,6 +49,7 @@ require.config({
 		, "domReady": "lib/domReady" // requirejs - test if the Dom is ready
 		, "angular": "lib/angular" // Angular JS 
 		, "angular-bootstrap": "lib/ui-bootstrap-tpls" // Bootstrap for angular, with templates
+		, "bootstrap-slider": "lib/bootstrap-slider" // Bootstrap for angular, with templates
 		, "ng-grid": "lib/ng-grid" // Angular Grid library (for gridded tables)
 		, "restangular": "lib/restangular" // REST Support for AngularJS
 		, "angular-leaflet": "lib/angular-leaflet-directive" // Directive to angularlize leaflet
@@ -97,6 +98,7 @@ require.config({
 	    , "restangular": ["angular"]
 	    , "ng-grid": ["angular", "ng-grid-flexible-height", "ng-grid-layout"]
 	    , "angular-bootstrap": ["angular"]
+	    , "bootstrap-slider": ["angular", "angular-bootstrap"]
 	    , "jquery": { exports: '$' }
 	}
 
