@@ -192,9 +192,23 @@ define(['underscore','leaflet'], function (_, L) {
 			// the view window...
 			$scope.$watch('selected_features', function (newVal, oldVal) {
 				var ids=[];
+				var clear=true;
 				_.each($scope.selected_features, function (data) {
 					ids.push(data.nmtk_id);
+					/*
+					 * Check to see if the selected item (if there is one) is
+					 * still in the list of features.  Otherwise we need
+					 * to clear the selection.
+					 */
+					if ($scope.selected_selected.length != 0) {
+						if (data.nmtk_id == $scope.selected_selected[0].id) {
+							clear=false;
+						}
+					}
 				});
+				if (clear) {
+					$scope.selected_selected.length=0;
+				}
 				if ($scope.spatial) {
 					if ($scope.leaflet.layers.overlays['highlight' + $scope.olcount]) {
 						delete $scope.leaflet.layers.overlays['highlight'+$scope.olcount];
@@ -216,12 +230,6 @@ define(['underscore','leaflet'], function (_, L) {
 					}
 				}
 				$log.info('Got items selected!');
-				// If nothing is selected, select the first item
-				if ($scope.selected_selected.length == 0) {
-					$timeout(function () {
-//						$scope.gridOptions2.selectItem(0, true);
-					}, 100);
-				}
 			}, true);
 			
 			// When someone selects items via the "results" grid it goes
@@ -261,13 +269,13 @@ define(['underscore','leaflet'], function (_, L) {
 			 * stuff to 0 and then reload the data for the grid (to unselect items.)
 			 */
 			$scope.clearSelection=function() {
-				_.each($scope.selected_features, function (v, index) {
-					$scope.gridOptions2.selectItem(index, false);
-				});
+//				_.each($scope.selected_features, function (v, index) {
+//					$scope.gridOptions2.selectItem(index, false);
+//				});
 				_.each($scope.data, function (v, index) {
 					$scope.gridOptions.selectItem(index, false);
 				});
-				$scope.selected_features=[];
+				$scope.selected_features.length=0;
 			}
 			
 			
