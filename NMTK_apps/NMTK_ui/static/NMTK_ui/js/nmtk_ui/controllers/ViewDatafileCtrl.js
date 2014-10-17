@@ -29,20 +29,40 @@
  *       OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  *       SUCH DAMAGE.
  */
-define(['underscore','leaflet'], function (_, L) {
+define(['angular', 'underscore','leaflet',
+        'text!AdvancedFiltersTemplate'], function (angular, _, 
+        										   L, 
+        										   AdvancedFiltersTemplate) {
 	"use strict";
 	var controller=['$scope','$routeParams','$location','$log','$http',
-	                '$timeout', 'leafletData','Restangular', '$q',
+	                '$timeout', 'leafletData','Restangular', '$q', '$modal',
         /*
 		 * A variant of the ViewResults Controller that uses leaflet-directive 
 		 * rather than leaflet directly.
 		 */
 	        
 		function ($scope, $routeParams, $location, $log, $http, $timeout, 
-				  leafletData, Restangular, $q) {
+				  leafletData, Restangular, $q, $modal) {
 			$scope.loginCheck();
 			$scope.changeTab('datafile_view');
-			$scope.$parent.results_uri=$location.path();
+			/*
+			 * Filters will be specific for datafile or job, so here we will
+			 * actually store the filters and reset them if the results_uri
+			 * changes.  This allows us to make it seem like the view is
+			 * persistent (when it really isn't!)
+			 */
+			if (_.isUndefined($scope.$parent.results_uri) ||
+				$scope.$parent.results_uri != $location.path()) {
+				$scope.$parent.results_uri=$location.path();
+				$scope.$parent.customFilters={};
+			}
+			
+			/*
+			 * Here we figure out of we are viewing a file, or a set of job
+			 * results.  The difference is that a file will have an integer
+			 * file identifier.  While a job will have a UUID value, consisting
+			 * of numbers and letters.
+			 */
 			if (/^\d+$/.test($routeParams.id)) {
 				$scope.source_path='/files';
 				$timeout(function () { getDatafile($routeParams.id); }, 0);
@@ -52,6 +72,58 @@ define(['underscore','leaflet'], function (_, L) {
 			}
 			
 			$log.debug('Parameters are ', $routeParams);
+			
+			// Simple function to return true or false depending on whether
+			// there are custom filters enabled.
+			$scope.customFiltersEnabled=function () {
+				return ! (_.isEmpty($scope.customFilters));
+			}
+			/*
+			 * Function to change the current filters.  This ensures that 
+			 * we consistently apply scrolling, etc. whenever a filter set
+			 * change occurs.
+			 */
+			$scope.setCustomFilters=function (filters) {
+				if (_.isUndefined(filters)) {
+					filters={};
+				}
+				$scope.customFilters=filters;
+				$scope.getPagedDataAsync($scope.page_size, 0, '', 'nmtk_id');
+				$scope.clearSelection();
+				$scope.gridOptions.ngGrid.$viewport.scrollTop(0);
+			}
+			
+			$scope.advanced_filters=function () {
+				var opts = {
+					    template:  AdvancedFiltersTemplate, // OR: templateUrl: 'path/to/view.html',
+					    controller: 'AdvancedFiltersCtrl',
+					    resolve:{'filters': function () { return $scope.$parent.customFilters; },
+					    	     'datafile_api': function () { return $scope.datafile_api;}
+					    },
+					    scope: $scope
+					  };
+				
+				var modal_dialog=$modal.open(opts);
+				
+				modal_dialog.result.then(function(result) {
+					/*
+					 * We only want to reload things if the filters change - since
+					 * otherwise we'll reset the current page the user is viewing,
+					 * etc.
+					 */
+					if (! _.isEqual($scope.filters, result)) {
+						$log.info('New filters from modal was ', result);
+						// Here we reset things since the filters changes we need
+						// to go back to the first page, etc.
+						$scope.setCustomFilters(result);
+						$scope.getPagedDataAsync($scope.page_size, 0, '', 'nmtk_id');
+					} else {
+						$log.debug('Filters did not change: ', $scope.filters);
+					}
+				});
+			}
+			
+			
 			/*
 			 * A function that, when given a job identifier, locates the 
 			 * primary results for that job and then loads it's respective
@@ -116,6 +188,7 @@ define(['underscore','leaflet'], function (_, L) {
 			$scope.filterOptions= { filterText: "",
 									userExternalFilter: true };
 							
+			
 			$scope.totalServerItems=0;
 			$scope.selections=[];
 			$scope.page_size=100;
@@ -149,6 +222,9 @@ define(['underscore','leaflet'], function (_, L) {
 							     search: searchText,
 							     order_by: order,
 							     format: 'pager'};
+					if (! _.isEmpty($scope.customFilters)) {
+						options['filters']=angular.toJson($scope.customFilters);
+					}
 					$log.info('Making request for ', $scope.datafile_api.download_url, options);
 					$http.get($scope.datafile_api.download_url, {params: options}).success(function (data) {
 						$scope.totalServerItems=data.meta.total;

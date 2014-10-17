@@ -67,6 +67,11 @@
           <div class="widget-header">
             <i class="glyphicon glyphicon-list"></i>
             <h3>All {{data_file_tab_name}}</h3>
+            <button class="navbar-right btn btn-xs btn-info ic-right" ng-click="setCustomFilters()" 
+                    stop-event="click">Reset Filters</button>
+            <button class="navbar-right btn btn-xs btn-primary ic-right" ng-click="advanced_filters()" 
+                    stop-event="click">Advanced Filters</button>
+            
           </div> <!-- /widget-header -->
           <div class="widget-content">
             <div class="gridStyle" ng-grid="gridOptions">

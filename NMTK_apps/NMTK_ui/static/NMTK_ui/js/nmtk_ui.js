@@ -83,6 +83,7 @@ require.config({
 		, "configureErrorsServerTemplate": "../templates/configure_errors_server_modal.html" //Template for configuration error messages
 		, "configureErrorsClientTemplate": "../templates/configure_errors_client_modal.html" //Template for configuration error messages
 		, "cloneConfigTemplate": "../templates/clone_config_modal.html" // Template for config page to clone config.
+		, "AdvancedFiltersTemplate": "../templates/advanced_filters_modal.html" // Template for the advanced filters modal.
 	}
 	, shim: {
 	    "underscore": { exports: '_' }
