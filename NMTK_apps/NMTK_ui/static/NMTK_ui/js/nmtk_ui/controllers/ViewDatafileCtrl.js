@@ -54,7 +54,7 @@ define(['angular', 'underscore','leaflet',
 			if (_.isUndefined($scope.$parent.results_uri) ||
 				$scope.$parent.results_uri != $location.path()) {
 				$scope.$parent.results_uri=$location.path();
-				$scope.$parent.customFilters={};
+				$scope.$parent.customFilters=[];
 			}
 			
 			/*
@@ -76,7 +76,7 @@ define(['angular', 'underscore','leaflet',
 			// Simple function to return true or false depending on whether
 			// there are custom filters enabled.
 			$scope.customFiltersEnabled=function () {
-				return ! (_.isEmpty($scope.customFilters));
+				return ! (_.isEmpty($scope.$parent.customFilters));
 			}
 			/*
 			 * Function to change the current filters.  This ensures that 
@@ -87,7 +87,7 @@ define(['angular', 'underscore','leaflet',
 				if (_.isUndefined(filters)) {
 					filters={};
 				}
-				$scope.customFilters=filters;
+				$scope.$parent.customFilters=filters;
 				$scope.getPagedDataAsync($scope.page_size, 0, '', 'nmtk_id');
 				$scope.clearSelection();
 				$scope.gridOptions.ngGrid.$viewport.scrollTop(0);
@@ -116,7 +116,6 @@ define(['angular', 'underscore','leaflet',
 						// Here we reset things since the filters changes we need
 						// to go back to the first page, etc.
 						$scope.setCustomFilters(result);
-						$scope.getPagedDataAsync($scope.page_size, 0, '', 'nmtk_id');
 					} else {
 						$log.debug('Filters did not change: ', $scope.filters);
 					}
@@ -222,8 +221,18 @@ define(['angular', 'underscore','leaflet',
 							     search: searchText,
 							     order_by: order,
 							     format: 'pager'};
-					if (! _.isEmpty($scope.customFilters)) {
-						options['filters']=angular.toJson($scope.customFilters);
+					if (! _.isEmpty($scope.$parent.customFilters)) {
+						/*
+						 * If there are filters, we need to build them into something
+						 * that the API will recognize - Django filter syntax, we do
+						 * that here, then jsonify the dictionary to send it to the API.
+						 */
+						var filters=[];
+						_.each($scope.$parent.customFilters, function (filterSet) {
+							// Format of each custom filter is (field, filterType, value)
+							filters.push([filterSet.field + '__' + filterSet.criteria, filterSet.filter_value]);
+						});
+						options['filters']=angular.toJson(filters);
 					}
 					$log.info('Making request for ', $scope.datafile_api.download_url, options);
 					$http.get($scope.datafile_api.download_url, {params: options}).success(function (data) {

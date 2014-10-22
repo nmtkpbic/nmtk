@@ -199,7 +199,8 @@ def pager_output(request, datafile):
         try:
             filters=json.loads(request.GET['filters'])
             logger.info('Got filters of %s', filters)
-            qs=qs.filter(**filters)
+            for filter_data in filters:
+                qs=qs.filter(**{filter_data[0]: filter_data[1]})
         except Exception, e:
             logger.exception('Got invalid JSON string for filters (%s), skipping filters',
                              request.GET['filters'])
