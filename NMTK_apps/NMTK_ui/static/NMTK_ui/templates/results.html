@@ -66,8 +66,9 @@
         <div class="widget stacked">
           <div class="widget-header">
             <i class="glyphicon glyphicon-list"></i>
-            <h3>All {{data_file_tab_name}}</h3>
-            <button class="navbar-right btn btn-xs btn-info ic-right" ng-click="setCustomFilters()" 
+            <h3 ng-hide="customFilters.length">All {{data_file_tab_name}}</h3>
+            <h3 ng-show="customFilters.length">Filtered {{data_file_tab_name}}</h3>
+            <button ng-show="customFilters.length" class="navbar-right btn btn-xs btn-info ic-right" ng-click="setCustomFilters()" 
                     stop-event="click">Reset Filters</button>
             <button class="navbar-right btn btn-xs btn-primary ic-right" ng-click="advanced_filters()" 
                     stop-event="click">Advanced Filters</button>
