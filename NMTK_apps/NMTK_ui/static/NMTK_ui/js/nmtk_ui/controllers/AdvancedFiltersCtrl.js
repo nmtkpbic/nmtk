@@ -131,7 +131,7 @@ define(['underscore'], function (_) {
 					/*
 					 * If the user filled in all the fields and hit done,
 					 * then we'll assume they wanted to add the filter and 
-					 * finish.
+					 * finish.result
 					 */
 					$scope.addFilter();
 				}

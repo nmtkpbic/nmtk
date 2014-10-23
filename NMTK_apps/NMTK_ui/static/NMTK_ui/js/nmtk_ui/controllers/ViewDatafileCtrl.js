@@ -97,7 +97,7 @@ define(['angular', 'underscore','leaflet',
 				var opts = {
 					    template:  AdvancedFiltersTemplate, // OR: templateUrl: 'path/to/view.html',
 					    controller: 'AdvancedFiltersCtrl',
-					    resolve:{'filters': function () { return $scope.$parent.customFilters; },
+					    resolve:{'filters': function () { return _.clone($scope.$parent.customFilters); },
 					    	     'datafile_api': function () { return $scope.datafile_api;}
 					    },
 					    scope: $scope
@@ -112,13 +112,11 @@ define(['angular', 'underscore','leaflet',
 					 * etc.
 					 */
 					if (! _.isEqual($scope.$parent.customFilters, result)) {
-						$log.info('New filters from modal was ', result);
-						// Here we reset things since the filters changes we need
+						// Here we reset things since the filters changed we need
 						// to go back to the first page, etc.
+						$log.debug('Filters changed; reloading');
 						$scope.setCustomFilters(result);
-					} else {
-						$log.debug('Filters did not change: ', $scope.filters);
-					}
+					} 
 				});
 			}
 			
