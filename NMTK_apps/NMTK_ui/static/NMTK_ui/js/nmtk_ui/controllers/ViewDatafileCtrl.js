@@ -270,6 +270,35 @@ define(['angular', 'underscore','leaflet',
 				}
 			};
 			$scope.olcount=0;
+			$scope.olsubcount=0;
+			
+			// Whenever a feature is selected in the table, we will match that feature in
+			// the view window...
+			$scope.$watch('selected_selected', function (newVal, oldVal) {
+				if ($scope.spatial) {
+					if ($scope.leaflet.layers.overlays['highlight_selected' + $scope.olsubcount]) {
+						delete $scope.leaflet.layers.overlays['highlight_selected'+$scope.olsubcount];
+					}
+					$scope.olsubcount += 1;
+					if (newVal) {
+						var ids=[];
+						_.each(newVal, function (data) {
+							ids.push(data.nmtk_id);
+						});
+						$scope.leaflet.layers.overlays['highlight_selected'+$scope.olsubcount]= {
+					            name: 'Visible Feature',
+					            type: 'wms',
+					            visible: true,
+					            url: $scope.datafile_api.wms_url,
+					            layerOptions: { layers: "highlight_selected",
+					            	            ids: ids,
+					                    		format: 'image/png',
+					                    		transparent: true }
+					    }
+					}
+				}
+			}, true);
+			
 			
 			// Whenever a feature is selected in the table, we will match that feature in
 			// the view window...
@@ -301,7 +330,7 @@ define(['angular', 'underscore','leaflet',
 				if ($scope.spatial) {
 					if (ids.length) {
 						$scope.leaflet.layers.overlays['highlight'+$scope.olcount]= {
-					            name: 'Selected Layers',
+					            name: 'Selected Features',
 					            type: 'wms',
 					            visible: true,
 					            url: $scope.datafile_api.wms_url,

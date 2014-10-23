@@ -154,6 +154,37 @@ MAP
       GML_INCLUDE_ITEMS "all"
     END
   END
+  
+  LAYER
+    NAME "highlight_selected"
+	{% include "NMTK_server/mapfile_highlight_conninfo.map" %}
+    VALIDATION
+      "ids" "[0-9,]+"
+    END
+    TYPE POLYGON
+#    STATUS ON
+    DUMP TRUE
+    PROJECTION
+      "init=epsg:4326"
+    END
+    TRANSPARENCY ALPHA
+    CLASS
+      NAME "Selected Results"
+      STYLE
+        COLOR 160 160 160
+	    OUTLINECOLOR 160 160 160
+        ANTIALIAS TRUE
+      END # END STYLE
+    END
+
+    METADATA
+      WMS_TITLE "Highlight Selected"
+      WMS_ABSTRACT "Selected results"
+      WMS_SRS "EPSG:4326"
+      WMS_GROUP_TITLE "Highlights"
+      GML_INCLUDE_ITEMS "all"
+    END
+  END
 
 END
 
