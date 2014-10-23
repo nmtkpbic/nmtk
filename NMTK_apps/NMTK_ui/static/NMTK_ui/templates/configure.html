@@ -57,10 +57,10 @@
 			         <p class="help-block error" ng-show="(submit_attempted || job_config_form[config.namespace+':'+property.name].$dirty) && job_config_form[config.namespace+':'+property.name].$invalid" ng-bind="validation[config.namespace][property.name]['error']"></p>
 			       </td>
                    <td>
-                      <select ng-change="switchFieldMode(config.namespace, property.name)" ng-model="$parent.job_config[config.namespace][property.name]['type']" ng-if="validation[config.namespace][property.name]['type'] != 'property'">
-						<option value="{{validation[config.namespace][property.name]['type']}}">Use {{validation[config.namespace][property.name]['type']}}</option>
-                        <option ng-if="validation[config.namespace][property.name]['choices']" value="choices">Select from value list</option>
-						<option value="property">Use file field</option>
+					  <select ng-disabled="disabled || constants_only[config.namespace]" ng-change="switchFieldMode(config.namespace, property.name)" 
+                              ng-model="$parent.job_config[config.namespace][property.name]['type']" 
+                              ng-if="validation[config.namespace][property.name]['type'] != 'property'"
+						      ng-options="item.value as item.detail for item in getFieldOptions(config.namespace, property.name)">
                       </select>
 					  <span ng-if="validation[config.namespace][property.name]['type'] == 'property'">
                         Use file field

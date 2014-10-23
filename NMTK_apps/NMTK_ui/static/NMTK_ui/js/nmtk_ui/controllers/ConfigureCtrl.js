@@ -224,6 +224,8 @@ define(['underscore',
 			$scope.constants_only={};
 			$scope.rest.datafile.then(function (data_files) {
 				$scope.updateFileFieldsFromResourceURI=function (key) {
+					var force_property=$scope.constants_only[key];
+					var force_constants=false;
 					var resource_uri=$scope.$parent.job_config_files[key];
 					if (typeof resource_uri !== 'undefined') {
 						$log.debug('Resource URI is ', resource_uri);
@@ -247,8 +249,11 @@ define(['underscore',
 							 * use all constants...
 							 */
 							$scope.constants_only[key]=true;
+							force_constants=true;
+						}
+						if (force_property || force_constants) {
 							_.each($scope.validation[key], function (this_data, field_name) {
-								$scope.switchFieldMode(key, field_name, true);
+								$scope.switchFieldMode(key, field_name, force_constants, force_property);
 							});
 						}
 					} else {
@@ -378,17 +383,43 @@ define(['underscore',
 				}
 			}
 			
+			$scope.getFieldOptions=function (namespace, field) {
+				var props=$scope.validation[namespace][field]
+				var options=[{value: props.type,
+					          detail: 'Use '+props.type}];
+				if (props.choices) {
+					options.push({value: 'choices',
+						          detail: "Select from value list"});
+				}
+				options.push({value: 'property',
+					          detail: "Use file field"});
+//				$log.info('Options are', options);
+				return options;
+			}
+			
 
-			$scope.switchFieldMode=function (namespace, field, force_constant) {
-				$log.debug('Called SwithFieldMode with ', namespace, field)
+			$scope.switchFieldMode=function (namespace, field, force_constant,
+					                         force_property) {
+				if (_.isUndefined(force_constant)) {
+					force_constant=false;
+				}
+				if (_.isUndefined(force_property)) {
+					force_property=false;
+				}
+				$log.debug('Called SwithFieldMode with ', namespace, field, force_constant)
 				// This is the valid type for this field.
 				var type=$scope.validation[namespace][field]['type'];
 				$log.debug('The type is ', type)
 				$log.debug('Current bound value is ', $scope.$parent.job_config[namespace][field]['type'])
 				if (type != 'property') {
-					if (force_constant || 
+					if (force_property) {
+						$scope.$parent.job_config[namespace][field]['type']= 'property'
+					} else if (force_constant || 
 					    ($scope.$parent.job_config[namespace][field]['type'] != 'property')) {
-//						$scope.$parent.job_config[namespace][field]['type'] = type;
+						/* Force the type to be a constant */
+						if (force_constant) {
+							$scope.$parent.job_config[namespace][field]['type'] = type;
+						}
 						$scope.$parent.job_config[namespace][field]['value']=undefined;
 					}
 				}
