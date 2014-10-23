@@ -195,6 +195,7 @@ def pager_output(request, datafile):
     # for the filters GET parameter.  We parse that and get a set of key/value
     # pairs in an object form, that we can then pass in as filter parameters
     # to the ORM.
+    filters={}
     if request.GET.has_key('filters'):
         try:
             filters=json.loads(request.GET['filters'])
@@ -204,28 +205,30 @@ def pager_output(request, datafile):
         except Exception, e:
             logger.exception('Got invalid JSON string for filters (%s), skipping filters',
                              request.GET['filters'])
-    row=qs[0]
-    db_map=[(field.db_column or field.name, field.name) for
-             field in row._meta.fields if field.name.lower() not in ('nmtk_geometry',
-                                                                     'nmtk_feature_id')]
-    # Detect user specified ordering, if provided.
-    if order.startswith('-'):
-        order_field=order[1:].lower()
-    else:
-        order_field=order.lower()
-    if order_field not in [col.lower() for col, name in db_map]:
-        order='nmtk_id'
-    qs=qs.order_by(order)
-    
     sstring=None
-    if request.GET.get('search', None):
-        '''
-        Handle the text search against the data fields.
-        '''
-        sstring=request.GET['search']
-        filter=reduce(lambda q, field: q|Q(**{'{0}__icontains'.format(field): sstring}),
-                      (field for (db_field, field) in db_map), Q())
-        qs=qs.filter(filter)
+    if qs.count():
+        row=qs[0]
+        db_map=[(field.db_column or field.name, field.name) for
+                 field in row._meta.fields if field.name.lower() not in ('nmtk_geometry',
+                                                                         'nmtk_feature_id')]
+        # Detect user specified ordering, if provided.
+        if order.startswith('-'):
+            order_field=order[1:].lower()
+        else:
+            order_field=order.lower()
+        if order_field not in [col.lower() for col, name in db_map]:
+            order='nmtk_id'
+        qs=qs.order_by(order)
+        
+        
+        if request.GET.get('search', None):
+            '''
+            Handle the text search against the data fields.
+            '''
+            sstring=request.GET['search']
+            filter=reduce(lambda q, field: q|Q(**{'{0}__icontains'.format(field): sstring}),
+                          (field for (db_field, field) in db_map), Q())
+            qs=qs.filter(filter)
     
     
     result={'data': [],
@@ -233,17 +236,19 @@ def pager_output(request, datafile):
                      'offset': offset,
                      'total': qs.count(),
                      'order': order,
-                     'search': sstring}
+                     'search': sstring,
+                     'filters': filters}
             }
-    if limit:
-        qs=qs[offset:limit+offset]
-    else:
-        qs=qs[offset:]
-    for row in qs:
-        data={}
-        for db_col, col in db_map:
-            if col != 'nmtk_geometry':
-                data[db_col]=getattr(row, col)
-        result['data'].append(data)
+    if result['meta']['total']:
+        if limit:
+            qs=qs[offset:limit+offset]
+        else:
+            qs=qs[offset:]
+        for row in qs:
+            data={}
+            for db_col, col in db_map:
+                if col != 'nmtk_geometry':
+                    data[db_col]=getattr(row, col)
+            result['data'].append(data)
         
     return HttpResponse(json.dumps(result), mimetype='application/json')

@@ -85,7 +85,7 @@ define(['angular', 'underscore','leaflet',
 			 */
 			$scope.setCustomFilters=function (filters) {
 				if (_.isUndefined(filters)) {
-					filters={};
+					filters=[];
 				}
 				$scope.$parent.customFilters=filters;
 				$scope.getPagedDataAsync($scope.page_size, 0, '', 'nmtk_id');
@@ -111,7 +111,7 @@ define(['angular', 'underscore','leaflet',
 					 * otherwise we'll reset the current page the user is viewing,
 					 * etc.
 					 */
-					if (! _.isEqual($scope.filters, result)) {
+					if (! _.isEqual($scope.$parent.customFilters, result)) {
 						$log.info('New filters from modal was ', result);
 						// Here we reset things since the filters changes we need
 						// to go back to the first page, etc.

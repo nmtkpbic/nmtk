@@ -65,6 +65,7 @@ define(['underscore'], function (_) {
 				 * Add a new filter based on the current contents of 
 				 * the $scope.selected object
 				 */
+				$log.error('Filters is currently', $scope.filters);
 				$scope.filters.push($scope.selected);
 				$scope.selected={};
 			}
@@ -126,6 +127,14 @@ define(['underscore'], function (_) {
 			 */
 			
 			$scope.save=function () {
+				if ($scope.selected.filter_value) {
+					/*
+					 * If the user filled in all the fields and hit done,
+					 * then we'll assume they wanted to add the filter and 
+					 * finish.
+					 */
+					$scope.addFilter();
+				}
 				$modalInstance.close($scope.filters);
 			}
 			$scope.close=function() {
