@@ -765,6 +765,7 @@ class DataFileResource(ModelResource):
         bundle.data['geom_type']=bundle.obj.get_geom_type_display()
         bundle.data['user'] = bundle.obj.user.username
         bundle.data['fields']=json.dumps(bundle.obj.fields)
+        bundle.data['field_attributes']=json.dumps(bundle.obj.field_attributes)
         if bundle.data['extent']:
             bundle.data['bbox']=OGRGeometry(bundle.data['extent']).extent
         return bundle

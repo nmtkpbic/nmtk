@@ -13,6 +13,7 @@ from django.db import connections, transaction
 import logging
 import os
 from django.core.exceptions import ObjectDoesNotExist
+from NMTK_apps.helpers.data_output import getQuerySet
 from NMTK_server.data_loaders.loaders import NMTKDataLoader
 from django.core.files import File
 from django.contrib.gis import geos
@@ -24,6 +25,8 @@ from django.template.loader import render_to_string
 from django.core.mail import send_mail
 from django.core.files.base import ContentFile
 from django.shortcuts import render
+from django.db.models import fields as django_model_fields
+from django.db.models import Max, Min, Count
 from osgeo import ogr
 import imp
 import math
@@ -553,6 +556,44 @@ def importDataFile(datafile, job_id=None):
                                          ContentFile(''))
             loader.export_json(datafile.processed_file.path)
             generate_datamodel(datafile, loader)
+            # Here we load the spatialite data using the model that was created
+            # by generate_datamodel.  We need to use this to get the range
+            # and type information for each field...
+            try:
+                field_attributes={}
+                qs=getQuerySet(datafile)
+                field_mappings=[(django_model_fields.IntegerField, 'integer',),
+                                (django_model_fields.BooleanField, 'boolean',),
+                                (django_model_fields.DecimalField, 'float',), # Special case holding FIPS
+                                (django_model_fields.TextField, 'text',),
+                                (django_model_fields.FloatField,'float'),
+                                (django_model_fields.DateField, 'date',),
+                                (django_model_fields.TimeField, 'time'),
+                                (django_model_fields.DateTimeField, 'datetime')]
+                # Get a single row so that we can try to work with the fields.
+                sample_row=qs[0]
+                for field in sample_row._meta.fields:
+                    field_name=field.name
+                    # convert the django field type to a text string.
+                    for ftype, field_type in field_mappings:
+                        if isinstance(field, (ftype,)):
+                            break
+                    else:
+                        logger.info('Unable to map field of type %s (this is expected for GIS fields)', type(field,))
+                        continue
+                    values_aggregates=qs.aggregate(Max(field_name), Min(field_name), Count(field_name,
+                                                                                      distinct=True))
+                    field_attributes[field_name]={'type': field_type, 
+                                                  'min': values_aggregates['{0}__min'.format(field_name)], 
+                                                  'max': values_aggregates['{0}__max'.format(field_name)],
+                                                  'distinct': values_aggregates['{0}__count'.format(field_name)]}
+                    if field_attributes[field_name]['distinct'] < 10:
+                        distinct_values=list(qs.order_by().values_list(field_name, flat=True).distinct())
+                        field_attributes[field_name]['values']=distinct_values
+                datafile.field_attributes=field_attributes
+            except Exception, e:
+                logger.exception('Failed to get range for field %s of model %s',
+                                 datafile.pk)
         if job_id:
             try:
                 job=models.Job.objects.get(pk=job_id)
@@ -573,6 +614,9 @@ def importDataFile(datafile, job_id=None):
                 job.status=job.POST_PROCESSING_FAILED
             except:
                 logger.exception('Failed to update job status to failed?!!')
+    
+    
+    
     if job_id:
         job.save()
     # Now we need to create the spatialite version of this thing.
