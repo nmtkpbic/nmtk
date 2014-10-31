@@ -418,6 +418,15 @@ define(['underscore'
 						$("#ie_uploadform").trigger('reset');
 					}
 					
+					/*
+					 * Function to generate help for the current path.
+					 */
+					$scope.ui_help=function () {
+						
+						var current_path=$location.path();
+						
+					}
+					
 					$scope.feedback=function () {
 						$scope.resources['feedback']=Restangular.all('feedback');
 						var rest=$scope.resources['feedback'];
