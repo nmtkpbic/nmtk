@@ -31,18 +31,39 @@
  */
 define(['underscore'], function (_) {	
 	"use strict";
-	var controller=['$scope', '$filter', '$log', '$modalInstance', 'filters', 'datafile_api',
-        function ($scope, $filter, $log, $modalInstance, filters, datafile_api) {
+	var controller=['$scope', '$filter', '$log', 
+	                '$modalInstance', 'filters', 'datafile_api',
+	               
+        function ($scope, $filter, $log, 
+        		  $modalInstance, filters, datafile_api) {
 			/*
 			 * Here we are trying to build and apply advanced filters.  This is
 			 * tricky mainly because the fields, etc, vary from data file to data
 			 * file.
 			 */
+			/*
+			 * We need to get the attributes of fields, so we can show them 
+			 * alongside the advanced filters.
+			 */
+		    if (! _.isUndefined(datafile_api.field_attributes) && 
+		        datafile_api.field_attributes.length) {
+				$scope.field_attributes=JSON.parse(datafile_api.field_attributes);
+			} else {
+				$scope.field_attributes={};
+			}
+			
 		    if (_.isUndefined(filters)) {
 		    	filters=[];
 		    }
 			$scope.filters=filters;
 			$scope.selected={};
+			
+			$scope.$watch('selected.field', function (new_value, old_value) {
+				if (new_value) {
+				   $scope.attributes=$scope.field_attributes[new_value];
+				}
+			});
+			
 			// A list of all the fields that are available for filtering.
 			$scope.selection_fields=JSON.parse(datafile_api.fields);
 			$scope.criterion=[  {name: 'Contains (case insensitive)',

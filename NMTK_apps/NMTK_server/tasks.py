@@ -574,6 +574,7 @@ def importDataFile(datafile, job_id=None):
                 sample_row=qs[0]
                 for field in sample_row._meta.fields:
                     field_name=field.name
+                    db_column=field.db_column or field.name
                     # convert the django field type to a text string.
                     for ftype, field_type in field_mappings:
                         if isinstance(field, (ftype,)):
@@ -583,16 +584,16 @@ def importDataFile(datafile, job_id=None):
                         continue
                     values_aggregates=qs.aggregate(Max(field_name), Min(field_name), Count(field_name,
                                                                                       distinct=True))
-                    field_attributes[field_name]={'type': field_type, 
+                    field_attributes[db_column]={'type': field_type, 
                                                   'min': values_aggregates['{0}__min'.format(field_name)], 
                                                   'max': values_aggregates['{0}__max'.format(field_name)],
                                                   'distinct': values_aggregates['{0}__count'.format(field_name)]}
-                    if field_attributes[field_name]['distinct'] < 10:
+                    if field_attributes[db_column]['distinct'] < 10:
                         distinct_values=list(qs.order_by().values_list(field_name, flat=True).distinct())
-                        field_attributes[field_name]['values']=distinct_values
+                        field_attributes[db_column]['values']=distinct_values
                 datafile.field_attributes=field_attributes
             except Exception, e:
-                logger.exception('Failed to get range for field %s of model %s',
+                logger.exception('Failed to get range for model %s',
                                  datafile.pk)
         if job_id:
             try:

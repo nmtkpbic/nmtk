@@ -547,6 +547,8 @@ class DataFileResource(ModelResource):
     checksum=fields.CharField('checksum',readonly=True, null=True)
     geom_type=fields.CharField('geom_type', readonly=True, null=True)
     file=fields.CharField('file', readonly=True, null=True)
+    
+    field_attributes=fields.CharField('field_attributes', readonly=True, null=True)
     result_field=fields.CharField('result_field', readonly=True, null=True)
     result_field_units=fields.CharField('result_field_units', readonly=True, null=True)
     type=fields.CharField('type', readonly=True, null=True)

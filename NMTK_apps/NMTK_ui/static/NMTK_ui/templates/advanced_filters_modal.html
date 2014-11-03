@@ -19,6 +19,18 @@
 	                    ng-model="selected.field" 
 	                    ng-options="field as field for field in selection_fields" >
 	            </select>
+	            <p ng-show="selected.field && ! _.isUndefined(attributes)">
+	            This field has {{attributes.distinct}} 
+	            distinct {{attributes.type}} values. <br />
+	            <span ng-hide="attributes.values.length || attributes.type == 'text'">The range of values starts with {{attributes.min}} and
+	            ends with {{attributes.max}}</span>
+	            <span ng-show="attributes.values">
+	              <ul>
+	                <li ng-repeat="value in attributes.values">{{value}}</li>
+	              </ul>
+	            </span>
+	            <span></span>
+	            </p>
 	            <p ng-show="selected.field" class="help-block">Choose the filter criteria</p>
 	            <select ng-show="selected.field" id="criteria"
 	                    ng-model="selected.criteria" 
