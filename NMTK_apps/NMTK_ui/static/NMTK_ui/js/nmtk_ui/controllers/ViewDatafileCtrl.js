@@ -114,7 +114,6 @@ define(['angular', 'underscore','leaflet',
 					if (! _.isEqual($scope.$parent.customFilters, result)) {
 						// Here we reset things since the filters changed we need
 						// to go back to the first page, etc.
-						$log.debug('Filters changed; reloading');
 						$scope.setCustomFilters(result);
 					} 
 				});
@@ -228,7 +227,7 @@ define(['angular', 'underscore','leaflet',
 						var filters=[];
 						_.each($scope.$parent.customFilters, function (filterSet) {
 							// Format of each custom filter is (field, filterType, value)
-							filters.push([filterSet.field + '__' + filterSet.criteria, filterSet.filter_value]);
+							filters.push([filterSet.model_field + '__' + filterSet.criteria, filterSet.filter_value]);
 						});
 						options['filters']=angular.toJson(filters);
 					}

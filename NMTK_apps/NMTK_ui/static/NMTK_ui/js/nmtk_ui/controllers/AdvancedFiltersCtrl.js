@@ -58,14 +58,26 @@ define(['underscore'], function (_) {
 			$scope.filters=filters;
 			$scope.selected={};
 			
-			$scope.$watch('selected.field', function (new_value, old_value) {
+			$scope.$watch('selected.model_field', function (new_value, old_value) {
 				if (new_value) {
-				   $scope.attributes=$scope.field_attributes[new_value];
+					/*
+					 * When a user selects a model field, we need to find the corresponding
+					 * field that we display (the actual field from the file) so we can
+					 * display things correctly.
+					 */
+					var f=_.find($scope.selection_fields, function (field_data) {
+						return (field_data.model_field == $scope.selected.model_field);
+					});
+					$scope.selected.field=f.name;
+				   	$scope.attributes=$scope.field_attributes[f.name];
 				}
 			});
 			
 			// A list of all the fields that are available for filtering.
-			$scope.selection_fields=JSON.parse(datafile_api.fields);
+			$scope.selection_fields=[];
+			_.each($scope.field_attributes, function (value, key) {
+				$scope.selection_fields.push({'name': key, 'model_field': value.field_name});
+			});
 			$scope.criterion=[  {name: 'Contains (case insensitive)',
 				                 filter: 'icontains'}
 				              , {name: 'Less than',
@@ -86,7 +98,6 @@ define(['underscore'], function (_) {
 				 * Add a new filter based on the current contents of 
 				 * the $scope.selected object
 				 */
-				$log.error('Filters is currently', $scope.filters);
 				$scope.filters.push($scope.selected);
 				$scope.selected={};
 			}

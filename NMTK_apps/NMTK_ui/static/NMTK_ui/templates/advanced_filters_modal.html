@@ -16,12 +16,12 @@
 	          <div class="controls">
      	        <p class="help-block">Choose a field to filter</p>
 	            <select id="field"
-	                    ng-model="selected.field" 
-	                    ng-options="field as field for field in selection_fields" >
+	                    ng-model="selected.model_field" 
+	                    ng-options="field.model_field as field.name for field in selection_fields" >
 	            </select>
-	            <p ng-show="selected.field && ! _.isUndefined(attributes)">
+	            <p ng-show="selected.model_field && ! _.isUndefined(attributes)">
 	            This field has {{attributes.distinct}} 
-	            distinct {{attributes.type}} values. <br />
+	            distinct {{attributes.type}} value(s). <br />
 	            <span ng-hide="attributes.values.length || attributes.type == 'text'">The range of values starts with {{attributes.min}} and
 	            ends with {{attributes.max}}</span>
 	            <span ng-show="attributes.values">
@@ -31,8 +31,8 @@
 	            </span>
 	            <span></span>
 	            </p>
-	            <p ng-show="selected.field" class="help-block">Choose the filter criteria</p>
-	            <select ng-show="selected.field" id="criteria"
+	            <p ng-show="selected.model_field" class="help-block">Choose the filter criteria</p>
+	            <select ng-show="selected.model_field" id="criteria"
 	                    ng-model="selected.criteria" 
 	                    ng-options="criteria.filter as criteria.name for criteria in criterion" >
 	            </select>

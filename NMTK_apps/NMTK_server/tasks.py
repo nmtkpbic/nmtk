@@ -585,9 +585,10 @@ def importDataFile(datafile, job_id=None):
                     values_aggregates=qs.aggregate(Max(field_name), Min(field_name), Count(field_name,
                                                                                       distinct=True))
                     field_attributes[db_column]={'type': field_type, 
-                                                  'min': values_aggregates['{0}__min'.format(field_name)], 
-                                                  'max': values_aggregates['{0}__max'.format(field_name)],
-                                                  'distinct': values_aggregates['{0}__count'.format(field_name)]}
+                                                 'field_name': field_name,
+                                                 'min': values_aggregates['{0}__min'.format(field_name)], 
+                                                 'max': values_aggregates['{0}__max'.format(field_name)],
+                                                 'distinct': values_aggregates['{0}__count'.format(field_name)]}
                     if field_attributes[db_column]['distinct'] < 10:
                         distinct_values=list(qs.order_by().values_list(field_name, flat=True).distinct())
                         field_attributes[db_column]['values']=distinct_values
