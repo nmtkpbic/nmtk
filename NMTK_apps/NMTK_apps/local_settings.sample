@@ -44,6 +44,7 @@ __all__=['SITE_DOMAIN', 'PRODUCTION',
          'SERVER_EMAIL','DEFAULT_FROM_EMAIL','SECRET_KEY',
          'FILES_PATH','LOGFILE_PATH','NMTK_SERVERS',
          'NMTK_TOOL_APPS', 'NMTK_SERVER','TOOL_SERVER',
+         'NMTK_BANNER_OVERRIDE_URL',
          'DATABASES','USER_MODELS_LOCATION','DATABASE_TYPE']
 import os
 import socket
@@ -233,6 +234,16 @@ NMTK_TOOL_APPS=('MN_model', # The tool for the Minnesota pedestrian/cycle models
                 'SF_model', # The tool for the SF pedestrian model
                 )
 
+
+#
+# If present, the NMTK server splash page will not appear, instead 
+# the user will get redirected to the URL specified in this setting.
+#
+# Valid values are: None (default behaviour, NMTK Server splash page)
+#                   '' (redirect the user directly to the NMTK UI page)
+#                   '<URL>' (redirect the user to the URL specified.)
+#
+NMTK_BANNER_OVERRIDE_URL=''
 
 
 
