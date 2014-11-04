@@ -243,7 +243,7 @@ NMTK_TOOL_APPS=('MN_model', # The tool for the Minnesota pedestrian/cycle models
 #                   '' (redirect the user directly to the NMTK UI page)
 #                   '<URL>' (redirect the user to the URL specified.)
 #
-NMTK_BANNER_OVERRIDE_URL=''
+NMTK_BANNER_OVERRIDE_URL=None
 
 
 
