@@ -54,13 +54,24 @@ def registerUser(request):
                    'site': site })    
 
 def nmtk_index(request, page_name='nmtk_index'):
-    data=models.PageContent.objects.filter(page__name='nmtk_index',
-                                           enabled=True)
-    
-    return render(request, 'NMTK_server/index.html',
-                  {'registration_open': settings.REGISTRATION_OPEN,
-                   'ui_installed': 'NMTK_ui' in settings.INSTALLED_APPS,
-                   'page_data': data})
+    '''
+    The function to display the NMTK Index page.  This is goverened by
+    the NMTK_BANNER_OVERRIDE_URL setting - which might cause the 
+    splash page to be ignored.
+    '''
+    override_setting=getattr(settings, 'NMTK_BANNER_OVERRIDE_URL', None)
+    if override_setting is None:
+        data=models.PageContent.objects.filter(page__name='nmtk_index',
+                                               enabled=True)
+        
+        return render(request, 'NMTK_server/index.html',
+                      {'registration_open': settings.REGISTRATION_OPEN,
+                       'ui_installed': 'NMTK_ui' in settings.INSTALLED_APPS,
+                       'page_data': data})
+    elif override_setting == '':
+        return nmtk_ui(request)
+    else:
+        return HttpResponseRedirect(override_setting)
 
 def nmtk_ui(request):
     '''
