@@ -71,7 +71,6 @@ def find_models_with_filefield():
 def remove_old_files(sender, instance, **kwargs):
     if not instance.pk:
         return
-
     try:
         old_instance = instance.__class__.objects.get(pk=instance.pk)
     except instance.DoesNotExist:

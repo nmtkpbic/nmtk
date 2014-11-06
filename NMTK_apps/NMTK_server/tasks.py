@@ -29,10 +29,7 @@ from django.db.models import fields as django_model_fields
 from django.db.models import Max, Min, Count
 from osgeo import ogr
 import imp
-import math
 import datetime
-import colorsys
-from PIL import Image, ImageDraw, ImageFont
 from django.contrib.gis.geos import GEOSGeometry
 import tempfile
 
@@ -47,86 +44,8 @@ geomodel_mappings={ ogr.wkbPoint: ('models.PointField', geos.Point, 'point'),
                     ogr.wkbPolygon: ('models.PolygonField', geos.Polygon,'polygon'),
                     ogr.wkbMultiLineString: ('models.MultiLineStringField', geos.MultiLineString,'line'),
                    }
-# Given a min and max value, and a value (somewhere in the middle)
-# return a suitable pseudo-color to match.
-def pseudocolor(val, minval=0, maxval=255):
-    if minval == maxval:
-        h=180
-    else:
-        h=float(val-minval)/(maxval-minval)*120
-    g,r,b=colorsys.hsv_to_rgb(h/360,1.0,1.0)
-    return int(r*255),int(g*255),int(b*255)
+    
 
-def generateColorRampLegendGraphic(min_text, max_text, 
-                                   height=16, width=258, border=1, units=None):
-    logger.debug('Units are %s', units)
-    im=Image.new('RGB', (width, height), "black")
-    draw=ImageDraw.Draw(im)
-    start=border
-    stop=height-border*2
-    fixed=False
-    if max_text==min_text:
-        fixed=True
-    for i in range(border, width-border*2):
-        if not fixed:
-            color="rgb({0},{1},{2})".format(*pseudocolor(i, minval=0, 
-                                                         maxval=width-(border*2)))
-        else:
-            color="rgb({0},{1},{2})".format(*pseudocolor(0, 0, 0))
-        draw.line((i, start, i, stop), fill=color)
-    del draw
-    
-    # Generate the legend text under the image
-    font=ImageFont.truetype(settings.LEGEND_FONT,12)
-    
-    if not fixed:
-        min_text_width, min_text_height = font.getsize('{0}'.format(min_text))
-        max_text_width, max_text_height = font.getsize('{0}'.format(max_text))
-        text_height=max(min_text_height, max_text_height)
-        
-        final_width=max(width, max_text_width, min_text_width)
-    else:
-        max_text_width, text_height=font.getsize('All Features')
-        final_width=max(width, max_text_width)
-    # The text height, plus the space between the image and text (1px)
-    total_text_height=text_height+1
-    logger.debug('Total text height is now %s', total_text_height)
-    if units:
-        units_width, units_height=font.getsize(units)
-        final_width=max(final_width, units_width)
-        # Another pixel for space, then the units text
-        total_text_height = total_text_height + units_height + 1
-        logger.debug('Total text height is now %s (post units)', 
-                     total_text_height)
-    im2=Image.new('RGB', (final_width, height+total_text_height+6), "white")
-    im2.paste(im, (int((final_width-width)/2),0))
-    text_pos=height+1
-    draw=ImageDraw.Draw(im2)
-    if not fixed:
-        draw.text((1, text_pos),
-                  '{0}'.format(min_text),
-                  "black",
-                  font=font)
-        draw.text((final_width-(max_text_width+1), text_pos), 
-                  '{0}'.format(max_text), 
-                  "black", 
-                  font=font)
-        if units:
-            text_pos = text_pos + text_height + 1
-            placement=(int(final_width/2.0-((units_width+1)/2)), text_pos)
-            draw.text(placement, 
-                      units, 
-                      "black", 
-                      font=font)
-    else:
-        placement=(int(final_width/2.0-((max_text_width+1)/2)), text_pos)
-        draw.text(placement, 
-                  'All Features', 
-                  "black", 
-                  font=font)
-    
-    del draw
-    return im2
 
 # This actually does not get done as a task - it is inline with the
 # response from the tool server.
@@ -235,60 +154,60 @@ def generate_datamodel(datafile, loader):
                 raise e
 #             logger.debug('Saved model with pk of %s', m.pk)
         logger.debug('Completing transferring results to %s database %s', dbtype,datafile.pk,)
-        if spatial:
-            logger.debug('Spatial result generating styles (%s-%s)', min_result, max_result)
-            step=math.fabs((max_result-min_result)/256)
-            colors=[]
-            low=min_result
-            v=min_result
-            while v <= max_result+step:
-                #logger.debug('Value is now %s', v)
-                r,g,b=pseudocolor(v, min_result, max_result)
-                colors.append({'r': r,
-                               'g': g,
-                               'b': b,
-                               'low': low ,
-                               'high': v})
-                low=v
-                v += step or 1
+#         if spatial:
+#             logger.debug('Spatial result generating styles (%s-%s)', min_result, max_result)
+#             step=math.fabs((max_result-min_result)/256)
+#             colors=[]
+#             low=min_result
+#             v=min_result
+#             while v <= max_result+step:
+#                 #logger.debug('Value is now %s', v)
+#                 r,g,b=ramp_function(v, min_result, max_result)
+#                 colors.append({'r': r,
+#                                'g': g,
+#                                'b': b,
+#                                'low': low ,
+#                                'high': v})
+#                 low=v
+#                 v += step or 1
+#             
+#             data={'datafile': datafile,
+#                   'dbtype': dbtype,
+#                   'result_field': datafile.result_field,
+#                   'static': min_result == max_result,
+#                   'min': min_result,
+#                   'max': max_result,
+#                   'colors': colors,
+#                   'mapserver_template': settings.MAPSERVER_TEMPLATE }
+#             data['connectiontype']='POSTGIS'
+#             dbs=settings.DATABASES['default']
+#             data['connection']='''host={0} dbname={1} user={2} password={3} port={4}'''.format(dbs.get('HOST', None) or 'localhost',
+#                                                                                                dbs.get('NAME'),
+#                                                                                                dbs.get('USER'),
+#                                                                                                dbs.get('PASSWORD'),
+#                                                                                                dbs.get('PORT', None) or '5432')
+#             data['data']='nmtk_geometry from userdata_results_{0}'.format(datafile.pk)
+#             data['highlight_data']='''nmtk_geometry from (select * from userdata_results_{0} where nmtk_id in (%ids%)) as subquery
+#                                       using unique nmtk_id'''.format(datafile.pk)
+#             res=render_to_string('NMTK_server/mapfile_{0}.map'.format(mapfile_type), 
+#                                  data)
+#             datafile.mapfile.save('mapfile.map', ContentFile(res), save=False)
+#             datafile.legendgraphic.save('legend.png', ContentFile(''), save=False)
             
-            data={'datafile': datafile,
-                  'dbtype': dbtype,
-                  'result_field': datafile.result_field,
-                  'static': min_result == max_result,
-                  'min': min_result,
-                  'max': max_result,
-                  'colors': colors,
-                  'mapserver_template': settings.MAPSERVER_TEMPLATE }
-            data['connectiontype']='POSTGIS'
-            dbs=settings.DATABASES['default']
-            data['connection']='''host={0} dbname={1} user={2} password={3} port={4}'''.format(dbs.get('HOST', None) or 'localhost',
-                                                                                               dbs.get('NAME'),
-                                                                                               dbs.get('USER'),
-                                                                                               dbs.get('PASSWORD'),
-                                                                                               dbs.get('PORT', None) or '5432')
-            data['data']='nmtk_geometry from userdata_results_{0}'.format(datafile.pk)
-            data['highlight_data']='''nmtk_geometry from (select * from userdata_results_{0} where nmtk_id in (%ids%)) as subquery
-                                      using unique nmtk_id'''.format(datafile.pk)
-            res=render_to_string('NMTK_server/mapfile_{0}.map'.format(mapfile_type), 
-                                 data)
-            datafile.mapfile.save('mapfile.map', ContentFile(res), save=False)
-            datafile.legendgraphic.save('legend.png', ContentFile(''), save=False)
-            
-            logger.debug('Creating a new legend graphic image %s', datafile.legendgraphic.path)
-#             im=generateColorRampLegendGraphic(min_text='{0}'.format(math.floor(min_result*100.0)/100.0),
-#                                               max_text='{0}'.format(math.ceil(max_result*100.0)/100.0),
+#             logger.debug('Creating a new legend graphic image %s', datafile.legendgraphic.path)
+# #             im=generateColorRampLegendGraphic(min_text='{0}'.format(math.floor(min_result*100.0)/100.0),
+# #                                               max_text='{0}'.format(math.ceil(max_result*100.0)/100.0),
+# #                                               units=datafile.result_field_units)
+# 
+#             round_to_n = lambda x, n: round(x, -int(math.floor(math.log10(x))) + (n - 1))
+# #             round_digits = lambda x, n: round(x, int(n - math.ceil(math.log10(abs(x)))))
+#             # Round to 4 significant digits here, but first make sure we floor/ceil as needed to ensure
+#             # we might include the correct min/max values.
+#             im=generateColorRampLegendGraphic(min_text=round_to_n(min_result,4),
+#                                               max_text=round_to_n(max_result,4),
 #                                               units=datafile.result_field_units)
-
-            round_to_n = lambda x, n: round(x, -int(math.floor(math.log10(x))) + (n - 1))
-#             round_digits = lambda x, n: round(x, int(n - math.ceil(math.log10(abs(x)))))
-            # Round to 4 significant digits here, but first make sure we floor/ceil as needed to ensure
-            # we might include the correct min/max values.
-            im=generateColorRampLegendGraphic(min_text=round_to_n(min_result,4),
-                                              max_text=round_to_n(max_result,4),
-                                              units=datafile.result_field_units)
-            im.save(datafile.legendgraphic.path, 'png')
-            logger.debug('Image saved at %s', datafile.legendgraphic.path)
+#             im.save(datafile.legendgraphic.path, 'png')
+#             logger.debug('Image saved at %s', datafile.legendgraphic.path)
     except Exception, e:
         logger.exception ('Failed to create spatialite results table')
         return datafile

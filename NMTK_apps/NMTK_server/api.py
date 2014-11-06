@@ -568,27 +568,27 @@ class DataFileResource(ModelResource):
                                                                            trailing_slash()), 
                                                                            self.wrap_view('wms'), 
                 name="api_%s_wms" % (self._meta.resource_name,)),
-            url(r"^(?P<resource_name>%s)/(?P<pk>\w[\w/-]*)/legend%s$" % (self._meta.resource_name, 
-                                                                         trailing_slash()), 
-                                                                         self.wrap_view('legend'), 
-                name="api_%s_legend" % (self._meta.resource_name,)),
+#             url(r"^(?P<resource_name>%s)/(?P<pk>\w[\w/-]*)/legend%s$" % (self._meta.resource_name, 
+#                                                                          trailing_slash()), 
+#                                                                          self.wrap_view('legend'), 
+#                 name="api_%s_legend" % (self._meta.resource_name,)),
             ]
  
-    def legend(self, request, **kwargs):
-        rec=None
-        try:
-            if request.user.is_superuser:
-                rec = self._meta.queryset.get(pk=kwargs['pk'])
-            elif request.user.is_authenticated():
-                rec = self._meta.queryset.get(pk=kwargs['pk'],
-                                              user=request.user)
-        except ObjectDoesNotExist:
-            raise Http404
-        if rec and rec.legendgraphic:
-            response = HttpResponse(rec.legendgraphic, content_type='image/png')
-            return response
-        else:
-            raise Http404
+#     def legend(self, request, **kwargs):
+#         rec=None
+#         try:
+#             if request.user.is_superuser:
+#                 rec = self._meta.queryset.get(pk=kwargs['pk'])
+#             elif request.user.is_authenticated():
+#                 rec = self._meta.queryset.get(pk=kwargs['pk'],
+#                                               user=request.user)
+#         except ObjectDoesNotExist:
+#             raise Http404
+#         if rec and rec.geom_type:
+#             response = HttpResponse(rec.legendgraphic, content_type='image/png')
+#             return response
+#         else:
+#             raise Http404
         
     def wms(self, request, **kwargs):
         '''
@@ -604,7 +604,7 @@ class DataFileResource(ModelResource):
                                               user=request.user)
         except ObjectDoesNotExist:
             raise Http404
-        if rec and rec.mapfile:
+        if rec and rec.geom_type:
             return wms_service.handleWMSRequest(request, rec)
         else:
             raise Http404
@@ -692,7 +692,7 @@ class DataFileResource(ModelResource):
         resource_name = 'datafile'
         allowed_methods=['get','post','delete','put',]
         excludes=['file','processed_file','status', 'geom_type','fields',
-                  'deleted', 'model','mapfile','legendgraphic',
+                  'deleted', 'model',
                   'type',]
         authentication=CSRFBypassSessionAuthentication()
         validation=DataFileResourceValidation()
@@ -758,13 +758,14 @@ class DataFileResource(ModelResource):
                                                         'pk': bundle.obj.pk,
                                                         'api_name': 'v1'})
                 
-        if bundle.obj.mapfile:
+        if bundle.obj.geom_type:
             bundle.data['wms_url']="%swms/" % (bundle.data['resource_uri'],)
             bundle.data['layer']='results'
             bundle.data['legend']="{0}legend/".format(bundle.data['resource_uri'])
+            bundle.data['geom_type']=bundle.obj.get_geom_type_display()
             
         bundle.data['status']=bundle.obj.get_status_display()
-        bundle.data['geom_type']=bundle.obj.get_geom_type_display()
+        
         bundle.data['user'] = bundle.obj.user.username
         bundle.data['fields']=json.dumps(bundle.obj.fields)
         bundle.data['field_attributes']=json.dumps(bundle.obj.field_attributes)

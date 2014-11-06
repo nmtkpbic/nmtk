@@ -8,12 +8,16 @@ import os
 from django.core.urlresolvers import reverse
 import hashlib
 from django.core.files.storage import FileSystemStorage
+from django.core.files.uploadedfile import InMemoryUploadedFile
+import cStringIO as StringIO
 from django.db import connections, transaction
 from django.conf import settings
 from django.utils.safestring import mark_safe
 from osgeo import ogr
 from NMTK_server import tasks
 from NMTK_server import signals
+from NMTK_apps.helpers.wms_service import generateColorRampLegendGraphic, rgbcolorramp
+from django.core.validators import MaxValueValidator, MinValueValidator
 import logging
 logger=logging.getLogger(__name__)
 
@@ -393,19 +397,31 @@ class DataFile(models.Model):
     deleted=models.BooleanField(default=False)
     result_field=models.CharField(null=True, blank=True, max_length=32)
     result_field_units=models.CharField(null=True, blank=True, max_length=64)
-    mapfile=models.FileField(storage=fs_results,
-                             upload_to=lambda instance, filename: '%s/data_files/wms/%s.map' % (instance.user.pk,
-                                                                                                instance.pk,),
-                             blank=True, null=True)
-    legendgraphic=models.FileField(storage=fs_results,
-                                   upload_to=lambda instance, filename: '%s/data_files/wms/%s_legend.png' % (instance.user.pk,
-                                                                                                             instance.pk))
+#     mapfile=models.FileField(storage=fs_results,
+#                              upload_to=lambda instance, filename: '%s/data_files/wms/%s.map' % (instance.user.pk,
+#                                                                                                 instance.pk,),
+#                              blank=True, null=True)
+#     legendgraphic=models.FileField(storage=fs_results,
+#                                    upload_to=lambda instance, filename: '%s/data_files/wms/%s_legend.png' % (instance.user.pk,
+#                                                                                                              instance.pk))
     model=models.FileField(storage=fs_results,
                            upload_to=lambda instance, filename: '%s/data_files/%s.py' % (instance.user.pk,
                                                                                          instance.pk,),
                            blank=True, null=True)
     checksum=models.CharField(max_length=50, null=False)
     objects=models.GeoManager()
+    
+    @property
+    def mapfile_path(self):
+         path=fs_results.path('{0}/data_files/wms/'.format(self.pk))
+         if not os.path.exists(path):
+             try:
+                 os.makedirs(path)
+             except OSError as e:
+                 if e.errno == 17:
+                     # Dir already exists. Ignore...
+                     pass
+         return path
     
     @property
     def spatial(self):
@@ -536,3 +552,65 @@ class UserPreference(models.Model):
         verbose_name='User Preference'
         verbose_name_plural='User Preferences'
         db_table='nmtk_user_preference'
+
+
+
+
+class MapColorStyles(models.Model):
+    '''
+    A table to hold the available color ramps/colors that we support for
+    various things.
+    The start and end tuple values should be three-tuples containing an r, g, and b value - limited to an integer
+    between 0 and 255
+    '''
+    description=models.CharField(max_length=255)
+    start_r=models.IntegerField(null=False, 
+                                validators=[MaxValueValidator(255),
+                                            MinValueValidator(0),])
+    start_g=models.IntegerField(null=False, validators=[MaxValueValidator(255),
+                                                        MinValueValidator(0),])
+    start_b=models.IntegerField(null=False, validators=[MaxValueValidator(255),
+                                                        MinValueValidator(0),])
+    end_r=models.IntegerField(null=False, validators=[MaxValueValidator(255),
+                                                      MinValueValidator(0),])
+    end_g=models.IntegerField(null=False, validators=[MaxValueValidator(255),
+                                                      MinValueValidator(0),])
+    end_b=models.IntegerField(null=False, validators=[MaxValueValidator(255),
+                                                      MinValueValidator(0),])
+    default=models.BooleanField(default=False, unique=True)
+    legend_graphic=models.ImageField(storage=fs, upload_to=lambda instance, 
+                                     filename: 'color_ramps/%s' % (instance.pk, filename,))
+    class Meta:
+        verbose_name='Map Color Style'
+        verbose_name_plural='Map Color Styles'
+        db_table='nmtk_map_color_styles'
+        
+    @property
+    def start_color(self):
+        return (self.start_r, self.start_g, self.start_b)
+
+    @property
+    def end_color(self):
+        return (self.end_r, self.end_g, self.end_b)
+
+    def save(self, *args, **kwargs):
+        '''
+        Save the model and then create the image that we need.
+        '''
+        if not self.pk:
+            super(MapColorStyles, self).save(*args, **kwargs)
+        colorramp=lambda val, min, max: rgbcolorramp(val,min,max, 
+                                                     start_color=self.start_color,
+                                                     end_color=self.end_color)
+        im=generateColorRampLegendGraphic(None,None, ramp_function=rgbcolorramp)
+        image_file=StringIO.StringIO()
+        im.save(image_file, format='png')
+        if self.legend_graphic:
+            os.unlink(self.legend_graphic.path)
+        self.legend_graphic=InMemoryUploadedFile(image_file, None, 
+                                                 'ramp_graphic_{0}.png'.format(self.pk,),
+                                                 'image/png', image_file.len, None)
+        super(MapColorStyles, self).save(*args, **kwargs)
+        
+        
+        
