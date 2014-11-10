@@ -116,14 +116,16 @@ MAP
       END # END STYLE
     END
     {% endfor %}
+    {% if unmatched_color %}
     CLASS
-      NAME "Non numeric results"
+      NAME "Other Features"
       STYLE
-        COLOR 239 0 255
+        COLOR {{unmatched_color.0}} {{unmatched_color.1}} {{unmatched_color.2}}
 	    WIDTH 3
         ANTIALIAS TRUE
       END # END STYLE
-     END
+    END
+    {% endif %} 
 
   END
 

@@ -553,9 +553,6 @@ class UserPreference(models.Model):
         verbose_name_plural='User Preferences'
         db_table='nmtk_user_preference'
 
-
-
-
 class MapColorStyles(models.Model):
     '''
     A table to hold the available color ramps/colors that we support for
@@ -577,6 +574,12 @@ class MapColorStyles(models.Model):
                                                       MinValueValidator(0),])
     end_b=models.IntegerField(null=False, validators=[MaxValueValidator(255),
                                                       MinValueValidator(0),])
+    other_r=models.IntegerField(null=False, validators=[MaxValueValidator(255),
+                                                      MinValueValidator(0),])
+    other_g=models.IntegerField(null=False, validators=[MaxValueValidator(255),
+                                                      MinValueValidator(0),])
+    other_b=models.IntegerField(null=False, validators=[MaxValueValidator(255),
+                                                      MinValueValidator(0),])
     default=models.BooleanField(default=False, unique=True)
     legend_graphic=models.ImageField(storage=fs, upload_to=lambda instance, 
                                      filename: 'color_ramps/%s' % (instance.pk, filename,))
@@ -592,6 +595,10 @@ class MapColorStyles(models.Model):
     @property
     def end_color(self):
         return (self.end_r, self.end_g, self.end_b)
+    
+    @property
+    def other_color(self):
+        return (self.other_r, self.other_g, self.other_b)
 
     def save(self, *args, **kwargs):
         '''

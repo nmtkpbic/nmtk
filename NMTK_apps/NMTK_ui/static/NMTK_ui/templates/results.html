@@ -86,8 +86,11 @@
         <div ng-show="spatial" class="widget stacked">
           <div class="widget-header">
             <i class="glyphicon glyphicon-picture"></i>
-            <h3>Map Legend <span ng-show="datafile_api.result_field">(all elements styled by {{datafile_api.result_field}})</span>
-                           <span ng-hide="datafile_api.result_field">(all elements styled identically)</span></h3>
+            <h3>Map Legend (all elements styled <span ng-show="result_field">by</span>
+                 <select ng-model="result_field" name="result_field" ng-options="field for field in fields">
+                   <option value=""></option>
+                 </select>
+            </h3>
           </div> <!-- /widget-header -->
           <div style="text-align: center;" class="widget-content">
             <img ng-src="{{datafile_api.legend}}"></img>

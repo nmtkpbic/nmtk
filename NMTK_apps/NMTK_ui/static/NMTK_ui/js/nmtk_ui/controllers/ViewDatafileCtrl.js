@@ -45,6 +45,7 @@ define(['angular', 'underscore','leaflet',
 				  leafletData, Restangular, $q, $modal) {
 			$scope.loginCheck();
 			$scope.changeTab('datafile_view');
+			$scope.layercount=0;
 			/*
 			 * Filters will be specific for datafile or job, so here we will
 			 * actually store the filters and reset them if the results_uri
@@ -54,6 +55,7 @@ define(['angular', 'underscore','leaflet',
 			if (_.isUndefined($scope.$parent.results_uri) ||
 				$scope.$parent.results_uri != $location.path()) {
 				$scope.$parent.results_uri=$location.path();
+				$scope.$parent.result_field=null;
 				$scope.$parent.customFilters=[];
 			}
 			
@@ -169,6 +171,10 @@ define(['angular', 'underscore','leaflet',
 						}
 					});
 					$log.info('Datafile API is ', $scope.datafile_api);
+					if ($scope.$parent.result_field==null) {
+						$scope.$parent.result_field=$scope.datafile_api.result_field;
+						$scope.fields=JSON.parse($scope.datafile_api.fields);
+					}
 					if (typeof $scope.datafile_api === 'undefined') {
 						$scope.$parent.preview_datafile_api=undefined;
 						$scope.$parent.preview_job_api=undefined;
@@ -236,7 +242,6 @@ define(['angular', 'underscore','leaflet',
 						$scope.totalServerItems=data.meta.total;
 						$scope.pagingOptions.currentPage=(data.meta.offset/data.meta.limit)+1
 						if ($scope.paging_offset > 0) {
-							$log.info('Concatenating!')
 							$scope.data= $scope.data.concat(data.data);
 		//					$scope.data.push.apply($scope.data, data.data);
 						} else {
@@ -270,16 +275,15 @@ define(['angular', 'underscore','leaflet',
 			};
 			$scope.olcount=0;
 			$scope.olsubcount=0;
+			$scope.leaflet_layer_count=0;
 			
-			// Whenever a feature is selected in the table, we will match that feature in
-			// the view window...
-			$scope.$watch('selected_selected', function (newVal, oldVal) {
+			var updateHighlightSelected=function () {
 				if ($scope.spatial) {
 					if ($scope.leaflet.layers.overlays['highlight_selected' + $scope.olsubcount]) {
 						delete $scope.leaflet.layers.overlays['highlight_selected'+$scope.olsubcount];
 					}
 					$scope.olsubcount += 1;
-					if (newVal) {
+					if ($scope.highlight_selected) {
 						var ids=[];
 						_.each(newVal, function (data) {
 							ids.push(data.nmtk_id);
@@ -291,17 +295,15 @@ define(['angular', 'underscore','leaflet',
 					            url: $scope.datafile_api.wms_url,
 					            layerOptions: { layers: "highlight_selected",
 					            	            ids: ids,
+					            	            style_field: $scope.result_field || '',
 					                    		format: 'image/png',
 					                    		transparent: true }
 					    }
 					}
 				}
-			}, true);
+			}
 			
-			
-			// Whenever a feature is selected in the table, we will match that feature in
-			// the view window...
-			$scope.$watch('selected_features', function (newVal, oldVal) {
+			var updateSelectedFeatures=function () {
 				var ids=[];
 				var clear=true;
 				_.each($scope.selected_features, function (data) {
@@ -335,11 +337,55 @@ define(['angular', 'underscore','leaflet',
 					            url: $scope.datafile_api.wms_url,
 					            layerOptions: { layers: "highlight",
 					            	            ids: ids.join(','),
+					            	            style_field: $scope.result_field ||'',
 					                    		format: 'image/png',
 					                    		transparent: true }
 					    }
 					}
 				}
+			}
+			
+			
+			var addResultWMS=function () {
+				if ($scope.spatial) {
+					if ($scope.leaflet.layers.overlays['results'+$scope.leaflet_layer_count]) {
+						delete $scope.leaflet.layers.overlays['results'+$scope.leaflet_layer_count];
+					}
+					$scope.leaflet_layer_count+=1;
+					$scope.leaflet.layers.overlays['results'+$scope.leaflet_layer_count]= {
+				            name: 'Tool Results',
+				            type: 'wms',
+				            visible: true,
+				            url: $scope.datafile_api.wms_url,
+				            layerOptions: { layers: $scope.datafile_api.layer,
+				            				style_field: $scope.result_field || '',
+				                    		format: 'image/png',
+				                    		transparent: true }
+				    };
+				}
+			}
+			
+			$scope.$watch('result_field', function (newVal, oldVal){
+				addResultWMS();
+				if ($scope.selected_selected) {
+					updateHighlightSelected();
+				}
+				if ($scope.selected_features) {
+					updateSelectedFeatures();
+				}
+			});
+			
+			// Whenever a feature is selected in the table, we will match that feature in
+			// the view window...
+			$scope.$watch('selected_selected', function (newVal, oldVal) {
+				updateHighlightSelected();
+			}, true);
+			
+			
+			// Whenever a feature is selected in the table, we will match that feature in
+			// the view window...
+			$scope.$watch('selected_features', function (newVal, oldVal) {
+				updateSelectedFeatures();
 			}, true);
 			
 			// When someone selects items via the "results" grid it goes
@@ -528,17 +574,7 @@ define(['angular', 'underscore','leaflet',
 					$scope.$parent.data_file_tab_name="Data";
 				}
 				$scope.getPagedDataAsync($scope.page_size, 0, '', 'nmtk_id');	
-				if ($scope.spatial) {
-					$scope.leaflet.layers.overlays['results']= {
-				            name: 'Tool Results',
-				            type: 'wms',
-				            visible: true,
-				            url: $scope.datafile_api.wms_url,
-				            layerOptions: { layers: $scope.datafile_api.layer,
-				                    		format: 'image/png',
-				                    		transparent: true }
-				    };
-				}
+				addResultWMS();
 			};
 			
 			

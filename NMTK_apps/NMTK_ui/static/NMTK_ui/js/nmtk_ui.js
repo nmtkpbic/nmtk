@@ -84,6 +84,7 @@ require.config({
 		, "configureErrorsClientTemplate": "../templates/configure_errors_client_modal.html" //Template for configuration error messages
 		, "cloneConfigTemplate": "../templates/clone_config_modal.html" // Template for config page to clone config.
 		, "AdvancedFiltersTemplate": "../templates/advanced_filters_modal.html" // Template for the advanced filters modal.
+		, "ColorRampChooserTemplate": "../templates/wms_colorramp_chooser_modal.html" // Template for choosing a color ramp.
 	}
 	, shim: {
 	    "underscore": { exports: '_' }

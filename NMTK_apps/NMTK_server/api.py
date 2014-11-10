@@ -761,7 +761,7 @@ class DataFileResource(ModelResource):
         if bundle.obj.geom_type:
             bundle.data['wms_url']="%swms/" % (bundle.data['resource_uri'],)
             bundle.data['layer']='results'
-            bundle.data['legend']="{0}legend/".format(bundle.data['resource_uri'])
+#             bundle.data['legend']="{0}legend/".format(bundle.data['resource_uri'])
             bundle.data['geom_type']=bundle.obj.get_geom_type_display()
             
         bundle.data['status']=bundle.obj.get_status_display()
