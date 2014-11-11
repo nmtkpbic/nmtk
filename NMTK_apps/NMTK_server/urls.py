@@ -20,6 +20,7 @@ v1_api.register(api.JobStatusResource())
 v1_api.register(api.FeedbackResource())
 v1_api.register(api.UserPreference())
 v1_api.register(api.ToolSampleFileResource())
+v1_api.register(api.MapColorStyleResource())
     
 
 urlpatterns = patterns('',

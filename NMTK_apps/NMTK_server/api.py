@@ -792,6 +792,59 @@ class ToolResource(ModelResource):
         bundle.data['config']=bundle.obj.toolconfig.json_config
         bundle.data['id']=bundle.obj.pk
         return bundle
+    
+class MapColorStyleResource(ModelResource):
+    class Meta:
+        queryset = models.MapColorStyle.objects.all()
+        resource_name = 'color_style'
+        always_return_data = True
+        fields=['id',]
+        allowed_methods=['get',]
+        
+    def dehydrate(self,bundle):
+        '''
+        Provide data for some fields that we return back to the user, making 
+        things a bit more usable than the default TastyPie implementation allows.
+        Note: These are all read-only fields, so we don't need to worry about  
+        them during the hydrate cycle...
+        '''
+        if bundle.obj.ramp_graphic:
+            bundle.data['ramp_graphic']=reverse("api_%s_download_ramp_graphic" % 
+                                                (self._meta.resource_name,),
+                                                kwargs={'resource_name': self._meta.resource_name,
+                                                        'pk': bundle.obj.pk,
+                                                        'api_name': 'v1'})
+        return bundle
+            
+    def prepend_urls(self):
+        return [
+            url(r"^(?P<resource_name>%s)/(?P<pk>\w[\w/-]*)/ramp_graphic.png$" % (self._meta.resource_name,), 
+                self.wrap_view('download_ramp_graphic'), 
+                name="api_%s_download_ramp_graphic" % (self._meta.resource_name,)),
+            ]
+
+
+    def download_ramp_graphic(self, request, **kwargs):
+        """
+        Send a file through TastyPie without loading the whole file into
+        memory at once. The FileWrapper will turn the file object into an
+        iterator for chunks of 8KB.
+        """
+        rec=None
+        try:
+            rec = self._meta.queryset.get(pk=kwargs['pk'])
+        except ObjectDoesNotExist:
+            raise Http404
+        if rec and not rec.ramp_graphic:
+            # if there is no graphic, they are out of luck...
+            raise Http404
+        
+        wrapper = FileWrapper(open(rec.ramp_graphic.path,'rb'))
+        response = HttpResponse(wrapper, content_type='image/png') #or whatever type you want there
+        response['Content-Length'] = rec.ramp_graphic.size
+        response['Content-Disposition'] = ('attachment; filename="%s"' % 
+                                           (os.path.basename(rec.ramp_graphic.name)))
+        return response
 
          
 class ToolSampleFileResource(ModelResource):

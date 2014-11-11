@@ -134,7 +134,29 @@ class DataFileAdmin(admin.ModelAdmin):
         request.GET = data
         return super(DataFileAdmin, self).add_view(request, form_url="", extra_context=extra_context)
 
-    
+
+class MapColorStyleAdmin(admin.ModelAdmin):
+    list_display=['id','ramp_graphic_tag', 'description', 'default']
+    readonly_fields = ('ramp_graphic_tag',)
+    fieldsets = (
+                 (None, {
+                        'fields': ('ramp_graphic_tag',
+                                   'description',
+                                   'default')
+                        }),
+                 ('Start Color', {
+                        'fields': (('start_r','start_g','start_b',),)
+                                  }),
+                 ('End Color', {
+                        'fields': (('end_r','end_g','end_b',),)
+                                }),
+                 ('Unmatched Features Color', {
+                        'fields': (('other_r','other_g','other_b',),)
+                                })
+                
+                 )
+
+
 
 admin.site.register(models.PageContent, PageContentAdmin)
 admin.site.register(models.PageName, PageNameAdmin)
@@ -146,5 +168,6 @@ admin.site.register(models.JobStatus, JobStatusAdmin)
 admin.site.register(models.DataFile, DataFileAdmin)
 admin.site.register(models.ToolSampleFile, admin.ModelAdmin)
 admin.site.register(models.ToolSampleConfig, admin.ModelAdmin)
+admin.site.register(models.MapColorStyle, MapColorStyleAdmin)
 
 # admin.site.register(models.ToolConfig, admin.ModelAdmin)

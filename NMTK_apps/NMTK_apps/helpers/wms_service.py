@@ -35,20 +35,23 @@ def rgbcolorramp(val, minval=0, maxval=255,
     is distinctly different than our HSV ramp (which is the epitome of pretty ;-) ) 
     '''
     # Compute the position among the range - bounded by the max and min value.
+    logger.debug('Values are (val=%s, min=%s, max=%s, start_color=%s, end_color=%s)', 
+                 val, minval, maxval, start_color, end_color)
     position=max(minval, min(val, maxval))/abs(minval*1.0-maxval*1.0)
     color=[]
     for i in range(3):
         color.append(start_color[i]+int((end_color[i]-start_color[i])*position))
     return tuple(color)
 
-def generateColorRampLegendGraphic(min_text, max_text, 
-                                   height=16, width=258, border=1, units=None,
-                                   ramp_function=lambda val, min, max: hsvcolorramp(val,min,max),
-                                   other_features_color=None):
+
+def generateFixedColorLegendGraphic(color_values, 
+                                    units=None,
+                                    height=16, width=258):
     '''
-    Function to use a ramp function to generate a set of values for a color ramp.
+    Function to use a ramp function to generate a set of values for a legend
+    graphic.  This is used when there's a limited list of colors for the legend.
     '''
-    logger.debug('Units are %s', units)
+    
     im=Image.new('RGB', (width, height), "black")
     draw=ImageDraw.Draw(im)
     start=border
@@ -114,11 +117,37 @@ def generateColorRampLegendGraphic(min_text, max_text,
                       "black", 
                       font=font)    
         del draw
-    else:
+
+def generateColorRampLegendGraphic(min_text, max_text, 
+                                   height=16, width=258, border=1, units=None,
+                                   ramp_function=lambda val, min, max: hsvcolorramp(val,min,max),
+                                   other_features_color=None):
+    '''
+    Function to use a ramp function to generate a set of values for a color ramp.
+    '''
+    im=Image.new('RGB', (width, height), "black")
+    draw=ImageDraw.Draw(im)
+    start=border
+    stop=height-border*2
+    for i in range(border, width-border*2):
+        color="rgb({0},{1},{2})".format(*ramp_function(i, 0, width-(border*2)))
+        draw.line((i, start, i, stop), fill=color)
+    del draw
+    
+    font=ImageFont.truetype(settings.LEGEND_FONT,12)
+    if max_text is None and min_text is None:
         im2=im
-        
-        max_text_width, text_height=font.getsize('All Features')
-        final_width=max(width, max_text_width)
+    else:
+        # Generate the legend text under the image
+        if not fixed:
+            min_text_width, min_text_height = font.getsize('{0}'.format(min_text))
+            max_text_width, max_text_height = font.getsize('{0}'.format(max_text))
+            text_height=max(min_text_height, max_text_height)
+            
+            final_width=max(width, max_text_width, min_text_width)
+        else:
+            max_text_width, text_height=font.getsize('All Features')
+            final_width=max(width, max_text_width)
         # The text height, plus the space between the image and text (1px)
         total_text_height=text_height+1
         logger.debug('Total text height is now %s', total_text_height)
@@ -133,55 +162,50 @@ def generateColorRampLegendGraphic(min_text, max_text,
         im2.paste(im, (int((final_width-width)/2),0))
         text_pos=height+1
         draw=ImageDraw.Draw(im2)
-        if not fixed:
-            draw.text((1, text_pos),
-                      '{0}'.format(min_text),
-                      "black",
-                      font=font)
-            draw.text((final_width-(max_text_width+1), text_pos), 
-                      '{0}'.format(max_text), 
-                      "black", 
-                      font=font)
-            if units:
-                text_pos = text_pos + text_height + 1
-                placement=(int(final_width/2.0-((units_width+1)/2)), text_pos)
-                draw.text(placement, 
-                          units, 
-                          "black", 
-                          font=font)
-        else:
-            placement=(int(final_width/2.0-((max_text_width+1)/2)), text_pos)
+        
+        draw.text((1, text_pos),
+                  '{0}'.format(min_text),
+                  "black",
+                  font=font)
+        draw.text((final_width-(max_text_width+1), text_pos), 
+                  '{0}'.format(max_text), 
+                  "black", 
+                  font=font)
+        if units:
+            text_pos = text_pos + text_height + 1
+            placement=(int(final_width/2.0-((units_width+1)/2)), text_pos)
             draw.text(placement, 
-                      'All Features', 
+                      units, 
                       "black", 
-                      font=font)    
+                      font=font)
         del draw
-        
     if other_features_color:
+        '''
+        Here we generate legend graphics for the color for "other" features.
+        TODO
+        '''
         im=im2
-        
-        
-    
     return im2
 
 def generateMapfile(datafile, max_value, min_value, style_field,
-                    ramp_function, other_features_color):
-    colors=[]
-    if max_value and min_value:
-        step=math.fabs((max_value-min_value)/256)
-        v=low=min_value
-        while v <= max_value+step:
-            #logger.debug('Value is now %s', v)
-            r,g,b=ramp_function(v, max_value, min_value)
-            colors.append({'r': r,
-                           'g': g,
-                           'b': b,
-                           'low': low ,
-                           'high': v})
-            low=v
-            v += step or 1
-    else:
-        step=None
+                    ramp_function=None, 
+                    color_values=None, other_features_color=(0,0,0)):
+    colors=color_values or []
+    if not colors:
+        if max_value and min_value and ramp_function:
+            step=math.fabs((max_value-min_value)/256)
+            v=low=min_value
+            while v <= max_value+step:
+                #logger.debug('Value is now %s', v)
+                r,g,b=ramp_function(v, max_value, min_value)
+                colors.append({'r': r,
+                               'g': g,
+                               'b': b,
+                               'low': low ,
+                               'high': v})
+                low=v
+                v += step or 1
+    
      
     dbtype='postgis'
     data={'datafile': datafile,
@@ -241,20 +265,39 @@ def handleWMSRequest(request, datafile):
         values_list=[]
     # TODO: Handle date/time/datetime values in ramps properly and in the mapfile(s)
     ramp_function=lambda val, min, max: hsvcolorramp(val,min,max)
-    ramp_id=0
     other_features=(102,153,102)
+    if ramp is not None:
+        ramp_lookup_kwargs={'pk': int(ramp)}
+    else:
+        ramp_lookup_kwargs={'default': True}
+    try:
+        color_ramp_identifier=models.MapColorStyles.objects.get(**ramp_lookup_kwargs)
+        ramp_id=color_ramp_identifier.pk
+        other_features=color_ramp_identifier.other_color
+    except Exception, e:
+        logger.exception('Invalid color ramp specified, or no valid color ramps exist.')
+        return HttpResponseBadRequest('Invalid color ramp specified')
     if values_list is not None:
-        try:
-            if ramp:
-                color_ramp_identifier=models.MapColorStyles.objects.get(pk=int(ramp))
-                ramp_id=color_ramp_identifier.pk
-                other_features=color_ramp_identifier.other_color
-                ramp_function=lambda val, min, max: rgbcolorramp(val,min,max, 
-                                                                 start_color=color_ramp_identifier.start_color,
-                                                                 end_color=color_ramp_identifier.end_color)            
-        except Exception, e:
-            logger.exception('Invalid color ramp specified, or no valid color ramps exist.')
-            return HttpResponseBadRequest('Invalid color ramp specified')
+        start_color = color_ramp_identifier.start_color
+        end_color = color_ramp_identifier.end_color
+        steps=len(values_list)
+        r_step=int(((end_color[0]-start_color[0])*1.0)/steps)
+        g_step=int(((end_color[0]-start_color[0])*1.0)/steps)
+        b_step=int(((end_color[0]-start_color[0])*1.0)/steps)
+        color_values=[]
+        for step, v in enumerate(values_list):
+            color_values.append({'r': step*r_step + start_color[0],
+                                 'g': step*g_step + start_color[1],
+                                 'b': step*b_step + start_color[2],
+                                 'min': v,
+                                 'max': v})
+        # now color_values contains (value, (r,g,b))
+        ramp_function=None
+    else:
+        ramp_function=lambda val, min, max: rgbcolorramp(val,min,max, 
+                                                         start_color=color_ramp_identifier.start_color,
+                                                         end_color=color_ramp_identifier.end_color)
+        color_values=None
 
     # If there's a values_list then we'll let the WMS server generate the 
     # legend, since it would be using discrete colors anyway, and would be better
@@ -262,12 +305,15 @@ def handleWMSRequest(request, datafile):
     if request.GET['REQUEST'].lower() == 'getlegendgraphic' and values_list is None:
         # Round the value to 4 significant digits.
         round_to_n = lambda x, n: round(x, -int(math.floor(math.log10(x))) + (n - 1))
-
-        im=tasks.generateColorRampLegendGraphic(min_text=round_to_n(min_result,4),
-                                                max_text=round_to_n(max_result,4),
-                                                units=legend_units,
-                                                ramp_function=ramp_function,
-                                                other_features_color=other_features)
+        if values_list:
+            im=generateFixedColorLegendGraphic(color_values=color_values,
+                                               units=legend_units)
+        else:
+            im=generateColorRampLegendGraphic(min_text=round_to_n(min_result,4),
+                                              max_text=round_to_n(max_result,4),
+                                              units=legend_units,
+                                              ramp_function=ramp_function,
+                                              other_features_color=other_features)
         response=HttpResponse(content_type='image/png')
         im.save(response, 'png')
         return response
@@ -287,6 +333,7 @@ def handleWMSRequest(request, datafile):
             mf=generateMapfile(datafile, max_result, min_result, 
                                style_field=style_field,
                                ramp_function=ramp_function,
+                               color_values=color_values,
                                other_features_color=other_features)
             with open(mapfile_path, 'w') as mapfile:
                 mapfile.write(mf)
