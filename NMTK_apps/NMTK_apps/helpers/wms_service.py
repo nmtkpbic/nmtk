@@ -191,9 +191,13 @@ def generateColorRampLegendGraphic(min_text, max_text,
 def generateMapfile(datafile, max_value, min_value, style_field,
                     ramp_function=None, 
                     color_values=None, other_features_color=(0,0,0)):
+    logger.debug('Max %s, min %s, Color values are %s', max_value, min_value, 
+                 color_values)
     colors=color_values or []
     if not colors:
-        if max_value and min_value and ramp_function:
+        # Important that we test for None here, otherwise 0 is considered
+        # false and this get skipped!
+        if max_value is not None and min_value is not None and ramp_function:
             step=math.fabs((max_value-min_value)/256)
             v=low=min_value
             while v <= max_value+step:
@@ -251,24 +255,23 @@ def handleWMSRequest(request, datafile):
         return HttpResponseBadRequest('Specified style field ({0}) does not exist'.format(style_field))
     if style_field:  
         field_attributes=attributes[style_field]
+        logger.debug('Field attributes for %s are %s', style_field, field_attributes)
     else:
         field_attributes={}
-    values_list=min_result=max_result=None
-    if field_attributes.get('values',None):
-        values_list=field_attributes['values']
-    elif (field_attributes.has_key('type') and 
+    min_result=max_result=None
+    values_list=field_attributes.get('values',[])
+    if (field_attributes.has_key('type') and 
           field_attributes.get('type', None) not in ('text',)):
         min_result=field_attributes['min']
         max_result=field_attributes['max']
-    else:
-        # Here we have a text type without a range of values, so
-        # we'll just style everything using a single color.
-        values_list=[]
     # TODO: Handle date/time/datetime values in ramps properly and in the mapfile(s)
     ramp_function=lambda val, min, max: hsvcolorramp(val,min,max)
     other_features=(102,153,102)
     if ramp is not None:
-        ramp_lookup_kwargs={'pk': int(ramp)}
+        try:
+            ramp_lookup_kwargs={'pk': int(ramp)}
+        except Exception, e:
+            return HttpResponseBadRequest('Invalid color ramp specified (integer value is required)')
     else:
         ramp_lookup_kwargs={'default': True}
     try:
@@ -276,8 +279,7 @@ def handleWMSRequest(request, datafile):
         ramp_id=color_ramp_identifier.pk
         other_features=color_ramp_identifier.other_color
     except Exception, e:
-        logger.exception('Invalid color ramp specified, or no valid color ramps exist.')
-        return HttpResponseBadRequest('Invalid color ramp specified {0}'.format(ramp_lookup_kwargs))
+        return HttpResponseBadRequest('Invalid color ramp specified {0}'.format(ramp))
     if values_list:
         start_color = color_ramp_identifier.start_color
         end_color = color_ramp_identifier.end_color
@@ -290,8 +292,8 @@ def handleWMSRequest(request, datafile):
             color_values.append({'r': step*r_step + start_color[0],
                                  'g': step*g_step + start_color[1],
                                  'b': step*b_step + start_color[2],
-                                 'min': v,
-                                 'max': v})
+                                 'low': v,
+                                 'high': v})
         # now color_values contains (value, (r,g,b))
         ramp_function=None
     else:
@@ -329,8 +331,10 @@ def handleWMSRequest(request, datafile):
                                                                         field_attributes['field_name']) )
         else:
              mapfile_path=os.path.join(datafile.mapfile_path, 
-                                       "wms_{0}.map".format(datafile.pk))
+                                       "wms_{0}_ramp_{1}.map".format(datafile.pk,
+                                                                     ramp_id))
         if not os.path.exists(mapfile_path):
+            
             mf=generateMapfile(datafile, max_result, min_result, 
                                style_field=style_field,
                                ramp_function=ramp_function,
