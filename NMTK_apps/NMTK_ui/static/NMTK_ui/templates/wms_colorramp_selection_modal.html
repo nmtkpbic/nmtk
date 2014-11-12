@@ -1,0 +1,26 @@
+    <div class="modal-content">
+    <div class="modal-header">
+        <button type="button" ng-click="cancel()" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h3 class="modal-title" id="advanced_filters_title">Change Map Style and/or Color</h3>
+    </div>
+  <div class="modal-body">
+    <div class="row">
+      <form novalidate name="form">
+	      <div class="col-md-12">  	
+	        <div class="control-group">
+	          <label class="control-group" for="job">Choose the style you wish to use for the current map.</label>
+	          <div class="controls" >
+	          <p class="help-block">Available Styles</p>
+	             <div ng-grid="gridOptions" class="gridStyle"></div>
+	          </div>
+	        </div>
+      	  </div>   
+      	</form>   
+    </div>
+  </div>
+  
+  <div class="modal-footer">
+    <button  ng-click="cancel()" class="btn btn-primary">Cancel</button>
+    <button ng-disabled="selected_style.length == 0" ng-click="close()" class="btn btn-success">Apply</button>
+  </div>
+</div>

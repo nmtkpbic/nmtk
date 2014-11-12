@@ -16,6 +16,7 @@ from django.core.mail import mail_managers
 
 logger = logging.getLogger(__name__)
 
+
 @receiver(user_activated)
 def post_activation_setup(sender, user, **kwargs):
     # Deactivate the user, since the admin now needs to approve the account.

@@ -246,7 +246,7 @@ def handleWMSRequest(request, datafile):
     from NMTK_server import models
     style_field=request.GET.get('STYLE_FIELD', datafile.result_field or None)
     legend_units=request.GET.get('LEGEND_UNITS', None)
-    ramp=request.GET.get('RAMP', None)
+    ramp=request.GET.get('RAMP', 0)
     attributes=datafile.field_attributes
     if style_field == datafile.result_field:
         legend_units=datafile.result_field_units
@@ -267,11 +267,12 @@ def handleWMSRequest(request, datafile):
     # TODO: Handle date/time/datetime values in ramps properly and in the mapfile(s)
     ramp_function=lambda val, min, max: hsvcolorramp(val,min,max)
     other_features=(102,153,102)
-    if ramp is not None:
-        try:
-            ramp_lookup_kwargs={'pk': int(ramp)}
-        except Exception, e:
-            return HttpResponseBadRequest('Invalid color ramp specified (integer value is required)')
+    try:
+        ramp=int(ramp)
+    except Exception, e:
+        return HttpResponseBadRequest('Invalid color ramp specified (integer value is required)')
+    if ramp: # Note that 0 means the default ramp
+        ramp_lookup_kwargs={'pk': ramp}  
     else:
         ramp_lookup_kwargs={'default': True}
     try:
@@ -296,6 +297,9 @@ def handleWMSRequest(request, datafile):
                                  'high': v})
         # now color_values contains (value, (r,g,b))
         ramp_function=None
+    elif min_result is None or max_result is None:
+        ramp_function=None
+        color_values=[]
     else:
         ramp_function=lambda val, min, max: rgbcolorramp(val,min,max, 
                                                          start_color=color_ramp_identifier.start_color,
@@ -305,12 +309,13 @@ def handleWMSRequest(request, datafile):
     # If there's a values_list then we'll let the WMS server generate the 
     # legend, since it would be using discrete colors anyway, and would be better
     # at creating the legend.
-    if request.GET['REQUEST'].lower() == 'getlegendgraphic' and values_list is None:
+    if request.GET.get('REQUEST', '').lower() == 'getlegendgraphic':
         # Round the value to 4 significant digits.
         round_to_n = lambda x, n: round(x, -int(math.floor(math.log10(x))) + (n - 1))
-        if values_list:
+        if values_list or min_result is None or max_result is None:
             im=generateFixedColorLegendGraphic(color_values=color_values,
-                                               units=legend_units)
+                                               units=legend_units,
+                                               other_features_color=other_features)
         else:
             im=generateColorRampLegendGraphic(min_text=round_to_n(min_result,4),
                                               max_text=round_to_n(max_result,4),

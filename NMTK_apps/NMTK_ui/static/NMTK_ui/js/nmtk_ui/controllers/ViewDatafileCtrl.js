@@ -30,9 +30,11 @@
  *       SUCH DAMAGE.
  */
 define(['angular', 'underscore','leaflet',
-        'text!AdvancedFiltersTemplate'], function (angular, _, 
+        'text!AdvancedFiltersTemplate',
+        'text!ColorRampSelectionTemplate'], function (angular, _, 
         										   L, 
-        										   AdvancedFiltersTemplate) {
+        										   AdvancedFiltersTemplate,
+        										   ColorRampSelectionTemplate) {
 	"use strict";
 	var controller=['$scope','$routeParams','$location','$log','$http',
 	                '$timeout', 'leafletData','Restangular', '$q', '$modal',
@@ -55,10 +57,16 @@ define(['angular', 'underscore','leaflet',
 			if (_.isUndefined($scope.$parent.results_uri) ||
 				$scope.$parent.results_uri != $location.path()) {
 				$scope.$parent.results_uri=$location.path();
-				$scope.$parent.result_field=null;
+				$scope.$parent.saved_result_field=null;
 				$scope.$parent.customFilters=[];
+				$scope.$parent.saved_ramp=0;
+			} else {
+				$scope.result_field=$scope.$parent.saved_result_field;
+				$scope.ramp=$scope.$parent.saved_ramp;
 			}
-			
+			if (_.isUndefined($scope.ramp)) {
+				$scope.ramp=0;
+			}
 			/*
 			 * Here we figure out of we are viewing a file, or a set of job
 			 * results.  The difference is that a file will have an integer
@@ -93,6 +101,27 @@ define(['angular', 'underscore','leaflet',
 				$scope.getPagedDataAsync($scope.page_size, 0, '', 'nmtk_id');
 				$scope.clearSelection();
 				$scope.gridOptions.ngGrid.$viewport.scrollTop(0);
+			}
+			
+			$scope.changeColors=function () {
+				var opts = {
+					    template:  ColorRampSelectionTemplate, // OR: templateUrl: 'path/to/view.html',
+					    controller: 'ColorRampSelectionCtrl',
+					    resolve:{'ramp': function () { return $scope.ramp; },
+					    },
+					    scope: $scope
+					  };
+				
+				var modal_dialog=$modal.open(opts);
+				
+				modal_dialog.result.then(function(result) {
+					/*
+					 * If the ramp id changes here we need to reload stuff, but
+					 * we let that happen in the $watch defined later - so no 
+					 * need to handle it here - we'll just store the changed value.
+					 */
+					$scope.ramp=result;
+				});
 			}
 			
 			$scope.advanced_filters=function () {
@@ -297,6 +326,7 @@ define(['angular', 'underscore','leaflet',
 					            	            ids: ids,
 					            	            style_field: $scope.result_field || '',
 					                    		format: 'image/png',
+					                    		ramp: $scope.ramp,
 					                    		transparent: true }
 					    }
 					}
@@ -339,6 +369,7 @@ define(['angular', 'underscore','leaflet',
 					            	            ids: ids.join(','),
 					            	            style_field: $scope.result_field ||'',
 					                    		format: 'image/png',
+					                    		ramp: $scope.ramp,
 					                    		transparent: true }
 					    }
 					}
@@ -360,12 +391,31 @@ define(['angular', 'underscore','leaflet',
 				            layerOptions: { layers: $scope.datafile_api.layer,
 				            				style_field: $scope.result_field || '',
 				                    		format: 'image/png',
+				                    		ramp: $scope.ramp,
 				                    		transparent: true }
 				    };
 				}
 			}
 			
+			var updateLegendGraphic=function () {
+				if ($scope.spatial) {
+					var url=$scope.datafile_api.wms_url;
+					var ret = [];
+					var data={ layers: $scope.datafile_api.layer,
+            					style_field: $scope.result_field || '',
+            					request: 'getLegendGraphic',
+            					format: 'image/png',
+            					ramp: $scope.ramp,
+            					transparent: true }
+				    for (var d in data)
+				       ret.push(encodeURIComponent(d.toUpperCase()) + "=" + encodeURIComponent(data[d]));
+					url = url + '?' + ret.join("&");
+					$scope.legend_url=url;
+				}
+			}
+			
 			$scope.$watch('result_field', function (newVal, oldVal){
+				$scope.$parent.saved_result_field=newVal;
 				addResultWMS();
 				if ($scope.selected_selected) {
 					updateHighlightSelected();
@@ -373,6 +423,18 @@ define(['angular', 'underscore','leaflet',
 				if ($scope.selected_features) {
 					updateSelectedFeatures();
 				}
+				updateLegendGraphic();
+			});
+			$scope.$watch('ramp', function (newVal, oldVal){
+				$scope.$parent.saved_ramp=newVal;
+				addResultWMS();
+				if ($scope.selected_selected) {
+					updateHighlightSelected();
+				}
+				if ($scope.selected_features) {
+					updateSelectedFeatures();
+				}
+				updateLegendGraphic();
 			});
 			
 			// Whenever a feature is selected in the table, we will match that feature in
@@ -575,6 +637,7 @@ define(['angular', 'underscore','leaflet',
 				}
 				$scope.getPagedDataAsync($scope.page_size, 0, '', 'nmtk_id');	
 				addResultWMS();
+				updateLegendGraphic();
 			};
 			
 			

@@ -56,6 +56,7 @@
           <div class="widget-header">
             <i class="glyphicon glyphicon-map-marker"></i>
             <h3>Spatial {{data_file_tab_name}}</h3>
+            <button class="navbar-right btn btn-xs btn-primary ic-right" ng-click="changeColors()">Change Colors</button>
           </div> <!-- /widget-header -->
           <div class="widget-content">
             <!-- <div id="map" class="angular-leaflet-map"></div> -->
@@ -86,14 +87,14 @@
         <div ng-show="spatial" class="widget stacked">
           <div class="widget-header">
             <i class="glyphicon glyphicon-picture"></i>
-            <h3>Map Legend (all elements styled <span ng-show="result_field">by</span>
+            <h3>Map Legend - styled by 
                  <select ng-model="result_field" name="result_field" ng-options="field for field in fields">
                    <option value=""></option>
                  </select>
             </h3>
           </div> <!-- /widget-header -->
           <div style="text-align: center;" class="widget-content">
-            <img ng-src="{{datafile_api.legend}}"></img>
+            <img ng-src="{{legend_url}}"></img>
           </div> <!-- /widget-content -->
         </div><!-- /widget stacked -->
         <div class="widget stacked">

@@ -798,7 +798,7 @@ class MapColorStyleResource(ModelResource):
         queryset = models.MapColorStyle.objects.all()
         resource_name = 'color_style'
         always_return_data = True
-        fields=['id',]
+        fields=['id','default','description']
         allowed_methods=['get',]
         
     def dehydrate(self,bundle):

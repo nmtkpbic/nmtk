@@ -1,4 +1,4 @@
-#!/bin/bash
+a!/bin/bash
 # Non-Motorized Toolkit
 # Copyright (c) 2014 Open Technology Group Inc. (A North Carolina Corporation)
 # Developed under Federal Highway Administration (FHWA) Contracts:
@@ -195,6 +195,8 @@ if [[ $? == 0 ]]; then
   python manage.py discover_tools
   echo "Tool discovery has been initiated, note that this may take some time to complete"
   python manage.py minify
+  echo "Regenerating images for color ramps"
+  python manage.py refresh_colorramps
 fi
 python manage.py collectstatic --noinput -l -c
 deactivate
