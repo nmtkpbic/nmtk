@@ -35,12 +35,13 @@ def rgbcolorramp(val, minval=0, maxval=255,
     is distinctly different than our HSV ramp (which is the epitome of pretty ;-) ) 
     '''
     # Compute the position among the range - bounded by the max and min value.
-    logger.debug('Values are (val=%s, min=%s, max=%s, start_color=%s, end_color=%s)', 
-                 val, minval, maxval, start_color, end_color)
     position=max(minval, min(val, maxval))/abs(minval*1.0-maxval*1.0)
     color=[]
     for i in range(3):
         color.append(start_color[i]+int((end_color[i]-start_color[i])*position))
+    
+    logger.debug('Values are (val=%s, min=%s, max=%s, start_color=%s, end_color=%s, position=%s,color=%s)', 
+                 val, minval, maxval, start_color, end_color, position, color)
     return tuple(color)
 
 
@@ -197,7 +198,7 @@ def generateMapfile(datafile, max_value, min_value, style_field,
             v=low=min_value
             while v <= max_value+step:
                 #logger.debug('Value is now %s', v)
-                r,g,b=ramp_function(v, max_value, min_value)
+                r,g,b=ramp_function(v, min_value, max_value)
                 colors.append({'r': r,
                                'g': g,
                                'b': b,
@@ -271,13 +272,13 @@ def handleWMSRequest(request, datafile):
     else:
         ramp_lookup_kwargs={'default': True}
     try:
-        color_ramp_identifier=models.MapColorStyles.objects.get(**ramp_lookup_kwargs)
+        color_ramp_identifier=models.MapColorStyle.objects.get(**ramp_lookup_kwargs)
         ramp_id=color_ramp_identifier.pk
         other_features=color_ramp_identifier.other_color
     except Exception, e:
         logger.exception('Invalid color ramp specified, or no valid color ramps exist.')
-        return HttpResponseBadRequest('Invalid color ramp specified')
-    if values_list is not None:
+        return HttpResponseBadRequest('Invalid color ramp specified {0}'.format(ramp_lookup_kwargs))
+    if values_list:
         start_color = color_ramp_identifier.start_color
         end_color = color_ramp_identifier.end_color
         steps=len(values_list)
