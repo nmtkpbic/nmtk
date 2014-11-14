@@ -14,17 +14,14 @@ logger=logging.getLogger(__name__)
 
 
 def generateMapfile(datafile, style_field,
-                    ramp_function=None, 
-                    color_values=None, other_features_color=(0,0,0)):
-    logger.debug('Max %s, min %s, Color values are %s', max_value, min_value, 
-                 color_values)
-    colors=color_values or []
+                    color_values, other_features_color=(0,0,0)):
+    
     
     dbtype='postgis'
     data={'datafile': datafile,
           'dbtype': dbtype,
           'result_field': style_field,
-          'colors': colors,
+          'colors': color_values,
           'unmatched_color': other_features_color,
           'mapserver_template': settings.MAPSERVER_TEMPLATE }
     data['connectiontype']='POSTGIS'
@@ -42,7 +39,7 @@ def generateMapfile(datafile, style_field,
     for geom_type in ['point','line','polygon']:
         if geom_type in datafile.get_geom_type_display().lower():
             break
-
+    data['geom_type']=geom_type
     res=render_to_string('NMTK_server/mapfile_{0}.map'.format(geom_type), 
                          data)
     return res

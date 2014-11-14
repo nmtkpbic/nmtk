@@ -85,7 +85,7 @@ class LegendGenerator(object):
         '''
         The "other" part of the iterator this should return a dictionary containing
         a color key (with an r,g,b tuple) and either a "value" (indicating a 
-        single value) or a 'min' keys - indicating a range that 
+        single value) or a 'max' keys - indicating a range that 
         this color should be used for (less than match.)
         
         The opacity is a value between 0 and 1 indicating how opaque the color 
@@ -104,7 +104,7 @@ class LegendGenerator(object):
             key='value'
             value=self.values_list[step]
         else:
-            key='min'
+            key='max'
         color[key]=value
         return color
     

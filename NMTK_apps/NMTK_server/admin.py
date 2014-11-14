@@ -143,7 +143,8 @@ class MapColorStyleAdmin(admin.ModelAdmin):
                         'fields': ('ramp_graphic_tag',
                                    'description',
                                    'matplotlib_name',
-                                   'default')
+                                   'default',
+                                   'category')
                         }),
                  ('Unmatched Features Color', {
                         'fields': (('other_r','other_g','other_b',),)

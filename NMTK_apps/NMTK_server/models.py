@@ -572,6 +572,7 @@ class MapColorStyle(models.Model):
                                                         MinValueValidator(0),],
                                 verbose_name="B")
     default=models.BooleanField(default=False)
+    category=models.CharField(max_length=20, null=True)
     ramp_graphic=models.ImageField(storage=fs, upload_to=lambda instance, 
                                    filename: 'color_ramps/%s' % (filename,),
                                    null=True, blank=True)

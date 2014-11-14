@@ -14,7 +14,8 @@ class Command(BaseCommand):
             for style in styles:
                 m=ramps.get(style, models.MapColorStyle())
                 m.matplotlib_name=style
-                m.description='Color ramp well suited for {0} data'.format(category.lower())
+                m.description='{0} color ramp style'.format(style)
+                m.category=category
                 m.other_r=20
                 m.other_g=20
                 m.other_b=20

@@ -102,16 +102,24 @@ MAP
     
     {% for color in colors %}
     CLASS
-      {% if static %}
+      {% if color.value == None %}
       NAME "All Results"
-      {% else %}
-      NAME "Results between {{color.low}} and {{color.high}}"
-      EXPRESSION ([{{result_field}}] >= {{color.low}} and [{{result_field}}] <= {{color.high}}) 
+      {% elif color.max %}
+      NAME "Results less than or equal to {{color.max}}"
+      EXPRESSION ([{{result_field}}] <= {{color.max}})  
+      {% elif color.value %}
+      NAME "{{color.value}}"
+      FILTERITEM "{{result_field}}"
+      FILTER "{{color.value}}"
       {% endif %}
       STYLE
-        COLOR {{color.r}} {{color.g}} {{color.b}}
-	    #OUTLINECOLOR 0 0 0
-	    WIDTH 3
+        COLOR {{color.rgb.0}} {{color.rgb.1}} {{color.rgb.2}}
+        OPACITY {{color.opacity}}
+	    {% if geom_type != 'line' %}
+	      OUTLINECOLOR 0 0 0
+	    {% else %}
+	      WIDTH 3
+	    {% endif %}
         ANTIALIAS TRUE
       END # END STYLE
     END
@@ -121,7 +129,11 @@ MAP
       NAME "Other Features"
       STYLE
         COLOR {{unmatched_color.0}} {{unmatched_color.1}} {{unmatched_color.2}}
-	    WIDTH 3
+	    {% if geom_type != 'line' %}
+	      OUTLINECOLOR 0 0 0
+	    {% else %}
+	      WIDTH 3
+	    {% endif %}
         ANTIALIAS TRUE
       END # END STYLE
     END
