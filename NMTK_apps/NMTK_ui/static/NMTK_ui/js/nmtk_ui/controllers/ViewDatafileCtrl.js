@@ -65,7 +65,8 @@ define(['angular', 'underscore','leaflet',
 				$scope.ramp=$scope.$parent.saved_ramp;
 			}
 			if (_.isUndefined($scope.ramp)) {
-				$scope.ramp=0;
+				$scope.ramp={'ramp_id': 0,
+						     'reverse': 'false'};
 			}
 			/*
 			 * Here we figure out of we are viewing a file, or a set of job
@@ -107,8 +108,7 @@ define(['angular', 'underscore','leaflet',
 				var opts = {
 					    template:  ColorRampSelectionTemplate, // OR: templateUrl: 'path/to/view.html',
 					    controller: 'ColorRampSelectionCtrl',
-					    resolve:{'ramp': function () { return $scope.ramp; },
-					    },
+					    resolve:{'ramp': function () { return $scope.ramp; } },
 					    scope: $scope
 					  };
 				
@@ -120,7 +120,7 @@ define(['angular', 'underscore','leaflet',
 					 * we let that happen in the $watch defined later - so no 
 					 * need to handle it here - we'll just store the changed value.
 					 */
-					$scope.ramp=result;
+					$scope.ramp=result
 				});
 			}
 			
@@ -326,7 +326,8 @@ define(['angular', 'underscore','leaflet',
 					            	            ids: ids,
 					            	            style_field: $scope.result_field || '',
 					                    		format: 'image/png',
-					                    		ramp: $scope.ramp,
+					                    		ramp: $scope.ramp.ramp_id,
+					                    		reverse: $scope.ramp.reverse,
 					                    		transparent: true }
 					    }
 					}
@@ -369,7 +370,8 @@ define(['angular', 'underscore','leaflet',
 					            	            ids: ids.join(','),
 					            	            style_field: $scope.result_field ||'',
 					                    		format: 'image/png',
-					                    		ramp: $scope.ramp,
+					                    		ramp: $scope.ramp.ramp_id,
+					                    		reverse: $scope.ramp.reverse,
 					                    		transparent: true }
 					    }
 					}
@@ -391,7 +393,8 @@ define(['angular', 'underscore','leaflet',
 				            layerOptions: { layers: $scope.datafile_api.layer,
 				            				style_field: $scope.result_field || '',
 				                    		format: 'image/png',
-				                    		ramp: $scope.ramp,
+				                    		ramp: $scope.ramp.ramp_id,
+				                    		reverse: $scope.ramp.reverse,
 				                    		transparent: true }
 				    };
 				}
@@ -405,7 +408,8 @@ define(['angular', 'underscore','leaflet',
             					style_field: $scope.result_field || '',
             					request: 'getLegendGraphic',
             					format: 'image/png',
-            					ramp: $scope.ramp,
+            					ramp: $scope.ramp.ramp_id,
+            					reverse: $scope.ramp.reverse,
             					transparent: true }
 				    for (var d in data)
 				       ret.push(encodeURIComponent(d.toUpperCase()) + "=" + encodeURIComponent(data[d]));

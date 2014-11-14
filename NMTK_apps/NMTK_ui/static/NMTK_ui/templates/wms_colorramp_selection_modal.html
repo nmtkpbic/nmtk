@@ -9,12 +9,18 @@
 	      <div class="col-md-12">  	
 	        <div class="control-group">
 	          <label class="control-group" for="job">Choose the style you wish to use for the current map.</label>
-	          <div class="controls" >
-	          <p class="help-block">Available Styles</p>
+              <p class="help-block">Styles are organized by category, choose a category below to see available styles.</p>
+	            <div class="btn-group btn-group-sm" role="group" aria-label="..." >
+				  <button type="button" ng-class="{true: 'active'}[selected.category == category]" class="btn btn-default" ng-click="updateFilters(category)" ng-repeat="category in categories">{{category}}</button>
+				</div>
+				<div class="btn-group btn-group-sm" role="group" aria-label="..." >
+				  <button type="button" ng-click="toggleReverse()" ng-class="{true: 'active'}[selected.reverse == 'true']" class="btn btn-primary">Reverse</button>
+				</div>
+            </div>
+          </div>
+          <div class="col-md-12">        
 	             <div ng-grid="gridOptions" class="gridStyle"></div>
-	          </div>
-	        </div>
-      	  </div>   
+	      </div>  
       	</form>   
     </div>
   </div>

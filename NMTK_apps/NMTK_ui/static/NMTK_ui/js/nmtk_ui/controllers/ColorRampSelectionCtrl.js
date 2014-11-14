@@ -31,10 +31,10 @@
  */
 define(['underscore'], function (_) {	
 	"use strict";
-	var controller=['$scope', '$log', 'Restangular',
+	var controller=['$scope', '$log', '$timeout', 'Restangular',
 	                '$modalInstance', 'ramp',
 	               
-        function ($scope, $log, Restangular, $modalInstance, ramp) {
+        function ($scope, $log, $timeout, Restangular, $modalInstance, ramp) {
 			/*
 			 * So first we need to make sure that we have the list
 			 * of available color ramps.
@@ -42,7 +42,9 @@ define(['underscore'], function (_) {
 			 * If an invalid ramp is selected, start out by setting the
 			 * default ramp to the selected ramp.
 			 */
-			$scope.ramp_id=ramp;
+			$scope.selected={'ramp_id': ramp['ramp_id'],
+					         'reverse': ramp['reverse']};
+
 			Restangular.all('color_style').getList().then(function (styles) {
 				$scope.color_styles=styles;
 				$scope.default_style=_.find(styles, function (style) {
@@ -52,7 +54,7 @@ define(['underscore'], function (_) {
 					$scope.default_style = style[0];
 				}
 				$scope.current_style=_.find(styles, function (style) {
-					return style.id == ramp;
+					return style.id == ramp['ramp_id'];
 				});
 				if (_.isUndefined($scope.current_style)) {
 					$scope.current_style=$scope.default_style;
@@ -60,10 +62,44 @@ define(['underscore'], function (_) {
 				if ($scope.selected_style.length == 0) {
 					$scope.selected_style.push($scope.current_style);
 				}
+				/*
+				 * Get a list of the available categories for the ramps, and
+				 * then generate that as a list for the drop-down in the UI.
+				 * 
+				 * Default to choosing the category that corresponds to the
+				 * currently selected ramp.
+				 */
+				$scope.categories=_.uniq(_.pluck(styles, 'category'))
+				
+				$scope.selected['category']=$scope.current_style.category;
+				$scope.updateFilters();
 			});
+			
+			
+			$scope.updateFilters=function (category) {
+				if (! _.isUndefined(category)) {
+					$scope.selected['category'] = category;
+				}
+				$scope.filtered_color_styles.length=0
+				_.each($scope.color_styles,function (v) {
+					if (v.category == $scope.selected['category']) {
+						$scope.filtered_color_styles.push(v);
+					}
+				});
+			}
+			
+			$scope.toggleReverse=function () {
+				if ($scope.selected.reverse != "true") {
+					$scope.selected.reverse="true";
+				} else {
+					$scope.selected.reverse="false";
+				}
+			}
+			
+			$scope.filtered_color_styles=[];
 			$scope.selected_style = [];
 			$scope.gridOptions= {
-				 data: 'color_styles',
+				 data: 'filtered_color_styles',
 				 selectedItems: $scope.selected_style,
 				 showFooter: false,
 				 showFilter: false,
@@ -71,13 +107,10 @@ define(['underscore'], function (_) {
 				 enableColumnResize: false,
 				 enableRowSelection: true,
 				 multiSelect: false,
-				 plugins: [new ngGridFlexibleHeightPlugin()],
 				 columnDefs: [  { field: 'ramp_graphic',
-					              cellTemplate: '<div class="ngCellText" ng-class="col.colIndex()"><span ng-cell-text><img src="{{row.entity.ramp_graphic}}" /></span></div>',
-					              width: 290,
+					              cellTemplate: '<div class="ngCellText" ng-class="col.colIndex()"><span ng-cell-text><img src="{{row.entity.ramp_graphic}}?reverse={{selected.reverse}}" /></span></div>',
+//					              width: 290,
 					              displayName: 'Ramp Graphic'}
-					          , { field: 'description',
-					        	  displayName: 'Description'}
 					          ],
 				 showColumnMenu: false 
 			};
@@ -87,7 +120,8 @@ define(['underscore'], function (_) {
 			}
 			$scope.close=function () {
 				if ($scope.selected_style.length) {
-					$modalInstance.close($scope.selected_style[0].id);
+					$modalInstance.close({'ramp_id': $scope.selected_style[0].id,
+						                  'reverse': $scope.selected.reverse });
 				} else {
 					$modalInstance.dismiss();
 				}
