@@ -18,8 +18,9 @@ class LegendGenerator(object):
     '''
     
     def __init__(self, color_format, min_value=None, max_value=None, 
-                 reverse=False, steps=254, values_list=None,
-                 min_text=None, max_text=None, units=None):
+                 reverse=False, steps=255, values_list=None,
+                 min_text=None, max_text=None, units=None,
+                 other_features_color=None):
         '''
         There are really two ways this piece of code works - either by
         using a values list (discrete values) or a min/max value.  In the 
@@ -31,6 +32,7 @@ class LegendGenerator(object):
         self.units=units
         self.values_list=values_list
         self.steps=steps # The number of steps in the range.
+        self.other_features_color=other_features_color
 
         # If the user provided min/max information then we'll need to generate
         # text under the final legend graphic showing ranges (and units), that's
@@ -69,7 +71,7 @@ class LegendGenerator(object):
         For a min/max range it should be noted that the final color (highest one) 
         will be uniquely styled with the highest/last color value.  
         '''
-        if self.min_value and self.max_value:
+        if self.min_value and self.max_value and self.min_value != self.max_value:
             # This is tricky, since we need to ensure that the last max value
             # we get is included in the list of values - otherwise
             # we end up not matching the last few features!
@@ -92,14 +94,16 @@ class LegendGenerator(object):
         A generic color to return based on the current ramp for "all values"
         type displays.  This returns an dictionary containing the values..
         '''
-        other_features_color=(44,127,184)
-        colorset=self.cmap(step, bytes=True)
-        colorset_nonbytes=self.cmap(step, bytes=False)
+        if self.other_features_color:
+            colorset_nonbytes=colorset=self.other_features_color + (1,)
+        else:
+            colorset=self.cmap(step, bytes=True)
+            colorset_nonbytes=self.cmap(step, bytes=False)
         color={'rgba': colorset[:4],
                'rgb': colorset[:3],
                'type': 'other',
                'opacity': int(colorset_nonbytes[-1]*100)}
-        return colors
+        return color
     
     
     def next(self):

@@ -17,8 +17,6 @@ logger=logging.getLogger(__name__)
 
 def generateMapfile(datafile, style_field,
                     color_values):
-    
-    
     dbtype='postgis'
     data={'datafile': datafile,
           'dbtype': dbtype,
@@ -74,6 +72,7 @@ def handleWMSRequest(request, datafile):
         min_result=field_attributes['min']
         max_result=field_attributes['max']
 
+    other_features_color=None
     try:
         ramp=int(ramp)
     except Exception, e:
@@ -93,7 +92,8 @@ def handleWMSRequest(request, datafile):
                            min_value=min_result, max_value=max_result, 
                            reverse=reverse,
                            values_list=values_list,
-                           units=legend_units)
+                           units=legend_units,
+                           other_features_color=other_features_color)
 
     # If there's a values_list then we'll let the WMS server generate the 
     # legend, since it would be using discrete colors anyway, and would be better
@@ -133,13 +133,12 @@ def handleWMSRequest(request, datafile):
                                            style_field=style_field,
                                            # Iterating over the legend object will return the colors
                                            # so we need only pass that into the mapfile gen code.
-                                           color_values=legend,
-                                           other_features_color=other_features_color)
+                                           color_values=legend)
                         with open(mapfile_path, 'w') as mapfile:
                             mapfile.write(mf)
                 finally: 
                     lock.release()
-            except lockfile.AlreadyLocked:
+            except AlreadyLocked:
                 logger.debug('Waiting for lock to be released')
                 while lockfile.is_locked():
                     time.sleep(.0025)
