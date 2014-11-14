@@ -561,7 +561,7 @@ class MapColorStyle(models.Model):
     between 0 and 255
     '''
     description=models.CharField(max_length=255)
-    matplotlib_name=models.CharField(max_length=16, null=False)
+    name=models.CharField(max_length=16, null=False)
     other_r=models.IntegerField(null=False, validators=[MaxValueValidator(255),
                                                         MinValueValidator(0),],
                                 verbose_name="R")
@@ -616,7 +616,7 @@ class MapColorStyle(models.Model):
         if not self.pk:
             super(MapColorStyle, self).save(*args, **kwargs)
         
-        legend=LegendGenerator(color_format=self.matplotlib_name,
+        legend=LegendGenerator(color_format=self.name,
                                min_value=0, max_value=255)
         im=legend.generateSampleRamp()
         image_file=StringIO.StringIO()

@@ -71,7 +71,8 @@ class LegendGenerator(object):
         For a min/max range it should be noted that the final color (highest one) 
         will be uniquely styled with the highest/last color value.  
         '''
-        if self.min_value and self.max_value and self.min_value != self.max_value:
+        
+        if self.min_value is not None and self.max_value is not None and self.min_value != self.max_value:
             # This is tricky, since we need to ensure that the last max value
             # we get is included in the list of values - otherwise
             # we end up not matching the last few features!
@@ -175,10 +176,10 @@ class LegendGenerator(object):
             Colormaps that don't fit into the categories above.
         
         """
-        return [('Sequential',     ['Blues', 'BuGn', 'BuPu',
+        return [('Sequential 1',     ['Blues', 'BuGn', 'BuPu',
                                     'GnBu', 'Greens', 'Greys', 'Oranges', 'OrRd',
-                                    'PuBu', 'PuBuGn', 'PuRd', 'Purples', 'RdPu',
-                                    'Reds', 'YlGn', 'YlGnBu', 'YlOrBr', 'YlOrRd',
+                                    'PuBu', 'PuBuGn', 'PuRd', 'Purples', 'RdPu',]),
+                ('Sequential 2',     ['Reds', 'YlGn', 'YlGnBu', 'YlOrBr', 'YlOrRd',
                                     'afmhot', 'autumn', 'bone', 'cool', 'copper',
                                     'gist_heat', 'gray', 'hot', 'pink',
                                     'spring', 'summer', 'winter']),

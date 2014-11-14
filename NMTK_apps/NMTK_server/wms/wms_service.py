@@ -88,7 +88,7 @@ def handleWMSRequest(request, datafile):
     except Exception, e:
         return HttpResponseBadRequest('Invalid color ramp specified {0}'.format(ramp))
     
-    legend=LegendGenerator(color_ramp_identifier.matplotlib_name, 
+    legend=LegendGenerator(color_ramp_identifier.name, 
                            min_value=min_result, max_value=max_result, 
                            reverse=reverse,
                            values_list=values_list,

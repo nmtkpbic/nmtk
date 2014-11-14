@@ -142,7 +142,7 @@ class MapColorStyleAdmin(admin.ModelAdmin):
                  (None, {
                         'fields': ('ramp_graphic_tag',
                                    'description',
-                                   'matplotlib_name',
+                                   'name',
                                    'default',
                                    'category')
                         }),
