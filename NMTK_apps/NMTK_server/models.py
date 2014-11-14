@@ -16,7 +16,7 @@ from django.utils.safestring import mark_safe
 from osgeo import ogr
 from NMTK_server import tasks
 from NMTK_server import signals
-from NMTK_apps.helpers.wms_service import generateColorRampLegendGraphic, rgbcolorramp
+from NMTK_server.wms.legend import LegendGenerator
 from django.core.validators import MaxValueValidator, MinValueValidator
 import logging
 logger=logging.getLogger(__name__)
@@ -561,25 +561,7 @@ class MapColorStyle(models.Model):
     between 0 and 255
     '''
     description=models.CharField(max_length=255)
-    start_r=models.IntegerField(null=False, 
-                                validators=[MaxValueValidator(255),
-                                            MinValueValidator(0),],
-                                verbose_name="R")
-    start_g=models.IntegerField(null=False, validators=[MaxValueValidator(255),
-                                                        MinValueValidator(0),],
-                                verbose_name="G")
-    start_b=models.IntegerField(null=False, validators=[MaxValueValidator(255),
-                                                        MinValueValidator(0),],
-                                verbose_name="B")
-    end_r=models.IntegerField(null=False, validators=[MaxValueValidator(255),
-                                                      MinValueValidator(0),],
-                              verbose_name="R")
-    end_g=models.IntegerField(null=False, validators=[MaxValueValidator(255),
-                                                      MinValueValidator(0),],
-                              verbose_name="G")
-    end_b=models.IntegerField(null=False, validators=[MaxValueValidator(255),
-                                                      MinValueValidator(0),],
-                              verbose_name="B")
+    matplotlib_name=models.CharField(max_length=16, null=False)
     other_r=models.IntegerField(null=False, validators=[MaxValueValidator(255),
                                                         MinValueValidator(0),],
                                 verbose_name="R")
@@ -589,7 +571,7 @@ class MapColorStyle(models.Model):
     other_b=models.IntegerField(null=False, validators=[MaxValueValidator(255),
                                                         MinValueValidator(0),],
                                 verbose_name="B")
-    default=models.BooleanField(default=False, unique=True)
+    default=models.BooleanField(default=False)
     ramp_graphic=models.ImageField(storage=fs, upload_to=lambda instance, 
                                    filename: 'color_ramps/%s' % (filename,),
                                    null=True, blank=True)
@@ -613,14 +595,7 @@ class MapColorStyle(models.Model):
         verbose_name='Map Color Style'
         verbose_name_plural='Map Color Styles'
         db_table='nmtk_map_color_styles'
-        
-    @property
-    def start_color(self):
-        return (self.start_r, self.start_g, self.start_b)
 
-    @property
-    def end_color(self):
-        return (self.end_r, self.end_g, self.end_b)
     
     @property
     def other_color(self):
@@ -630,12 +605,19 @@ class MapColorStyle(models.Model):
         '''
         Save the model and then create the image that we need.
         '''
+        if self.default:
+            # If this one has default checked, turn off the default for
+            # other instances - there can be only one!
+            for m in MapColorStyle.objects.filter(default=True):
+                if m.pk != self.pk:
+                    m.default=False
+                    m.save()
         if not self.pk:
             super(MapColorStyle, self).save(*args, **kwargs)
-        colorramp=lambda val, min, max: rgbcolorramp(val,min,max, 
-                                                     start_color=self.start_color,
-                                                     end_color=self.end_color)
-        im=generateColorRampLegendGraphic(None,None, ramp_function=colorramp)
+        
+        legend=LegendGenerator(color_format=self.matplotlib_name,
+                               min_value=0, max_value=255)
+        im=legend.generateSampleRamp()
         image_file=StringIO.StringIO()
         im.save(image_file, format='png')
         image_file.seek(0, os.SEEK_END)

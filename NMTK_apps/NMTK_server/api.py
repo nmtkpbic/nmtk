@@ -17,11 +17,13 @@ from tastypie.resources import csrf_exempt
 from django.http import HttpResponse, Http404
 from NMTK_server import forms
 from NMTK_apps.helpers import data_output
-from NMTK_apps.helpers import wms_service
+from NMTK_server.wms import wms_service
 from validation.tool_config_validator import ToolConfigValidator
 import simplejson as json
 from tastypie.validation import Validation
 from django.contrib.gis.gdal import OGRGeometry
+from PIL import Image
+import cStringIO as StringIO
 import logging
 import re
 import os
@@ -838,12 +840,27 @@ class MapColorStyleResource(ModelResource):
         if rec and not rec.ramp_graphic:
             # if there is no graphic, they are out of luck...
             raise Http404
-        
-        wrapper = FileWrapper(open(rec.ramp_graphic.path,'rb'))
+        reverse_graphic=False
+        for k, v in  request.GET.iteritems():
+            if k.lower() == 'reverse':
+                if v.lower() in ('t','true','1'):
+                    reverse_graphic=True
+                break
+            
+        image_file=None
+        if reverse_graphic:
+            im=Image.open(rec.ramp_graphic.path)
+            im=im.rotate(180)
+            image_file=StringIO.StringIO()
+            im.save(image_file, format='png')
+            image_file.seek(0)
+            
+        wrapper = FileWrapper(image_file or open(rec.ramp_graphic.path,'rb'))
         response = HttpResponse(wrapper, content_type='image/png') #or whatever type you want there
-        response['Content-Length'] = rec.ramp_graphic.size
-        response['Content-Disposition'] = ('attachment; filename="%s"' % 
-                                           (os.path.basename(rec.ramp_graphic.name)))
+        if not image_file:
+            response['Content-Length'] = rec.ramp_graphic.size
+#         response['Content-Disposition'] = ('attachment; filename="%s"' % 
+#                                            (os.path.basename(rec.ramp_graphic.name)))
         return response
 
          

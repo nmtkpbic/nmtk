@@ -73,22 +73,5 @@
             "page": 1,
             "order": 4
         }
-    },
-    {
-        "pk": 1,
-        "model": "NMTK_server.mapcolorstyle",
-        "fields": {
-            "other_r": 50,
-            "description": "Default Greyscale Color Ramp",
-            "default": true,
-            "start_g": 100,
-            "other_g": 50,
-            "start_b": 100,
-            "other_b": 50,
-            "end_r": 200,
-            "end_b": 200,
-            "end_g": 200,
-            "start_r": 100
-        }
     }
 ]

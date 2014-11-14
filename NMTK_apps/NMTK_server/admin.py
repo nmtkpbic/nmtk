@@ -142,14 +142,9 @@ class MapColorStyleAdmin(admin.ModelAdmin):
                  (None, {
                         'fields': ('ramp_graphic_tag',
                                    'description',
+                                   'matplotlib_name',
                                    'default')
                         }),
-                 ('Start Color', {
-                        'fields': (('start_r','start_g','start_b',),)
-                                  }),
-                 ('End Color', {
-                        'fields': (('end_r','end_g','end_b',),)
-                                }),
                  ('Unmatched Features Color', {
                         'fields': (('other_r','other_g','other_b',),)
                                 })
