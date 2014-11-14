@@ -4,17 +4,19 @@ from django.conf import settings
 
 from NMTK_server.wms import djpaste
 import logging
+from lockfile import LockFile, AlreadyLocked
 import os
 from NMTK_server.wms.legend import LegendGenerator
-
+import time
 from NMTK_server import tasks
 from django.template.loader import render_to_string
+from NMTK_server import models
 
 logger=logging.getLogger(__name__)
 
 
 def generateMapfile(datafile, style_field,
-                    color_values, other_features_color=(0,0,0)):
+                    color_values):
     
     
     dbtype='postgis'
@@ -22,7 +24,7 @@ def generateMapfile(datafile, style_field,
           'dbtype': dbtype,
           'result_field': style_field,
           'colors': color_values,
-          'unmatched_color': other_features_color,
+          'unmatched_color': color_values.unmatched(),
           'mapserver_template': settings.MAPSERVER_TEMPLATE }
     data['connectiontype']='POSTGIS'
     dbs=settings.DATABASES['default']
@@ -45,11 +47,15 @@ def generateMapfile(datafile, style_field,
     return res
 
 def handleWMSRequest(request, datafile):
-    from NMTK_server import models
-    style_field=request.GET.get('STYLE_FIELD', datafile.result_field or None)
-    legend_units=request.GET.get('LEGEND_UNITS', None)
-    reverse=request.GET.get('REVERSE', False)
-    ramp=request.GET.get('RAMP', 0)
+    get_uc=dict((k.upper(),v) for k,v in request.GET.iteritems())
+    style_field=get_uc.get('STYLE_FIELD', datafile.result_field or None)
+    legend_units=get_uc.get('LEGEND_UNITS', None)
+    reverse=get_uc.get('REVERSE', 'false')
+    if reverse.lower() in ('true','t','1'):
+        reverse=True
+    else:
+        reverse=False
+    ramp=get_uc.get('RAMP', 0)
     attributes=datafile.field_attributes
     if style_field == datafile.result_field:
         legend_units=datafile.result_field_units
@@ -92,7 +98,7 @@ def handleWMSRequest(request, datafile):
     # If there's a values_list then we'll let the WMS server generate the 
     # legend, since it would be using discrete colors anyway, and would be better
     # at creating the legend.
-    if request.GET.get('REQUEST', '').lower() == 'getlegendgraphic':
+    if get_uc.get('REQUEST', '').lower() == 'getlegendgraphic':
         # Round the value to 4 significant digits.
         im=legend.generateLegendGraphic()
         response=HttpResponse(content_type='image/png')
@@ -102,24 +108,42 @@ def handleWMSRequest(request, datafile):
         # Assume that the ramp won't change once it is made, so here we will 
         # just use the ramp id and datafile pk to specify a unique WMS
         # service, so we don't need to keep creating WMS services.
+        if reverse:
+            base_name='wms_r_'
+        else:
+            base_name='wms_'
         if 'field_name' in field_attributes:
             mapfile_path=os.path.join(datafile.mapfile_path, 
-                                      "wms_{0}_ramp_{1}_{2}.map".format(datafile.pk,
-                                                                        ramp_id,
-                                                                        field_attributes['field_name']) )
+                                      "{0}{1}_ramp_{2}_{3}.map".format(base_name, 
+                                                                       datafile.pk,
+                                                                       ramp_id,
+                                                                       field_attributes['field_name']) )
         else:
              mapfile_path=os.path.join(datafile.mapfile_path, 
-                                       "wms_{0}_ramp_{1}.map".format(datafile.pk,
-                                                                     ramp_id))
+                                       "{0}{1}_ramp_{2}.map".format(base_name,
+                                                                    datafile.pk,
+                                                                    ramp_id))
         if not os.path.exists(mapfile_path):
-            mf=generateMapfile(datafile, 
-                               style_field=style_field,
-                               # Iterating over the legend object will return the colors
-                               # so we need only pass that into the mapfile gen code.
-                               color_values=legend,
-                               other_features_color=other_features_color)
-            with open(mapfile_path, 'w') as mapfile:
-                mapfile.write(mf)
+            lock=LockFile(mapfile_path)
+            try:
+                lock.acquire(0)
+                try:
+                    if not os.path.exists(mapfile_path):
+                        mf=generateMapfile(datafile, 
+                                           style_field=style_field,
+                                           # Iterating over the legend object will return the colors
+                                           # so we need only pass that into the mapfile gen code.
+                                           color_values=legend,
+                                           other_features_color=other_features_color)
+                        with open(mapfile_path, 'w') as mapfile:
+                            mapfile.write(mf)
+                finally: 
+                    lock.release()
+            except lockfile.AlreadyLocked:
+                logger.debug('Waiting for lock to be released')
+                while lockfile.is_locked():
+                    time.sleep(.0025)
+                logger.debug('Lockfile released!')
         # Create the app to call mapserver.
         app=djpaste.CGIApplication(global_conf=None, 
                                    script=settings.MAPSERV_PATH,

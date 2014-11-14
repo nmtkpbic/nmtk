@@ -102,15 +102,14 @@ MAP
     
     {% for color in colors %}
     CLASS
-      {% if color.value == None %}
-      NAME "All Results"
-      {% elif color.max %}
+      {% if color.type == 'ramp' %}
       NAME "Results less than or equal to {{color.max}}"
       EXPRESSION ([{{result_field}}] <= {{color.max}})  
-      {% elif color.value %}
+      {% elif color.type == 'values' %}
       NAME "{{color.value}}"
-      FILTERITEM "{{result_field}}"
-      FILTER "{{color.value}}"
+      EXPRESSION ("[{{result_field}}]" = "{{color.value}}")  
+      {% else %}
+      NAME "All Results"
       {% endif %}
       STYLE
         COLOR {{color.rgb.0}} {{color.rgb.1}} {{color.rgb.2}}
@@ -128,7 +127,8 @@ MAP
     CLASS
       NAME "Other Features"
       STYLE
-        COLOR {{unmatched_color.0}} {{unmatched_color.1}} {{unmatched_color.2}}
+        COLOR {{unmatched_color.rgb.0}} {{unmatched_color.rgb.1}} {{unmatched_color.rgb.2}}
+        OPACITY {{unmatched_color.opacity}}
 	    {% if geom_type != 'line' %}
 	      OUTLINECOLOR 0 0 0
 	    {% else %}

@@ -3,6 +3,7 @@ from django.conf import settings
 import logging
 from PIL import Image, ImageDraw, ImageFont
 import numpy as np
+from itertools import izip
 
 # We really just use this to get the color ramps it has available - it 
 # gives us RGB colors for a wide range of things.
@@ -17,7 +18,7 @@ class LegendGenerator(object):
     '''
     
     def __init__(self, color_format, min_value=None, max_value=None, 
-                 reverse=False, steps=255, values_list=None,
+                 reverse=False, steps=254, values_list=None,
                  min_text=None, max_text=None, units=None):
         '''
         There are really two ways this piece of code works - either by
@@ -68,18 +69,38 @@ class LegendGenerator(object):
         For a min/max range it should be noted that the final color (highest one) 
         will be uniquely styled with the highest/last color value.  
         '''
-        if not self.values_list:
+        if self.min_value and self.max_value:
             # This is tricky, since we need to ensure that the last max value
             # we get is included in the list of values - otherwise
             # we end up not matching the last few features!
             self.value_iterator=enumerate(np.linspace(self.min_value, self.max_value, num=self.steps))
-        elif self.min_value and self.max_value:
+        elif self.values_list:
             # Returns an integer (step number) and corresponding value pair,
             # in this case the min/max values are the same since we are using a 
             # values list.  Generating the color uses only the step number...
-            self.value_iterator=enumerate(np.linspace(0, self.steps, num=self.steps))
+            # Here we get a list of integer values..
+            self.value_iterator=izip(map(int, 
+                                         np.linspace(0, self.steps, num=max(3,len(self.values_list)))), 
+                                     self.values_list)
+        else:
+            self.value_iterator=iter([])
         return self
         
+    
+    def unmatched(self):
+        '''
+        A generic color to return based on the current ramp for "all values"
+        type displays.  This returns an dictionary containing the values..
+        '''
+        other_features_color=(44,127,184)
+        colorset=self.cmap(step, bytes=True)
+        colorset_nonbytes=self.cmap(step, bytes=False)
+        color={'rgba': colorset[:4],
+               'rgb': colorset[:3],
+               'type': 'other',
+               'opacity': int(colorset_nonbytes[-1]*100)}
+        return colors
+    
     
     def next(self):
         '''
@@ -94,18 +115,24 @@ class LegendGenerator(object):
         # We use the value iterator to get the step and the min/max
         # values for the color.
         step, value=self.value_iterator.next()
-        colorset=self.cmap(step, bytes=True)
-        
-        colorset_nonbytes=self.cmap(step, bytes=False)
-        color={'rgba': colorset[:4],
-               'rgb': colorset[:3],
-               'opacity': colorset_nonbytes[-1]}
-        if self.values_list:
-            key='value'
-            value=self.values_list[step]
-        else:
-            key='max'
-        color[key]=value
+        logger.debug('Next iterated value is %s, %s', step, value)   
+        try:
+            colorset=self.cmap(step, bytes=True)
+            colorset_nonbytes=self.cmap(step, bytes=False)
+            color={'rgba': colorset[:4],
+                   'rgb': colorset[:3],
+                   'opacity': int(colorset_nonbytes[-1]*100)}
+            if self.values_list:
+                key='value'
+                color['type']='values'
+            else:
+                key='max'
+                color['type']='ramp'
+            color[key]=value
+        except Exception, e:
+            logger.exception('Failed to get value: %s, %s, %s',
+                             values, self.values_list, color)
+            raise e
         return color
     
     @staticmethod
