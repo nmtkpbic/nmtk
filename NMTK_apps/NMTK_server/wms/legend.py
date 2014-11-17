@@ -34,16 +34,26 @@ class LegendGenerator(object):
         self.steps=steps # The number of steps in the range.
         self.other_features_color=other_features_color
 
+        self.include_unmatched=False
         # If the user provided min/max information then we'll need to generate
         # text under the final legend graphic showing ranges (and units), that's
         # where the code below comes in handy.  In the values list case
         # we'll generate a vertical legend, where range values are irrelevant.
         round_to_n = lambda x, n: round(x, -int(np.floor(np.log10(x))) + (n - 1))
-
-        if not max_text and max_value:
-            max_text='{0}'.format(round_to_n(max_value, 4))
-        if not min_text and min_value:
-            min_text='{0}'.format(round_to_n(min_value, 4))
+        if min_value == 0:
+            min_text='0'
+        if max_value == 0:
+            max_text='0'
+        if max_text is None and max_value is not None:
+            try:
+                max_text='{0}'.format(round_to_n(max_value, 4))
+            except:
+                max_text='{0}'.format(max_value)
+        if min_text is None and min_value is not None:
+            try:
+                min_text='{0}'.format(round_to_n(min_value, 4))
+            except:
+                min_text='{0}'.format(min_value)
         self.max_text=max_text
         self.min_text=min_text
         self.min_value=min_value
@@ -119,8 +129,17 @@ class LegendGenerator(object):
         '''
         # We use the value iterator to get the step and the min/max
         # values for the color.
-        step, value=self.value_iterator.next()
-        logger.debug('Next iterated value is %s, %s', step, value)   
+        
+        # if the include_umatched attribute is set to true, then
+        # we'll return the unmatched colors last.  Note the type of this
+        # data is "other" so we can discern it from other colors.
+        try:
+            step, value=self.value_iterator.next()
+        except StopIteration:
+            if self.include_unmatched:
+                return self.unmatched()
+            self.include_unmatched=False
+#         logger.debug('Next iterated value is %s, %s', step, value)   
         try:
             colorset=self.cmap(step, bytes=True)
             colorset_nonbytes=self.cmap(step, bytes=False)
@@ -198,157 +217,150 @@ class LegendGenerator(object):
         
         
     def generateSampleRamp(self, height=16, width=257):
-        im=Image.new('RGBA', (width, height), "black")
+        '''
+        Generate a color ramp usign the current style.  Here we override the
+        values so we can generate a sample image, then we reset them when we
+        are done.  This is used by the model(s) which generate sample 
+        images, as well as the legend generators, which need to generate
+        an image.
+        '''
+        im=Image.new('RGBA', (257, height), "black")
         draw=ImageDraw.Draw(im)
         start=border=1
         stop=height-border*2
         i=1
-        for color in self:
-            color="rgba({0},{1},{2},{3})".format(*color['rgba'])
-            draw.line((i, start, i, stop), fill=color)
-            i += 1
+        self.old_min=self.min_value
+        self.old_max=self.max_value
+        self.min_value=0
+        self.max_value=255
+        try:
+            for color in self:
+                color="rgba({0},{1},{2},{3})".format(*color['rgba'])
+                draw.line((i, start, i, stop), fill=color)
+                i += 1
+        finally:
+            self.min_value=self.old_min
+            self.max_value=self.old_max
         del draw
+        # if the request image size isn't the same as the ramp step
+        # count, we'll resize to match - so we get an image that fills
+        # the requested width.
+        if width != 257:
+            im=im.resize((width, height), resample=Image.NEAREST)
         return im
-        
-    def generateFixedColorLegendGraphic(self, color_values, 
-                                        units=None,
-                                        height=16, width=258):
-        '''
-        Function to use a ramp function to generate a set of values for a legend
-        graphic.  This is used when there's a limited list of colors for the legend.
-        '''
-        
-        im=Image.new('RGB', (width, height), "black")
-        draw=ImageDraw.Draw(im)
-        start=border
-        stop=height-border*2
-        fixed=False
-        if (max_text is not None and min_text is not None) and max_text==min_text:
-            fixed=True
-        for i in range(border, width-border*2):
-            if not fixed:
-                color="rgb({0},{1},{2})".format(*ramp_function(i, minval=0, 
-                                                               maxval=width-(border*2)))
-            else:
-                color="rgb({0},{1},{2})".format(*ramp_function(0, 0, 0))
-            draw.line((i, start, i, stop), fill=color)
-        del draw
-        
-        font=ImageFont.truetype(settings.LEGEND_FONT,12)
-        if max_text is not None and min_text is not None:
-            # Generate the legend text under the image
-            if not fixed:
-                min_text_width, min_text_height = font.getsize('{0}'.format(min_text))
-                max_text_width, max_text_height = font.getsize('{0}'.format(max_text))
-                text_height=max(min_text_height, max_text_height)
-                
-                final_width=max(width, max_text_width, min_text_width)
-            else:
-                max_text_width, text_height=font.getsize('All Features')
-                final_width=max(width, max_text_width)
-            # The text height, plus the space between the image and text (1px)
-            total_text_height=text_height+1
-            logger.debug('Total text height is now %s', total_text_height)
-            if units:
-                units_width, units_height=font.getsize(units)
-                final_width=max(final_width, units_width)
-                # Another pixel for space, then the units text
-                total_text_height = total_text_height + units_height + 1
-                logger.debug('Total text height is now %s (post units)', 
-                             total_text_height)
-            im2=Image.new('RGB', (final_width, height+total_text_height+6), "white")
-            im2.paste(im, (int((final_width-width)/2),0))
-            text_pos=height+1
-            draw=ImageDraw.Draw(im2)
-            if not fixed:
-                draw.text((1, text_pos),
-                          '{0}'.format(min_text),
-                          "black",
-                          font=font)
-                draw.text((final_width-(max_text_width+1), text_pos), 
-                          '{0}'.format(max_text), 
-                          "black", 
-                          font=font)
-                if units:
-                    text_pos = text_pos + text_height + 1
-                    placement=(int(final_width/2.0-((units_width+1)/2)), text_pos)
-                    draw.text(placement, 
-                              units, 
-                              "black", 
-                              font=font)
-            else:
-                placement=(int(final_width/2.0-((max_text_width+1)/2)), text_pos)
-                draw.text(placement, 
-                          'All Features', 
-                          "black", 
-                          font=font)    
-            del draw
     
-    def generateColorRampLegendGraphic(self, min_text, max_text, 
-                                       height=16, width=258, border=1, units=None,
-                                       ramp_function=lambda val, min, max: hsvcolorramp(val,min,max),
-                                       other_features_color=None):
+    def generateLegendGraphic(self, width=257, component_height=16,
+                              ramp_text_separator=1,
+                              element_separator=3,
+                              graphic_text_horiz_space=5,
+                              border=1,
+                              other_features_text='Other features'):
         '''
         Function to use a ramp function to generate a set of values for a color ramp.
-        '''
-        im=Image.new('RGB', (width, height), "black")
-        draw=ImageDraw.Draw(im)
-        start=border
-        stop=height-border*2
-        for i in range(border, width-border*2):
-            color="rgb({0},{1},{2})".format(*ramp_function(i, 0, width-(border*2)))
-            draw.line((i, start, i, stop), fill=color)
-        del draw
         
-        font=ImageFont.truetype(settings.LEGEND_FONT,12)
-        if max_text is None and min_text is None:
-            im2=im
-        else:
-            # Generate the legend text under the image
-            if not fixed:
-                min_text_width, min_text_height = font.getsize('{0}'.format(min_text))
-                max_text_width, max_text_height = font.getsize('{0}'.format(max_text))
-                text_height=max(min_text_height, max_text_height)
-                
-                final_width=max(width, max_text_width, min_text_width)
-            else:
-                max_text_width, text_height=font.getsize('All Features')
-                final_width=max(width, max_text_width)
-            # The text height, plus the space between the image and text (1px)
-            total_text_height=text_height+1
-            logger.debug('Total text height is now %s', total_text_height)
-            if units:
-                units_width, units_height=font.getsize(units)
-                final_width=max(final_width, units_width)
-                # Another pixel for space, then the units text
-                total_text_height = total_text_height + units_height + 1
-                logger.debug('Total text height is now %s (post units)', 
-                             total_text_height)
-            im2=Image.new('RGB', (final_width, height+total_text_height+6), "white")
-            im2.paste(im, (int((final_width-width)/2),0))
-            text_pos=height+1
-            draw=ImageDraw.Draw(im2)
+        Each legend graphic (whether a ramp or otherwise) is "component_height" 
+        high.  In the case of a ramp, we put the text underneath the ramp and,
+        include a ramp_text_separator buffer between the graphic and text (if any),
+        spacing between legend components will be element_separator pixels.
+        Space between a single color graphic (non ramp) and it's textual information
+        will be graphic_text_horiz_space pixels.
+        
+        Only a single ramp can exist per image.
+        
+        Any features that are unmatched (in the case when a color is specified for
+        other features) will be stylized using the other_features_text variable.
+        '''
+        font_size=12
+        # iterate over the current graphic and generate an image for each
+        # returned element.
+        #
+        # The minimum separation allowable between two pieces of legend text
+        legend_text_min_separation=5
+        im=None
+
+        if ((self.min_text is not None and self.max_text is not None)
+            and (self.max_value != self.min_value)):
+            # Get the sample color ramp
+            im=self.generateSampleRamp(component_height, width)
             
+            # Start with the font size of 12, then keep reducing until the
+            # legend min/max text fits within the specified width.
+            # Once we change the font size here, it'll be used everywhere for 
+            # the same of consistency.
+            total_text_width=width+1
+            font_size +=1 # Start with a higher font size, since we start by
+                          # reducing the size
+            while total_text_width > width-border*2 and font_size > 0:
+                # Each time recompute with the next smallest font size
+                font_size -= 1
+                # Compute the size of the highest text character, since this 
+                # is how much the image needs to be expanded.  
+                # Add in the space between the text and the ramp itself, since 
+                # we need ramp_text_separator space between the two.
+                font=ImageFont.truetype(settings.LEGEND_FONT,font_size)
+                min_text_width, min_text_height = font.getsize('{0}'.format(self.min_text))
+                max_text_width, max_text_height = font.getsize('{0}'.format(self.max_text))
+                total_text_width = min_text_width + max_text_width + legend_text_min_separation
+            
+            # A little fudge here - some glyphys don't fit in the drawing area due to their script/style,
+            # which causes some of the glyphs to go outside the bounds.  So we add 
+            # three pixels to the height to compensate - which works for the "default"
+            # font.  For ease of use, this is in settings also...but defaults to 3
+            text_height=(max(min_text_height, max_text_height) + ramp_text_separator + 
+                         getattr(settings, 'FONT_GLYPH_HORIZONTAL_COMPENSATION', 3))
+            
+            text_image=Image.new('RGBA', (width, text_height), "white")
+            draw=ImageDraw.Draw(text_image)
+            # Start writing offset from the 
+            text_pos=ramp_text_separator
             draw.text((1, text_pos),
-                      '{0}'.format(min_text),
+                      '{0}'.format(self.min_text),
                       "black",
                       font=font)
-            draw.text((final_width-(max_text_width+1), text_pos), 
-                      '{0}'.format(max_text), 
+            draw.text((width-(max_text_width+1), text_pos), 
+                      '{0}'.format(self.max_text), 
                       "black", 
                       font=font)
-            if units:
-                text_pos = text_pos + text_height + 1
-                placement=(int(final_width/2.0-((units_width+1)/2)), text_pos)
+            final_image_height=im.size[1]+text_image.size[1]
+            im3=Image.new('RGBA', (width, final_image_height))
+            im3.paste(im, (0,0))
+            im3.paste(text_image, (0, im.size[1]))
+            im=im3
+            del im3
+            del text_image
+
+            if self.units:
+                units_width, units_height=font.getsize(self.units)
+                # Another pixel for space, then the units text
+                total_text_height = (units_height + 
+                                     ramp_text_separator +
+                                     getattr(settings, 'FONT_GLYPH_HORIZONTAL_COMPENSATION', 3))
+                text_image=Image.new('RGBA', (width, total_text_height), "white")
+                text_pos = int(width-(width-units_width)/2)
+                placement=(ramp_text_separator, text_pos)
+                draw=ImageDraw.Draw(text_image)
                 draw.text(placement, 
-                          units, 
+                          u'{0}'.format(self.units), 
                           "black", 
                           font=font)
-            del draw
-        if other_features_color:
-            '''
-            Here we generate legend graphics for the color for "other" features.
-            TODO
-            '''
-            im=im2
-        return im2
+                final_image_height=im.size[1]+text_image.size[1]
+                im3=Image.new('RGBA', (width, final_image_height))
+                im3.paste(im, (0,0))
+                # Paste the text where the first image ends.
+                im3.paste(text_image, (0, im.size[1]))
+                im=im3
+        # here we build on an existing image by adding stuff for other values
+        # or for a range of values.
+        self.include_unmatched=True
+        if not im or other_features_color:
+            # In this case there wasn't a ramp, or there was a ramp and 
+            # other features existed, so we need to provide legend data for that
+            for color in self:
+                # we already have the ramp graphic, so there's no need to 
+                # include those colors (if there are any.)
+                if color['type'] not in ('other','values'):
+                    value=color.get('value', other_features_text)
+                    # Now we can use value and color['rgba'] to produce the image and text.
+                    
+        
+        return im

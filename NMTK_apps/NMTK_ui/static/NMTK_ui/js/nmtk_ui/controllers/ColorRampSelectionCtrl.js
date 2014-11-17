@@ -109,7 +109,7 @@ define(['underscore'], function (_) {
 				 multiSelect: false,
 				 columnDefs: [  { field: 'ramp_graphic',
 					              cellTemplate: '<div class="ngCellText" ng-class="col.colIndex()"><span ng-cell-text><img src="{{row.entity.ramp_graphic}}?reverse={{selected.reverse}}" /></span></div>',
-//					              width: 290,
+//					              width: '',
 					              displayName: 'Ramp Graphic'}
 					          ],
 				 showColumnMenu: false 

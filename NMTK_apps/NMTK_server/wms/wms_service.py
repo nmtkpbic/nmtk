@@ -100,7 +100,7 @@ def handleWMSRequest(request, datafile):
     # at creating the legend.
     if get_uc.get('REQUEST', '').lower() == 'getlegendgraphic':
         # Round the value to 4 significant digits.
-        im=legend.generateLegendGraphic()
+        im=legend.generateLegendGraphic(width=300)
         response=HttpResponse(content_type='image/png')
         im.save(response, 'png')
         return response
