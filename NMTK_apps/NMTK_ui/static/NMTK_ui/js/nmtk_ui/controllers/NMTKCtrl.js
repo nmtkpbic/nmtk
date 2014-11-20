@@ -195,7 +195,7 @@ define(['underscore'
 							});
 						} else if (api == 'datafile') {
 							$scope.rest[api].then(function (v) {
-								if (typeof $scope.datafile_cache === 'undefined') {
+								if (_.isUndefined($scope.datafile_cache)) {
 									$scope.datafile_cache = v;
 								} else {
 									$scope.datafile_cache = v;

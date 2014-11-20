@@ -106,7 +106,7 @@ class LegendGenerator(object):
         type displays.  This returns an dictionary containing the values..
         '''
         if self.other_features_color:
-            colorset_nonbytes=colorset=self.other_features_color + (1,)
+            colorset_nonbytes=colorset=self.other_features_color + (255,)
         else:
             colorset=self.cmap(step, bytes=True)
             colorset_nonbytes=self.cmap(step, bytes=False)
@@ -137,8 +137,9 @@ class LegendGenerator(object):
             step, value=self.value_iterator.next()
         except StopIteration:
             if self.include_unmatched:
+                self.include_unmatched=False
                 return self.unmatched()
-            self.include_unmatched=False
+            raise StopIteration
 #         logger.debug('Next iterated value is %s, %s', step, value)   
         try:
             colorset=self.cmap(step, bytes=True)
@@ -315,11 +316,11 @@ class LegendGenerator(object):
             text_pos=ramp_text_separator
             draw.text((1, text_pos),
                       '{0}'.format(self.min_text),
-                      "black",
+                      fill=(0,0,0),
                       font=font)
             draw.text((width-(max_text_width+1), text_pos), 
                       '{0}'.format(self.max_text), 
-                      "black", 
+                      fill=(0,0,0),
                       font=font)
             final_image_height=im.size[1]+text_image.size[1]
             im3=Image.new('RGBA', (width, final_image_height))
@@ -341,7 +342,7 @@ class LegendGenerator(object):
                 draw=ImageDraw.Draw(text_image)
                 draw.text(placement, 
                           u'{0}'.format(self.units), 
-                          "black", 
+                          fill=(0,0,0),
                           font=font)
                 final_image_height=im.size[1]+text_image.size[1]
                 im3=Image.new('RGBA', (width, final_image_height))
@@ -352,15 +353,43 @@ class LegendGenerator(object):
         # here we build on an existing image by adding stuff for other values
         # or for a range of values.
         self.include_unmatched=True
-        if not im or other_features_color:
+        if not im or self.other_features_color:
             # In this case there wasn't a ramp, or there was a ramp and 
             # other features existed, so we need to provide legend data for that
             for color in self:
                 # we already have the ramp graphic, so there's no need to 
                 # include those colors (if there are any.)
-                if color['type'] not in ('other','values'):
+                if color['type'] in ('other','values'):
                     value=color.get('value', other_features_text)
                     # Now we can use value and color['rgba'] to produce the image and text.
-                    
-        
+                    color_legend=Image.new('RGBA', (width, component_height), "white")
+                    draw=ImageDraw.Draw(color_legend)
+                    color="rgba({0},{1},{2},{3})".format(*color['rgba'])
+                    for i in range(0,component_height):
+                        draw.line((i, 0, i, component_height), fill=color)
+                    # A little fudge here - some glyphys don't fit in the drawing area due to their script/style,
+                    # which causes some of the glyphs to go outside the bounds.  So we add 
+                    # three pixels to the height to compensate - which works for the "default"
+                    # font.  For ease of use, this is in settings also...but defaults to 3
+#                     text_height=(max(min_text_height, max_text_height) + ramp_text_separator + 
+#                                  getattr(settings, 'FONT_GLYPH_HORIZONTAL_COMPENSATION', 3))
+            
+                    # Start writing offset from the image
+                    font=ImageFont.truetype(settings.LEGEND_FONT,font_size)
+                    text_pos=ramp_text_separator + component_height
+                    draw.text((int((component_height-font_size)/2), text_pos),
+                              '{0} {1}'.format(value, self.units or ''),
+                              fill=(0,0,0),
+                              font=font)
+            
+                    del draw
+                    if im:
+                        im2=Image.new('RGBA', (width, (component_height + 
+                                                       im.size[1] + 
+                                                       element_separator)), "white")
+                        im2.paste(im, (0,0))
+                        im2.paste(color_legend, (0, im.size[1]+element_separator))
+                        im=im2
+                    else:
+                        im=color_legend
         return im

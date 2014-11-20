@@ -190,7 +190,7 @@ define(['angular', 'underscore','leaflet',
 			}
 				
 			var getDatafile=function (datafile_id) {
-				$scope.rest['datafile'].then(function (data) {
+				$scope.resources['datafile'].getList().then(function (data) {
 					$scope.datafile_api=_.find(data, function(row) {
 						// Only allow viewing of complete files, since
 						// others are not visible for this page.
@@ -199,7 +199,7 @@ define(['angular', 'underscore','leaflet',
 							return true;
 						}
 					});
-					$log.info('Datafile API is ', $scope.datafile_api);
+//					$log.info('Datafile API is ', $scope.datafile_api);
 					if ($scope.$parent.result_field==null) {
 						$scope.$parent.result_field=$scope.datafile_api.result_field;
 						$scope.fields=JSON.parse($scope.datafile_api.fields);
@@ -208,8 +208,7 @@ define(['angular', 'underscore','leaflet',
 						$scope.$parent.preview_datafile_api=undefined;
 						$scope.$parent.preview_job_api=undefined;
 						$location.path($scope.source_path);
-					} else {			
-						
+					} else {
 						process_data();
 					}
 				});
