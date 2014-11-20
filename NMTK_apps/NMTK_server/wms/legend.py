@@ -20,7 +20,7 @@ class LegendGenerator(object):
     def __init__(self, color_format, min_value=None, max_value=None, 
                  reverse=False, steps=255, values_list=None,
                  min_text=None, max_text=None, units=None,
-                 other_features_color=None):
+                 other_features_color=None, column_type='text'):
         '''
         There are really two ways this piece of code works - either by
         using a values list (discrete values) or a min/max value.  In the 
@@ -57,7 +57,8 @@ class LegendGenerator(object):
         self.max_text=max_text
         self.min_text=min_text
         self.min_value=min_value
-        self.max_value=max_value            
+        self.max_value=max_value      
+        self.numeric=(column_type != 'text')      
             
         # Verify that the user has chosen to use one of the available color
         # ramp formats.  If they reverse it, then append an _r so that the code
@@ -113,6 +114,7 @@ class LegendGenerator(object):
             color={'rgba': colorset[:4],
                    'rgb': colorset[:3],
                    'type': 'other',
+                   'numeric': self.numeric,
                    'opacity': 100}
             return color
         else:
@@ -148,6 +150,7 @@ class LegendGenerator(object):
             colorset_nonbytes=self.cmap(step, bytes=False)
             color={'rgba': colorset[:4],
                    'rgb': colorset[:3],
+                   'numeric': self.numeric,
                    'opacity': int(colorset_nonbytes[-1]*100)}
             if self.values_list:
                 key='value'
@@ -244,7 +247,7 @@ class LegendGenerator(object):
         finally:
             self.min_value=self.old_min
             self.max_value=self.old_max
-        del draw
+        draw=ImageDraw.Draw(im)
         # if the request image size isn't the same as the ramp step
         # count, we'll resize to match - so we get an image that fills
         # the requested width.
@@ -324,6 +327,8 @@ class LegendGenerator(object):
                       '{0}'.format(self.max_text), 
                       fill=(0,0,0),
                       font=font)
+            
+            del draw
             final_image_height=im.size[1]+text_image.size[1]
             im3=Image.new('RGBA', (width, final_image_height))
             im3.paste(im, (0,0))
@@ -340,12 +345,13 @@ class LegendGenerator(object):
                                      getattr(settings, 'FONT_GLYPH_HORIZONTAL_COMPENSATION', 3))
                 text_image=Image.new('RGBA', (width, total_text_height), "white")
                 text_pos = int(width-(width-units_width)/2)
-                placement=(ramp_text_separator, text_pos)
+                placement=(text_pos, ramp_text_separator)
                 draw=ImageDraw.Draw(text_image)
                 draw.text(placement, 
                           u'{0}'.format(self.units), 
                           fill=(0,0,0),
                           font=font)
+                del draw
                 final_image_height=im.size[1]+text_image.size[1]
                 im3=Image.new('RGBA', (width, final_image_height))
                 im3.paste(im, (0,0))
@@ -366,9 +372,9 @@ class LegendGenerator(object):
                     # Now we can use value and color['rgba'] to produce the image and text.
                     color_legend=Image.new('RGBA', (width, component_height), "white")
                     draw=ImageDraw.Draw(color_legend)
-                    color="rgba({0},{1},{2},{3})".format(*color['rgba'])
+                    legend_color="rgba({0},{1},{2},{3})".format(*color['rgba'])
                     for i in range(0,component_height):
-                        draw.line((i, 0, i, component_height), fill=color)
+                        draw.line((i, 0, i, component_height), fill=legend_color)
                     # A little fudge here - some glyphys don't fit in the drawing area due to their script/style,
                     # which causes some of the glyphs to go outside the bounds.  So we add 
                     # three pixels to the height to compensate - which works for the "default"
@@ -378,9 +384,15 @@ class LegendGenerator(object):
             
                     # Start writing offset from the image
                     font=ImageFont.truetype(settings.LEGEND_FONT,font_size)
-                    text_pos=ramp_text_separator + component_height
-                    draw.text((int((component_height-font_size)/2), text_pos),
-                              '{0} {1}'.format(value, self.units or ''),
+                    # Offset from the left (so we don't write over the image.)
+                    text_pos=component_height + legend_text_min_separation
+                    text_center_offset_height=int((component_height-font_size)/2)
+                    if self.units and color['type'] == 'values':
+                        text='{0} ({1})'.format(value, self.units)
+                    else:
+                        text='{0}'.format(value,)
+                    draw.text((text_pos, text_center_offset_height),
+                              text,
                               fill=(0,0,0),
                               font=font)
             

@@ -96,7 +96,8 @@ def handleWMSRequest(request, datafile):
                            reverse=reverse,
                            values_list=values_list,
                            units=legend_units,
-                           other_features_color=other_features_color)
+                           other_features_color=other_features_color,
+                           column_type=field_attributes.get('type', None))
 
     # If there's a values_list then we'll let the WMS server generate the 
     # legend, since it would be using discrete colors anyway, and would be better

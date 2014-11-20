@@ -107,7 +107,11 @@ MAP
       EXPRESSION ([{{result_field}}] <= {{color.max}})  
       {% elif color.type == 'values' %}
       NAME "{{color.value}}"
-      EXPRESSION ("[{{result_field}}]" = "{{color.value}}")  
+        {% if color.numeric %}
+          EXPRESSION ([{{result_field}}] = {{color.value}})  
+        {% else %}
+          EXPRESSION ("[{{result_field}}]" = "{{color.value}}")  
+        {% endif %}
       {% else %}
       NAME "All Results"
       {% endif %}
