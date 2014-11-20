@@ -344,7 +344,7 @@ class LegendGenerator(object):
                                      ramp_text_separator +
                                      getattr(settings, 'FONT_GLYPH_HORIZONTAL_COMPENSATION', 3))
                 text_image=Image.new('RGBA', (width, total_text_height), "white")
-                text_pos = int(width-(width-units_width)/2)
+                text_pos = int((width-units_width)/2)
                 placement=(text_pos, ramp_text_separator)
                 draw=ImageDraw.Draw(text_image)
                 draw.text(placement, 
