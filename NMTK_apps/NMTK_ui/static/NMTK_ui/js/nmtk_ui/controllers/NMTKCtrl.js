@@ -79,6 +79,10 @@ define(['underscore'
 					$scope.resources={};
 					$scope.rest={};
 					$scope.delete_candidate={};
+					/* 
+					 * A default set of preferences until they are loaded properly.
+					 */
+					$scope.preferences={'config': {}};
 					$scope.job_config=undefined;
 					$scope.preview_datafile=undefined;
 					$scope.views={}
@@ -86,6 +90,14 @@ define(['underscore'
 						$scope.views[view]=!$scope.views[view];
 					}
 					$scope.user={};
+					$scope.savePreferences=function () {
+						if ($scope.logged_in) {
+							var copy=Restangular.copy($scope.preferences);
+							copy.config=JSON.stringify($scope.preferences.config);
+							copy.put();
+						}
+					}
+					
 					$scope.toggleDiv=function(div) {
 						if (_.isUndefined($scope.preferences.config.divs)) {
 							$scope.preferences.config.divs=[];
@@ -95,12 +107,9 @@ define(['underscore'
 						} else {
 							$scope.preferences.config.divs.push(div);
 						}
-						if ($scope.logged_in) {
-							var copy=Restangular.copy($scope.preferences);
-							copy.config=JSON.stringify($scope.preferences.config);
-							copy.put();
-						}
+						$scope.savePreferences();
 					}
+					
 					
 					// Check to see if a div is enabled and return a true/false response.
 					$scope.isDivEnabled=function(div) {

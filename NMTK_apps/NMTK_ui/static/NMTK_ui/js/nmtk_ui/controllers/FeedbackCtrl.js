@@ -33,8 +33,6 @@ define([], function () {
 	"use strict";
 	var controller=['$scope','$location','$modalInstance','$log',
         function ($scope, $location, $modalInstance, $log) {
-			$log.info('In FeedbackCtrl');
-			$log.info('Current location is ', $location.path());
 			var values_list=['No Opinion', 'Works', 'Needs Help', 'No Way'];
 			var values=[];
 			_.each(values_list, function (v) {

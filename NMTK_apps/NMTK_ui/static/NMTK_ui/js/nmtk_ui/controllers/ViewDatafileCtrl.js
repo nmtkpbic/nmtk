@@ -57,17 +57,13 @@ define(['angular', 'underscore','leaflet',
 			if (_.isUndefined($scope.$parent.results_uri) ||
 				$scope.$parent.results_uri != $location.path()) {
 				$scope.$parent.results_uri=$location.path();
-				$scope.$parent.saved_result_field=null;
+				$scope.$parent.result_field=null;
 				$scope.$parent.customFilters=[];
-				$scope.$parent.saved_ramp=0;
-			} else {
-				$scope.result_field=$scope.$parent.saved_result_field;
-				$scope.ramp=$scope.$parent.saved_ramp;
-			}
-			if (_.isUndefined($scope.ramp)) {
-				$scope.ramp={'ramp_id': 0,
-						     'reverse': 'false'};
-			}
+			} 
+			if (_.isUndefined($scope.preferences.config.ramp)) {
+				$scope.preferences.config.ramp={'ramp_id': 0,
+						     					'reverse': 'false'};
+			} 
 			/*
 			 * Here we figure out of we are viewing a file, or a set of job
 			 * results.  The difference is that a file will have an integer
@@ -108,7 +104,7 @@ define(['angular', 'underscore','leaflet',
 				var opts = {
 					    template:  ColorRampSelectionTemplate, // OR: templateUrl: 'path/to/view.html',
 					    controller: 'ColorRampSelectionCtrl',
-					    resolve:{'ramp': function () { return $scope.ramp; } },
+					    resolve:{'ramp': function () { return $scope.preferences.config.ramp; } },
 					    scope: $scope
 					  };
 				
@@ -120,7 +116,8 @@ define(['angular', 'underscore','leaflet',
 					 * we let that happen in the $watch defined later - so no 
 					 * need to handle it here - we'll just store the changed value.
 					 */
-					$scope.ramp=result
+					$scope.preferences.config.ramp=result;
+					$scope.savePreferences();
 				});
 			}
 			
@@ -199,18 +196,16 @@ define(['angular', 'underscore','leaflet',
 							return true;
 						}
 					});
-//					$log.info('Datafile API is ', $scope.datafile_api);
-					if ($scope.$parent.result_field==null) {
-						$scope.$parent.result_field=$scope.datafile_api.result_field;
-						$scope.fields=JSON.parse($scope.datafile_api.fields);
-					}
-					if (typeof $scope.datafile_api === 'undefined') {
+					if (_.isUndefined($scope.datafile_api)) {
 						$scope.$parent.preview_datafile_api=undefined;
 						$scope.$parent.preview_job_api=undefined;
 						$location.path($scope.source_path);
-					} else {
-						process_data();
 					}
+					if ($scope.$parent.result_field==null) {
+						$scope.$parent.result_field=$scope.datafile_api.result_field;
+					}
+					$scope.fields=JSON.parse($scope.datafile_api.fields);
+					process_data();
 				});
 			}
 			
@@ -325,8 +320,8 @@ define(['angular', 'underscore','leaflet',
 					            	            ids: ids,
 					            	            style_field: $scope.result_field || '',
 					                    		format: 'image/png',
-					                    		ramp: $scope.ramp.ramp_id,
-					                    		reverse: $scope.ramp.reverse,
+					                    		ramp: $scope.preferences.config.ramp.ramp_id,
+					                    		reverse: $scope.preferences.config.ramp.reverse,
 					                    		transparent: true }
 					    }
 					}
@@ -369,8 +364,8 @@ define(['angular', 'underscore','leaflet',
 					            	            ids: ids.join(','),
 					            	            style_field: $scope.result_field ||'',
 					                    		format: 'image/png',
-					                    		ramp: $scope.ramp.ramp_id,
-					                    		reverse: $scope.ramp.reverse,
+					                    		ramp: $scope.preferences.config.ramp.ramp_id,
+					                    		reverse: $scope.preferences.config.ramp.reverse,
 					                    		transparent: true }
 					    }
 					}
@@ -392,8 +387,8 @@ define(['angular', 'underscore','leaflet',
 				            layerOptions: { layers: $scope.datafile_api.layer,
 				            				style_field: $scope.result_field || '',
 				                    		format: 'image/png',
-				                    		ramp: $scope.ramp.ramp_id,
-				                    		reverse: $scope.ramp.reverse,
+				                    		ramp: $scope.preferences.config.ramp.ramp_id,
+				                    		reverse: $scope.preferences.config.ramp.reverse,
 				                    		transparent: true }
 				    };
 				}
@@ -407,8 +402,8 @@ define(['angular', 'underscore','leaflet',
             					style_field: $scope.result_field || '',
             					request: 'getLegendGraphic',
             					format: 'image/png',
-            					ramp: $scope.ramp.ramp_id,
-            					reverse: $scope.ramp.reverse,
+            					ramp: $scope.preferences.config.ramp.ramp_id,
+            					reverse: $scope.preferences.config.ramp.reverse,
             					transparent: true }
 				    for (var d in data)
 				       ret.push(encodeURIComponent(d.toUpperCase()) + "=" + encodeURIComponent(data[d]));
@@ -417,8 +412,7 @@ define(['angular', 'underscore','leaflet',
 				}
 			}
 			
-			$scope.$watch('result_field', function (newVal, oldVal){
-				$scope.$parent.saved_result_field=newVal;
+			var updateMapComponents=function () {
 				addResultWMS();
 				if ($scope.selected_selected) {
 					updateHighlightSelected();
@@ -427,17 +421,23 @@ define(['angular', 'underscore','leaflet',
 					updateSelectedFeatures();
 				}
 				updateLegendGraphic();
+			}
+			
+			/*
+			 * If preferences are loaded then we need to use the loaded preference
+			 * data.
+			 */
+			$scope.$watch('preferences', function (newVal, oldVal) {
+				updateMapComponents();
 			});
-			$scope.$watch('ramp', function (newVal, oldVal){
-				$scope.$parent.saved_ramp=newVal;
-				addResultWMS();
-				if ($scope.selected_selected) {
-					updateHighlightSelected();
-				}
-				if ($scope.selected_features) {
-					updateSelectedFeatures();
-				}
-				updateLegendGraphic();
+			
+			$scope.$watch('result_field', function (newVal, oldVal){
+//				$scope.$parent.result_field=newVal;
+				updateMapComponents();
+			});
+			
+			$scope.$watch('preferences.config.ramp', function (newVal, oldVal){
+				updateMapComponents();
 			});
 			
 			// Whenever a feature is selected in the table, we will match that feature in
