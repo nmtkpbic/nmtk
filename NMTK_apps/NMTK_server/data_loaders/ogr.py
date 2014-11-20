@@ -109,14 +109,21 @@ class OGRLoader(BaseDataLoader):
         and their respective data types.  So now we need to preserve the support
         of retrieval of fields for backwards compatibility.
         '''
-        return [field for field, type in self.data.fields]
+        return [field for field, type, ogr_type in self.data.fields]
     
     def fields_types(self):
         '''
         This returns a list of tuples, with the first being a field name
         and the second element of each being the python type of the field.
         '''
-        return self.data.fields
+        return [(field, type) for field, type, ogr_type in self.data.fields]            
+    
+    def ogr_fields_types(self):
+        '''
+        This returns a list of tuples, with the first being a field name
+        and the second element of each being the python type of the field.
+        '''
+        return [(field, ogr_type) for field, type, ogr_type in self.data.fields] 
     
     @property
     def extent(self):
@@ -184,7 +191,8 @@ class OGRLoader(BaseDataLoader):
                     field_name=field_definition.GetNameRef()
                     if field_type:
                         fields.append((field_name,
-                                       field_type,))
+                                       field_type,
+                                       field_definition.GetType()))
                     else: 
                         raise FormatException('The field {0} is of an unsupported type'.format(field_name))
                 break
