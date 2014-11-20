@@ -57,7 +57,7 @@ define(['angular', 'underscore','leaflet',
 			if (_.isUndefined($scope.$parent.results_uri) ||
 				$scope.$parent.results_uri != $location.path()) {
 				$scope.$parent.results_uri=$location.path();
-				$scope.$parent.result_field=null;
+				//$scope.$parent.result_field=null;
 				$scope.$parent.customFilters=[];
 			} 
 			if (_.isUndefined($scope.preferences.config.ramp)) {
@@ -201,10 +201,15 @@ define(['angular', 'underscore','leaflet',
 						$scope.$parent.preview_job_api=undefined;
 						$location.path($scope.source_path);
 					}
+					$scope.fields=JSON.parse($scope.datafile_api.fields);
+					if (! _.contains($scope.fields, $scope.$parent.result_field)) {
+						$scope.$parent.result_field=null;
+					}
 					if ($scope.$parent.result_field==null) {
 						$scope.$parent.result_field=$scope.datafile_api.result_field;
-					}
-					$scope.fields=JSON.parse($scope.datafile_api.fields);
+					}  
+					
+					
 					process_data();
 				});
 			}
@@ -432,7 +437,7 @@ define(['angular', 'underscore','leaflet',
 			});
 			
 			$scope.$watch('result_field', function (newVal, oldVal){
-//				$scope.$parent.result_field=newVal;
+				$scope.$parent.result_field=newVal;
 				updateMapComponents();
 			});
 			
