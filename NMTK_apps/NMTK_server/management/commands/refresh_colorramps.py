@@ -16,9 +16,7 @@ class Command(BaseCommand):
                 m.name=style
                 m.description='{0} color ramp style'.format(style)
                 m.category=category
-                m.other_r=20
-                m.other_g=20
-                m.other_b=20
+                m.other_g=m.other_b=m.other_r=0x94
                 m.default=(style == 'hsv')
                 m.save()
                 i += 1

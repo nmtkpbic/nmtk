@@ -107,14 +107,16 @@ class LegendGenerator(object):
         '''
         if self.other_features_color:
             colorset_nonbytes=colorset=self.other_features_color + (255,)
+#         else:
+#             colorset=self.cmap(step, bytes=True)
+#             colorset_nonbytes=self.cmap(step, bytes=False)
+            color={'rgba': colorset[:4],
+                   'rgb': colorset[:3],
+                   'type': 'other',
+                   'opacity': 100}
+            return color
         else:
-            colorset=self.cmap(step, bytes=True)
-            colorset_nonbytes=self.cmap(step, bytes=False)
-        color={'rgba': colorset[:4],
-               'rgb': colorset[:3],
-               'type': 'other',
-               'opacity': int(colorset_nonbytes[-1]*100)}
-        return color
+            return None
     
     
     def next(self):
@@ -136,7 +138,7 @@ class LegendGenerator(object):
         try:
             step, value=self.value_iterator.next()
         except StopIteration:
-            if self.include_unmatched:
+            if self.include_unmatched and self.unmatched():
                 self.include_unmatched=False
                 return self.unmatched()
             raise StopIteration
