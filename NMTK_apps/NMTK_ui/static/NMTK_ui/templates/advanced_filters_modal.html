@@ -17,7 +17,7 @@
      	        <p class="help-block">Choose a field to filter</p>
 	            <select id="field"
 	                    ng-model="selected.model_field" 
-	                    ng-options="field.model_field as field.name for field in selection_fields" >
+	                    ng-options="field.model_field as field.name for field in selection_fields|orderBy: 'name'" >
 	            </select>
 	            <p ng-show="selected.model_field && ! _.isUndefined(attributes)">
 	            This field has {{attributes.distinct}} 

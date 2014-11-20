@@ -201,7 +201,8 @@ define(['angular', 'underscore','leaflet',
 						$scope.$parent.preview_job_api=undefined;
 						$location.path($scope.source_path);
 					}
-					$scope.fields=JSON.parse($scope.datafile_api.fields);
+					$scope.fields=_.sortBy(JSON.parse($scope.datafile_api.fields),
+										   function (a) { return a.toLowerCase(); });
 					if (! _.contains($scope.fields, $scope.$parent.result_field)) {
 						$scope.$parent.result_field=null;
 					}
