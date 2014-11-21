@@ -30,17 +30,17 @@
 	  </li>
 {% endblock %}
 {% block navbars %}
-<div class="subnavbar">
+<div class="subnavbar navbar">
   <div class="subcontainer">
     <div class="container"> 
     <div class="navbar-header">
-      <a class="btn-subnavbar collapse" data-toggle="collapse" 
+      <a type="button" class="btn-subnavbar collapsed" data-toggle="collapse" 
          ng-click="isCollapsedSubnav = !isCollapsedSubnav" 
          data-target="#nmtk-subnavbar"><span class="sr-only">Toggle navigation</span>
          <i class="glyphicon glyphicon-list"></i> 
       </a>
     </div>
-    <div class="subnavbar-collapse collapse" id="nmtk-subnavbar" collapsed="isCollapsedSubnav">
+    <div class="subnavbar-collapse" id="nmtk-subnavbar" ng-class="{'collapse': isCollapsedSubnav }">
 		<ul class="mainnav">
           <li class="ng-cloak" ng-class="{'active': (activeTab == 'introduction')}"> 
             <a href="#"> 
