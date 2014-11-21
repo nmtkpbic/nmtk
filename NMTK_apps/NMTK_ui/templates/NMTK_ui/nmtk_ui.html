@@ -31,8 +31,15 @@
 {% block navbars %}
 <div class="subnavbar">
   <div class="subcontainer">
-    <div class="container"> <a class="btn-subnavbar collapse" data-toggle="collapse" data-target=".subnavbar-collapse"> <i class="glyphicon glyphicon-list"></i> </a>
-      <div class="subnavbar-collapse collapse">
+    <div class="container"> 
+    <div class="navbar-header">
+      <a class="btn-subnavbar collapse" data-toggle="collapse" 
+         ng-click="isCollapsedSubnav = !isCollapsedSubnav" 
+         data-target="#nmtk-subnavbar"><span class="sr-only">Toggle navigation</span>
+         <i class="glyphicon glyphicon-list"></i> 
+      </a>
+    </div>
+    <div class="subnavbar-collapse collapse" id="nmtk-subnavbar" collapsed="isCollapsedSubnav">
 		<ul class="mainnav">
           <li class="ng-cloak" ng-class="{'active': (activeTab == 'introduction')}"> 
             <a href="#"> 

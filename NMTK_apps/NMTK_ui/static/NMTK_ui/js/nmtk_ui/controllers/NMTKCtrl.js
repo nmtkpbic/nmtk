@@ -111,6 +111,9 @@ define(['underscore'
 					}
 					
 					
+				    $scope.isCollapsed = true;
+				    $scope.isCollapsedSubnav = true;
+					
 					// Check to see if a div is enabled and return a true/false response.
 					$scope.isDivEnabled=function(div) {
 						// Preferences loaded yet?

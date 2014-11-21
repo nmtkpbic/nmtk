@@ -73,11 +73,13 @@
 		   <div class="container">
 		      <div class="navbar-header">
 		         <a class="navbar-brand" href="{% url 'nmtk_server_nmtk_index' %}"> nmtk <sup>beta</sup> </a>
-		         <a class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse"> 
+		         <button type="button" ng-click="isCollapsed = !isCollapsed" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#nmtk-menu"> 
+		            <span class="sr-only">Toggle navigation</span>
 		            <i class="glyphicon glyphicon-cog"></i>
-		         </a> 
+		         </button> 
 		      </div>
-		      <div class="navbar-collapse collapse">
+		       <!-- Collect the nav links, forms, and other content for toggling -->
+		      <div class="collapse navbar-collapse" id="nmtk-menu" collapse="isCollapsed">
 		      	<ul class="nav navbar-nav">
 		      
 		        {% block right_nav %}
