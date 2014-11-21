@@ -581,4 +581,26 @@ two options:
     and hit "save" (no need to make any changes, the act of saving will kick off a 
     refresh for the tools provided by that tool server.)
 
+***
+### Backing up user data
 
+While future versions of NMTK Server may support online upgrades, the present
+development version does not.  In the case of a reinstallation it is assumed
+that the server administrator understands that any loaded data files may be
+purged, and would need to be reloaded - the same is true of jobs.
+
+User accounts may be preserved using the following mechanism:
+
+1.  Run the command "manage.py dumpusers" and redirect the output to a file, 
+    this will be a list of your preserved user accounts in the form of a fixture.
+    
+2.  If you place the fixture in NMTK_server/fixtures/users.json the system will
+    automatically load the data when you reinitialize the server (as part of its
+    initial data load.)
+    
+3.  If you decide to place the fixture in a separate location on disk, you must
+    then use the command: python manage.py loaddata <path to fixture>
+    This command will load the fixture (users) into the database.
+
+
+***
