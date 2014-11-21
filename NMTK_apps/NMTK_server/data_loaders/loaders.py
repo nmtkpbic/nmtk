@@ -69,6 +69,18 @@ class NMTKDataLoader(object):
             return self.dl_instance.fields()
         else:
             return False
+    
+    def fields_types(self):
+        if hasattr(self, 'dl_instance'):
+            return self.dl_instance.fields_types()
+        else:
+            return False
+
+    def ogr_fields_types(self):
+        if hasattr(self, 'dl_instance'):
+            return self.dl_instance.ogr_fields_types()
+        else:
+            return False
      
     def __del__(self):
         '''
@@ -120,6 +132,8 @@ class NMTKDataLoader(object):
                                                  'type',
                                                  'feature_count',
                                                  'fields',
+                                                 'fields_types',
+                                                 'ogr_fields_types',
                                                  'format',
                                                  'loader',
                                                  'extent',
@@ -130,6 +144,8 @@ class NMTKDataLoader(object):
                                              getattr(self.dl_instance,'spatial_type', None),
                                              self.dl_instance.feature_count,
                                              self.fields(),
+                                             self.fields_types(),
+                                             self.ogr_fields_types(),
                                              self.dl_instance.format,
                                              self.dl_instance.name,
                                              getattr(self.dl_instance,'extent', None),
@@ -169,10 +185,10 @@ class NMTKDataLoader(object):
                                      geom_type=self.info.type,
                                      srs=srs)
         # Create the fields in the data file
-        for field_name in self.info.fields:
+        for field_name, field_type in self.info.ogr_fields_types:
             logger.debug('Create field - name is %s', field_name)
             field_defn = ogr.FieldDefn(field_name.encode('ascii', 'ignore'), 
-                                       ogr.OFTString )
+                                       field_type )
             if layer.CreateField ( field_defn ) != 0:
                 logger.debug("Creating %s field failed.", field_name)
                 raise Exception('Failed to create field!')

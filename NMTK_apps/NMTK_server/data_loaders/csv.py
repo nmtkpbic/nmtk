@@ -13,15 +13,16 @@ import tempfile
 import os
 import csvkit
 from csvkit import convert # guess_format
+from csvkit.typeinference import normalize_column_type
 import decimal
 import csv
+from dateutil.parser import parse
 from mimetypes import MimeTypes
 import cStringIO as StringIO
 from django.contrib.gis.geos import GEOSGeometry
 from BaseDataLoader import *
 
 logger=logging.getLogger(__name__)
-
 class CSVLoader(BaseDataLoader):
     name='csv'
     def __init__(self, *args, **kwargs):
@@ -88,8 +89,27 @@ class CSVLoader(BaseDataLoader):
         geometry data.  Otherwise a single value is returned that is 
         a dictionary of the field data.
         '''
+        base_
         try:
             data=self.csv.next()
+            # We found the types for the fields in our first pass through the
+            # csv file, but when we get the data back out, we need to be sure
+            # to cast it to the expected type.  Otherwise it won't work properly...
+            for field_name, expected_type in self._fields:
+                if field_name in data:
+                    # if the expected type is one of these we use dateutil.parser.parse to parse
+                    if expected_type in (datetime.date, datetime.time, datetime.datetime):
+                        # Get a value of datetime.datetime.
+                        v=parse(data[field_name])
+                        # Pare it down to date if needed.
+                        if expected_type == datetime.date:
+                            v=v.date()
+                        # pare it down to time if needed.
+                        elif expected_type == datetime.time:    
+                            v=v.time()
+                        data[field_name]=v
+                    else:
+                        data[field_name]=expected_type(data[field_name])
             if not hasattr(self ,'_feature_count'):
                 self.feature_counter += 1
         except StopIteration, e:
@@ -161,6 +181,13 @@ class CSVLoader(BaseDataLoader):
             return self.process_csv(self.filename)
 
     def fields(self):
+        return [field for field, field_type in self._fields]
+    
+    def fields_types(self):
+        '''
+        This returns a list of tuples, with the first being a field name
+        and the second element of each being the python type of the field.
+        '''
         return self._fields
 
     def process_csv(self, filename):
@@ -168,8 +195,10 @@ class CSVLoader(BaseDataLoader):
         Here we have a CSV file that we need to process...
         '''
         try:
-            data=open(filename,'r').read(1024)
-            logger.debug('Data is %s', data)
+            with open(filename,'r') as csvfile:
+                data='{0}{1}'.format(csvfile.readline(),
+                                     csvfile.readline())
+            logger.debug('First 2 lines of data data is %s', data)
             self.dialect=csvkit.sniffer.sniff_dialect(data)
             logger.debug('Dialect is %s', self.dialect)
             if self.dialect:
@@ -186,22 +215,44 @@ class CSVLoader(BaseDataLoader):
                                            dialect=self.dialect)
             if self.skip_header:
                 reader.next()
-            self._fields=reader.fieldnames
+            self._fieldnames=reader.fieldnames
+            # Here we will gather each column of values in the input CSV
+            # to figure out what the data type is for each, so we can
+            # properly generate the database, etc.
+            valuelists=collections.defaultdict(list)
+            self._fields=[]
+            for row in reader:
+                for f in self._fieldnames:
+                    valuelists[f].append(row[f])
+            for f in self._fieldnames:
+                type, valuelists[f]=normalize_column_type(valuelists[f], blanks_as_nulls=False)
+                self._fields.append((f, type,))
+            
             latitude_field_candidates=['latitude','lat']
             longitude_field_candidates=['longitude','long', 'lon']
             lat=long=False
+            
             # case-insensitive check to see if lat/long is in the resulting
-            # fields from the data
+            # fields from the data.
+            # Now that we have the types for the fields, also ensure that the
+            # field we are considering for lat/long is a float or int field,
+            # otherwise it won't work as a lat/long value (even int is questionable..)
+            #
+            # Since we also have the full range of values, we can also check to see if
+            # they are within the acceptable range...
             for field in latitude_field_candidates:
-                for this_field in self._fields:
-                    if field == this_field.lower():
+                for this_field, field_type in self._fields:
+                    if field == this_field.lower() and field_type in (int, float) and \
+                       min(valuelists[this_field]) >= -90 and max(valuelists[this_field]) <= 90 :
                         lat=this_field
                         break
             for field in longitude_field_candidates:
-                for this_field in self._fields:
-                    if field == this_field.lower():
+                for this_field, field_type in self._fields:
+                    if field == this_field.lower() and field_type in (int, float) and \
+                       min(valuelists[this_field]) >= -180 and max(valuelists[this_field]) <= 180 :
                         long=this_field
                         break
+            
             if lat and long:
                 # Here it is assumed we have geo-data, so we will
                 # convert it to a GIS format and then handle it as such
@@ -212,11 +263,13 @@ class CSVLoader(BaseDataLoader):
                 self.longitude_field=long
                 self.spatial=True
                 self.spatial_type=ogr.wkbPoint
+                # We assume this based on the lat/long values we validate against.
                 self.srid=4326
                 srs=osr.SpatialReference()
                 epsg=str('EPSG:%s' % (self.srid,))
                 srs.SetFromUserInput(epsg)
                 self.srs=srs.ExportToWkt()
+            
                 
             
     def is_supported(self):

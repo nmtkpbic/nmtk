@@ -29,7 +29,7 @@
  *       OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  *       SUCH DAMAGE.
  */
-define([], function () {	
+define(['underscore'], function (_) {	
 	"use strict";
 	var controller=['$scope', '$filter', '$log', '$modalInstance', 'record', 'Restangular',
         function ($scope, $filter, $log, $modalInstance, record, Restangular) {
@@ -39,16 +39,35 @@ define([], function () {
 			// A list of lists, with the 5-set being field/attribute name
 			// help-text, disabled true/false, and spatial true/false.
 			
-			$scope.filterSpatial= function(field) {
+			/*
+			 * Custom filter to display only those fields that the user is
+			 * able to see and edit.
+			 */
+			$scope.filterEditable= function(field) {
 				if (field.hide_empty && !$scope.filedata[field.field]) {
 					return false;
 				} else if (field.spatial == true) {
-					if ($scope.filedata.geom_type || ($scope.filedata.status == 'Import Failed')) {
-						return true;
-					} 
+					if (! ($scope.filedata.geom_type || ($scope.filedata.status == 'Import Failed'))) {
+						return false;
+					}
 				}
-				return true;
+				return (! field.disabled);
 			}
+			/*
+			 * Customer filter to display only those fields that the user is 
+			 * able to see but not edit.
+			 */
+			$scope.filterDisabled= function(field) {
+				if (field.hide_empty && !$scope.filedata[field.field]) {
+					return false;
+				} else if (field.spatial == true) {
+					if (! ($scope.filedata.geom_type || ($scope.filedata.status == 'Import Failed'))) {
+						return false;
+					}
+				}
+				return field.disabled;
+			}
+			
 			var srid_description=undefined;
 			if ($scope.filedata.status == 'Import Failed') {
 				srid_description='Specifying the proper SRID may allow this data to load.';
@@ -108,7 +127,32 @@ define([], function () {
 			$scope.close=function() {
 				$modalInstance.dismiss();
 			}
-		}
+			
+			$scope.grid_data=[];
+			_.each($scope.fields, function (field) {
+				if ($scope.filterDisabled(field)) {
+					field['value']=$scope.filedata[field.field]
+					$scope.grid_data.push(field);
+				}
+			})
+			
+			$scope.gridOptions= {
+					 data: 'grid_data',
+					 showFooter: false,
+					 headerRowHeight: 0,
+					 showFilter: false,
+					 enableColumnResize: true,
+					 enableRowSelection: false,
+					 multiSelect: false,
+					 plugins: [new ngGridFlexibleHeightPlugin()],
+					 selectedItems: $scope.selections,
+					 columnDefs: [  { field: 'display_name',
+						              displayName: ''}
+						          , { field: 'value',
+						              displayName: 'Value'}
+						          ],
+					 showColumnMenu: false };
+		}			
 	];
 	return controller;
 });

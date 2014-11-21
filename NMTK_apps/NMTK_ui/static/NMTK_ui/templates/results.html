@@ -56,6 +56,7 @@
           <div class="widget-header">
             <i class="glyphicon glyphicon-map-marker"></i>
             <h3>Spatial {{data_file_tab_name}}</h3>
+            <button class="navbar-right btn btn-xs btn-primary ic-right" ng-click="changeColors()">Change Colors</button>
           </div> <!-- /widget-header -->
           <div class="widget-content">
             <!-- <div id="map" class="angular-leaflet-map"></div> -->
@@ -66,7 +67,13 @@
         <div class="widget stacked">
           <div class="widget-header">
             <i class="glyphicon glyphicon-list"></i>
-            <h3>All {{data_file_tab_name}}</h3>
+            <h3 ng-hide="customFilters.length">All {{data_file_tab_name}}</h3>
+            <h3 ng-show="customFilters.length">Filtered {{data_file_tab_name}}</h3>
+            <button ng-show="customFilters.length" class="navbar-right btn btn-xs btn-info ic-right" ng-click="setCustomFilters()" 
+                    stop-event="click">Reset Filters</button>
+            <button class="navbar-right btn btn-xs btn-primary ic-right" ng-click="advanced_filters()" 
+                    stop-event="click">Advanced Filters</button>
+            
           </div> <!-- /widget-header -->
           <div class="widget-content">
             <div class="gridStyle" ng-grid="gridOptions">
@@ -80,11 +87,14 @@
         <div ng-show="spatial" class="widget stacked">
           <div class="widget-header">
             <i class="glyphicon glyphicon-picture"></i>
-            <h3>Map Legend <span ng-show="datafile_api.result_field">(all elements styled by {{datafile_api.result_field}})</span>
-                           <span ng-hide="datafile_api.result_field">(all elements styled identically)</span></h3>
+            <h3>Map Legend - styled by 
+                 <select ng-model="result_field" name="result_field" ng-options="field for field in fields">
+                   <option value=""></option>
+                 </select>
+            </h3>
           </div> <!-- /widget-header -->
           <div style="text-align: center;" class="widget-content">
-            <img ng-src="{{datafile_api.legend}}"></img>
+            <img ng-src="{{legend_url}}"></img>
           </div> <!-- /widget-content -->
         </div><!-- /widget stacked -->
         <div class="widget stacked">

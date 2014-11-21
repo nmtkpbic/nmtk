@@ -49,6 +49,7 @@ require.config({
 		, "domReady": "lib/domReady" // requirejs - test if the Dom is ready
 		, "angular": "lib/angular" // Angular JS 
 		, "angular-bootstrap": "lib/ui-bootstrap-tpls" // Bootstrap for angular, with templates
+		, "bootstrap-slider": "lib/bootstrap-slider" // Bootstrap for angular, with templates
 		, "ng-grid": "lib/ng-grid" // Angular Grid library (for gridded tables)
 		, "restangular": "lib/restangular" // REST Support for AngularJS
 		, "angular-leaflet": "lib/angular-leaflet-directive" // Directive to angularlize leaflet
@@ -82,6 +83,8 @@ require.config({
 		, "configureErrorsServerTemplate": "../templates/configure_errors_server_modal.html" //Template for configuration error messages
 		, "configureErrorsClientTemplate": "../templates/configure_errors_client_modal.html" //Template for configuration error messages
 		, "cloneConfigTemplate": "../templates/clone_config_modal.html" // Template for config page to clone config.
+		, "AdvancedFiltersTemplate": "../templates/advanced_filters_modal.html" // Template for the advanced filters modal.
+		, "ColorRampSelectionTemplate": "../templates/wms_colorramp_selection_modal.html" // Template for choosing a color ramp.
 	}
 	, shim: {
 	    "underscore": { exports: '_' }
@@ -97,6 +100,7 @@ require.config({
 	    , "restangular": ["angular"]
 	    , "ng-grid": ["angular", "ng-grid-flexible-height", "ng-grid-layout"]
 	    , "angular-bootstrap": ["angular"]
+	    , "bootstrap-slider": ["angular", "angular-bootstrap"]
 	    , "jquery": { exports: '$' }
 	}
 

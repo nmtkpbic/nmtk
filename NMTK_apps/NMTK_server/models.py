@@ -8,12 +8,16 @@ import os
 from django.core.urlresolvers import reverse
 import hashlib
 from django.core.files.storage import FileSystemStorage
+from django.core.files.uploadedfile import InMemoryUploadedFile
+import cStringIO as StringIO
 from django.db import connections, transaction
 from django.conf import settings
 from django.utils.safestring import mark_safe
 from osgeo import ogr
 from NMTK_server import tasks
 from NMTK_server import signals
+from NMTK_server.wms.legend import LegendGenerator
+from django.core.validators import MaxValueValidator, MinValueValidator
 import logging
 logger=logging.getLogger(__name__)
 
@@ -389,22 +393,35 @@ class DataFile(models.Model):
     date_created=models.DateTimeField(auto_now_add=True)
     user=models.ForeignKey(settings.AUTH_USER_MODEL, null=False)
     fields=JSONField(null=True, blank=True)
+    field_attributes=JSONField(null=True, blank=True)
     deleted=models.BooleanField(default=False)
     result_field=models.CharField(null=True, blank=True, max_length=32)
     result_field_units=models.CharField(null=True, blank=True, max_length=64)
-    mapfile=models.FileField(storage=fs_results,
-                             upload_to=lambda instance, filename: '%s/data_files/wms/%s.map' % (instance.user.pk,
-                                                                                                instance.pk,),
-                             blank=True, null=True)
-    legendgraphic=models.FileField(storage=fs_results,
-                                   upload_to=lambda instance, filename: '%s/data_files/wms/%s_legend.png' % (instance.user.pk,
-                                                                                                             instance.pk))
+#     mapfile=models.FileField(storage=fs_results,
+#                              upload_to=lambda instance, filename: '%s/data_files/wms/%s.map' % (instance.user.pk,
+#                                                                                                 instance.pk,),
+#                              blank=True, null=True)
+#     legendgraphic=models.FileField(storage=fs_results,
+#                                    upload_to=lambda instance, filename: '%s/data_files/wms/%s_legend.png' % (instance.user.pk,
+#                                                                                                              instance.pk))
     model=models.FileField(storage=fs_results,
                            upload_to=lambda instance, filename: '%s/data_files/%s.py' % (instance.user.pk,
                                                                                          instance.pk,),
                            blank=True, null=True)
     checksum=models.CharField(max_length=50, null=False)
     objects=models.GeoManager()
+    
+    @property
+    def mapfile_path(self):
+         path=fs_results.path('{0}/data_files/wms/'.format(self.pk))
+         if not os.path.exists(path):
+             try:
+                 os.makedirs(path)
+             except OSError as e:
+                 if e.errno == 17:
+                     # Dir already exists. Ignore...
+                     pass
+         return path
     
     @property
     def spatial(self):
@@ -535,3 +552,85 @@ class UserPreference(models.Model):
         verbose_name='User Preference'
         verbose_name_plural='User Preferences'
         db_table='nmtk_user_preference'
+
+class MapColorStyle(models.Model):
+    '''
+    A table to hold the available color ramps/colors that we support for
+    various things.
+    The start and end tuple values should be three-tuples containing an r, g, and b value - limited to an integer
+    between 0 and 255
+    '''
+    description=models.CharField(max_length=255)
+    name=models.CharField(max_length=16, null=False)
+    other_r=models.IntegerField(null=False, validators=[MaxValueValidator(255),
+                                                        MinValueValidator(0),],
+                                verbose_name="R")
+    other_g=models.IntegerField(null=False, validators=[MaxValueValidator(255),
+                                                        MinValueValidator(0),],
+                                verbose_name="G")
+    other_b=models.IntegerField(null=False, validators=[MaxValueValidator(255),
+                                                        MinValueValidator(0),],
+                                verbose_name="B")
+    default=models.BooleanField(default=False)
+    category=models.CharField(max_length=20, null=True)
+    ramp_graphic=models.ImageField(storage=fs, upload_to=lambda instance, 
+                                   filename: 'color_ramps/%s' % (filename,),
+                                   null=True, blank=True)
+    
+    def ramp_graphic_tag(self):
+        '''
+        For the admin interface we need to be able to return the Image tag
+        for this - which is sent out via the API - so here we reverse the API
+        provided url to get it.  Note that if the API version changes then
+        this needs to change as well.
+        '''
+        url=reverse("api_%s_download_ramp_graphic" % ('color_style',),
+                    kwargs={'resource_name': 'color_style',
+                            'pk': self.pk,
+                            'api_name': 'v1'})
+        return u'<img src="{0}" />'.format(url)
+    ramp_graphic_tag.short_description = 'Image'
+    ramp_graphic_tag.allow_tags = True
+        
+    class Meta:
+        verbose_name='Map Color Style'
+        verbose_name_plural='Map Color Styles'
+        db_table='nmtk_map_color_styles'
+
+    
+    @property
+    def other_color(self):
+        return (self.other_r, self.other_g, self.other_b)
+
+    def save(self, *args, **kwargs):
+        '''
+        Save the model and then create the image that we need.
+        '''
+        if self.default:
+            # If this one has default checked, turn off the default for
+            # other instances - there can be only one!
+            for m in MapColorStyle.objects.filter(default=True):
+                if m.pk != self.pk:
+                    m.default=False
+                    m.save()
+        if not self.pk:
+            super(MapColorStyle, self).save(*args, **kwargs)
+        
+        legend=LegendGenerator(color_format=self.name,
+                               min_value=0, max_value=255)
+        im=legend.generateSampleRamp()
+        image_file=StringIO.StringIO()
+        im.save(image_file, format='png')
+        image_file.seek(0, os.SEEK_END)
+        len=image_file.tell()
+        image_file.seek(0)
+        if self.ramp_graphic:
+            if os.path.exists(self.ramp_graphic.path):
+                os.unlink(self.ramp_graphic.path)
+        self.ramp_graphic=InMemoryUploadedFile(image_file, None, 
+                                               'ramp_graphic_{0}.png'.format(self.pk,),
+                                               'image/png', len, None)
+        super(MapColorStyle, self).save(*args, **kwargs)
+
+        
+        

@@ -29,20 +29,47 @@
  *       OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  *       SUCH DAMAGE.
  */
-define(['underscore','leaflet'], function (_, L) {
+define(['angular', 'underscore','leaflet',
+        'text!AdvancedFiltersTemplate',
+        'text!ColorRampSelectionTemplate'], function (angular, _, 
+        										   L, 
+        										   AdvancedFiltersTemplate,
+        										   ColorRampSelectionTemplate) {
 	"use strict";
 	var controller=['$scope','$routeParams','$location','$log','$http',
-	                '$timeout', 'leafletData','Restangular', '$q',
+	                '$timeout', 'leafletData','Restangular', '$q', '$modal',
         /*
 		 * A variant of the ViewResults Controller that uses leaflet-directive 
 		 * rather than leaflet directly.
 		 */
 	        
 		function ($scope, $routeParams, $location, $log, $http, $timeout, 
-				  leafletData, Restangular, $q) {
+				  leafletData, Restangular, $q, $modal) {
 			$scope.loginCheck();
 			$scope.changeTab('datafile_view');
-			$scope.$parent.results_uri=$location.path();
+			$scope.layercount=0;
+			/*
+			 * Filters will be specific for datafile or job, so here we will
+			 * actually store the filters and reset them if the results_uri
+			 * changes.  This allows us to make it seem like the view is
+			 * persistent (when it really isn't!)
+			 */
+			if (_.isUndefined($scope.$parent.results_uri) ||
+				$scope.$parent.results_uri != $location.path()) {
+				$scope.$parent.results_uri=$location.path();
+				//$scope.$parent.result_field=null;
+				$scope.$parent.customFilters=[];
+			} 
+			if (_.isUndefined($scope.preferences.config.ramp)) {
+				$scope.preferences.config.ramp={'ramp_id': 0,
+						     					'reverse': 'false'};
+			} 
+			/*
+			 * Here we figure out of we are viewing a file, or a set of job
+			 * results.  The difference is that a file will have an integer
+			 * file identifier.  While a job will have a UUID value, consisting
+			 * of numbers and letters.
+			 */
 			if (/^\d+$/.test($routeParams.id)) {
 				$scope.source_path='/files';
 				$timeout(function () { getDatafile($routeParams.id); }, 0);
@@ -52,6 +79,75 @@ define(['underscore','leaflet'], function (_, L) {
 			}
 			
 			$log.debug('Parameters are ', $routeParams);
+			
+			// Simple function to return true or false depending on whether
+			// there are custom filters enabled.
+			$scope.customFiltersEnabled=function () {
+				return ! (_.isEmpty($scope.$parent.customFilters));
+			}
+			/*
+			 * Function to change the current filters.  This ensures that 
+			 * we consistently apply scrolling, etc. whenever a filter set
+			 * change occurs.
+			 */
+			$scope.setCustomFilters=function (filters) {
+				if (_.isUndefined(filters)) {
+					filters=[];
+				}
+				$scope.$parent.customFilters=filters;
+				$scope.getPagedDataAsync($scope.page_size, 0, '', 'nmtk_id');
+				$scope.clearSelection();
+				$scope.gridOptions.ngGrid.$viewport.scrollTop(0);
+			}
+			
+			$scope.changeColors=function () {
+				var opts = {
+					    template:  ColorRampSelectionTemplate, // OR: templateUrl: 'path/to/view.html',
+					    controller: 'ColorRampSelectionCtrl',
+					    resolve:{'ramp': function () { return $scope.preferences.config.ramp; } },
+					    scope: $scope
+					  };
+				
+				var modal_dialog=$modal.open(opts);
+				
+				modal_dialog.result.then(function(result) {
+					/*
+					 * If the ramp id changes here we need to reload stuff, but
+					 * we let that happen in the $watch defined later - so no 
+					 * need to handle it here - we'll just store the changed value.
+					 */
+					$scope.preferences.config.ramp=result;
+					$scope.savePreferences();
+				});
+			}
+			
+			$scope.advanced_filters=function () {
+				var opts = {
+					    template:  AdvancedFiltersTemplate, // OR: templateUrl: 'path/to/view.html',
+					    controller: 'AdvancedFiltersCtrl',
+					    resolve:{'filters': function () { return _.clone($scope.$parent.customFilters); },
+					    	     'datafile_api': function () { return $scope.datafile_api;}
+					    },
+					    scope: $scope
+					  };
+				
+				var modal_dialog=$modal.open(opts);
+				
+				modal_dialog.result.then(function(result) {
+					/*
+					 * We only want to reload things if the filters change - since
+					 * otherwise we'll reset the current page the user is viewing,
+					 * etc.
+					 */
+					if (! _.isEqual($scope.$parent.customFilters, result)) {
+						// Here we reset things since the filters changed we need
+						// to go back to the first page, etc.
+						$scope.setCustomFilters(result);
+					} 
+				});
+			}
+			
+			
 			/*
 			 * A function that, when given a job identifier, locates the 
 			 * primary results for that job and then loads it's respective
@@ -91,7 +187,7 @@ define(['underscore','leaflet'], function (_, L) {
 			}
 				
 			var getDatafile=function (datafile_id) {
-				$scope.rest['datafile'].then(function (data) {
+				$scope.resources['datafile'].getList().then(function (data) {
 					$scope.datafile_api=_.find(data, function(row) {
 						// Only allow viewing of complete files, since
 						// others are not visible for this page.
@@ -100,15 +196,22 @@ define(['underscore','leaflet'], function (_, L) {
 							return true;
 						}
 					});
-					$log.info('Datafile API is ', $scope.datafile_api);
-					if (typeof $scope.datafile_api === 'undefined') {
+					if (_.isUndefined($scope.datafile_api)) {
 						$scope.$parent.preview_datafile_api=undefined;
 						$scope.$parent.preview_job_api=undefined;
 						$location.path($scope.source_path);
-					} else {			
-						
-						process_data();
 					}
+					$scope.fields=_.sortBy(JSON.parse($scope.datafile_api.fields),
+										   function (a) { return a.toLowerCase(); });
+					if (! _.contains($scope.fields, $scope.$parent.result_field)) {
+						$scope.$parent.result_field=null;
+					}
+					if ($scope.$parent.result_field==null) {
+						$scope.$parent.result_field=$scope.datafile_api.result_field;
+					}  
+					
+					
+					process_data();
 				});
 			}
 			
@@ -116,6 +219,7 @@ define(['underscore','leaflet'], function (_, L) {
 			$scope.filterOptions= { filterText: "",
 									userExternalFilter: true };
 							
+			
 			$scope.totalServerItems=0;
 			$scope.selections=[];
 			$scope.page_size=100;
@@ -149,12 +253,24 @@ define(['underscore','leaflet'], function (_, L) {
 							     search: searchText,
 							     order_by: order,
 							     format: 'pager'};
+					if (! _.isEmpty($scope.$parent.customFilters)) {
+						/*
+						 * If there are filters, we need to build them into something
+						 * that the API will recognize - Django filter syntax, we do
+						 * that here, then jsonify the dictionary to send it to the API.
+						 */
+						var filters=[];
+						_.each($scope.$parent.customFilters, function (filterSet) {
+							// Format of each custom filter is (field, filterType, value)
+							filters.push([filterSet.model_field + '__' + filterSet.criteria, filterSet.filter_value]);
+						});
+						options['filters']=angular.toJson(filters);
+					}
 					$log.info('Making request for ', $scope.datafile_api.download_url, options);
 					$http.get($scope.datafile_api.download_url, {params: options}).success(function (data) {
 						$scope.totalServerItems=data.meta.total;
 						$scope.pagingOptions.currentPage=(data.meta.offset/data.meta.limit)+1
 						if ($scope.paging_offset > 0) {
-							$log.info('Concatenating!')
 							$scope.data= $scope.data.concat(data.data);
 		//					$scope.data.push.apply($scope.data, data.data);
 						} else {
@@ -187,14 +303,56 @@ define(['underscore','leaflet'], function (_, L) {
 				}
 			};
 			$scope.olcount=0;
+			$scope.olsubcount=0;
+			$scope.leaflet_layer_count=0;
 			
-			// Whenever a feature is selected in the table, we will match that feature in
-			// the view window...
-			$scope.$watch('selected_features', function (newVal, oldVal) {
+			var updateHighlightSelected=function () {
+				if ($scope.spatial) {
+					if ($scope.leaflet.layers.overlays['highlight_selected' + $scope.olsubcount]) {
+						delete $scope.leaflet.layers.overlays['highlight_selected'+$scope.olsubcount];
+					}
+					$scope.olsubcount += 1;
+					if ($scope.highlight_selected) {
+						var ids=[];
+						_.each(newVal, function (data) {
+							ids.push(data.nmtk_id);
+						});
+						$scope.leaflet.layers.overlays['highlight_selected'+$scope.olsubcount]= {
+					            name: 'Visible Feature',
+					            type: 'wms',
+					            visible: true,
+					            url: $scope.datafile_api.wms_url,
+					            layerOptions: { layers: "highlight_selected",
+					            	            ids: ids,
+					            	            style_field: $scope.result_field || '',
+					                    		format: 'image/png',
+					                    		ramp: $scope.preferences.config.ramp.ramp_id,
+					                    		reverse: $scope.preferences.config.ramp.reverse,
+					                    		transparent: true }
+					    }
+					}
+				}
+			}
+			
+			var updateSelectedFeatures=function () {
 				var ids=[];
+				var clear=true;
 				_.each($scope.selected_features, function (data) {
 					ids.push(data.nmtk_id);
+					/*
+					 * Check to see if the selected item (if there is one) is
+					 * still in the list of features.  Otherwise we need
+					 * to clear the selection.
+					 */
+					if ($scope.selected_selected.length != 0) {
+						if (data.nmtk_id == $scope.selected_selected[0].id) {
+							clear=false;
+						}
+					}
 				});
+				if (clear) {
+					$scope.selected_selected.length=0;
+				}
 				if ($scope.spatial) {
 					if ($scope.leaflet.layers.overlays['highlight' + $scope.olcount]) {
 						delete $scope.leaflet.layers.overlays['highlight'+$scope.olcount];
@@ -204,31 +362,107 @@ define(['underscore','leaflet'], function (_, L) {
 				if ($scope.spatial) {
 					if (ids.length) {
 						$scope.leaflet.layers.overlays['highlight'+$scope.olcount]= {
-					            name: 'Selected Layers',
+					            name: 'Selected Features',
 					            type: 'wms',
 					            visible: true,
 					            url: $scope.datafile_api.wms_url,
 					            layerOptions: { layers: "highlight",
 					            	            ids: ids.join(','),
+					            	            style_field: $scope.result_field ||'',
 					                    		format: 'image/png',
+					                    		ramp: $scope.preferences.config.ramp.ramp_id,
+					                    		reverse: $scope.preferences.config.ramp.reverse,
 					                    		transparent: true }
 					    }
 					}
 				}
-				$log.info('Got items selected!');
-				// If nothing is selected, select the first item
-				if ($scope.selected_selected.length == 0) {
-					$timeout(function () {
-//						$scope.gridOptions2.selectItem(0, true);
-					}, 100);
+			}
+			
+			
+			var addResultWMS=function () {
+				if ($scope.spatial) {
+					if ($scope.leaflet.layers.overlays['results'+$scope.leaflet_layer_count]) {
+						delete $scope.leaflet.layers.overlays['results'+$scope.leaflet_layer_count];
+					}
+					$scope.leaflet_layer_count+=1;
+					$scope.leaflet.layers.overlays['results'+$scope.leaflet_layer_count]= {
+				            name: 'Tool Results',
+				            type: 'wms',
+				            visible: true,
+				            url: $scope.datafile_api.wms_url,
+				            layerOptions: { layers: $scope.datafile_api.layer,
+				            				style_field: $scope.result_field || '',
+				                    		format: 'image/png',
+				                    		ramp: $scope.preferences.config.ramp.ramp_id,
+				                    		reverse: $scope.preferences.config.ramp.reverse,
+				                    		transparent: true }
+				    };
 				}
+			}
+			
+			var updateLegendGraphic=function () {
+				if ($scope.spatial) {
+					var url=$scope.datafile_api.wms_url;
+					var ret = [];
+					var data={ layers: $scope.datafile_api.layer,
+            					style_field: $scope.result_field || '',
+            					request: 'getLegendGraphic',
+            					format: 'image/png',
+            					ramp: $scope.preferences.config.ramp.ramp_id,
+            					reverse: $scope.preferences.config.ramp.reverse,
+            					transparent: true }
+				    for (var d in data)
+				       ret.push(encodeURIComponent(d.toUpperCase()) + "=" + encodeURIComponent(data[d]));
+					url = url + '?' + ret.join("&");
+					$scope.legend_url=url;
+				}
+			}
+			
+			var updateMapComponents=function () {
+				addResultWMS();
+				if ($scope.selected_selected) {
+					updateHighlightSelected();
+				}
+				if ($scope.selected_features) {
+					updateSelectedFeatures();
+				}
+				updateLegendGraphic();
+			}
+			
+			/*
+			 * If preferences are loaded then we need to use the loaded preference
+			 * data.
+			 */
+			$scope.$watch('preferences', function (newVal, oldVal) {
+				updateMapComponents();
+			});
+			
+			$scope.$watch('result_field', function (newVal, oldVal){
+				$scope.$parent.result_field=newVal;
+				updateMapComponents();
+			});
+			
+			$scope.$watch('preferences.config.ramp', function (newVal, oldVal){
+				updateMapComponents();
+			});
+			
+			// Whenever a feature is selected in the table, we will match that feature in
+			// the view window...
+			$scope.$watch('selected_selected', function (newVal, oldVal) {
+				updateHighlightSelected();
+			}, true);
+			
+			
+			// Whenever a feature is selected in the table, we will match that feature in
+			// the view window...
+			$scope.$watch('selected_features', function (newVal, oldVal) {
+				updateSelectedFeatures();
 			}, true);
 			
 			// When someone selects items via the "results" grid it goes
 			// into selections, which we then need to copy over to selected_features
 			
 			$scope.$watch('selections', function (newVal, oldVal) {
-				$log.info('Got selections!')
 				// If we're working with results from a map-click, then clicking on
 				// a row will remove those results.
 				if ($scope.feature_query_results) {
@@ -261,13 +495,13 @@ define(['underscore','leaflet'], function (_, L) {
 			 * stuff to 0 and then reload the data for the grid (to unselect items.)
 			 */
 			$scope.clearSelection=function() {
-				_.each($scope.selected_features, function (v, index) {
-					$scope.gridOptions2.selectItem(index, false);
-				});
+//				_.each($scope.selected_features, function (v, index) {
+//					$scope.gridOptions2.selectItem(index, false);
+//				});
 				_.each($scope.data, function (v, index) {
 					$scope.gridOptions.selectItem(index, false);
 				});
-				$scope.selected_features=[];
+				$scope.selected_features.length=0;
 			}
 			
 			
@@ -411,17 +645,8 @@ define(['underscore','leaflet'], function (_, L) {
 					$scope.$parent.data_file_tab_name="Data";
 				}
 				$scope.getPagedDataAsync($scope.page_size, 0, '', 'nmtk_id');	
-				if ($scope.spatial) {
-					$scope.leaflet.layers.overlays['results']= {
-				            name: 'Tool Results',
-				            type: 'wms',
-				            visible: true,
-				            url: $scope.datafile_api.wms_url,
-				            layerOptions: { layers: $scope.datafile_api.layer,
-				                    		format: 'image/png',
-				                    		transparent: true }
-				    };
-				}
+				addResultWMS();
+				updateLegendGraphic();
 			};
 			
 			

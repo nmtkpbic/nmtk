@@ -122,7 +122,13 @@ def stream_xls(datafile):
         logger.exception('Something went wrong!')
     
 def data_query(request, datafile):
+    '''
+    This is the case where we are requesting a paged result set - typically from
+    the results view page of the UI.
+    '''
+    # Get a queryset that is unfiltered.
     qs=getQuerySet(datafile)
+   
     # if lat, lon, and zoom were provided, then we can do a bbox generation...
     if min([request.GET.has_key(key) for key in ('lat','lon','zoom')]):
         try:
@@ -183,28 +189,46 @@ def pager_output(request, datafile):
         limit=20
     order=request.GET.get('order_by', 'nmtk_id').lower()
     qs=getQuerySet(datafile)
-    row=qs[0]
-    db_map=[(field.db_column or field.name, field.name) for
-             field in row._meta.fields if field.name.lower() not in ('nmtk_geometry',
-                                                                     'nmtk_feature_id')]
-    # Detect user specified ordering, if provided.
-    if order.startswith('-'):
-        order_field=order[1:].lower()
-    else:
-        order_field=order.lower()
-    if order_field not in [col.lower() for col, name in db_map]:
-        order='nmtk_id'
-    qs=qs.order_by(order)
-    
+    # Our requests for data come in as GET requests - so we're somewhat
+    # limited in terms of filter sizes here.  However, in this case we
+    # can do our best.  The assumption is that a JSON string is provided 
+    # for the filters GET parameter.  We parse that and get a set of key/value
+    # pairs in an object form, that we can then pass in as filter parameters
+    # to the ORM.
+    filters={}
+    if request.GET.has_key('filters'):
+        try:
+            filters=json.loads(request.GET['filters'])
+            logger.info('Got filters of %s', filters)
+            for filter_data in filters:
+                qs=qs.filter(**{filter_data[0]: filter_data[1]})
+        except Exception, e:
+            logger.exception('Got invalid JSON string for filters (%s), skipping filters',
+                             request.GET['filters'])
     sstring=None
-    if request.GET.get('search', None):
-        '''
-        Handle the text search against the data fields.
-        '''
-        sstring=request.GET['search']
-        filter=reduce(lambda q, field: q|Q(**{'{0}__icontains'.format(field): sstring}),
-                      (field for (db_field, field) in db_map), Q())
-        qs=qs.filter(filter)
+    if qs.count():
+        row=qs[0]
+        db_map=[(field.db_column or field.name, field.name) for
+                 field in row._meta.fields if field.name.lower() not in ('nmtk_geometry',
+                                                                         'nmtk_feature_id')]
+        # Detect user specified ordering, if provided.
+        if order.startswith('-'):
+            order_field=order[1:].lower()
+        else:
+            order_field=order.lower()
+        if order_field not in [col.lower() for col, name in db_map]:
+            order='nmtk_id'
+        qs=qs.order_by(order)
+        
+        
+        if request.GET.get('search', None):
+            '''
+            Handle the text search against the data fields.
+            '''
+            sstring=request.GET['search']
+            filter=reduce(lambda q, field: q|Q(**{'{0}__icontains'.format(field): sstring}),
+                          (field for (db_field, field) in db_map), Q())
+            qs=qs.filter(filter)
     
     
     result={'data': [],
@@ -212,17 +236,19 @@ def pager_output(request, datafile):
                      'offset': offset,
                      'total': qs.count(),
                      'order': order,
-                     'search': sstring}
+                     'search': sstring,
+                     'filters': filters}
             }
-    if limit:
-        qs=qs[offset:limit+offset]
-    else:
-        qs=qs[offset:]
-    for row in qs:
-        data={}
-        for db_col, col in db_map:
-            if col != 'nmtk_geometry':
-                data[db_col]=getattr(row, col)
-        result['data'].append(data)
+    if result['meta']['total']:
+        if limit:
+            qs=qs[offset:limit+offset]
+        else:
+            qs=qs[offset:]
+        for row in qs:
+            data={}
+            for db_col, col in db_map:
+                if col != 'nmtk_geometry':
+                    data[db_col]=getattr(row, col)
+            result['data'].append(data)
         
     return HttpResponse(json.dumps(result), mimetype='application/json')

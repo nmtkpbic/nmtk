@@ -55,12 +55,15 @@ define([
   , 'nmtk_ui/controllers/ToolExplorerCtrl' // Controller for Tool explorer page
   , 'nmtk_ui/controllers/ViewJobCtrl' // Controller for Viewing Job data (modal)
   , 'nmtk_ui/controllers/ViewDatafileCtrl' // Controller handling the view results page(s)
+  , 'nmtk_ui/controllers/AdvancedFiltersCtrl' // Controller for managing Advanced filters
+  , 'nmtk_ui/controllers/ColorRampSelectionCtrl' // Controller for managing Advanced filters
   , 'nmtk_ui/controllers/LoginCtrl' // Controller handling the user login process
 ], function ( _, NMTKCtrl, SwitchJobCtrl, 
 		ChangePasswordCtrl, CloneConfigCtrl, ConfigureCtrl,
 		CreateJobCtrl, DeleteCtrl, DownloadDatafileCtrl, FeedbackCtrl,
 		FileInfoUpdateCtrl, FilesCtrl, IntroCtrl, JobCtrl,
-		ToolExplorerCtrl, ViewJobCtrl, ViewDatafileCtrl, LoginCtrl
+		ToolExplorerCtrl, ViewJobCtrl, ViewDatafileCtrl, AdvancedFiltersCtrl,
+		ColorRampSelectionCtrl, LoginCtrl
 			 ) {
   "use strict";
   var controllers = {
@@ -81,6 +84,8 @@ define([
 	, "ViewJobCtrl": ViewJobCtrl
 	, "ViewDatafileCtrl": ViewDatafileCtrl
 	, "LoginCtrl": LoginCtrl
+	, "AdvancedFiltersCtrl": AdvancedFiltersCtrl
+	, "ColorRampSelectionCtrl": ColorRampSelectionCtrl
   };
   
   var initialize = function(angModule) {

@@ -17,11 +17,13 @@ from tastypie.resources import csrf_exempt
 from django.http import HttpResponse, Http404
 from NMTK_server import forms
 from NMTK_apps.helpers import data_output
-from NMTK_apps.helpers import wms_service
+from NMTK_server.wms import wms_service
 from validation.tool_config_validator import ToolConfigValidator
 import simplejson as json
 from tastypie.validation import Validation
 from django.contrib.gis.gdal import OGRGeometry
+from PIL import Image
+import cStringIO as StringIO
 import logging
 import re
 import os
@@ -547,6 +549,8 @@ class DataFileResource(ModelResource):
     checksum=fields.CharField('checksum',readonly=True, null=True)
     geom_type=fields.CharField('geom_type', readonly=True, null=True)
     file=fields.CharField('file', readonly=True, null=True)
+    
+    field_attributes=fields.CharField('field_attributes', readonly=True, null=True)
     result_field=fields.CharField('result_field', readonly=True, null=True)
     result_field_units=fields.CharField('result_field_units', readonly=True, null=True)
     type=fields.CharField('type', readonly=True, null=True)
@@ -566,27 +570,27 @@ class DataFileResource(ModelResource):
                                                                            trailing_slash()), 
                                                                            self.wrap_view('wms'), 
                 name="api_%s_wms" % (self._meta.resource_name,)),
-            url(r"^(?P<resource_name>%s)/(?P<pk>\w[\w/-]*)/legend%s$" % (self._meta.resource_name, 
-                                                                         trailing_slash()), 
-                                                                         self.wrap_view('legend'), 
-                name="api_%s_legend" % (self._meta.resource_name,)),
+#             url(r"^(?P<resource_name>%s)/(?P<pk>\w[\w/-]*)/legend%s$" % (self._meta.resource_name, 
+#                                                                          trailing_slash()), 
+#                                                                          self.wrap_view('legend'), 
+#                 name="api_%s_legend" % (self._meta.resource_name,)),
             ]
  
-    def legend(self, request, **kwargs):
-        rec=None
-        try:
-            if request.user.is_superuser:
-                rec = self._meta.queryset.get(pk=kwargs['pk'])
-            elif request.user.is_authenticated():
-                rec = self._meta.queryset.get(pk=kwargs['pk'],
-                                              user=request.user)
-        except ObjectDoesNotExist:
-            raise Http404
-        if rec and rec.legendgraphic:
-            response = HttpResponse(rec.legendgraphic, content_type='image/png')
-            return response
-        else:
-            raise Http404
+#     def legend(self, request, **kwargs):
+#         rec=None
+#         try:
+#             if request.user.is_superuser:
+#                 rec = self._meta.queryset.get(pk=kwargs['pk'])
+#             elif request.user.is_authenticated():
+#                 rec = self._meta.queryset.get(pk=kwargs['pk'],
+#                                               user=request.user)
+#         except ObjectDoesNotExist:
+#             raise Http404
+#         if rec and rec.geom_type:
+#             response = HttpResponse(rec.legendgraphic, content_type='image/png')
+#             return response
+#         else:
+#             raise Http404
         
     def wms(self, request, **kwargs):
         '''
@@ -602,7 +606,7 @@ class DataFileResource(ModelResource):
                                               user=request.user)
         except ObjectDoesNotExist:
             raise Http404
-        if rec and rec.mapfile:
+        if rec and rec.geom_type:
             return wms_service.handleWMSRequest(request, rec)
         else:
             raise Http404
@@ -690,7 +694,7 @@ class DataFileResource(ModelResource):
         resource_name = 'datafile'
         allowed_methods=['get','post','delete','put',]
         excludes=['file','processed_file','status', 'geom_type','fields',
-                  'deleted', 'model','mapfile','legendgraphic',
+                  'deleted', 'model',
                   'type',]
         authentication=CSRFBypassSessionAuthentication()
         validation=DataFileResourceValidation()
@@ -756,15 +760,17 @@ class DataFileResource(ModelResource):
                                                         'pk': bundle.obj.pk,
                                                         'api_name': 'v1'})
                 
-        if bundle.obj.mapfile:
+        if bundle.obj.geom_type:
             bundle.data['wms_url']="%swms/" % (bundle.data['resource_uri'],)
             bundle.data['layer']='results'
-            bundle.data['legend']="{0}legend/".format(bundle.data['resource_uri'])
+#             bundle.data['legend']="{0}legend/".format(bundle.data['resource_uri'])
+            bundle.data['geom_type']=bundle.obj.get_geom_type_display()
             
         bundle.data['status']=bundle.obj.get_status_display()
-        bundle.data['geom_type']=bundle.obj.get_geom_type_display()
+        
         bundle.data['user'] = bundle.obj.user.username
         bundle.data['fields']=json.dumps(bundle.obj.fields)
+        bundle.data['field_attributes']=json.dumps(bundle.obj.field_attributes)
         if bundle.data['extent']:
             bundle.data['bbox']=OGRGeometry(bundle.data['extent']).extent
         return bundle
@@ -788,6 +794,74 @@ class ToolResource(ModelResource):
         bundle.data['config']=bundle.obj.toolconfig.json_config
         bundle.data['id']=bundle.obj.pk
         return bundle
+    
+class MapColorStyleResource(ModelResource):
+    class Meta:
+        queryset = models.MapColorStyle.objects.all()
+        resource_name = 'color_style'
+        always_return_data = True
+        fields=['id','default','description', 'category', 'name']
+        allowed_methods=['get',]
+        
+    def dehydrate(self,bundle):
+        '''
+        Provide data for some fields that we return back to the user, making 
+        things a bit more usable than the default TastyPie implementation allows.
+        Note: These are all read-only fields, so we don't need to worry about  
+        them during the hydrate cycle...
+        '''
+        if bundle.obj.ramp_graphic:
+            bundle.data['ramp_graphic']=reverse("api_%s_download_ramp_graphic" % 
+                                                (self._meta.resource_name,),
+                                                kwargs={'resource_name': self._meta.resource_name,
+                                                        'pk': bundle.obj.pk,
+                                                        'api_name': 'v1'})
+        return bundle
+            
+    def prepend_urls(self):
+        return [
+            url(r"^(?P<resource_name>%s)/(?P<pk>\w[\w/-]*)/ramp_graphic.png$" % (self._meta.resource_name,), 
+                self.wrap_view('download_ramp_graphic'), 
+                name="api_%s_download_ramp_graphic" % (self._meta.resource_name,)),
+            ]
+
+
+    def download_ramp_graphic(self, request, **kwargs):
+        """
+        Send a file through TastyPie without loading the whole file into
+        memory at once. The FileWrapper will turn the file object into an
+        iterator for chunks of 8KB.
+        """
+        rec=None
+        try:
+            rec = self._meta.queryset.get(pk=kwargs['pk'])
+        except ObjectDoesNotExist:
+            raise Http404
+        if rec and not rec.ramp_graphic:
+            # if there is no graphic, they are out of luck...
+            raise Http404
+        reverse_graphic=False
+        for k, v in  request.GET.iteritems():
+            if k.lower() == 'reverse':
+                if v.lower() in ('t','true','1'):
+                    reverse_graphic=True
+                break
+            
+        image_file=None
+        if reverse_graphic:
+            im=Image.open(rec.ramp_graphic.path)
+            im=im.rotate(180)
+            image_file=StringIO.StringIO()
+            im.save(image_file, format='png')
+            image_file.seek(0)
+            
+        wrapper = FileWrapper(image_file or open(rec.ramp_graphic.path,'rb'))
+        response = HttpResponse(wrapper, content_type='image/png') #or whatever type you want there
+        if not image_file:
+            response['Content-Length'] = rec.ramp_graphic.size
+#         response['Content-Disposition'] = ('attachment; filename="%s"' % 
+#                                            (os.path.basename(rec.ramp_graphic.name)))
+        return response
 
          
 class ToolSampleFileResource(ModelResource):

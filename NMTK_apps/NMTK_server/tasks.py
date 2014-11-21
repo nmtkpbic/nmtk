@@ -13,6 +13,7 @@ from django.db import connections, transaction
 import logging
 import os
 from django.core.exceptions import ObjectDoesNotExist
+from NMTK_apps.helpers.data_output import getQuerySet
 from NMTK_server.data_loaders.loaders import NMTKDataLoader
 from django.core.files import File
 from django.contrib.gis import geos
@@ -24,11 +25,11 @@ from django.template.loader import render_to_string
 from django.core.mail import send_mail
 from django.core.files.base import ContentFile
 from django.shortcuts import render
+from django.db.models import fields as django_model_fields
+from django.db.models import Max, Min, Count
 from osgeo import ogr
 import imp
-import math
-import colorsys
-from PIL import Image, ImageDraw, ImageFont
+import datetime
 from django.contrib.gis.geos import GEOSGeometry
 import tempfile
 
@@ -43,86 +44,8 @@ geomodel_mappings={ ogr.wkbPoint: ('models.PointField', geos.Point, 'point'),
                     ogr.wkbPolygon: ('models.PolygonField', geos.Polygon,'polygon'),
                     ogr.wkbMultiLineString: ('models.MultiLineStringField', geos.MultiLineString,'line'),
                    }
-# Given a min and max value, and a value (somewhere in the middle)
-# return a suitable pseudo-color to match.
-def pseudocolor(val, minval=0, maxval=255):
-    if minval == maxval:
-        h=180
-    else:
-        h=float(val-minval)/(maxval-minval)*120
-    g,r,b=colorsys.hsv_to_rgb(h/360,1.0,1.0)
-    return int(r*255),int(g*255),int(b*255)
+    
 
-def generateColorRampLegendGraphic(min_text, max_text, 
-                                   height=16, width=258, border=1, units=None):
-    logger.debug('Units are %s', units)
-    im=Image.new('RGB', (width, height), "black")
-    draw=ImageDraw.Draw(im)
-    start=border
-    stop=height-border*2
-    fixed=False
-    if max_text==min_text:
-        fixed=True
-    for i in range(border, width-border*2):
-        if not fixed:
-            color="rgb({0},{1},{2})".format(*pseudocolor(i, minval=0, 
-                                                         maxval=width-(border*2)))
-        else:
-            color="rgb({0},{1},{2})".format(*pseudocolor(0, 0, 0))
-        draw.line((i, start, i, stop), fill=color)
-    del draw
-    
-    # Generate the legend text under the image
-    font=ImageFont.truetype(settings.LEGEND_FONT,12)
-    
-    if not fixed:
-        min_text_width, min_text_height = font.getsize(min_text)
-        max_text_width, max_text_height = font.getsize(max_text)
-        text_height=max(min_text_height, max_text_height)
-        
-        final_width=max(width, max_text_width, min_text_width)
-    else:
-        max_text_width, text_height=font.getsize('All Features')
-        final_width=max(width, max_text_width)
-    # The text height, plus the space between the image and text (1px)
-    total_text_height=text_height+1
-    logger.debug('Total text height is now %s', total_text_height)
-    if units:
-        units_width, units_height=font.getsize(units)
-        final_width=max(final_width, units_width)
-        # Another pixel for space, then the units text
-        total_text_height = total_text_height + units_height + 1
-        logger.debug('Total text height is now %s (post units)', 
-                     total_text_height)
-    im2=Image.new('RGB', (final_width, height+total_text_height+6), "white")
-    im2.paste(im, (int((final_width-width)/2),0))
-    text_pos=height+1
-    draw=ImageDraw.Draw(im2)
-    if not fixed:
-        draw.text((1, text_pos),
-                  min_text,
-                  "black",
-                  font=font)
-        draw.text((final_width-(max_text_width+1), text_pos), 
-                  max_text, 
-                  "black", 
-                  font=font)
-        if units:
-            text_pos = text_pos + text_height + 1
-            placement=(int(final_width/2.0-((units_width+1)/2)), text_pos)
-            draw.text(placement, 
-                      units, 
-                      "black", 
-                      font=font)
-    else:
-        placement=(int(final_width/2.0-((max_text_width+1)/2)), text_pos)
-        draw.text(placement, 
-                  'All Features', 
-                  "black", 
-                  font=font)
-    
-    del draw
-    return im2
 
 # This actually does not get done as a task - it is inline with the
 # response from the tool server.
@@ -156,17 +79,33 @@ def generate_datamodel(datafile, loader):
                 db_created=True
                 if datafile.result_field:
                     min_result=max_result=float(row[datafile.result_field])
-                
-                field_map=propertymap(row.keys())
                 # Create the model for this data
                 model_content.append('class Results_{0}(models.Model):'.format(datafile.pk))
                 # Add an auto-increment field for it (the PK)
                 model_content.append('{0}nmtk_id=models.IntegerField(primary_key=True)'.format(' ' * 4))
                 model_content.append('{0}nmtk_feature_id=models.IntegerField()'.format(' '*4))
                 # Add an entry for each of the fields
-                for orig_field, new_field in field_map.iteritems():
-                    model_content.append("""{0}{1}=models.TextField(null=True, db_column='''{2}''')""".
-                                         format(' '*4, new_field, orig_field))    
+                # So instead of doing this - getting the keys to figure out the fields
+                fields_types=loader.info.fields_types
+                field_map=propertymap((field_name for field_name, type in fields_types))
+                type_mapping={str: ('models.TextField',''),
+                              unicode: ('models.TextField',''),
+                              int: ('models.DecimalField','max_digits=32, decimal_places=0, '), # We support up to a 32 digit integer.
+                              float: ('models.FloatField',''),
+                              datetime.date: ('models.DateField',''),
+                              datetime.time: ('models.TimeField',''),
+                              datetime.datetime: ('models.DateTimeField',''),}
+                for field_name, field_type in fields_types:
+                    if field_type not in type_mapping:
+                        logger.error('No type mapping exists for type %s (using TextField)!', field_type)
+                        field_type=str
+                    model_content.append("""{0}{1}={2}({3} null=True, db_column='''{4}''')""".
+                                         format(' '*4, 
+                                                field_map[field_name], 
+                                                type_mapping[field_type][0],
+                                                type_mapping[field_type][1],
+                                                field_name)
+                                         )    
                 if spatial:
                     model_content.append('''{0}nmtk_geometry={1}(null=True, srid=4326)'''.
                                          format(' '*4, model_type))
@@ -208,54 +147,67 @@ def generate_datamodel(datafile, loader):
             else:
                 min_result=max_result=1
             m=Results_model(**this_row)
-            m.save(using=database)
+            try:
+                m.save(using=database)
+            except Exception, e:
+                logger.error('Failed to save record from data file (%s)', this_row)
+                raise e
 #             logger.debug('Saved model with pk of %s', m.pk)
         logger.debug('Completing transferring results to %s database %s', dbtype,datafile.pk,)
-        if spatial:
-            logger.debug('Spatial result generating styles (%s-%s)', min_result, max_result)
-            step=math.fabs((max_result-min_result)/256)
-            colors=[]
-            low=min_result
-            v=min_result
-            while v <= max_result:
-                #logger.debug('Value is now %s', v)
-                r,g,b=pseudocolor(v, min_result, max_result)
-                colors.append({'r': r,
-                               'g': g,
-                               'b': b,
-                               'low': low ,
-                               'high': v})
-                low=v
-                v += step or 1
-            data={'datafile': datafile,
-                  'dbtype': dbtype,
-                  'result_field': datafile.result_field,
-                  'static': min_result == max_result,
-                  'min': min_result,
-                  'max': max_result,
-                  'colors': colors,
-                  'mapserver_template': settings.MAPSERVER_TEMPLATE }
-            data['connectiontype']='POSTGIS'
-            dbs=settings.DATABASES['default']
-            data['connection']='''host={0} dbname={1} user={2} password={3} port={4}'''.format(dbs.get('HOST', None) or 'localhost',
-                                                                                               dbs.get('NAME'),
-                                                                                               dbs.get('USER'),
-                                                                                               dbs.get('PASSWORD'),
-                                                                                               dbs.get('PORT', None) or '5432')
-            data['data']='nmtk_geometry from userdata_results_{0}'.format(datafile.pk)
-            data['highlight_data']='''nmtk_geometry from (select * from userdata_results_{0} where nmtk_id in (%ids%)) as subquery
-                                      using unique nmtk_id'''.format(datafile.pk)
-            res=render_to_string('NMTK_server/mapfile_{0}.map'.format(mapfile_type), 
-                                 data)
-            datafile.mapfile.save('mapfile.map', ContentFile(res), save=False)
-            datafile.legendgraphic.save('legend.png', ContentFile(''), save=False)
+#         if spatial:
+#             logger.debug('Spatial result generating styles (%s-%s)', min_result, max_result)
+#             step=math.fabs((max_result-min_result)/256)
+#             colors=[]
+#             low=min_result
+#             v=min_result
+#             while v <= max_result+step:
+#                 #logger.debug('Value is now %s', v)
+#                 r,g,b=ramp_function(v, min_result, max_result)
+#                 colors.append({'r': r,
+#                                'g': g,
+#                                'b': b,
+#                                'low': low ,
+#                                'high': v})
+#                 low=v
+#                 v += step or 1
+#             
+#             data={'datafile': datafile,
+#                   'dbtype': dbtype,
+#                   'result_field': datafile.result_field,
+#                   'static': min_result == max_result,
+#                   'min': min_result,
+#                   'max': max_result,
+#                   'colors': colors,
+#                   'mapserver_template': settings.MAPSERVER_TEMPLATE }
+#             data['connectiontype']='POSTGIS'
+#             dbs=settings.DATABASES['default']
+#             data['connection']='''host={0} dbname={1} user={2} password={3} port={4}'''.format(dbs.get('HOST', None) or 'localhost',
+#                                                                                                dbs.get('NAME'),
+#                                                                                                dbs.get('USER'),
+#                                                                                                dbs.get('PASSWORD'),
+#                                                                                                dbs.get('PORT', None) or '5432')
+#             data['data']='nmtk_geometry from userdata_results_{0}'.format(datafile.pk)
+#             data['highlight_data']='''nmtk_geometry from (select * from userdata_results_{0} where nmtk_id in (%ids%)) as subquery
+#                                       using unique nmtk_id'''.format(datafile.pk)
+#             res=render_to_string('NMTK_server/mapfile_{0}.map'.format(mapfile_type), 
+#                                  data)
+#             datafile.mapfile.save('mapfile.map', ContentFile(res), save=False)
+#             datafile.legendgraphic.save('legend.png', ContentFile(''), save=False)
             
-            logger.debug('Creating a new legend graphic image %s', datafile.legendgraphic.path)
-            im=generateColorRampLegendGraphic(min_text='{0}'.format(round(min_result,2)),
-                                              max_text='{0}'.format(round(max_result,2)),
-                                              units=datafile.result_field_units)
-            im.save(datafile.legendgraphic.path, 'png')
-            logger.debug('Image saved at %s', datafile.legendgraphic.path)
+#             logger.debug('Creating a new legend graphic image %s', datafile.legendgraphic.path)
+# #             im=generateColorRampLegendGraphic(min_text='{0}'.format(math.floor(min_result*100.0)/100.0),
+# #                                               max_text='{0}'.format(math.ceil(max_result*100.0)/100.0),
+# #                                               units=datafile.result_field_units)
+# 
+#             round_to_n = lambda x, n: round(x, -int(math.floor(math.log10(x))) + (n - 1))
+# #             round_digits = lambda x, n: round(x, int(n - math.ceil(math.log10(abs(x)))))
+#             # Round to 4 significant digits here, but first make sure we floor/ceil as needed to ensure
+#             # we might include the correct min/max values.
+#             im=generateColorRampLegendGraphic(min_text=round_to_n(min_result,4),
+#                                               max_text=round_to_n(max_result,4),
+#                                               units=datafile.result_field_units)
+#             im.save(datafile.legendgraphic.path, 'png')
+#             logger.debug('Image saved at %s', datafile.legendgraphic.path)
     except Exception, e:
         logger.exception ('Failed to create spatialite results table')
         return datafile
@@ -523,6 +475,46 @@ def importDataFile(datafile, job_id=None):
                                          ContentFile(''))
             loader.export_json(datafile.processed_file.path)
             generate_datamodel(datafile, loader)
+            # Here we load the spatialite data using the model that was created
+            # by generate_datamodel.  We need to use this to get the range
+            # and type information for each field...
+            try:
+                field_attributes={}
+                qs=getQuerySet(datafile)
+                field_mappings=[(django_model_fields.IntegerField, 'integer',),
+                                (django_model_fields.BooleanField, 'boolean',),
+                                (django_model_fields.DecimalField, 'float',), # Special case holding FIPS
+                                (django_model_fields.TextField, 'text',),
+                                (django_model_fields.FloatField,'float'),
+                                (django_model_fields.DateField, 'date',),
+                                (django_model_fields.TimeField, 'time'),
+                                (django_model_fields.DateTimeField, 'datetime')]
+                # Get a single row so that we can try to work with the fields.
+                sample_row=qs[0]
+                for field in sample_row._meta.fields:
+                    field_name=field.name
+                    db_column=field.db_column or field.name
+                    # convert the django field type to a text string.
+                    for ftype, field_type in field_mappings:
+                        if isinstance(field, (ftype,)):
+                            break
+                    else:
+                        logger.info('Unable to map field of type %s (this is expected for GIS fields)', type(field,))
+                        continue
+                    values_aggregates=qs.aggregate(Max(field_name), Min(field_name), Count(field_name,
+                                                                                      distinct=True))
+                    field_attributes[db_column]={'type': field_type, 
+                                                 'field_name': field_name,
+                                                 'min': values_aggregates['{0}__min'.format(field_name)], 
+                                                 'max': values_aggregates['{0}__max'.format(field_name)],
+                                                 'distinct': values_aggregates['{0}__count'.format(field_name)]}
+                    if field_attributes[db_column]['distinct'] < 10:
+                        distinct_values=list(qs.order_by().values_list(field_name, flat=True).distinct())
+                        field_attributes[db_column]['values']=distinct_values
+                datafile.field_attributes=field_attributes
+            except Exception, e:
+                logger.exception('Failed to get range for model %s',
+                                 datafile.pk)
         if job_id:
             try:
                 job=models.Job.objects.get(pk=job_id)
@@ -543,6 +535,9 @@ def importDataFile(datafile, job_id=None):
                 job.status=job.POST_PROCESSING_FAILED
             except:
                 logger.exception('Failed to update job status to failed?!!')
+    
+    
+    
     if job_id:
         job.save()
     # Now we need to create the spatialite version of this thing.

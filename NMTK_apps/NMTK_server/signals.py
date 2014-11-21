@@ -16,6 +16,7 @@ from django.core.mail import mail_managers
 
 logger = logging.getLogger(__name__)
 
+
 @receiver(user_activated)
 def post_activation_setup(sender, user, **kwargs):
     # Deactivate the user, since the admin now needs to approve the account.
@@ -71,7 +72,6 @@ def find_models_with_filefield():
 def remove_old_files(sender, instance, **kwargs):
     if not instance.pk:
         return
-
     try:
         old_instance = instance.__class__.objects.get(pk=instance.pk)
     except instance.DoesNotExist:

@@ -102,20 +102,46 @@ MAP
     
     {% for color in colors %}
     CLASS
-      {% if static %}
-      NAME "All Results"
+      {% if color.type == 'ramp' %}
+      NAME "Results less than or equal to {{color.max}}"
+      EXPRESSION ([{{result_field}}] <= {{color.max}})  
+      {% elif color.type == 'values' %}
+      NAME "{{color.value}}"
+        {% if color.numeric %}
+          EXPRESSION ([{{result_field}}] = {{color.value}})  
+        {% else %}
+          EXPRESSION ("[{{result_field}}]" = "{{color.value}}")  
+        {% endif %}
       {% else %}
-      NAME "Results between {{color.low}} and {{color.high}}"
-      EXPRESSION ([{{result_field}}] >= {{color.low}} and [{{result_field}}] <= {{color.high}}) 
+      NAME "All Results"
       {% endif %}
       STYLE
-        COLOR {{color.r}} {{color.g}} {{color.b}}
-	    #OUTLINECOLOR 0 0 0
-	    WIDTH 3
+        COLOR {{color.rgb.0}} {{color.rgb.1}} {{color.rgb.2}}
+        OPACITY {{color.opacity}}
+	    {% if geom_type != 'line' %}
+	      OUTLINECOLOR 0 0 0
+	    {% else %}
+	      WIDTH 3
+	    {% endif %}
         ANTIALIAS TRUE
       END # END STYLE
     END
     {% endfor %}
+    {% if unmatched_color %}
+    CLASS
+      NAME "Other Features"
+      STYLE
+        COLOR {{unmatched_color.rgb.0}} {{unmatched_color.rgb.1}} {{unmatched_color.rgb.2}}
+        OPACITY {{unmatched_color.opacity}}
+	    {% if geom_type != 'line' %}
+	      OUTLINECOLOR 0 0 0
+	    {% else %}
+	      WIDTH 3
+	    {% endif %}
+        ANTIALIAS TRUE
+      END # END STYLE
+    END
+    {% endif %}
 
   END
 
@@ -144,6 +170,37 @@ MAP
 
     METADATA
       WMS_TITLE "Highlights"
+      WMS_ABSTRACT "Selected results"
+      WMS_SRS "EPSG:4326"
+      WMS_GROUP_TITLE "Highlights"
+      GML_INCLUDE_ITEMS "all"
+    END
+  END
+  
+   LAYER
+    NAME "highlight_selected"
+	{% include "NMTK_server/mapfile_highlight_conninfo.map" %}
+    VALIDATION
+      "ids" "[0-9,]+"
+    END
+    TYPE LINE
+#    STATUS ON
+    DUMP TRUE
+    PROJECTION
+      "init=epsg:4326"
+    END
+    TRANSPARENCY ALPHA
+    CLASS
+      NAME "Selected Results"
+      STYLE
+        COLOR 160 160 160
+	    WIDTH 3
+        ANTIALIAS TRUE
+      END # END STYLE
+    END
+
+    METADATA
+      WMS_TITLE "Highlight Selected"
       WMS_ABSTRACT "Selected results"
       WMS_SRS "EPSG:4326"
       WMS_GROUP_TITLE "Highlights"

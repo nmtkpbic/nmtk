@@ -79,6 +79,10 @@ define(['underscore'
 					$scope.resources={};
 					$scope.rest={};
 					$scope.delete_candidate={};
+					/* 
+					 * A default set of preferences until they are loaded properly.
+					 */
+					$scope.preferences={'config': {}};
 					$scope.job_config=undefined;
 					$scope.preview_datafile=undefined;
 					$scope.views={}
@@ -86,6 +90,14 @@ define(['underscore'
 						$scope.views[view]=!$scope.views[view];
 					}
 					$scope.user={};
+					$scope.savePreferences=function () {
+						if ($scope.logged_in) {
+							var copy=Restangular.copy($scope.preferences);
+							copy.config=JSON.stringify($scope.preferences.config);
+							copy.put();
+						}
+					}
+					
 					$scope.toggleDiv=function(div) {
 						if (_.isUndefined($scope.preferences.config.divs)) {
 							$scope.preferences.config.divs=[];
@@ -95,12 +107,12 @@ define(['underscore'
 						} else {
 							$scope.preferences.config.divs.push(div);
 						}
-						if ($scope.logged_in) {
-							var copy=Restangular.copy($scope.preferences);
-							copy.config=JSON.stringify($scope.preferences.config);
-							copy.put();
-						}
+						$scope.savePreferences();
 					}
+					
+					
+				    $scope.isCollapsed = true;
+				    $scope.isCollapsedSubnav = true;
 					
 					// Check to see if a div is enabled and return a true/false response.
 					$scope.isDivEnabled=function(div) {
@@ -195,7 +207,7 @@ define(['underscore'
 							});
 						} else if (api == 'datafile') {
 							$scope.rest[api].then(function (v) {
-								if (typeof $scope.datafile_cache === 'undefined') {
+								if (_.isUndefined($scope.datafile_cache)) {
 									$scope.datafile_cache = v;
 								} else {
 									$scope.datafile_cache = v;
@@ -416,6 +428,15 @@ define(['underscore'
 						}
 						$scope.loaded=true;
 						$("#ie_uploadform").trigger('reset');
+					}
+					
+					/*
+					 * Function to generate help for the current path.
+					 */
+					$scope.ui_help=function () {
+						
+						var current_path=$location.path();
+						
 					}
 					
 					$scope.feedback=function () {

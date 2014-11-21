@@ -262,6 +262,10 @@ LOGGING = {
 
 BROKER_URL = 'django://'
 
+# Make our session keys stay for 14 days since the last access.
+# because the default SESSION_COOKIE_AGE is 1209600 (60*60*24*14)=14 days in seconds
+SESSION_SAVE_EVERY_REQUEST=True
+
 
 # A list of modules used by the data loader, note that order is important here
 # Since the first loader that recognizes a file will process it.
