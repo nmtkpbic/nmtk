@@ -10,31 +10,40 @@
           </div> <!-- /widget-header -->
           <div ng-show="isDivEnabled('toolexplorer_intro')" class="widget-content">
           <p>
-           The tool explorer allows you to browse tools that are provided by this server,
-           review their documentation and/or supporting research papers, and download
-           sample data sets.
-		  </p>
-		  <p>
-			In order to use a tool described here, you will need to do the following:
-               <ul>
-                 <li>Prepare and <a href="#/files/">upload</a> the necessary 
-                     data for your selected tool.</li>
-			     <li>Start a new job, filling in the necessary job parameters.</li>
-			     <li>Run the job (your data will be uploaded to the tool, and you 
-			         will be notified when the results are ready.)</li>
-	  		     <li>View the results, which can be accessed in one of the following ways:
-  			       <ul>
-			         <li>As a Microsoft Excel Spreadsheet (XLS) file.</li>
-			         <li>As a Comma-Separated Values (CSV) file.</li>
-			         <li>In your browser (for spatial data, you can see it on a map!)</li>
-		  	       <li>As a GeoJSON file (the &quot;native&quot; format that NMTK uses for data interchange)</li>
-                   </ul>
-                 </li>
-               </ul>
-             <p>Below is a list of Tools currently provided by this NMTK Server,
-              you can read about the tools and download sample data files.  When you 
-              are ready to try running your own job, click on the <a href="#/job/">
-              My Jobs</a> tab to create and run your own NMTK job.</p>
+           The Tool Explorer lets you explore the tools that are available,
+           review their documentation and supporting materials, and explore sample data sets.
+	  </p>
+	  <p>
+	     In order to use a tool described here, you will need to do the following:
+	     <ul>
+		<li>Prepare and upload the necessary data for your selected tool through the <a href="#/files/">Files</a> tab.</li>
+		<li>Start a new job, filling in the necessary job parameters. There are several ways to start a job:
+		   <ul>
+		      <li>Using sample data by first choosing to "Load Tool Sample Data" and then choosing "Create Sample Job"</li>
+		      <li>With the tool displayed on this page using the "Create Job with this Tool" button</li>
+		      <li>With any available tool from the <a href="#/job/">Jobs</a> tab</li>
+		   </ul>
+		</li>
+		<li>Submit the job
+		   <ul>
+		      <li>Your data will be sent to the tool for processing</li>
+		      <li>Check the job status on the <a href="#/job/">Jobs</a> tab</li>
+		   </ul>
+		</li>
+		<li>Once the job is done, you can view the results (for spatial data, you can explore it on a map),
+		or you can download the results in one of these formats:
+		<ul>
+		   <li>As a Microsoft Excel Spreadsheet (XLS) file (no geography)</li>
+		   <li>As a Comma-Separated Values (CSV) file (no geography)</li>
+		   <li>As a GeoJSON file (a popular geographic file format that is the &quot;native&quot; format for this system)</li>
+		</ul>
+		</li>
+	     </ul>
+	  </p>
+	  <p>
+	     If you are just interested in seeing what a tool does, load its sample data, then create a sample job and submit it.
+	     When you are ready, you can upload your own data and run up your own job.
+	  </p>
           </div> <!-- /widget-content -->
         </div><!-- /widget stacked -->
       </div><!-- /span12 -->

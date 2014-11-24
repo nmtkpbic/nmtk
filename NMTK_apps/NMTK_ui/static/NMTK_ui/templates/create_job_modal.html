@@ -10,7 +10,7 @@
 	          <div class="control-group">
 	             <label class="control-group" for="description">Enter a description for this job</label>
 	             <div class="controls">
-	                <p class="help-block">A description helps you to identify this job later.</p>
+	                <p class="help-block">A unique description helps you identify this job later.</p>
 	                <input required type="text" class="input" 
 	                 name="description" id="description" ng-model="jobdata.description"></input>
 	             </div>
@@ -18,7 +18,7 @@
 	          <div class="control-group">
 	             <label class="control-group" for="tool">Choose the tool you wish to use for this job</label>
 	             <div class="controls">
-	                <p class="help-block">The tool indicates the tool server used to execute this job.</p>
+	                <p class="help-block">If you're not sure which tool to use, visit the <a href="/#/tool-explorer/">Tool Explorer</a> tab.</p>
 	                 <select required id="tool" 
 	                        ng-model="jobdata.tool" ng-options="o.resource_uri as o.name for o in rest.tool" >
 	                </select>
