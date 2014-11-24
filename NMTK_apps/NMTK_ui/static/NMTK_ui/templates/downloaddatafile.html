@@ -16,7 +16,7 @@
             <a ng-if="isComplete(datafile)" ng-href="{{download_url}}?format=csv">Comma-Separated Values</a><br>   
             <a ng-if="isComplete(datafile)" ng-href="{{download_url}}?format=xls">Microsoft Excel (.xls)</a><br>
             <a ng-if="isComplete(datafile)" ng-hide="spatial" ng-href="{{download_url}}?format=json">JSON Format</a>
-            <a ng-href="{{file_url}}">Raw Format (the original format: {{datafile.content_type}})</a><br>  
+            <a ng-href="{{file_url}}">Raw Format (the format in which the file was created or uploaded): {{datafile.content_type}})</a><br>  
           </div>
         </div>
       </div>      
