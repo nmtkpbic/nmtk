@@ -12,8 +12,8 @@
              "files": [
                  {
                    "namespace":"data",
-                   "checksum": "3feaeed4c51a2eef65e5831882d0d36794db2baf",
-                   "uri": "/static/SF_model/SF_for_Model_4326.geojson",
+                   "checksum": "ecc84f9f9a3511e3db6e491d19563d7837a86386",
+                   "uri": "/static/SF_model/SF.geojson",
                    "content-type":"application/json"
                  }
             ],

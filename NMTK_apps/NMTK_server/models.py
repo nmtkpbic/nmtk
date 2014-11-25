@@ -413,7 +413,8 @@ class DataFile(models.Model):
     
     @property
     def mapfile_path(self):
-         path=fs_results.path('{0}/data_files/wms/'.format(self.pk))
+         path=fs_results.path('{0}/data_files/wms/{1}'.format(self.user.pk, 
+                                                              self.pk))
          if not os.path.exists(path):
              try:
                  os.makedirs(path)
