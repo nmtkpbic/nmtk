@@ -1,20 +1,24 @@
-<IFRAME id=hidden_upload name=hidden_upload src='' onLoad='uploadDone()'
-        style='width:0;height:0;border:0px solid #fff'></IFRAME>
+<IFRAME ng-hide="1" id="hidden_upload" name="hidden_upload" src="" onLoad="uploadDone()"
+        style="width:0;height:0;border:0px solid #fff"></IFRAME>
 <script type="text/ng-template"  id="ie_upload.html">
 	<input type="file" ng-model="fileupload" name="file" /><br />
     <input type="submit" name="submit" value="Upload File" />
 </script>
 
-<div class="container">
+<div class="container" keep-scroll-pos>
    <div class="row">
-   	  
       <div class="col-md-12">
         <div class="widget stacked">
           <div ng-click="toggleDiv('nmtk_filehelp')" class="widget-header">
             <i class="glyphicon glyphicon-info-sign"></i>
             <h3>Files</h3>            
-            <i ng-class="{'glyphicon-chevron-right': !isDivEnabled('nmtk_filehelp'), 'glyphicon-chevron-down': isDivEnabled('nmtk_filehelp')}" 
-               class="navbar-right glyphicon ic-right"></i>
+            <button type="button" class="btn btn-link pull-right btn-right" 
+	                    tooltip="Expand or collapse"
+	                    data-toggle="tooltip" data-placement="right" id="right" 
+	                    title="" data-original-title="Tooltip on right">
+					<i ng-class="{'glyphicon-chevron-right': !isDivEnabled('nmtk_filehelp'), 'glyphicon-chevron-down': isDivEnabled('nmtk_filehelp')}"
+		               class="navbar-right glyphicon" ></i>
+		     </button>
           </div> <!-- /widget-header -->
           <div ng-show="isDivEnabled('nmtk_filehelp')" class="widget-content">
             <p>
