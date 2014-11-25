@@ -361,7 +361,7 @@ def updateToolConfig(tool):
     config_data=json_config.json()
     config.json_config=config_data
     config.save()
-    if hasattr(tool, 'toolsampleconfig'):
+    if hasattr(tool, 'toolsampleconfig') and tool.toolsampleconfig.pk:
         tool.toolsampleconfig.delete()
     tool.toolsamplefile_set.all().delete()
     try:
