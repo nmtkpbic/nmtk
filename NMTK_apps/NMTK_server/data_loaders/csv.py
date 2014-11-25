@@ -77,10 +77,13 @@ class CSVLoader(BaseDataLoader):
 
     @property
     def extent(self):
+        # Geosgeometry extent is xmin, ymin, xmax, ymax
+        # ogr extent is ymin, ymax, xmin, xmax
+        # We need to return the ogr one..
         if self.spatial:
             if not hasattr(self, '_extent'):
                 for v in self: pass
-            return self._extent
+            return (self._extent[1], self._extent[3], self._extent[0], self._extent[2])
             
 
     def next(self):

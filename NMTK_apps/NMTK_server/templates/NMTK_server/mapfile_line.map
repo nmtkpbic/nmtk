@@ -118,8 +118,11 @@ MAP
       STYLE
         COLOR {{color.rgb.0}} {{color.rgb.1}} {{color.rgb.2}}
         OPACITY {{color.opacity}}
-	    {% if geom_type != 'line' %}
-	      OUTLINECOLOR 0 0 0
+	    {% if geom_type == 'point' %}
+	   	  OUTLINECOLOR 0 0 0
+	      SYMBOL "circle"
+	    {% elif geom_type != 'line' %}
+	    	OUTLINECOLOR 0 0 0
 	    {% else %}
 	      WIDTH 3
 	    {% endif %}
@@ -133,8 +136,11 @@ MAP
       STYLE
         COLOR {{unmatched_color.rgb.0}} {{unmatched_color.rgb.1}} {{unmatched_color.rgb.2}}
         OPACITY {{unmatched_color.opacity}}
-	    {% if geom_type != 'line' %}
-	      OUTLINECOLOR 0 0 0
+	    {% if geom_type == 'point' %}
+	   	  OUTLINECOLOR 0 0 0
+	      SYMBOL "circle"
+	    {% elif geom_type != 'line' %}
+	    	OUTLINECOLOR 0 0 0
 	    {% else %}
 	      WIDTH 3
 	    {% endif %}
@@ -162,8 +168,14 @@ MAP
       NAME "Selected Results"
       STYLE
         COLOR 0 0 0
-	    #OUTLINECOLOR 0 0 0
-	    WIDTH 3
+	    {% if geom_type == 'point' %}
+	   	  OUTLINECOLOR 0 0 0
+	      SYMBOL "circle"
+	    {% elif geom_type != 'line' %}
+	    	OUTLINECOLOR 0 0 0
+	    {% else %}
+	      WIDTH 3
+	    {% endif %}
         ANTIALIAS TRUE
       END # END STYLE
     END
@@ -194,7 +206,14 @@ MAP
       NAME "Selected Results"
       STYLE
         COLOR 160 160 160
-	    WIDTH 3
+        {% if geom_type == 'point' %}
+	   	  OUTLINECOLOR 0 0 0
+	      SYMBOL "circle"
+	    {% elif geom_type != 'line' %}
+	    	OUTLINECOLOR 0 0 0
+	    {% else %}
+	      WIDTH 3
+	    {% endif %}
         ANTIALIAS TRUE
       END # END STYLE
     END

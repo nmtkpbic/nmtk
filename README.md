@@ -593,6 +593,8 @@ User accounts may be preserved using the following mechanism:
 
 1.  Run the command "manage.py dumpusers" and redirect the output to a file, 
     this will be a list of your preserved user accounts in the form of a fixture.
+    Note: The file produced must end in ".json", otherwise loading the fixture
+    will fail without any discernable reason.
     
 2.  If you place the fixture in NMTK_server/fixtures/users.json the system will
     automatically load the data when you reinitialize the server (as part of its

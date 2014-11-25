@@ -4,7 +4,6 @@ GDAL==1.9.1
 Paste==1.7.5.1
 Pillow==2.5.0
 PyYAML==3.10
-SQLAlchemy==0.9.8
 Shapely==1.2.17
 amqp==1.2.0
 anyjson==0.3.3
