@@ -18,20 +18,18 @@
           </div> <!-- /widget-header -->
           <div ng-show="isDivEnabled('nmtk_filehelp')" class="widget-content">
             <p>
-            Here you can manage your data files.  Once stored, a data file can be 
-            used as the input for one or more datafiles.
+            Here you can manage your data files, including uploading your own data for use in a tool.
+	    Once stored, a data file can be used as the input for one or more jobs.
+	    Use the <a href="/#/tool-explorer/">Tool Explorer</a> to find out what data each Tool needs.
+	    You can set up jobs from the <a href="#/job/">Jobs</a> tab.
             </p>
             <p>
-            Need to use the output from one datafile as the input to another?  Head over 
-            to the <a href="#/job/">My Jobs</a> tab and choose to add the 
-            results to your file library - you can then use that output file
-            as the input for future jobs.
+            Need to use the output from one job as the input to another?  The results from each job
+	    are stored here as well so you can use them as inputs to other jobs.
             </p>
             <p>
-            Once you've uploaded a file, you can use the <i ng-hide="(browser_name=='Explorer')"
-		   class="glyphicon glyphicon-info-sign"></i> 
-					    <a ng-show="(browser_name=='Explorer')">[edit]</a> link to add a description and view
-					    additional information about the file.
+            Once you've uploaded a file, you can use its "Action" dropdown to add a description,
+	    view the file or its metadata, or retrieve the file.
             </p>
           </div> <!-- /widget-content -->
         </div><!-- /widget stacked -->

@@ -156,15 +156,23 @@
           </div> <!-- /widget-header -->
           <div ng-show="isDivEnabled('nmtk_configjob')" class="widget-content">
             <p>
-           	  Here you can choose the parameters required, and map fields from your
-           	  input data file to the input fields required by the tool.
+	       This page allows you to configure a job, by setting any required parameters
+	       or input values for the tool, and telling the tool how to locate the fields
+	       it needs from your input data file(s). 
             </p>
             <p>
-              Tools may specify requirements for constant values (often used to 
-              &quot;tune&quot; the model, or for &quot;field mapping&quot; used
-              to map data from your input data set into the model.  In the case
-              where your model may not provide one or more input fields, you can
-              optionally specify a constant value to use in lieu of a mapped field.
+	       Tools may ask for parameters that control the tool's behavior, constant values that
+	       may vary depending on the data you are analyzing, or for &quot;field mapping&quot;,
+	       which associates fields or attributes in your input data to the fields that the model
+	       needs.
+	    </p>
+	    <p>
+	       If your data file is missing certain fields, you may be able to provide a constant
+	       value instead of a mapped field.  If you provide a constant instead of a mapped field
+	       name, the same value you supply will be used for all the rows (or features) in your input file.
+	       Some tools will let you provide all constant values instead of mapped fields, in which case
+	       you don't need an input file at all and the job will just have one result computed from
+	       the constant values you provided.
             </p>
           </div> <!-- /widget-content -->
         </div><!-- /widget stacked -->

@@ -25,26 +25,45 @@
             <p>
             This page displays the results of your job. If your data file contained
             GeoSpatial data, then the page will be split to contain a map showing your
-            spatial results, and a section with the row data.  You may download your job 
-            results (in a range of formats) from the <a href="#/job/">My Jobs</a> 
-            tab, using the download links provided there.
+            spatial results, and a section with the row data.  Otherwise, you will just see
+	    the row data.
+	    </p>
+	    <p>
+	       In the row data, you can choose which data fields to display, sort the fields, or use the advanced filters to examine just those
+	       records that meet certain criteria.
+	       In the map, you can select which field you would like to thematize (the default is the primary result field from the tool),
+	       or change the color scheme to something that is more appealing to you.
+	       You can click on the map or the row data to select one or more features and examine them in detail.
+	    </p>
+	    <p>
+	       Please recognize that the Toolkit is only intended to allow you to explore your data: to make useful maps you should download the
+	       data and use your own spreadsheet or GIS tool.  You can use the Download button to retrieve your results in a variety of formats.  Note that
+	       the geoJSON format is supported by ArcGIS.
             </p>
             <p>
-            Please note that this is a "read only" interface allowing you to view
-            the results of a current job - you cannot modify/manipulate data here.
+            Please note that this is a "read only" interface allowing you to inspect
+            the results of a current job - you cannot modify or manipulate data here.
             </p>
           </div> <!-- /widget-content -->
           <div ng-show="isDivEnabled('job_result_help') && !job" class="widget-content">
             <p>
-            This page displays your data file. If your data file contained
+            This page displays your uploaded data file. If your data file contained
             GeoSpatial data, then the page will be split to contain a map showing your
             spatial results, and a section with the row data.  To view the contents
             of a file within the context of a completed job, navigate to the
-            <a href="#/job/">My Jobs</a> tab and choose to view a job result.
+            <a href="#/job/">Jobs</a> tab and choose to view a job result.
             </p>
+	    <p>
+	       In the row data, you can choose which data fields to display, sort the fields, or use the advanced filters to examine just those
+	       records that meet certain criteria.
+	       In the map, you can select which field you would like to thematize
+	       or change the color scheme to something that is more appealing to you.
+	       You can click on the map or the row data to select one or more features and examine them in detail.
+	    </p>
             <p>
             Please note that this is a "read only" interface allowing you to view
-            your data - you cannot modify/manipulate data here.
+            your data - you cannot modify or manipulate data here, though you can download the data again either in the same format
+	    in which you uploaded it, or in a different format such as geoJSON.  
             </p>
           </div> <!-- /widget-content -->
         </div><!-- /widget stacked -->
