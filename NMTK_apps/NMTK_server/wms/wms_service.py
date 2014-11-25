@@ -128,25 +128,25 @@ def handleWMSRequest(request, datafile):
                                                                     datafile.pk,
                                                                     ramp_id))
         if not os.path.exists(mapfile_path):
-            lock=LockFile(mapfile_path)
-            try:
-                lock.acquire(0)
+            if not os.path.exists(mapfile_path):
+#                 lock=LockFile(mapfile_path)
                 try:
-                    if not os.path.exists(mapfile_path):
-                        mf=generateMapfile(datafile, 
-                                           style_field=style_field,
-                                           # Iterating over the legend object will return the colors
-                                           # so we need only pass that into the mapfile gen code.
-                                           color_values=legend)
-                        with open(mapfile_path, 'w') as mapfile:
-                            mapfile.write(mf)
+#                     lock.acquire(0)
+                    mf=generateMapfile(datafile, 
+                                       style_field=style_field,
+                                       # Iterating over the legend object will return the colors
+                                       # so we need only pass that into the mapfile gen code.
+                                       color_values=legend)
+                    with open(mapfile_path, 'w') as mapfile:
+                        mapfile.write(mf)
+                except AlreadyLocked:
+                    logger.debug('Waiting for lock to be released')
+                    start=time.time()
+                    while lock.is_locked() and (time.time()-start) > 5 :
+                        time.sleep(.0025)
                 finally: 
-                    lock.release()
-            except AlreadyLocked:
-                logger.debug('Waiting for lock to be released')
-                while lockfile.is_locked():
-                    time.sleep(.0025)
-                logger.debug('Lockfile released!')
+                    pass
+#                     lock.release()
         # Create the app to call mapserver.
         app=djpaste.CGIApplication(global_conf=None, 
                                    script=settings.MAPSERV_PATH,
