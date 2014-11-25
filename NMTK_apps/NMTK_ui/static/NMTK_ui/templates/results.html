@@ -16,8 +16,13 @@
             <i class="glyphicon glyphicon-info-sign"></i>
             <h3 ng-show="data_file_tab_name == 'Results'">Job Results <span ng-if="datafile_api.description">- {{datafile_api.description}}</span></h3>            
             <h3 ng-hide="data_file_tab_name == 'Results'">Data file <span ng-if="datafile_api.description">- {{datafile_api.description}}</span></h3>
-            <i ng-class="{'glyphicon-chevron-right': !isDivEnabled('job_result_help'), 'glyphicon-chevron-down': isDivEnabled('job_result_help')}" 
-               class="navbar-right glyphicon ic-right"></i> 
+            <button type="button" class="btn btn-link pull-right btn-right" 
+	                    tooltip="Expand or collapse"
+	                    data-toggle="tooltip" data-placement="right" id="right" 
+	                    title="" data-original-title="Tooltip on right">
+					<i ng-class="{'glyphicon-chevron-right': !isDivEnabled('job_result_help'), 'glyphicon-chevron-down': isDivEnabled('job_result_help')}"
+		               class="navbar-right glyphicon" ></i>
+		     </button>  
             <button  stop-event='click' class="btn btn-xs btn-primary ic-right navbar-right" ng-click="downloadDatafile(datafile_api)">Download</button>
                      
              </div> <!-- /widget-header -->

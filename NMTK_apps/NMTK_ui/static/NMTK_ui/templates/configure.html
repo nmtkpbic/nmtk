@@ -6,8 +6,13 @@
          <div ng-click="toggleSection(config.namespace)"  class="widget-header">
            <i class="glyphicon glyphicon-edit"></i>
            <h3>{{config.label}}</h3>
-           <i ng-class="{'glyphicon-chevron-right': !sections[config.namespace], 'glyphicon-chevron-down': sections[config.namespace]}" 
-              class="navbar-right glyphicon ic-right"></i> 
+            <button type="button" class="btn btn-link pull-right btn-right" 
+	                    tooltip="Expand or collapse"
+	                    data-toggle="tooltip" data-placement="top" 
+	                    title="Expand or collapse">
+					<i ng-class="{'glyphicon-chevron-right': !sections[config.namespace], 'glyphicon-chevron-down': sections[config.namespace]}"
+		               class="navbar-right glyphicon" ></i>
+		     </button>
            <button class="navbar-right btn btn-xs btn-primary ic-right" ng-show="job_data.status=='Configuration Pending' && config.elements.length > 0" 
                    ng-click="cloneConfig(config.namespace)" stop-event='click'>Copy from Another Job</button>
            
@@ -83,8 +88,13 @@
          <div ng-click="toggleSection(config.namespace)"  class="widget-header">
            <i class="glyphicon glyphicon-edit"></i>
            <h3>{{config.label}}</h3>
-           <i ng-class="{'glyphicon-chevron-right': !sections[config.namespace], 'glyphicon-chevron-down': sections[config.namespace]}" 
-              class="navbar-right glyphicon ic-right"></i>
+		   <button type="button" class="btn btn-link pull-right btn-right" 
+	                    tooltip="Expand or collapse"
+	                    data-toggle="tooltip" data-placement="top"
+	                    title="Expand or collapse" >
+					<i ng-class="{'glyphicon-chevron-right': !sections[config.namespace], 'glyphicon-chevron-down': sections[config.namespace]}"
+		               class="navbar-right glyphicon" ></i>
+		     </button>
 			<button class="navbar-right btn btn-xs btn-primary ic-right" ng-show="job_data.status=='Configuration Pending' && config.elements.length > 0" 
                    ng-click="cloneConfig(config.namespace)" stop-event='click'>Copy from Another Job</button>
          </div> <!-- /widget-header -->
@@ -149,8 +159,13 @@
           <div ng-click="toggleDiv('nmtk_configjob')" class="widget-header">
             <i class="glyphicon glyphicon-info-sign"></i>
             <h3>Configure a Job</h3>
-            <i ng-class="{'glyphicon-chevron-right': !isDivEnabled('nmtk_configjob'), 'glyphicon-chevron-down': isDivEnabled('nmtk_configjob')}" 
-               class="navbar-right glyphicon ic-right"></i>  
+            <button type="button" class="btn btn-link pull-right btn-right" 
+	                    tooltip="Expand or collapse"
+	                    data-toggle="tooltip" data-placement="top" 
+	                    title="Expand or collapse">
+					<i ng-class="{'glyphicon-chevron-right': !isDivEnabled('nmtk_configjob'), 'glyphicon-chevron-down': isDivEnabled('nmtk_configjob')}"
+		               class="navbar-right glyphicon" ></i>
+		     </button>   
             <button class="navbar-right btn btn-xs btn-primary ic-right" ng-show="disabled" 
                    ng-click="createJob(tool_data.resource_uri,job_config, null, job_config_files)" stop-event='click'>Clone Job</button>      
           </div> <!-- /widget-header -->
