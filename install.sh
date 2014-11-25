@@ -1,4 +1,4 @@
-a!/bin/bash
+#!/bin/bash
 # Non-Motorized Toolkit
 # Copyright (c) 2014 Open Technology Group Inc. (A North Carolina Corporation)
 # Developed under Federal Highway Administration (FHWA) Contracts:
