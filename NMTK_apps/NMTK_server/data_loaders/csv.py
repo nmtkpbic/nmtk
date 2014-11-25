@@ -9,6 +9,7 @@
 from osgeo import ogr, osr
 import logging
 import collections
+import datetime
 import tempfile
 import os
 import csvkit
@@ -89,7 +90,6 @@ class CSVLoader(BaseDataLoader):
         geometry data.  Otherwise a single value is returned that is 
         a dictionary of the field data.
         '''
-        base_
         try:
             data=self.csv.next()
             # We found the types for the fields in our first pass through the
@@ -189,6 +189,24 @@ class CSVLoader(BaseDataLoader):
         and the second element of each being the python type of the field.
         '''
         return self._fields
+    
+    def ogr_fields_types(self):
+        '''
+        This returns a list of tuples, with the first being a field name
+        and the second element of each being the python type of the field.
+        '''
+        ft=[]
+        OGR_TYPE_MAPPINGS={bool: ogr.OFTInteger,
+                           None: ogr.OFTString,
+                           int: ogr.OFTInteger,
+                           float: ogr.OFTReal,
+                           datetime.datetime: ogr.OFTDateTime,
+                           datetime.date: ogr.OFTDate,
+                           datetime.time: ogr.OFTTime,
+                           }
+        for field, ftype in self._fields:
+            ft.append((field, OGR_TYPE_MAPPINGS.get(ftype, ogr.OFTString),))
+        return ft
 
     def process_csv(self, filename):
         '''
