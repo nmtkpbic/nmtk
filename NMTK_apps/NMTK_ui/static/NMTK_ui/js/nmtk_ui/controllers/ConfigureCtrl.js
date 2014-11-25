@@ -330,11 +330,22 @@ define(['underscore',
 			$scope.setFieldDefaultValue=function (namespace, field) {
 				// The CURRENT type for this (property or something else.)
 				if (_.keys($scope.$parent.job_config).length > 0) {
-					$scope.validation[namespace][field]['error']='This field is required.';
-					var type=$scope.$parent.job_config[namespace][field]['type'];
 					var name=$scope.validation[namespace][field]['name'];
-					var current_value=$scope.$parent.job_config[namespace][field]['value'];
 					var field_default=$scope.validation[namespace][field]['default'];
+					if (_.isUndefined($scope.$parent.job_config[namespace][field])) {
+						$log.error('Field', field, 'is not defined in namespace', namespace);
+						$scope.$parent.job_config[namespace][field]={
+								'type': $scope.validation[namespace][field]['type'],
+								'value': field_default
+								};
+						
+					} else {
+						var type=$scope.$parent.job_config[namespace][field]['type'];
+						var current_value=$scope.$parent.job_config[namespace][field]['value'];
+					}
+					$scope.validation[namespace][field]['error']='This field is required.';
+					
+					
 					// If the type is property, the default must be one of the fields.
 					if (type == 'property') {
 						if (typeof $scope.file_fields[namespace] !== 'undefined') {
