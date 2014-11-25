@@ -83,7 +83,7 @@ class CSVLoader(BaseDataLoader):
         if self.spatial:
             if not hasattr(self, '_extent'):
                 for v in self: pass
-            return (self._extent[1], self._extent[3], self._extent[0], self._extent[2])
+            return (self._extent[0], self._extent[2], self._extent[1], self._extent[3],)
             
 
     def next(self):
@@ -126,8 +126,8 @@ class CSVLoader(BaseDataLoader):
             lon=self.is_valid_range(data.get(self.longitude_field, None),
                                     180)
             if lat and lon:
-                wkt='POINT({0} {1})'.format(lat,
-                                            lon,)
+                wkt='POINT({0} {1})'.format(lon,
+                                            lat,)
                 if not hasattr(self, '_extent'):
                     if not hasattr(self, '_union_geom'):
                         self._union_geom=GEOSGeometry(wkt)
