@@ -46,6 +46,11 @@ define([], function () {
 			$scope.$on('login', function (evt, args) {
 				$timeout(function () { $modalInstance.close()}, 0);
 			});
+			$scope.enter_login = function(keyEvent) {
+				  if (keyEvent.which === 13) {
+					  $scope.login();
+				  }
+			}
 			$scope.login=function () {
 				$http({method: 'POST',
 					   url: $scope.login_url,

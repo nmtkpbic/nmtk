@@ -14,6 +14,7 @@
 						<div class="field">
 						    <label label-default="label-default" for="id_username">Username</label>
 							<input class="login username-field" id="id_username" 
+								   ng-keypress="form.$valid && enter_login($event)" 
 								   maxlength="254" name="username" ng-model="logindata.username"
 								   required placeholder="Username" type="text" />
 						    <span ng-show="failed_login" 
@@ -22,6 +23,7 @@
 						<div class="field">
 						    <label label-default="label-default" for="id_password">Password</label>
 							<input class="login password-field" id="id_password" 
+								   ng-keypress="form.$valid && enter_login($event)" 
 								   name="password" ng-model="logindata.password"
 								   required placeholder="Password" type="password" />
 						</div> <!-- /password -->
