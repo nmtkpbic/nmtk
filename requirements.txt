@@ -16,7 +16,6 @@ django-admin-bootstrapped==0.4.1
 django-admin-tools==0.4.0
 django-celery==3.0.17
 django-jsonfield==0.9.4
-django-paintstore==0.2
 django-registration==1.0
 django-tastypie==0.9.15
 django-uuidfield==0.4.0
