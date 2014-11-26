@@ -20,7 +20,7 @@ pip install -r ${WIN_DIR}/win-requirements.txt
 mkdir packages
 pushd packages
 start .
-URLS="https://pypi.python.org/pypi/lxml/3.2.3#downloads http://www.stickpeople.com/projects/python/win-psycopg/ http://www.lfd.uci.edu/~gohlke/pythonlibs/#numpy http://www.lfd.uci.edu/~gohlke/pythonlibs/#gdal"
+URLS="https://pypi.python.org/pypi/lxml/3.2.3#downloads http://www.stickpeople.com/projects/python/win-psycopg/ http://www.lfd.uci.edu/~gohlke/pythonlibs/#numpy http://www.lfd.uci.edu/~gohlke/pythonlibs/#gdal http://matplotlib.org/downloads.html"
 echo "Please download the packages from the following URLS into the open 'packages' window"
 for URL in $URLS; do
   echo $URL
