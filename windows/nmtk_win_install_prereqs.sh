@@ -13,10 +13,14 @@ function install_virtualenv {
 	ENV_OPTS='--no-site-packages --distribute'
 	# Set to whatever python interpreter you want for your first environment:
 	PYTHON=$(which python)
-	URL_BASE=http://pypi.python.org/packages/source/v/virtualenv
-
+	URL_BASE=https://pypi.python.org/packages/source/v/virtualenv
+	DOWNLOAD_URL="$URL_BASE/virtualenv-$VERSION.tar.gz"
 	# Download release version of Virtualenv
-	curl -O $URL_BASE/virtualenv-$VERSION.tar.gz
+	curl -O $DOWNLOAD_URL
+	if [[ $? != 0 ]]; then
+	  echo "Failed to download virtualenv from $DOWNLOAD_URL"
+	  exit 1
+	fi
 	# Unpack the venv download
 	tar xzf virtualenv-$VERSION.tar.gz
 	# Create the virtualenv environment
@@ -42,7 +46,7 @@ cd ..
 #python get-pip.py
 #pip install virtualenv
 #popd
-virtualenv venv
+install_virtualenv
 source venv/Scripts/activate
 pip install -r ${WIN_DIR}/win-requirements.txt
 mkdir packages
@@ -56,8 +60,14 @@ for URL in $URLS; do
 done
 echo "Press enter once your downloads are complete, and moved to the directory"
 read
-for FILE in *.exe; do
-   easy_install "$FILE"
+# Numpy needs to be installed in order for matplotlib to succeed.  Here
+# we fudge it and just run through the installers twice - the first time
+# numpy might not be there (and matplotlib may fail to install), but it
+# will get it the second time around.
+for I in 1 2; do
+  for FILE in *.exe; do
+    easy_install "$FILE"
+  done
 done
 popd
 GDAL_PATH=$(echo "$(pwd)/$(dirname $(find venv -name gdal111.dll))"|sed -e 's/\///' -e 's/\//\\/g' -e 's/\\/:\\/')
