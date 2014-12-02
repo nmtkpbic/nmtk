@@ -1,4 +1,31 @@
 #!/bin/bash
+# Copyright 2014, Open Technology Group, Inc (A North Carolina corporation)
+# Chander Ganesan <chander@otg-nc.com>
+
+# Current version of virtualenv (as of 12/2/2014):
+VERSION=1.11.6
+
+# Name of the virtualenv environment location
+VENV=venv
+
+function install_virtualenv {
+	# Options for your first environment:
+	ENV_OPTS='--no-site-packages --distribute'
+	# Set to whatever python interpreter you want for your first environment:
+	PYTHON=$(which python)
+	URL_BASE=http://pypi.python.org/packages/source/v/virtualenv
+
+	# Download release version of Virtualenv
+	curl -O $URL_BASE/virtualenv-$VERSION.tar.gz
+	# Unpack the venv download
+	tar xzf virtualenv-$VERSION.tar.gz
+	# Create the virtualenv environment
+	$PYTHON virtualenv-$VERSION/virtualenv.py $ENV_OPTS $VENV
+	# Don't need this anymore.
+	rm -rf virtualenv-$VERSION
+}
+
+
 pushd $(dirname $0)
 echo "Renaming C:\\python27\\dlls\sqlite3.dll to C:\\python27\\dlls\\sqlite3.dll.old"
 if [[ -f /c/python27/dlls/sqlite3.dll ]]; then
@@ -6,14 +33,15 @@ if [[ -f /c/python27/dlls/sqlite3.dll ]]; then
 fi
 WIN_DIR=$(pwd)
 cd ..
-mkdir tmp
-pushd tmp
-curl http://python-distribute.org/distribute_setup.py > distribute_setup.py
-curl https://raw.githubusercontent.com/pypa/pip/1.5.X/contrib/get-pip.py > get-pip.py
-python distribute_setup.py
-python get-pip.py
-pip install virtualenv
-popd
+#mkdir tmp
+#pushd tmp
+
+#curl http://python-distribute.org/distribute_setup.py > distribute_setup.py
+#curl https://raw.githubusercontent.com/pypa/pip/1.5.X/contrib/get-pip.py > get-pip.py
+#python distribute_setup.py
+#python get-pip.py
+#pip install virtualenv
+#popd
 virtualenv venv
 source venv/Scripts/activate
 pip install -r ${WIN_DIR}/win-requirements.txt
