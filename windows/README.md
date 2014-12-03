@@ -69,11 +69,15 @@ While the Linux implementation of NMTK runs well with the Spatialite database, t
 chose earlier
     3. Issue the following commands at the postgres> prompt:
             Create database nmtk;
+            -- Responds with CREATE DATABASE
             \c nmtk
+            -- Responds with "you are now connected to database "nmtk" as user "postgres" "
             create extension postgis;
+            -- responds with CREATE EXTENSION
             \q
 7. Right click on the desktop and choose “Git Bash here”
     - **Note**: You need not checkout/install the NMTK code in your desktop (it just happens to be convenient.) You can create a “Git bash” shell on any folder, then NMTK will be installed within that folder.
+    - **Note**: It is advisable to ensure the full path to the NMTK code contains no spaces.
 8. Now check out the NMTK Code:
         git clone https://github.com/chander/nmtk
 9. Change to the NMTK windows installation directory using the command:
@@ -82,13 +86,12 @@ chose earlier
         bash nmtk_win_install_prereqs.sh
     - This script will do the following:
     - Rename C:\Python27\dlls\sqlite.dll to C:\Python27\dlls\sqlite.dll.old
-    - Set the PATH so that the proper libraries are found for NMTK server when the Virtual
-Environment is activated
+    - Set the PATH so that the proper libraries are found for NMTK server when the Virtual Environment is activated
     - Create the virtual environment and load all the pre-requisite modules.
     - Prompt you to download various software packages (follow the on-screen instructions, and use the browser windows it opens to download pre-requisites.)
 11. Download the following pre-requisite modules, using the same “bit-ness” as your platform, as prompted by the script, then press "enter" to complete the installation process.
 12. Change to the NMTK_apps/NMTK_apps directory and copy local_settings.sample to local_settings.py
-    - Note for Windows the “DEBUG” setting must be set to “True” 
+    - **Note**: For Windows the “DEBUG” setting must be set to “True” 
 13. Edit the local_settings.py file:
     - Enter the database name you chose in the previous step (nmtk) in the database name field.
     - Follow the NMTK Directions for the remainder of the settings.
@@ -97,14 +100,14 @@ Environment is activated
             source venv/scripts/activate
     2. Change to the NMTK_apps directory 
             cd NMTK_apps
-    3. Run the syncdb command: 
+    3. Run the syncdb command (this creates the database tables): 
             python manage.py syncdb
-    4. Create an account for yourself 
+    4. Create an account for yourself: 
             python manage.py createsuperuser
 15. Start the server:
-    1. First, activate the Venv 
+    1. First, activate the Venv:
             source venv/scripts/activate
-    2. Change to the NMTK_apps directory
+    2. Change to the NMTK_apps directory:
             cd NMTK_apps
     3. Run the celeryd command: 
             start python manage.py celery
@@ -116,4 +119,5 @@ Environment is activated
     3. Click on “Tool Servers”
     4. Edit the single tool server that exists.
     5. Update the URL to contain a “:8000” after “127.0.0.1”
+    6. Wait a few seconds for the tool configuration to be loaded by the server.
 17. Start using the NMTK Server (http://127.0.0.1:8000)
