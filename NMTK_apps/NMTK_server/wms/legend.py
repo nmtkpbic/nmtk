@@ -57,7 +57,13 @@ class LegendGenerator(object):
         self.max_text=max_text
         self.min_text=min_text
         self.min_value=min_value
-        self.max_value=max_value      
+        self.max_value=max_value
+        if min_value and max_value:
+            # Increment the max value by a single step size
+            # to ensure we cover all values in the range.
+            ss=np.linspace(self.min_value, self.max_value, num=self.steps)[0]
+#             ss=(max_value-min_value)/steps
+            self.max_value=max_value+ss
         self.numeric=(column_type != 'text')      
             
         # Verify that the user has chosen to use one of the available color
