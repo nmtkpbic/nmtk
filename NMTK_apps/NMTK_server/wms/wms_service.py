@@ -4,7 +4,7 @@ from django.conf import settings
 
 from NMTK_server.wms import djpaste
 import logging
-from lockfile import LockFile, AlreadyLocked
+# from lockfile import LockFile, AlreadyLocked
 import os
 from NMTK_server.wms.legend import LegendGenerator
 import time
@@ -139,11 +139,11 @@ def handleWMSRequest(request, datafile):
                                        color_values=legend)
                     with open(mapfile_path, 'w') as mapfile:
                         mapfile.write(mf)
-                except AlreadyLocked:
-                    logger.debug('Waiting for lock to be released')
-                    start=time.time()
-                    while lock.is_locked() and (time.time()-start) > 5 :
-                        time.sleep(.0025)
+#                 except AlreadyLocked:
+#                     logger.debug('Waiting for lock to be released')
+#                     start=time.time()
+#                     while lock.is_locked() and (time.time()-start) > 5 :
+#                         time.sleep(.0025)
                 finally: 
                     pass
 #                     lock.release()
