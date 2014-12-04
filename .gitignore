@@ -27,3 +27,6 @@ conf/*
 
 # Ignore the nodejs install
 node/*
+
+# Ignore any packages specific to the windows install
+packages/
