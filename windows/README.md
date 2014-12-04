@@ -116,6 +116,10 @@ chose earlier
     
             python manage.py createsuperuser
             
+    5. Generate the legend graphics - color ramps:
+    
+            python manage.py refresh_colorramps
+            
 15. Start the server:
     1. First, activate the Venv:
     
