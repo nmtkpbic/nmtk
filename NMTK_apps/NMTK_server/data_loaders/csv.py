@@ -111,8 +111,10 @@ class CSVLoader(BaseDataLoader):
                         elif expected_type == datetime.time:    
                             v=v.time()
                         data[field_name]=v
-                    else:
+                    elif data[field_name]:
                         data[field_name]=expected_type(data[field_name])
+                    else:
+                        data[field_name]=None
             if not hasattr(self ,'_feature_count'):
                 self.feature_counter += 1
         except StopIteration, e:
