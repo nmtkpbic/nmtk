@@ -125,16 +125,11 @@ def generate_datamodel(datafile, loader):
                 connection=connections[database] 
                 cursor=connection.cursor()
                 for statement in connection.creation.sql_create_model(Results_model, no_style())[0]:
-                    #logger.debug(statement)
                     cursor.execute(statement)
                 for statement in connection.creation.sql_indexes_for_model(Results_model, no_style()):
-                    #logger.debug(statement)
                     cursor.execute(statement)
             
             this_row=dict((field_map[k],v) for k,v in row.iteritems())
-#             this_row['nmtk_id']=this_row.get('nmtk_id', feature_id)
-#             this_row['nmtk_feature_id']=this_row.get('nmtk_id', feature_id)
-#             feature_id += 1
             if spatial:
                 this_row['nmtk_geometry']=geometry
             if datafile.result_field:
@@ -152,62 +147,8 @@ def generate_datamodel(datafile, loader):
             except Exception, e:
                 logger.error('Failed to save record from data file (%s)', this_row)
                 raise e
-#             logger.debug('Saved model with pk of %s', m.pk)
         logger.debug('Completing transferring results to %s database %s', dbtype,datafile.pk,)
-#         if spatial:
-#             logger.debug('Spatial result generating styles (%s-%s)', min_result, max_result)
-#             step=math.fabs((max_result-min_result)/256)
-#             colors=[]
-#             low=min_result
-#             v=min_result
-#             while v <= max_result+step:
-#                 #logger.debug('Value is now %s', v)
-#                 r,g,b=ramp_function(v, min_result, max_result)
-#                 colors.append({'r': r,
-#                                'g': g,
-#                                'b': b,
-#                                'low': low ,
-#                                'high': v})
-#                 low=v
-#                 v += step or 1
-#             
-#             data={'datafile': datafile,
-#                   'dbtype': dbtype,
-#                   'result_field': datafile.result_field,
-#                   'static': min_result == max_result,
-#                   'min': min_result,
-#                   'max': max_result,
-#                   'colors': colors,
-#                   'mapserver_template': settings.MAPSERVER_TEMPLATE }
-#             data['connectiontype']='POSTGIS'
-#             dbs=settings.DATABASES['default']
-#             data['connection']='''host={0} dbname={1} user={2} password={3} port={4}'''.format(dbs.get('HOST', None) or 'localhost',
-#                                                                                                dbs.get('NAME'),
-#                                                                                                dbs.get('USER'),
-#                                                                                                dbs.get('PASSWORD'),
-#                                                                                                dbs.get('PORT', None) or '5432')
-#             data['data']='nmtk_geometry from userdata_results_{0}'.format(datafile.pk)
-#             data['highlight_data']='''nmtk_geometry from (select * from userdata_results_{0} where nmtk_id in (%ids%)) as subquery
-#                                       using unique nmtk_id'''.format(datafile.pk)
-#             res=render_to_string('NMTK_server/mapfile_{0}.map'.format(mapfile_type), 
-#                                  data)
-#             datafile.mapfile.save('mapfile.map', ContentFile(res), save=False)
-#             datafile.legendgraphic.save('legend.png', ContentFile(''), save=False)
-            
-#             logger.debug('Creating a new legend graphic image %s', datafile.legendgraphic.path)
-# #             im=generateColorRampLegendGraphic(min_text='{0}'.format(math.floor(min_result*100.0)/100.0),
-# #                                               max_text='{0}'.format(math.ceil(max_result*100.0)/100.0),
-# #                                               units=datafile.result_field_units)
-# 
-#             round_to_n = lambda x, n: round(x, -int(math.floor(math.log10(x))) + (n - 1))
-# #             round_digits = lambda x, n: round(x, int(n - math.ceil(math.log10(abs(x)))))
-#             # Round to 4 significant digits here, but first make sure we floor/ceil as needed to ensure
-#             # we might include the correct min/max values.
-#             im=generateColorRampLegendGraphic(min_text=round_to_n(min_result,4),
-#                                               max_text=round_to_n(max_result,4),
-#                                               units=datafile.result_field_units)
-#             im.save(datafile.legendgraphic.path, 'png')
-#             logger.debug('Image saved at %s', datafile.legendgraphic.path)
+
     except Exception, e:
         logger.exception ('Failed to create spatialite results table')
         return datafile
@@ -217,8 +158,6 @@ def generate_datamodel(datafile, loader):
 
 @task(ignore_result=True)
 def email_user_job_done(job):
-#    from NMTK_server import models
-#    job=models.Job.objects.select_related('user','tool').get(pk=job_id)
     context={'job': job,
              'user': job.user,
              'tool': job.tool,
@@ -489,29 +428,30 @@ def importDataFile(datafile, job_id=None):
                                 (django_model_fields.DateField, 'date',),
                                 (django_model_fields.TimeField, 'time'),
                                 (django_model_fields.DateTimeField, 'datetime')]
-                # Get a single row so that we can try to work with the fields.
-                sample_row=qs[0]
-                for field in sample_row._meta.fields:
-                    field_name=field.name
-                    db_column=field.db_column or field.name
-                    # convert the django field type to a text string.
-                    for ftype, field_type in field_mappings:
-                        if isinstance(field, (ftype,)):
-                            break
-                    else:
-                        logger.info('Unable to map field of type %s (this is expected for GIS fields)', type(field,))
-                        continue
-                    values_aggregates=qs.aggregate(Max(field_name), Min(field_name), Count(field_name,
-                                                                                      distinct=True))
-                    field_attributes[db_column]={'type': field_type, 
-                                                 'field_name': field_name,
-                                                 'min': values_aggregates['{0}__min'.format(field_name)], 
-                                                 'max': values_aggregates['{0}__max'.format(field_name)],
-                                                 'distinct': values_aggregates['{0}__count'.format(field_name)]}
-                    if field_attributes[db_column]['distinct'] < 10:
-                        distinct_values=list(qs.order_by().values_list(field_name, flat=True).distinct())
-                        field_attributes[db_column]['values']=distinct_values
-                datafile.field_attributes=field_attributes
+                if qs.count() > 0:
+                    # Get a single row so that we can try to work with the fields.
+                    sample_row=qs[0]
+                    for field in sample_row._meta.fields:
+                        field_name=field.name
+                        db_column=field.db_column or field.name
+                        # convert the django field type to a text string.
+                        for ftype, field_type in field_mappings:
+                            if isinstance(field, (ftype,)):
+                                break
+                        else:
+                            logger.info('Unable to map field of type %s (this is expected for GIS fields)', type(field,))
+                            continue
+                        values_aggregates=qs.aggregate(Max(field_name), Min(field_name), Count(field_name,
+                                                                                          distinct=True))
+                        field_attributes[db_column]={'type': field_type, 
+                                                     'field_name': field_name,
+                                                     'min': values_aggregates['{0}__min'.format(field_name)], 
+                                                     'max': values_aggregates['{0}__max'.format(field_name)],
+                                                     'distinct': values_aggregates['{0}__count'.format(field_name)]}
+                        if field_attributes[db_column]['distinct'] < 10:
+                            distinct_values=list(qs.order_by().values_list(field_name, flat=True).distinct())
+                            field_attributes[db_column]['values']=distinct_values
+                    datafile.field_attributes=field_attributes
             except Exception, e:
                 logger.exception('Failed to get range for model %s',
                                  datafile.pk)
