@@ -98,7 +98,7 @@ def generate_datamodel(datafile, loader):
                               datetime.datetime: ('models.DateTimeField',''),}
                 for field_name, field_type in fields_types:
                     if field_type not in type_mapping:
-                        logger.error('No type mapping exists for type %s (using TextField)!', field_type)
+                        logger.info('No type mapping exists for type %s (using TextField)!', field_type)
                         field_type=str
                     model_content.append("""{0}{1}={2}({3} null=True, db_column='''{4}''')""".
                                          format(' '*4, 
@@ -456,8 +456,8 @@ def importDataFile(datafile, job_id=None):
                             distinct_values=list(qs.order_by().values_list(field_name, flat=True).distinct())
                             field_attributes[db_column]['values']=distinct_values
                         else:
-                            logger.info('There are more than 10 values for %s (%s), enumerating..', db_column, 
-                                        field_attributes[db_column]['distinct'])
+                            logger.debug('There are more than 10 values for %s (%s), enumerating..', db_column, 
+                                         field_attributes[db_column]['distinct'])
                             # formerly the aggregates happened above - with the count. However, Django doesn't
                             # allow those aggregates with boolean fields - so here we split it up to only do the
                             # aggregates in the cases where we have to (i.e., the distinct values is above the threshold.)
