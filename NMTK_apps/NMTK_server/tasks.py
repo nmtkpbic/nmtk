@@ -393,9 +393,13 @@ def importDataFile(datafile, job_id=None):
                               srid=datafile.srid)
         if loader.is_spatial:
             datafile.srid=loader.info.srid
-            datafile.extent=geos.Polygon.from_bbox(loader.info.extent)
             datafile.srs=loader.info.srs
             datafile.geom_type=loader.info.type
+            extent=geos.Polygon.from_bbox(loader.info.extent)
+            if datafile.srid:
+                extent.srid=int(loader.info.srid)
+                extent.transform(4326)
+            datafile.extent=extent
         datafile.feature_count=loader.info.feature_count
         if loader.is_spatial and not datafile.srid:
             datafile.status=datafile.IMPORT_FAILED

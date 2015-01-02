@@ -4,6 +4,7 @@ import collections
 import datetime
 from dateutil.parser import parse
 from BaseDataLoader import *
+from loaders import FormatException
 
 logger=logging.getLogger(__name__)
 
@@ -35,6 +36,7 @@ class OGRLoader(BaseDataLoader):
             try:
                 self.data
             except:
+                logger.exception('Failed to open file %s', fn)
                 self.ogr_obj=None
             if self.ogr_obj is not None:
                 self.spatial=True
@@ -64,10 +66,11 @@ class OGRLoader(BaseDataLoader):
             # and if it is then we will simply use dateutil's parser to parse the value
             # if that fails, then we just proceed and hope for the best..
             for field,type in self.datefields.iteritems():
-                if not isinstance(date[field], (datetime.datetime, datetime.date, datetime.time)):
+                if not isinstance(data[field], (datetime.datetime, datetime.date, datetime.time)):
                     try:
-                        v=parse(data[field])
-                        data[field]=v
+                        if data[field]:
+                            v=parse(data[field])
+                            data[field]=v
                     except: 
                         logger.exception('Failed to parse field %s, value %s with dateutil\'s parser - wierd!',
                                          field, data[field])
@@ -167,6 +170,7 @@ class OGRLoader(BaseDataLoader):
             
             layer=self.ogr_obj.GetLayer()
             geom_extent=layer.GetExtent()
+            logger.error('The extent is %s, %s', geom_extent, type(geom_extent))
             geom_type=layer.GetGeomType()
             if geom_type not in self.types:
                 raise FormatException('Unsupported Geometry Type (%s)' % (geom_type,))
@@ -205,13 +209,13 @@ class OGRLoader(BaseDataLoader):
                         fields.append((field_name,
                                        field_type,
                                        field_definition.GetType()))
-                    # it appears that sometimes OGR isn't giving us a date type when we iterate
-                    # over values, so we will store the date types and convert if needed when we 
-                    # iterate over the results.
-                    if field_type in (datetime.date, datetime.time, datetime.datetime):
-                        self.datefields[field_name]=field_type
+                        # it appears that sometimes OGR isn't giving us a date type when we iterate
+                        # over values, so we will store the date types and convert if needed when we 
+                        # iterate over the results.
+                        if field_type in (datetime.date, datetime.time, datetime.datetime):
+                            self.datefields[field_name]=field_type
                     else: 
-                        raise FormatException('The field {0} is of an unsupported type'.format(field_name))
+                        raise FormatException('The field {0} is of an unsupported type'.format(field_name,))
                 break
     #         logger.debug('Fields are %s', fields)
             # Just to be on the safe side..
