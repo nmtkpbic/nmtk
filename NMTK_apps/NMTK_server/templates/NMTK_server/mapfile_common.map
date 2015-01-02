@@ -81,7 +81,7 @@ MAP
     NAME "results"
     {% include "NMTK_server/mapfile_conninfo.map" %}
 #    DATA 'SELECT nmtk_geometry,* FROM "{{datafile.pk}}_results"'
-    TYPE POINT
+    TYPE {{geom_type}}
 #    STATUS ON
     DUMP TRUE
     PROJECTION
@@ -107,11 +107,11 @@ MAP
       EXPRESSION ([{{result_field}}] <= {{color.max}})  
       {% elif color.type == 'values' %}
       NAME "{{color.value}}"
-      {% if color.numeric %}
-        EXPRESSION ([{{result_field}}] = {{color.value}})  
-      {% else %}
-        EXPRESSION ("[{{result_field}}]" = "{{color.value}}")  
-      {% endif %}
+        {% if color.numeric %}
+          EXPRESSION ([{{result_field}}] = {{color.value}})  
+        {% else %}
+          EXPRESSION ("[{{result_field}}]" = "{{color.value}}")  
+        {% endif %}
       {% else %}
       NAME "All Results"
       {% endif %}
@@ -147,17 +147,16 @@ MAP
         ANTIALIAS TRUE
       END # END STYLE
     END
-    {% endif %} 
-
+    {% endif %}
   END
 
   LAYER
     NAME "highlight"
-    {% include "NMTK_server/mapfile_highlight_conninfo.map" %}
+	{% include "NMTK_server/mapfile_highlight_conninfo.map" %}
     VALIDATION
       "ids" "[0-9,]+"
     END
-    TYPE POINT
+    TYPE {{geom_type}}
 #    STATUS ON
     DUMP TRUE
     PROJECTION
@@ -173,6 +172,7 @@ MAP
 	      SYMBOL "circle"
 	    {% elif geom_type != 'line' %}
 	    	OUTLINECOLOR 0 0 0
+	    	ANTIALIAS TRUE
 	    {% else %}
 	      WIDTH 3
 	    {% endif %}
@@ -195,7 +195,7 @@ MAP
     VALIDATION
       "ids" "[0-9,]+"
     END
-    TYPE POINT
+    TYPE {{geom_type}}
 #    STATUS ON
     DUMP TRUE
     PROJECTION

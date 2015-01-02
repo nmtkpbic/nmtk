@@ -40,7 +40,7 @@ def generateMapfile(datafile, style_field,
         if geom_type in datafile.get_geom_type_display().lower():
             break
     data['geom_type']=geom_type
-    res=render_to_string('NMTK_server/mapfile_{0}.map'.format(geom_type), 
+    res=render_to_string('NMTK_server/mapfile_common.map', 
                          data)
     return res
 
