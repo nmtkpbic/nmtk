@@ -158,13 +158,16 @@ class NMTKDataLoader(object):
         For non-spatial data we can output the data to json, for spatial we
         will output as spatial
         '''
+        # Handle datetime.date, datetime.time, and datetime.datetime formats.
+        date_handler=lambda data: data.isoformat() if hasattr(data, 'isoformat') else data
         if self.is_spatial:
             return self.export_geojson(filename)
         data=[]
         for row, geom in self:
             data.append(row)
         with io.open(filename, 'w', encoding='utf-8') as f:
-            f.write(unicode(json.dumps(data, ensure_ascii=False)))
+            f.write(unicode(json.dumps(data, ensure_ascii=False,
+                                       default=date_handler)))
     
     def export_geojson(self, filename):
         '''

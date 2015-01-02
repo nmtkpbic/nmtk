@@ -82,7 +82,7 @@ def generate_datamodel(datafile, loader):
                 # Create the model for this data
                 model_content.append('class Results_{0}(models.Model):'.format(datafile.pk))
                 # Add an auto-increment field for it (the PK)
-                model_content.append('{0}nmtk_id=models.IntegerField(primary_key=True)'.format(' ' * 4))
+                model_content.append('{0}nmtk_id=models.AutoField(primary_key=True, )'.format(' ' * 4))
 #                 model_content.append('{0}nmtk_feature_id=models.IntegerField()'.format(' '*4))
                 # Add an entry for each of the fields
                 # So instead of doing this - getting the keys to figure out the fields
@@ -94,6 +94,7 @@ def generate_datamodel(datafile, loader):
                               float: ('models.FloatField',''),
                               datetime.date: ('models.DateField',''),
                               datetime.time: ('models.TimeField',''),
+                              bool: ('models.BooleanField',''),
                               datetime.datetime: ('models.DateTimeField',''),}
                 for field_name, field_type in fields_types:
                     if field_type not in type_mapping:
@@ -145,7 +146,8 @@ def generate_datamodel(datafile, loader):
             try:
                 m.save(using=database)
             except Exception, e:
-                logger.error('Failed to save record from data file (%s)', this_row)
+                logger.exception('Failed to save record from data file (%s)', this_row)
+                logger.error('The type of data in question was %s (%s)',m, this_row )
                 raise e
         logger.debug('Completing transferring results to %s database %s', dbtype,datafile.pk,)
 
@@ -421,6 +423,7 @@ def importDataFile(datafile, job_id=None):
                 field_attributes={}
                 qs=getQuerySet(datafile)
                 field_mappings=[(django_model_fields.IntegerField, 'integer',),
+                                (django_model_fields.AutoField, 'integer',), # Required because nmtk_id is an autofield..
                                 (django_model_fields.BooleanField, 'boolean',),
                                 (django_model_fields.DecimalField, 'float',), # Special case holding FIPS
                                 (django_model_fields.TextField, 'text',),
@@ -441,16 +444,22 @@ def importDataFile(datafile, job_id=None):
                         else:
                             logger.info('Unable to map field of type %s (this is expected for GIS fields)', type(field,))
                             continue
-                        values_aggregates=qs.aggregate(Max(field_name), Min(field_name), Count(field_name,
-                                                                                          distinct=True))
+                        values_aggregates=qs.aggregate(Count(field_name, distinct=True))
                         field_attributes[db_column]={'type': field_type, 
                                                      'field_name': field_name,
-                                                     'min': values_aggregates['{0}__min'.format(field_name)], 
-                                                     'max': values_aggregates['{0}__max'.format(field_name)],
                                                      'distinct': values_aggregates['{0}__count'.format(field_name)]}
                         if field_attributes[db_column]['distinct'] < 10:
                             distinct_values=list(qs.order_by().values_list(field_name, flat=True).distinct())
                             field_attributes[db_column]['values']=distinct_values
+                        else:
+                            logger.info('There are more than 10 values for %s (%s), enumerating..', db_column, 
+                                        field_attributes[db_column]['distinct'])
+                            # formerly the aggregates happened above - with the count. However, Django doesn't
+                            # allow those aggregates with boolean fields - so here we split it up to only do the
+                            # aggregates in the cases where we have to (i.e., the distinct values is above the threshold.)
+                            values_aggregates=qs.aggregate(Max(field_name), Min(field_name), )
+                            field_attributes[db_column]['min']= values_aggregates['{0}__min'.format(field_name)]
+                            field_attributes[db_column]['max']= values_aggregates['{0}__max'.format(field_name)]
                     datafile.field_attributes=field_attributes
             except Exception, e:
                 logger.exception('Failed to get range for model %s',

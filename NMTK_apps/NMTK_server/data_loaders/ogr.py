@@ -2,6 +2,7 @@ from osgeo import ogr, osr
 import logging
 import collections
 import datetime
+from dateutil.parser import parse
 from BaseDataLoader import *
 
 logger=logging.getLogger(__name__)
@@ -27,6 +28,7 @@ class OGRLoader(BaseDataLoader):
         a set of tuples that include a field dict and a geometry as WKT
         '''
         self._srid=kwargs.pop('srid',None)
+        self.datefields={}
         super(OGRLoader, self).__init__(*args, **kwargs)
         for fn in self.filelist:
             self.ogr_obj=ogr.Open(fn)
@@ -57,8 +59,18 @@ class OGRLoader(BaseDataLoader):
         else:
             feature=self.geomTransform(feature)
             data=dict((field, getattr(feature, field)) for field in self.fields())
-            # Try to use a column name of geometry, but in the case that 
-            # is already in use, choose another one numbered from geometry_1-10
+            # It seems that sometimes OGR is returning a non-valid (for django) date string
+            # rather than a date/datetime/time instance.  Here we check if that is the case,
+            # and if it is then we will simply use dateutil's parser to parse the value
+            # if that fails, then we just proceed and hope for the best..
+            for field,type in self.datefields.iteritems():
+                if not isinstance(date[field], (datetime.datetime, datetime.date, datetime.time)):
+                    try:
+                        v=parse(data[field])
+                        data[field]=v
+                    except: 
+                        logger.exception('Failed to parse field %s, value %s with dateutil\'s parser - wierd!',
+                                         field, data[field])
             wkt=feature.geometry().ExportToWkt()
             return (data, wkt)
 
@@ -193,6 +205,11 @@ class OGRLoader(BaseDataLoader):
                         fields.append((field_name,
                                        field_type,
                                        field_definition.GetType()))
+                    # it appears that sometimes OGR isn't giving us a date type when we iterate
+                    # over values, so we will store the date types and convert if needed when we 
+                    # iterate over the results.
+                    if field_type in (datetime.date, datetime.time, datetime.datetime):
+                        self.datefields[field_name]=field_type
                     else: 
                         raise FormatException('The field {0} is of an unsupported type'.format(field_name))
                 break
