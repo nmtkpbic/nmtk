@@ -73,7 +73,7 @@ def generate_datamodel(datafile, loader):
         this_model=None
         colors=[]
         model_content=['from django.contrib.gis.db import models']
-        feature_id=1
+#         feature_id=1
         for (row, geometry) in loader:
             if not db_created:
                 db_created=True
@@ -83,7 +83,7 @@ def generate_datamodel(datafile, loader):
                 model_content.append('class Results_{0}(models.Model):'.format(datafile.pk))
                 # Add an auto-increment field for it (the PK)
                 model_content.append('{0}nmtk_id=models.IntegerField(primary_key=True)'.format(' ' * 4))
-                model_content.append('{0}nmtk_feature_id=models.IntegerField()'.format(' '*4))
+#                 model_content.append('{0}nmtk_feature_id=models.IntegerField()'.format(' '*4))
                 # Add an entry for each of the fields
                 # So instead of doing this - getting the keys to figure out the fields
                 fields_types=loader.info.fields_types
@@ -132,9 +132,9 @@ def generate_datamodel(datafile, loader):
                     cursor.execute(statement)
             
             this_row=dict((field_map[k],v) for k,v in row.iteritems())
-            this_row['nmtk_id']=this_row.get('nmtk_id', feature_id)
-            this_row['nmtk_feature_id']=this_row.get('nmtk_id', feature_id)
-            feature_id += 1
+#             this_row['nmtk_id']=this_row.get('nmtk_id', feature_id)
+#             this_row['nmtk_feature_id']=this_row.get('nmtk_id', feature_id)
+#             feature_id += 1
             if spatial:
                 this_row['nmtk_geometry']=geometry
             if datafile.result_field:

@@ -96,7 +96,7 @@ MAP
       WMS_ABSTRACT "Results from NMTK Tool"
       WMS_SRS "EPSG:4326"
       WMS_GROUP_TITLE "Results"
-      GML_INCLUDE_ITEMS "nmtk_feature_id"
+      GML_INCLUDE_ITEMS "nmtk_id"
     END
     
     {% for color in colors %}
