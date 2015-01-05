@@ -12,7 +12,10 @@
             <p class="help-block">Please click one of the links below to download your
             job results in the specified file format.</p>
             <br>
-            <a ng-if="isComplete(datafile)" ng-show="spatial" ng-href="{{download_url}}?format=json">GeoJSON Format</a><br>
+            <a ng-if="isComplete(datafile)" ng-show="spatial" ng-href="{{download_url}}?format=json">GeoJSON Format</a><br> 
+            <a ng-if="isComplete(datafile)" ng-show="spatial" ng-href="{{wms_url}}?SERVICE=wfs&REQUEST=getFeature&VERSION=1.1.0&typename=results&outputformat=shapefile">Shapefile (Zipped)</a><br>
+            <a ng-if="isComplete(datafile)" ng-show="spatial" ng-href="{{wms_url}}?SERVICE=wfs&REQUEST=getFeature&VERSION=1.1.0&typename=results&outputformat=csv">CSV (with WKT Geometry)</a><br>
+            <a ng-if="isComplete(datafile)" ng-show="spatial" ng-href="{{wms_url}}?SERVICE=wfs&REQUEST=getFeature&VERSION=1.1.0&typename=results&outputformat=csv">Google KML</a><br>
             <a ng-if="isComplete(datafile)" ng-href="{{download_url}}?format=csv">Comma-Separated Values</a><br>   
             <a ng-if="isComplete(datafile)" ng-href="{{download_url}}?format=xls">Microsoft Excel (.xls)</a><br>
             <a ng-if="isComplete(datafile)" ng-hide="spatial" ng-href="{{download_url}}?format=json">JSON Format</a><br>

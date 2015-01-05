@@ -44,6 +44,7 @@ define([], function () {
 				return /complete/i.test(record.status);
 			}
 			$scope.download_url=datafile.download_url;
+			$scope.wms_url=datafile.wms_url;
 			if (datafile.srid) {
 				$scope.spatial=true;
 			} else {

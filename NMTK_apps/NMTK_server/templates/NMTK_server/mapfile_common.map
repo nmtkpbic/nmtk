@@ -47,7 +47,7 @@ MAP
     NAME "gml"
     DRIVER "OGR/GML"
     FORMATOPTION "STORAGE=filesystem"
-    FORMATOPTION "FORM=multipart"
+    FORMATOPTION "FORM=simple"
     FORMATOPTION "FILENAME={{datafile.pk}}_nmtk.gml"
   END
 
@@ -58,23 +58,13 @@ MAP
     FORMATOPTION "FORM=zip"
     FORMATOPTION "FILENAME={{datafile.pk}}_nmtk.zip"
   END
-  
-  OUTPUTFORMAT
-    NAME kml
-    DRIVER "KML"
-    MIMETYPE "application/vnd.google-earth.kml+xml"
-    EXTENSION "kml"
-    IMAGEMODE RGB
-    FORMATOPTION 'ATTACHMENT={{datafile.pk}}_nmtk.kml'  #name of kml file returned
-  END
 
   OUTPUTFORMAT
-    NAME kmz
-    DRIVER "KMZ"
-    MIMETYPE "application/vnd.google-earth.kmz"
-    EXTENSION "kmz"
-    IMAGEMODE RGB
-    FORMATOPTION 'ATTACHMENT={{datafile.pk}}_nmtk.kmz'  #name of kmz file returned
+    NAME "kml"
+    DRIVER "OGR/LIBKML"
+    FORMATOPTION "STORAGE=memory"
+    FORMATOPTION "FORM=simple"
+    FORMATOPTION "FILENAME={{datafile.pk}}_nmtk.kml"
   END
 
   PROJECTION
