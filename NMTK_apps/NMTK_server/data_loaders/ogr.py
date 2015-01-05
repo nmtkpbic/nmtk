@@ -142,7 +142,8 @@ class OGRLoader(BaseDataLoader):
     
     @property
     def extent(self):
-        return self.data.extent
+        return (self.data.extent[0], self.data.extent[2],
+                self.data.extent[1], self.data.extent[3],)
     
     @property
     def data(self):
@@ -170,7 +171,6 @@ class OGRLoader(BaseDataLoader):
             
             layer=self.ogr_obj.GetLayer()
             geom_extent=layer.GetExtent()
-            logger.error('The extent is %s, %s', geom_extent, type(geom_extent))
             geom_type=layer.GetGeomType()
             if geom_type not in self.types:
                 raise FormatException('Unsupported Geometry Type (%s)' % (geom_type,))

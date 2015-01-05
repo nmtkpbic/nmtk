@@ -395,10 +395,15 @@ def importDataFile(datafile, job_id=None):
             datafile.srid=loader.info.srid
             datafile.srs=loader.info.srs
             datafile.geom_type=loader.info.type
+            logger.debug('Loader extent is %s', loader.info.extent)
             extent=geos.Polygon.from_bbox(loader.info.extent)
+            logger.debug("Extent is 'srid=%s;%s'::geometry", loader.info.srid, 
+                         extent,)
             if datafile.srid:
                 extent.srid=int(loader.info.srid)
                 extent.transform(4326)
+            logger.debug("Extent is 'srid=%s;%s'::geometry", 4326, 
+                         extent,)
             datafile.extent=extent
         datafile.feature_count=loader.info.feature_count
         if loader.is_spatial and not datafile.srid:

@@ -66,6 +66,23 @@ MAP
     FORMATOPTION "FORM=multipart"
     FORMATOPTION "FILENAME={{datafile.pk}}_nmtk.kml"
   END
+  OUTPUTFORMAT
+    NAME kml
+    DRIVER "KML"
+    MIMETYPE "application/vnd.google-earth.kml+xml"
+    IMAGEMODE RGB
+    EXTENSION "kml"
+    FORMATOPTION 'ATTACHMENT={{datafile.pk}}_nmtk.kml'  #name of kml file returned
+  END
+
+  OUTPUTFORMAT
+    NAME kmz
+    DRIVER "KMZ"
+    MIMETYPE "application/vnd.google-earth.kmz"
+    IMAGEMODE RGB
+    EXTENSION "kmz"
+    FORMATOPTION 'ATTACHMENT={{datafile.pk}}_nmtk.kmz'  #name of kmz file returned
+  END
 
   PROJECTION
    "init=epsg:4326"
@@ -138,6 +155,7 @@ MAP
       WMS_SRS "EPSG:4326"
       WMS_GROUP_TITLE "Results"
       GML_INCLUDE_ITEMS "all"
+      "wfs_getfeature_formatlist" "GML,SHAPEFILE,CSV,KML,KMZ"
     END
     
     
