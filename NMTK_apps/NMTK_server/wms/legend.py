@@ -58,14 +58,15 @@ class LegendGenerator(object):
         self.min_text=min_text
         self.min_value=min_value
         self.max_value=max_value
-        if min_value and max_value:
+        self.numeric=(column_type not in ('text','date',))      
+        logger.debug('This data type is numeric? %s', self.numeric)
+        if self.numeric and min_value and max_value:
             # Increment the max value by a single step size
             # to ensure we cover all values in the range.
             ss=np.linspace(self.min_value, self.max_value, num=self.steps)[0]
 #             ss=(max_value-min_value)/steps
             self.max_value=max_value+ss
-        self.numeric=(column_type != 'text')      
-            
+        
         # Verify that the user has chosen to use one of the available color
         # ramp formats.  If they reverse it, then append an _r so that the code
         # knows to use the reverse of the ramp as appropriate.
@@ -89,7 +90,10 @@ class LegendGenerator(object):
         will be uniquely styled with the highest/last color value.  
         '''
         
-        if self.min_value is not None and self.max_value is not None and self.min_value != self.max_value:
+        if (self.numeric and 
+            self.min_value is not None and 
+            self.max_value is not None and 
+            self.min_value != self.max_value):
             # This is tricky, since we need to ensure that the last max value
             # we get is included in the list of values - otherwise
             # we end up not matching the last few features!

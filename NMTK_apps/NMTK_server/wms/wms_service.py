@@ -68,7 +68,7 @@ def handleWMSRequest(request, datafile):
     min_result=max_result=None
     values_list=field_attributes.get('values',[])
     if (field_attributes.has_key('type') and 
-        field_attributes.get('type', None) not in ('text',)
+        field_attributes.get('type', None) not in ('text','date',)
         and not field_attributes.has_key('values')):
         min_result=field_attributes['min']
         max_result=field_attributes['max']

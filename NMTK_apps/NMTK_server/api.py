@@ -771,7 +771,6 @@ class DataFileResource(ModelResource):
         bundle.data['fields']=json.dumps(bundle.obj.fields)
         bundle.data['field_attributes']=json.dumps(bundle.obj.field_attributes)
         if bundle.data['extent']:
-#             extent=OGRGeometry(bundle.data['extent']).extent
             bundle.data['bbox']=bundle.obj.bbox
             
         return bundle
