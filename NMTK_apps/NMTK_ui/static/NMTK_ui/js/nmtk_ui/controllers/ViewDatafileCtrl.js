@@ -233,8 +233,8 @@ define(['angular', 'underscore','leaflet',
 			 * Note: This relies on leaflet being available...
 			 */
 			function getBounds(bbox) {
-				var southWest = new L.LatLng(bbox[2], bbox[0]);
-				var northEast = new L.LatLng(bbox[3], bbox[1]);	
+				var southWest = new L.LatLng(bbox[1], bbox[0]);
+				var northEast = new L.LatLng(bbox[3], bbox[2]);	
 				return L.latLngBounds(southWest, northEast);
 			}
 			

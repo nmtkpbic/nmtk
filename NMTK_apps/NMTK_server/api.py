@@ -21,7 +21,6 @@ from NMTK_server.wms import wms_service
 from validation.tool_config_validator import ToolConfigValidator
 import simplejson as json
 from tastypie.validation import Validation
-from django.contrib.gis.gdal import OGRGeometry
 from PIL import Image
 import cStringIO as StringIO
 import logging
@@ -772,8 +771,8 @@ class DataFileResource(ModelResource):
         bundle.data['fields']=json.dumps(bundle.obj.fields)
         bundle.data['field_attributes']=json.dumps(bundle.obj.field_attributes)
         if bundle.data['extent']:
-            extent=OGRGeometry(bundle.data['extent']).extent
-            bundle.data['bbox']=(extent[0],extent[2],extent[1],extent[3])
+#             extent=OGRGeometry(bundle.data['extent']).extent
+            bundle.data['bbox']=bundle.obj.bbox
             
         return bundle
 

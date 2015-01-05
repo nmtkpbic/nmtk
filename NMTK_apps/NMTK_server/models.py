@@ -14,6 +14,7 @@ from django.db import connections, transaction
 from django.conf import settings
 from django.utils.safestring import mark_safe
 from osgeo import ogr
+from django.contrib.gis.gdal import OGRGeometry
 from NMTK_server import tasks
 from NMTK_server import signals
 from NMTK_server.wms.legend import LegendGenerator
@@ -423,6 +424,15 @@ class DataFile(models.Model):
                      # Dir already exists. Ignore...
                      pass
          return path
+     
+    @property
+    def bbox(self):
+        extent=None
+        if not hasattr(self, '_bbox'):
+            if self.srid:
+                extent=list(self.extent.extent)
+            self._bbox=extent
+        return self._bbox
     
     @property
     def spatial(self):

@@ -2,7 +2,7 @@
 MAP
   NAME Results_WMS
   UNITS dd
-#  EXTENT -8200000 4990000 -7800000 6050000
+  EXTENT {{datafile.bbox.0}} {{datafile.bbox.1}} {{datafile.bbox.2}} {{datafile.bbox.3}}
   STATUS ON
   SIZE 512 512
   IMAGECOLOR 255 255 255
@@ -34,7 +34,7 @@ MAP
   END
   
   OUTPUTFORMAT
-    NAME "CSV"
+    NAME "csv"
     DRIVER "OGR/CSV"
     MIMETYPE "text/csv"
     FORMATOPTION "LCO:GEOMETRY=AS_WKT"
@@ -44,7 +44,7 @@ MAP
   END
 
   OUTPUTFORMAT
-    NAME "GML"
+    NAME "gml"
     DRIVER "OGR/GML"
     FORMATOPTION "STORAGE=filesystem"
     FORMATOPTION "FORM=multipart"
@@ -52,7 +52,7 @@ MAP
   END
 
   OUTPUTFORMAT
-    NAME "SHAPEFILE"
+    NAME "shapefile"
     DRIVER "OGR/ESRI Shapefile"
     FORMATOPTION "STORAGE=memory"
     FORMATOPTION "FORM=zip"
@@ -60,18 +60,11 @@ MAP
   END
   
   OUTPUTFORMAT
-    NAME "KML"
-    DRIVER "OGR/LIBKML"
-    FORMATOPTION "STORAGE=filesystem"
-    FORMATOPTION "FORM=multipart"
-    FORMATOPTION "FILENAME={{datafile.pk}}_nmtk.kml"
-  END
-  OUTPUTFORMAT
     NAME kml
     DRIVER "KML"
     MIMETYPE "application/vnd.google-earth.kml+xml"
-    IMAGEMODE RGB
     EXTENSION "kml"
+    IMAGEMODE RGB
     FORMATOPTION 'ATTACHMENT={{datafile.pk}}_nmtk.kml'  #name of kml file returned
   END
 
@@ -79,8 +72,8 @@ MAP
     NAME kmz
     DRIVER "KMZ"
     MIMETYPE "application/vnd.google-earth.kmz"
-    IMAGEMODE RGB
     EXTENSION "kmz"
+    IMAGEMODE RGB
     FORMATOPTION 'ATTACHMENT={{datafile.pk}}_nmtk.kmz'  #name of kmz file returned
   END
 
@@ -91,12 +84,13 @@ MAP
   WEB
     IMAGEPATH "/tmp/"
     IMAGEURL "/tmp/"
+    TEMPPATH "/tmp/"
     LOG "/tmp/mapserv.log"
 
     METADATA
       wms_feature_info_mime_type "application/json"
       ows_feature_info_mime_type "application/json"
-      wms_include_items "application/json"
+      "wfs_getfeature_formatlist" "kmz,kml,shapefile,csv,gml"
       "wms_enable_request" "*"
       "ows_enable_request" "*"
       "wms_include_items" "text/html"
@@ -154,8 +148,8 @@ MAP
       WMS_ABSTRACT "Results from NMTK Tool"
       WMS_SRS "EPSG:4326"
       WMS_GROUP_TITLE "Results"
-      GML_INCLUDE_ITEMS "all"
-      "wfs_getfeature_formatlist" "GML,SHAPEFILE,CSV,KML,KMZ"
+      "gml_include_items" "all"
+      "gml_types" "auto"
     END
     
     
