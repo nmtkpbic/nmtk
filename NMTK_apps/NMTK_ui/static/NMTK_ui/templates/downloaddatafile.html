@@ -15,6 +15,8 @@
             <a ng-if="isComplete(datafile)" ng-show="spatial" ng-href="{{download_url}}?format=json">GeoJSON Format</a><br> 
             <a ng-if="isComplete(datafile)" ng-show="spatial" ng-href="{{wms_url}}?SERVICE=wfs&REQUEST=getFeature&VERSION=1.1.0&typename=results&outputformat=shapefile">Shapefile (Zipped)</a><br ng-show="spatial">
             <a ng-if="isComplete(datafile)" ng-show="spatial" ng-href="{{wms_url}}?SERVICE=wfs&REQUEST=getFeature&VERSION=1.1.0&typename=results&outputformat=csv">CSV (with WKT Geometry)</a><br ng-show="spatial">
+            <a ng-if="isComplete(datafile)" ng-show="spatial" ng-href="{{wms_url}}?SERVICE=wfs&REQUEST=getFeature&VERSION=1.1.0&typename=results&outputformat=kml">Google Earth KML</a><br ng-show="spatial">
+
             <!-- Currently KML/KMZ output is producing invalid coordinates.
             <a ng-if="isComplete(datafile)" ng-show="spatial" ng-href="{{wms_url}}?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=results&FORMAT=kml&HEIGHT=256&WIDTH=256&SRS=EPSG%3A4326&BBOX=-180.0000,-90.0000,180.0000,90.0000">Google Earth KML</a><br ng-show="spatial">
             <a ng-if="isComplete(datafile)" ng-show="spatial" ng-href="{{wms_url}}?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=results&FORMAT=kmz&HEIGHT=256&WIDTH=256&SRS=EPSG%3A4326&BBOX=-180.0000,-90.0000,180.0000,90.0000">Google Earth KMZ</a><br ng-show="spatial">

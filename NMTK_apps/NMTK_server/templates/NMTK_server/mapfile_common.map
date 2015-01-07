@@ -42,6 +42,15 @@ MAP
     FORMATOPTION "FORM=simple"
     FORMATOPTION "FILENAME={{datafile.pk}}_nmtk.csv"
   END
+  
+  OUTPUTFORMAT
+    NAME "kml"
+    DRIVER "OGR/LIBKML"
+    MIMETYPE "application/vnd.google-earth.kml+xml"
+    FORMATOPTION "STORAGE=memory"
+    FORMATOPTION "FORM=simple"
+    FORMATOPTION "FILENAME={{datafile.pk}}_nmtk.kml"
+  END
 
   OUTPUTFORMAT
     NAME "gml"
@@ -59,24 +68,24 @@ MAP
     FORMATOPTION "FILENAME={{datafile.pk}}_nmtk.zip"
   END
 
-  OUTPUTFORMAT
-    NAME kml
-    DRIVER "KML"
-    MIMETYPE "application/vnd.google-earth.kml+xml"
-    IMAGEMODE RGB
-    EXTENSION "kml"
-    FORMATOPTION "maxfeaturestodraw=10000"
-    FORMATOPTION 'ATTACHMENT={{datafile.pk}}_nmtk.kml'  #name of kml file returned
-  END
+#  OUTPUTFORMAT
+#    NAME kml
+#    DRIVER "KML"
+#    MIMETYPE "application/vnd.google-earth.kml+xml"
+#    IMAGEMODE RGB
+#    EXTENSION "kml"
+#    FORMATOPTION "maxfeaturestodraw=10000"
+#    FORMATOPTION 'ATTACHMENT={{datafile.pk}}_nmtk.kml'  #name of kml file returned
+#  END
 
-  OUTPUTFORMAT
-    NAME kmz
-    DRIVER "KMZ"
-    MIMETYPE "application/vnd.google-earth.kmz"
-    IMAGEMODE RGB
-    EXTENSION "kmz"
-    FORMATOPTION 'ATTACHMENT={{datafile.pk}}_nmtk.kmz'  #name of kml file returned
-  END
+#  OUTPUTFORMAT
+#    NAME kmz
+#    DRIVER "KMZ"
+#    MIMETYPE "application/vnd.google-earth.kmz"
+#    IMAGEMODE RGB
+#    EXTENSION "kmz"
+#    FORMATOPTION 'ATTACHMENT={{datafile.pk}}_nmtk.kmz'  #name of kml file returned
+#  END
 
   PROJECTION
    "init=epsg:4326"
