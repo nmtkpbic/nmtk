@@ -108,8 +108,9 @@ def generate_datamodel(datafile, loader):
                                                 field_name)
                                          )    
                 if spatial:
-                    model_content.append('''{0}nmtk_geometry={1}(null=True, srid=4326)'''.
-                                         format(' '*4, model_type))
+                    model_content.append('''{0}nmtk_geometry={1}(null=True, srid=4326, dim={2})'''.
+                                         format(' '*4, model_type,
+                                                loader.info.dimensions))
                 model_content.append('''{0}objects=models.GeoManager()'''.format(' '*4,))
                 
                 model_content.append('''{0}class Meta:'''.format(' '*4,))

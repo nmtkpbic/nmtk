@@ -138,7 +138,8 @@ class NMTKDataLoader(object):
                                                  'loader',
                                                  'extent',
                                                  'srs', 
-                                                 'dest_srs'])
+                                                 'dest_srs',
+                                                 'dimensions',])
                                         
             self._loader_result=LoaderResult(self.is_spatial,
                                              getattr(self.dl_instance,'srid', None),
@@ -152,6 +153,7 @@ class NMTKDataLoader(object):
                                              getattr(self.dl_instance,'extent', None),
                                              getattr(self.dl_instance,'srs', None),
                                              getattr(self.dl_instance,'dest_srs', None),
+                                             getattr(self.dl_instance,'dimensions', None),
                                              )
         
         return self._loader_result

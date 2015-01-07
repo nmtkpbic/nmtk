@@ -10,6 +10,7 @@ logger=logging.getLogger(__name__)
 
 class OGRLoader(BaseDataLoader):
     name='OGR'
+    
     types={ogr.wkbPoint: 'POINT',
            ogr.wkbGeometryCollection: 'GEOMETRYCOLLECTION',
            ogr.wkbLineString: 'LINESTRING',
@@ -29,6 +30,7 @@ class OGRLoader(BaseDataLoader):
         a set of tuples that include a field dict and a geometry as WKT
         '''
         self._srid=kwargs.pop('srid',None)
+        self._dimensions=kwargs.pop('dimensions',2)
         self.datefields={}
         super(OGRLoader, self).__init__(*args, **kwargs)
         for fn in self.filelist:
@@ -45,6 +47,11 @@ class OGRLoader(BaseDataLoader):
                 self.filename=fn
                 break
     
+    
+    @property
+    def dimensions(self):
+        return self._dimensions
+    
     def determineGeometryType(self, layer):
         '''
         In the case of a KML/KMZ file, we need to iterate over the data to determine
@@ -56,16 +63,20 @@ class OGRLoader(BaseDataLoader):
             feat=layer.GetNextFeature()
             while feat:
                 try:
-                    geom_types.add(feat.geometry().GetGeometryType())
+                    geom=feat.geometry()
+                    # Get the dimensions of the geometry.
+                    self._dimensions=max(geom.GetCoordinateDimension(), self._dimensions)
+                    geom_types.add(geom.GetGeometryName())
                 except Exception, e:
                     logger.exception('Failed to get geometry type when iterating over data during ingest')
                 feat=layer.GetNextFeature()
             layer.ResetReading()
-            if 'POINT' in geom_types:
+            geom_types_string=' '.join(geom_types)
+            if 'POINT' in geom_types_string:
                 self._determineGeometryType=ogr.wkbPoint
-            elif 'LINE' in geom_types:
+            elif 'LINE' in geom_types_string:
                 self._determineGeometryType=ogr.wkbLine
-            elif 'POLY' in geom_types:
+            elif 'POLY' in geom_types_string:
                 self._determineGeometryType=ogr.wkbPolygon
         return self._determineGeometryType
     
@@ -259,7 +270,8 @@ class OGRLoader(BaseDataLoader):
                                               'type_text',
                                               'fields',
                                               'reprojection', 
-                                              'dest_srs'])
+                                              'dest_srs',
+                                              'dim',])
             # Note that we must preserve the OGR object here (even though
             # we do not use it elsewhere), because
             # otherwise it gets garbage collected, and the OGR Layer object
@@ -287,5 +299,6 @@ class OGRLoader(BaseDataLoader):
                                  type_text=self.types[geom_type],
                                  fields=fields,
                                  dest_srs=epsg_4326,
-                                 reprojection=reprojection)
+                                 reprojection=reprojection,
+                                 dim=self.dimensions)
         return self._data
