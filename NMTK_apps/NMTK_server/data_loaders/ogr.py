@@ -41,8 +41,33 @@ class OGRLoader(BaseDataLoader):
             if self.ogr_obj is not None:
                 self.spatial=True
                 self.format=self.ogr_obj.GetDriver().name
+                logger.debug('The format of the file is %s', self.format)
                 self.filename=fn
                 break
+    
+    def determineGeometryType(self, layer):
+        '''
+        In the case of a KML/KMZ file, we need to iterate over the data to determine
+        the appropriate geometry type to use.
+        '''
+        if (not hasattr(self,'_determineGeometryType')):
+            self._determineGeometryType=ogr.wkbPoint
+            geom_types=set()
+            feat=layer.GetNextFeature()
+            while feat:
+                try:
+                    geom_types.add(feat.geometry().GetGeometryType())
+                except Exception, e:
+                    logger.exception('Failed to get geometry type when iterating over data during ingest')
+                feat=layer.GetNextFeature()
+            layer.ResetReading()
+            if 'POINT' in geom_types:
+                self._determineGeometryType=ogr.wkbPoint
+            elif 'LINE' in geom_types:
+                self._determineGeometryType=ogr.wkbLine
+            elif 'POLY' in geom_types:
+                self._determineGeometryType=ogr.wkbPolygon
+        return self._determineGeometryType
     
     def __iter__(self):
         self.data.layer.ResetReading()
@@ -172,6 +197,8 @@ class OGRLoader(BaseDataLoader):
             layer=self.ogr_obj.GetLayer()
             geom_extent=layer.GetExtent()
             geom_type=layer.GetGeomType()
+            if geom_type == 0: # We can determine it experimentally if possible...
+                geom_type=self.determineGeometryType(layer)
             if geom_type not in self.types:
                 raise FormatException('Unsupported Geometry Type (%s)' % (geom_type,))
             spatial_ref=layer.GetSpatialRef()
