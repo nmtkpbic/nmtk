@@ -290,16 +290,17 @@ class Job(models.Model):
         it's response(s) back immediately.
         '''
         result=super(Job, self).save(*args, **kwargs)
-        if self._old_status == self.UNCONFIGURED and self.status == self.ACTIVE:
+        if self._old_status == self.UNCONFIGURED:
             if hasattr(self, 'job_files_pending'):
                 logger.debug('Saving Job file entries for this job')
                 # Save all the job files.
                 map(lambda f: f.save(), self.job_files_pending)
-            logger.debug('Detected a state change from Unconfigured to ' + 
-                         'Active for job (%s.)', self.pk)
-            logger.debug('Sending job to tool for processing.')
-            # Submit the task to the client, passing in the job identifier.
-            tasks.submitJob.delay(str(self.pk))
+            if self.status == self.ACTIVE:
+                logger.debug('Detected a state change from Unconfigured to ' + 
+                             'Active for job (%s.)', self.pk)
+                logger.debug('Sending job to tool for processing.')
+                # Submit the task to the client, passing in the job identifier.
+                tasks.submitJob.delay(str(self.pk))
         elif (self.email and self._old_status <> self.status and
               self.status in (self.FAILED, self.TOOL_FAILED, 
                               self.COMPLETE, self.POST_PROCESSING_FAILED)):

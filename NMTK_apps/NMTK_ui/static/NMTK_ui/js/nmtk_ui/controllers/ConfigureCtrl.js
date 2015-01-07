@@ -81,10 +81,13 @@ define(['underscore',
 					var file_id=null;
 				}
 				
-				if (job_data.status != 'Configuration Pending') {
+				if (job_data.config) {
 					// Load the old job config if we are viewing an existing
 					// jobs configuration.
-					$scope.disabled=true;
+					// Jobs not in the "pending" state are not modifiable.
+					if (job_data.status != 'Configuration Pending') {
+						$scope.disabled=true;
+					}
 					$scope.$parent.job_config=JSON.parse(job_data.config);
 					$scope.$parent.job_config_files={};
 					_.each(job_data.job_files, function (jf) {
@@ -439,9 +442,17 @@ define(['underscore',
 			
 			
 			$scope.submit_attempted=false;
-			$scope.submit_job=function () {
+			// If save_job is true then we want to simply save the current configuration.
+			// So we just send it up to the server to be saved - without validation.
+			$scope.submit_job=function (save_job) {
+				if (_.isUndefined(save_job)) {
+					save_job=false;
+				}
 				$log.debug($scope.job_config_form, $scope.validation);
-				if ($scope.job_config_form.$invalid) {
+				// If we are trying to save the job status (not submit it) then
+				// we don't need to perform validation, since we will do that when
+				// the user tries to submit the job itself.
+				if ((! save_job) && $scope.job_config_form.$invalid) {
 					$scope.submit_attempted=true;
 					var opts = {
 						    template: configureErrorsClientTemplate, // OR: templateUrl: 'path/to/view.html',
@@ -455,6 +466,9 @@ define(['underscore',
 				} else {
 					$scope.resources['job'].getList({'job_id': $scope.job_data.id}).then(function (response) {
 						var data=response[0];
+						if (! save_job) {
+							data.status='A';
+						}
 						data.config=$scope.$parent.job_config;
 						// Need to pass in the file configuration as well.
 						data.file_config=$scope.$parent.job_config_files;
@@ -483,8 +497,7 @@ define(['underscore',
 						});
 					});
 				}
-			}
-		
+			}		
 			
 			
 			/* I had this in a custom directive before, but the reality is that

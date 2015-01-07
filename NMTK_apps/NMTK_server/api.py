@@ -1053,16 +1053,32 @@ class JobResourceValidation(Validation):
                 validator=ToolConfigValidator(job=bundle.obj, 
                                               tool_config=bundle.data['config'],
                                               file_config=bundle.data['file_config'])
+                # Remove any job files from a previous save
+                bundle.obj.jobfile_set.all().delete()
                 if validator.is_valid():
                     bundle.obj.config=validator.genToolConfig() # Returns a valid tool config.
                     # Stick the job files here, we can have the model save them.
                     # the model looks at job_files_pending when it sees a state change,
                     # and only then will it save the job files.
                     bundle.obj.job_files_pending=validator.genJobFiles()
-                        
-                    bundle.obj.status=bundle.obj.ACTIVE
-                else:
+                    # Update the job status if the user has set it to active, this
+                    # allows us to store a config that isn't complete.
+                    if bundle.data['status'] == 'A':
+                        logger.debug('Setting job status to ACTIVE')
+                        bundle.obj.status=bundle.obj.ACTIVE
+                elif bundle.data['status'] == 'A':
+                    logger.debug('Validator errors are %s', validator.errors)
                     errors['config']=validator.errors
+                else: # here we are just saving an (invalid) config
+                    logger.debug('Saving the config only')
+                    bundle.obj.config=validator.genToolConfig(force=True) # Returns a valid tool config.
+                    # Stick the job files here, we can have the model save them.
+                    # the model looks at job_files_pending when it sees a state change,
+                    # and only then will it save the job files.
+                    bundle.obj.job_files_pending=validator.genJobFiles(force=True)
+                    logger.debug('Proposed job files are %s from %s', 
+                                 bundle.obj.job_files_pending,
+                                 bundle.data['file_config'])
         return errors
          
 

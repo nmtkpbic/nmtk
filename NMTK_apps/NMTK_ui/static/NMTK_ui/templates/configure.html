@@ -149,6 +149,8 @@
             <button ng-show="disabled" ng-click="closeConfig()" class="navbar-right btn btn-xs btn-primary ic-right">Close</button>
             <button ng-hide="disabled" ng-click="closeConfig()" class="navbar-right btn btn-xs ic-right">Cancel</button>
             <button ng-hide="disabled" ng-click="submit_job()"  ng-class="{'btn-success': job_config_form.$valid, 'btn-warning': job_config_form.$invalid }"class="btn navbar-right btn-xs ic-right">Submit Job</button>
+            <button ng-hide="disabled" ng-click="submit_job(true)" class="btn navbar-right btn-xs ic-right">Save Job</button>
+            
           </div><br/>
         </div>
       </div>
@@ -220,6 +222,7 @@
             <button ng-show="disabled" ng-click="closeConfig()" class="btn btn-primary">Close</button>
             <button ng-hide="disabled" ng-click="closeConfig()" class="btn">Cancel</button>
             <button ng-hide="disabled" ng-click="submit_job()"  ng-class="{'btn-success': job_config_form.$valid, 'btn-warning': job_config_form.$invalid }"class="btn">Submit Job</button>
+            <button ng-hide="disabled" ng-click="submit_job(true)"  class="btn">Save Job</button>
           </div>
         </div>
       </div>
