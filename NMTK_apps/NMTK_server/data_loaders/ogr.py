@@ -60,16 +60,19 @@ class OGRLoader(BaseDataLoader):
         if (not hasattr(self,'_determineGeometryType')):
             self._determineGeometryType=ogr.wkbPoint
             geom_types=set()
-            feat=layer.GetNextFeature()
-            while feat:
+            while True:
+                feat=layer.GetNextFeature()
+                if not feat: break
                 try:
                     geom=feat.geometry()
+                    if not geom:
+                        logger.debug('Skipping apparent null geometry!')
+                        continue
                     # Get the dimensions of the geometry.
                     self._dimensions=max(geom.GetCoordinateDimension(), self._dimensions)
                     geom_types.add(geom.GetGeometryName())
                 except Exception, e:
                     logger.exception('Failed to get geometry type when iterating over data during ingest')
-                feat=layer.GetNextFeature()
             layer.ResetReading()
             geom_types_string=' '.join(geom_types)
             if 'POINT' in geom_types_string:
@@ -110,7 +113,11 @@ class OGRLoader(BaseDataLoader):
                     except: 
                         logger.exception('Failed to parse field %s, value %s with dateutil\'s parser - wierd!',
                                          field, data[field])
-            wkt=feature.geometry().ExportToWkt()
+            geom=feature.geometry()
+            if geom:
+                wkt=geom.ExportToWkt()
+            else:
+                wkt=None
             return (data, wkt)
 
     @property
@@ -145,13 +152,14 @@ class OGRLoader(BaseDataLoader):
             transform=getattr(self, '_geomTransform', None)
             if transform or self.data.reprojection:
                 geom=feature.geometry()
-                if transform:
-                    geom=transform(geom)
-                if self.data.reprojection:
-                    geom.Transform( self.data.reprojection )
-                # in theory this makes a copy of the geometry, which
-                # feature then copies - but it seems to fix the crashing issue.
-                feature.SetGeometry(geom.Clone())
+                if geom:
+                    if transform:
+                        geom=transform(geom)
+                    if self.data.reprojection:
+                        geom.Transform( self.data.reprojection )
+                    # in theory this makes a copy of the geometry, which
+                    # feature then copies - but it seems to fix the crashing issue.
+                    feature.SetGeometry(geom.Clone())
         return feature 
     
     def fields(self):

@@ -207,12 +207,12 @@ class NMTKDataLoader(object):
             feat=ogr.Feature(layer.GetLayerDefn())
            
             for k,v in properties.iteritems():
-                if not isinstance(k, (str, unicode)):
-                    k=str(k)
-                if not isinstance(v, (str, unicode)):
-                    v=str(v)
-                feat.SetField(k.encode('ascii', 'ignore'),
-                              v.encode('ascii', 'ignore'))
+                if not isinstance(k, (unicode,)):
+                    k=k.decode('utf-8')
+                if not isinstance(v, (unicode,)):
+                    v=k.decode('utf-8')
+                feat.SetField(k.encode('utf-8', 'ignore'),
+                              v.encode('utf-8', 'ignore'))
             geom=ogr.CreateGeometryFromWkt(geom_wkt)
             feat.SetGeometry(geom)
             layer.CreateFeature(feat)
