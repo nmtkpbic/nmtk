@@ -168,6 +168,7 @@ class CSVLoader(BaseDataLoader):
                 # understood format, we will convert it to a CSV and
                 # write it out to a temporary file.
                 fh, self.temp_file=tempfile.mkstemp(suffix='.csv')
+                os.close(fh)
                 self.filename=self.temp_file
                 try:
                     logger.debug('Attempting to convert to format CSV (from %s)',
