@@ -83,7 +83,7 @@ class CSVLoader(BaseDataLoader):
         if self.spatial:
             if not hasattr(self, '_extent'):
                 for v in self: pass
-            return (self._extent[0], self._extent[2], self._extent[1], self._extent[3],)
+            return (self._extent[0],  self._extent[1], self._extent[2], self._extent[3],)
             
 
     def next(self):
