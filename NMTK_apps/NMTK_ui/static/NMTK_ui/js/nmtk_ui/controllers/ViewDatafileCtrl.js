@@ -622,7 +622,14 @@ define(['angular', 'underscore','leaflet',
 										                         attribution: '© OpenStreetMap contributors',
 										                         continuousWorld: true
 										                      }
-										                     }
+										                     },
+								                       blank: { name: 'Blank Base Map',
+									                            type: 'xyz',
+									                            url: 'http://downloads2.esri.com/support/TechArticles/blank256.png',
+									                            layerOptions: {
+									                               continuousWorld: true
+									                            }
+									                          }
 										        	 },
 									   'overlays': { }
 					        }
