@@ -32,14 +32,17 @@
 define([], function () {	
 	"use strict";
 	var controller=[  '$scope','Restangular', '$modalInstance'
-	                , '$log', 'jobdata', '$location',
-        function ($scope, Restangular, $modalInstance, $log, jobdata, $location) {
+	                , '$log', 'jobdata', '$location','$timeout',
+        function ($scope, Restangular, $modalInstance, $log, jobdata, $location, $timeout) {
 			$scope.jobdata=jobdata;
-			Restangular.all('job_status').getList({'job': jobdata.id,
-     		     								   'limit': 999}).then(function (statuses) {
-     		     									 $scope.statuses=statuses.slice().reverse();
-     		     								   });
-			
+			var updateStatus=function () {
+				Restangular.all('job_status').getList({'job': jobdata.id,
+	     		     								   'limit': 999}).then(function (statuses) {
+	     		     									 $scope.statuses=statuses.slice().reverse();
+	     		     								   });
+				$timeout(updateStatus, 2000);
+			}
+			updateStatus();
 			$scope.close=function () {
 				$modalInstance.close(false);
 			}
