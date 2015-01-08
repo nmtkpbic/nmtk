@@ -100,6 +100,7 @@ define(['underscore'], function (_) {
 				 */
 				$scope.filters.push($scope.selected);
 				$scope.selected={};
+				$scope.attributes={};
 			}
 			
 			$scope.removeFilter=function (input_filter) {
