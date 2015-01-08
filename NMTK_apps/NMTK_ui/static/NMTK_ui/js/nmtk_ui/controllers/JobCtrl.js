@@ -29,12 +29,14 @@
  *       OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  *       SUCH DAMAGE.
  */
-define(['text!jobActionsCellTemplate'
+define([  'text!jobActionsCellTemplate'
         , 'text!viewJobModalTemplate'
         , 'text!jobDescriptionCellTemplate'
-        , 'text!jobStatusCellTemplate'], function (jobActionsCellTemplate,
+        , 'text!jobStatusCellTemplate'
+        , 'text!JobStatusHistoryTemplate'], function (jobActionsCellTemplate,
         		viewJobModalTemplate, 
-        		jobDescriptionCellTemplate, jobStatusCellTemplate) {	
+        		jobDescriptionCellTemplate, jobStatusCellTemplate,
+        		JobStatusHistoryTemplate) {	
 	"use strict";
 	var controller=['$scope','$routeParams','$modal','$position','$location','$log',
 		/*
@@ -50,6 +52,20 @@ define(['text!jobActionsCellTemplate'
 			//var jobid=$routeParams.jobid;
 			$log.info('In JobCtrl');
 			$scope.changeTab('viewjob');
+			
+			
+			$scope.viewJobStatusLog=function(job) {
+				$scope.view_job_opts = {
+					backdrop: true,
+					keyboard: true,
+					backdropClick: true,
+					scope: $scope,
+					template:  JobStatusHistoryTemplate,
+					controller: 'JobStatusHistoryCtrl',
+					resolve: { jobdata: function () { return job; } }
+				};
+				var d=$modal.open($scope.view_job_opts);
+			};
 			
 			$scope.openDialog=function(job) {
 				$scope.view_job_opts = {

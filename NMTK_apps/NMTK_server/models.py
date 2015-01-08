@@ -4,6 +4,7 @@ from jsonfield import JSONField
 from random import choice
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.utils import timezone
 import os
 from django.core.urlresolvers import reverse
 import hashlib
@@ -299,6 +300,10 @@ class Job(models.Model):
                 logger.debug('Detected a state change from Unconfigured to ' + 
                              'Active for job (%s.)', self.pk)
                 logger.debug('Sending job to tool for processing.')
+                status_m=JobStatus(message='NMTK Server received job for processing.',
+                              timestamp=timezone.now(),
+                              job=self)
+                status_m.save()
                 # Submit the task to the client, passing in the job identifier.
                 tasks.submitJob.delay(str(self.pk))
         elif (self.email and self._old_status <> self.status and

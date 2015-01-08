@@ -290,6 +290,13 @@ def submitJob(job_id):
                                      'job (return code %s)') % (r.status_code,))
         js.save()
         job.save()
+    else:
+        status_m=models.JobStatus(message='Submitted job to {0} tool, response was {1} ({2})'.format(job.tool, 
+                                                                                                 r.text, 
+                                                                                                 r.status_code),
+                              timestamp=timezone.now(),
+                              job=job)
+        status_m.save()
         
     
 @task(ignore_result=False)
