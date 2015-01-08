@@ -17,6 +17,14 @@ class LegendGenerator(object):
     An NMTK Server class used to generate and manage legend objects.
     '''
     
+    
+    def round_to_n(self, x, n):
+        '''
+        Round a value to n significant digits
+        '''
+        return round(x, -int(np.floor(np.log10(x))) + (n - 1))
+
+    
     def __init__(self, color_format, min_value=None, max_value=None, 
                  reverse=False, steps=255, values_list=None,
                  min_text=None, max_text=None, units=None,
@@ -39,19 +47,18 @@ class LegendGenerator(object):
         # text under the final legend graphic showing ranges (and units), that's
         # where the code below comes in handy.  In the values list case
         # we'll generate a vertical legend, where range values are irrelevant.
-        round_to_n = lambda x, n: round(x, -int(np.floor(np.log10(x))) + (n - 1))
         if min_value == 0:
             min_text='0'
         if max_value == 0:
             max_text='0'
         if max_text is None and max_value is not None:
             try:
-                max_text='{0}'.format(round_to_n(max_value, 4))
+                max_text='{0}'.format(self.round_to_n(max_value, 4))
             except:
                 max_text='{0}'.format(max_value)
         if min_text is None and min_value is not None:
             try:
-                min_text='{0}'.format(round_to_n(min_value, 4))
+                min_text='{0}'.format(self.round_to_n(min_value, 4))
             except:
                 min_text='{0}'.format(min_value)
         self.max_text=max_text
@@ -168,7 +175,12 @@ class LegendGenerator(object):
             else:
                 key='max'
                 color['type']='ramp'
-            color[key]=value
+            if self.numeric:
+                color['legend'.format(key)]=self.round_to_n(value, 4)
+            else:
+                color['legend'.format(key)]=value
+            color[key]=repr(value)
+            logger.debug('Using a value of %s', color)
         except Exception, e:
             logger.exception('Failed to get value: %s, %s, %s',
                              values, self.values_list, color)
