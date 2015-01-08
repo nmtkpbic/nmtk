@@ -195,7 +195,7 @@ class NMTKDataLoader(object):
         # Create the fields in the data file
         for field_name, field_type in self.info.ogr_fields_types:
             logger.debug('Create field - name is %s', field_name)
-            field_defn = ogr.FieldDefn(field_name.encode('ascii', 'ignore'), 
+            field_defn = ogr.FieldDefn(field_name.decode('utf-8').encode('utf-8', 'ignore'), 
                                        field_type )
             if layer.CreateField ( field_defn ) != 0:
                 logger.debug("Creating %s field failed.", field_name)
@@ -205,14 +205,13 @@ class NMTKDataLoader(object):
         # supporting layer.
         for properties, geom_wkt in self:
             feat=ogr.Feature(layer.GetLayerDefn())
-           
+            
             for k,v in properties.iteritems():
-                if not isinstance(k, (unicode,)):
-                    k=k.decode('utf-8')
-                if not isinstance(v, (unicode,)):
-                    v=k.decode('utf-8')
-                feat.SetField(k.encode('utf-8', 'ignore'),
-                              v.encode('utf-8', 'ignore'))
+                if isinstance(k, (str, unicode,)):
+                    k=k.decode('utf-8').encode('utf-8', 'ignore')
+                if isinstance(v, (str, unicode,)):
+                    v=v.decode('utf-8').encode('utf-8', 'ignore')
+                feat.SetField(k, v)
             geom=ogr.CreateGeometryFromWkt(geom_wkt)
             feat.SetGeometry(geom)
             layer.CreateFeature(feat)

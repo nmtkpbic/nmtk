@@ -212,6 +212,7 @@ class CSVLoader(BaseDataLoader):
                            }
         for field, ftype in self._fields:
             ft.append((field, OGR_TYPE_MAPPINGS.get(ftype, ogr.OFTString),))
+        logger.debug('Field types are %s', ft)
         return ft
 
     def process_csv(self, filename):
