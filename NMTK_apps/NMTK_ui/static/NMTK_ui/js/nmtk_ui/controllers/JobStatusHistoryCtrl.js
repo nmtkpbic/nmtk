@@ -35,14 +35,17 @@ define([], function () {
 	                , '$log', 'jobdata', '$location','$timeout',
         function ($scope, Restangular, $modalInstance, $log, jobdata, $location, $timeout) {
 			$scope.jobdata=jobdata;
-			var updateStatus=function () {
+			$scope.updateStatus=function (timeout) {
 				Restangular.all('job_status').getList({'job': jobdata.id,
 	     		     								   'limit': 999}).then(function (statuses) {
 	     		     									 $scope.statuses=statuses.slice().reverse();
 	     		     								   });
-				$timeout(updateStatus, 2000);
+				if (! _.isUndefined(timeout)) {
+					$scope.timeout=$timeout(function () { $scope.updateStatus(timeout) }, timeout);
+				}
 			}
-			updateStatus();
+			$scope.updateStatus(2000);
+			$scope.$on('$destroy', function () { $timeout.cancel($scope.timeout); })
 			$scope.close=function () {
 				$modalInstance.close(false);
 			}
