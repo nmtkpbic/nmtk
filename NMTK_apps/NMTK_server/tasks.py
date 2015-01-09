@@ -236,7 +236,7 @@ def cancelJob(job_id, tool_id):
     logger.debug('Cancelling job %s to tool %s for processing', job_id,
                  tool)
     config_data=job_id
-    digest_maker =hmac.new(str(job.tool.tool_server.auth_token), 
+    digest_maker =hmac.new(str(tool.tool_server.auth_token), 
                            config_data, 
                            hashlib.sha1)
     digest=digest_maker.hexdigest()
@@ -389,6 +389,7 @@ def updateToolConfig(tool):
     # we don't call the post_save handler, which would result in
     # a recursion loop.
     logger.debug('Setting tool name to %s', config_data['info']['name'])
+    # This doesn't call the save method, so we're okay here in preventing a loop.
     models.Tool.objects.filter(pk=config.tool.pk).update(name=config_data['info']['name'])
     
          
@@ -484,7 +485,31 @@ def importDataFile(datafile, job_id=None):
         if job_id:
             try:
                 job=models.Job.objects.get(pk=job_id)
-                job.status=job.COMPLETE
+                # There might be multiple results files from this job, so we will only
+                # mark the job as complete if all the results files are processed.
+                if job.status != job.COMPLETE:
+                    results_left=job.job_files.filter(status=models.DataFile.PROCESSING_RESULTS).count()
+                    if results_left == 0:
+                        job.status=job.COMPLETE
+                        models.JobStatus(message='Job Completed',
+                                         timestamp=timezone.now(),
+                                         job=job).save()
+                    elif results_left == 1:
+                        # Handle the potential race condition here - do we really need this?
+                        # sort of.  Since it's possible that two files finish post-processing
+                        # at the same time.  In such cases, a second should be more than enough
+                        # time to get both committed as complete.
+                        time.sleep(1)
+                        job=models.Job.objects.get(pk=job_id)
+                        if job.status != job.COMPLETE:
+                            results_left=job.job_files.filter(status=models.DataFile.PROCESSING_RESULTS).count()
+                            if results_left == 0:
+                                job.status=job.COMPLETE
+                                models.JobStatus(message='Job Completed',
+                                                 timestamp=timezone.now(),
+                                                 job=job).save()
+                    
+                    
             except: 
                 logger.exception('Failed to update job status to complete?!!')
     except Exception, e:

@@ -138,7 +138,7 @@ class Tool(models.Model):
         
     def save(self, *args, **kwargs):
         result=super(Tool, self).save(*args, **kwargs)
-        if self.active:
+        if self.active and not kwargs.get('bypass_refresh', False):
             logger.debug('Detected a save of the Tool model, updating configs.')
             tasks.updateToolConfig.delay(self)
         return result

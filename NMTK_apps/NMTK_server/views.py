@@ -135,11 +135,17 @@ def processResults(request):
     
     base_description="Results from '{0}'".format(request.NMTK_JOB.description)
     if config['status'] == 'results':
+        models.JobStatus(message='Received results from Tool Server',
+                         timestamp=timezone.now(),
+                         job=request.NMTK_JOB).save()
         if (not config.has_key('results') or 
             not config['results'].has_key('field') or
             not config['results'].has_key('file')):
             logger.error('Results received with no valid results key ' +
                          'in config (old API?) (%s)', config)
+            models.JobStatus(message='Unable to authenticate request from tool server.',
+                         timestamp=timezone.now(),
+                         job=request.NMTK_JOB).save()
             return HttpResponseServerError('Invalid result format')
         result_field=config['results']['field']
         result_field_units=config['results'].get('units', None)
@@ -148,11 +154,12 @@ def processResults(request):
         
         if config['results']['file'] not in request.FILES:
             logger.error('Specified file for results was not uploaded')
+            models.JobStatus(message='Tool server failed to upload required results file.',
+                         timestamp=timezone.now(),
+                         job=request.NMTK_JOB).save()
             return HttpResponseServerError('Invalid result file specified')
         total=len(request.FILES)-1
         
-        request.NMTK_JOB.status=request.NMTK_JOB.POST_PROCESSING
-        request.NMTK_JOB.save()
         i=0
         for namespace in request.FILES.keys():
             i += 1
@@ -191,9 +198,13 @@ def processResults(request):
                                   datafile=result,
                                   primary=primary)
             rf.save()
-            models.JobStatus(message='COMPLETE',
-                             timestamp=timezone.now(),
-                             job=request.NMTK_JOB).save()
+            
+        request.NMTK_JOB.status=request.NMTK_JOB.POST_PROCESSING
+        request.NMTK_JOB.save()
+        
+        models.JobStatus(message='Post processing results file(s)',
+                         timestamp=timezone.now(),
+                         job=request.NMTK_JOB).save()
     elif config['status'] == 'error':
         logger.debug('config is %s', config)
         models.JobStatus(message='\n'.join(config['errors']),

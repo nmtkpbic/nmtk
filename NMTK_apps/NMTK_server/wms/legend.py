@@ -27,6 +27,8 @@ class LegendGenerator(object):
             if x < 0:
                 flip=True
                 x=x*-1
+            if x == 0:
+                return 0
             v=round(x, -int(np.floor(np.log10(x))) + (n - 1))
             if flip:
                 v=v*-1
@@ -193,10 +195,15 @@ class LegendGenerator(object):
                 logger.debug('Rounding %s for legend', value)
                 color['legend']=self.round_to_n(value, 4)
             else:
-                logger.debug('Repring for legend')
-                color['legend']=repr(value)
+                if not isinstance(value, (str, unicode)):
+                    color['legend']=repr(value)
+                else:
+                    color['legend']=value
             logger.debug('Setting value')
-            color[key]=repr(value)
+            if not isinstance(value, (str, unicode)):
+                color[key]=repr(value)
+            else:
+                color[key]=value
             logger.debug('Next iterated value is %s', color)
         except Exception, e:
             logger.exception('Failed to get value: %s, %s, %s',
