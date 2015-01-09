@@ -70,6 +70,9 @@ define(['underscore',
 					return true;
 				}
 				if (! _.isUndefined(property.display_if_true)) {
+					if (_.isUndefined($scope.job_config[namespace])) {
+						return false;
+					}
 					if (! _.isUndefined($scope.job_config[namespace][property.display_if_true])) {
 						if ($scope.job_config[namespace][property.display_if_true].value) {
 							return false;
@@ -188,10 +191,6 @@ define(['underscore',
 																					 'hidden': config_set.hidden,
 																					 'readonly': config_set.readonly,
 										        									 'choices': config_set.choices };
-								if (/boolean/i.test(config_set.type)) {
-									$scope.validation[data.namespace][config_set.name]['choices']={'True': true,
-											 													   'False': false};
-								}
 							});
 						});
 					});
