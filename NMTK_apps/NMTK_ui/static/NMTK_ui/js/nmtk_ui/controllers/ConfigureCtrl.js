@@ -63,6 +63,33 @@ define(['underscore',
 			$scope.toggleSection=function (type) {
 				$scope.sections[type]=!$scope.sections[type];
 			}
+			
+			
+			$scope.hideField=function (namespace, property) {
+				if ($scope.validation[namespace][property.name].hidden) {
+					return true;
+				}
+				if (! _.isUndefined(property.display_if_true)) {
+					if (! _.isUndefined($scope.job_config[namespace][property.display_if_true])) {
+						if ($scope.job_config[namespace][property.display_if_true].value) {
+							return false;
+						} else {
+							return true;
+						}
+					}
+				}
+				if (! _.isUndefined(property.display_if_filled)) {
+					if (! _.isUndefined($scope.job_config[namespace][property.display_if_filled])) {
+						if ($scope.job_config[namespace][property.display_if_filled].value) {
+							return false;
+						} else {
+							return true;
+						}
+					}
+				}
+				return false;
+			}
+			
 			$scope.rest.job.then(function (jobs) {
 				var job_data=_.find(jobs, function (job) {
 					return (job.id == jobid);

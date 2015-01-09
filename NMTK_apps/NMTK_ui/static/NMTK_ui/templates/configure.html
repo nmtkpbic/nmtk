@@ -39,7 +39,7 @@
 			  </tr>
 			  </thead>
 			  <tbody ng-if="$parent.job_config_files[config.namespace]">
-			    <tr ng-repeat="property in config.elements" ng-hide="validation[config.namespace][property.name].hidden">
+			    <tr ng-repeat="property in config.elements" ng-hide="hideField(config.namespace, property)">
 			       <td >
 					 <select ng-if="$parent.job_config[config.namespace][property.name]['type'] == 'property'" 
                              ng-model="$parent.job_config[config.namespace][property.name]['value']" required
