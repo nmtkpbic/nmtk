@@ -168,7 +168,7 @@ INSTALLED_APPS = (
     'kombu.transport.django',
     )
 
-
+TASTYPIE_DEFAULT_FORMATS = ['json',]
 
 if TOOL_SERVER:
     INSTALLED_APPS = INSTALLED_APPS + ('NMTK_tools', # An app used to generate a list of tools.
