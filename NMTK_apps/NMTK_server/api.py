@@ -333,6 +333,7 @@ class FeedbackResourceAuthorization(Authorization):
         return True
     
 class FeedbackResource(ModelResource):
+    user=fields.ToOneField(UserResource,'user')
     class Meta:
         queryset = models.Feedback.objects.all()
         authorization=FeedbackResourceAuthorization()
