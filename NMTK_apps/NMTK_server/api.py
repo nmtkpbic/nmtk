@@ -67,7 +67,8 @@ class UserResourceAuthorization(Authorization):
         username that matches the current logged in user.  In short, you 
         can see your information, but noone elses.
         '''
-        if bundle.request.user.is_superuser and bundle.request.GET.get('all', False):
+        if ((bundle.request.user.is_superuser or bundle.request.user.is_staff) 
+            and bundle.request.GET.get('all', False)):
             return object_list
         return object_list.filter(pk=bundle.request.user.pk)
 
@@ -81,7 +82,7 @@ class UserResourceAuthorization(Authorization):
         causes the server to continue to function without an exception.  Other
         things (like not authorized) cause a 500
         '''
-        if bundle.request.user.is_superuser:
+        if bundle.request.user.is_superuser or bundle.request.user.is_staff:
             return True
         elif bundle.obj.pk <> bundle.request.user.pk:
             raise Unauthorized('You lack the privilege to access this resource')
@@ -293,7 +294,10 @@ class FeedbackResourceAuthorization(Authorization):
         username that matches the current logged in user.  In short, you 
         can see your information, but noone elses.
         '''
-        return object_list
+        if bundle.request.user.is_staff or  bundle.request.user.is_superuser:
+            return object_list
+        else:
+            return [row for row in object_list if row.user == bundle.request.user]
 
     def read_detail(self, object_list, bundle):
         '''
@@ -335,7 +339,6 @@ class FeedbackResource(ModelResource):
         always_return_data = True
         resource_name = 'feedback'
         allowed_methods=['get','post']
-        excludes=['user']
         authentication=SessionAuthentication()
         validation=Validation()
         filtering= {'uri': ALL}
@@ -346,9 +349,14 @@ class FeedbackResource(ModelResource):
     
     def get_object_list(self, request):
         '''
-        Ensure a user only sees their own feedback.
+        Ensure a user only sees their own feedback. Note that passing "all=True"
+        allows a superuser/staff member to view all feedback via the API.  The check
+        for permission is in the FeedbackResourceAuthorization object.
         '''
-        return super(FeedbackResource, self).get_object_list(request).filter(user=request.user)
+        if request.GET.get('all', False):
+            return super(FeedbackResource, self).get_object_list(request)
+        else:
+            return super(FeedbackResource, self).get_object_list(request).filter(user=request.user)
 
 class UserPreferenceAuthorization(Authorization):
     def read_list(self, object_list, bundle):
