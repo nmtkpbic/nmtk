@@ -12,7 +12,9 @@ from django.utils.safestring import mark_safe
 logger=logging.getLogger(__name__)
 from django.contrib.auth.forms import UserCreationForm
 from django.utils.translation import ugettext, ugettext_lazy as _
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
+User=get_user_model()
+
 
 class NMTKRegistrationForm(UserCreationForm):
     error_messages = {

@@ -3,7 +3,6 @@ from uuidfield import UUIDField
 from jsonfield import JSONField
 from random import choice
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.utils import timezone
 import os
 from django.core.urlresolvers import reverse
@@ -21,6 +20,7 @@ from NMTK_server import signals
 from NMTK_server.wms.legend import LegendGenerator
 from django.core.validators import MaxValueValidator, MinValueValidator
 import logging
+from django.contrib.auth.models import AbstractUser
 logger=logging.getLogger(__name__)
 
 class IPAddressFieldNullable(models.IPAddressField) :
@@ -58,7 +58,7 @@ fs_results = NMTKResultsFileSystemStorage(location=location)
 
 class PageName(models.Model):
     '''
-    Valid page names (current valid value is nmtk_index)
+    Valid page names (current valid value is nmtk_index, and nmtk_tos)
     '''
     name=models.CharField(max_length=16, null=False,
                           blank=False, help_text='The name for the page this text belongs to')
@@ -74,9 +74,18 @@ class PageContent(models.Model):
     order=models.IntegerField(default=0)
     content=models.TextField()
     enabled=models.BooleanField(default=True)
+    created=models.DateTimeField(editable=False)
+    modified=models.DateTimeField(editable=False)
     class Meta:
         db_table='nmtk_content'
         ordering=['order',]
+        
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamps '''
+        if not self.id:
+            self.create_ts = timezone.now()
+        self.modified = timezone.now()
+        return super(PageContent, self).save(*args, **kwargs)
         
 class ToolServer(models.Model):
     name=models.CharField(max_length=64,

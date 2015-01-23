@@ -5,7 +5,7 @@ from tastypie.exceptions import Unauthorized
 from tastypie.authentication import SessionAuthentication
 from tastypie.http import HttpForbidden, HttpUnauthorized
 from tastypie import fields, utils
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.contrib.auth import authenticate, login, logout
 from django.core.urlresolvers import reverse
 from tastypie.authorization import Authorization
@@ -28,6 +28,7 @@ import re
 import os
 logger=logging.getLogger(__name__)
 
+User=get_user_model()
 
 class CSRFBypassSessionAuthentication(SessionAuthentication):
     def is_authenticated(self, request, **kwargs):

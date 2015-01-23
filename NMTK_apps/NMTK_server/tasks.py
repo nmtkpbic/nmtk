@@ -17,7 +17,7 @@ from NMTK_apps.helpers.data_output import getQuerySet
 from NMTK_server.data_loaders.loaders import NMTKDataLoader
 from django.core.files import File
 from django.contrib.gis import geos
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.contrib.sites.models import Site
 from django.core.management.base import BaseCommand, CommandError
 from django.core.management.commands import inspectdb
@@ -32,7 +32,7 @@ import imp
 import datetime
 from django.contrib.gis.geos import GEOSGeometry
 import tempfile
-
+User=get_user_model()
 #from django.core.serializers.json import DjangoJSONEncoder
 logger=logging.getLogger(__name__)
 
