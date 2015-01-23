@@ -801,8 +801,9 @@ class ToolResource(ModelResource):
         allowed_methods=['get',]
         
     def dehydrate(self, bundle):
-        bundle.data['config']=bundle.obj.toolconfig.json_config
         bundle.data['id']=bundle.obj.pk
+        if bundle.obj.toolconfig:
+            bundle.data['config']=bundle.obj.toolconfig.json_config
         return bundle
     
 class MapColorStyleResource(ModelResource):

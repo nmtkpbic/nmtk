@@ -32,7 +32,7 @@ import imp
 import datetime
 from django.contrib.gis.geos import GEOSGeometry
 import tempfile
-User=get_user_model()
+
 #from django.core.serializers.json import DjangoJSONEncoder
 logger=logging.getLogger(__name__)
 
@@ -179,6 +179,7 @@ def email_user_job_done(job):
 def add_toolserver(name, url, username, remote_ip=None):
     from NMTK_server import models
     try:
+        User=get_user_model()
         user=User.objects.get(username=username)
     except Exception, e:
         raise CommandError('Username specified (%s) not found!' % 
