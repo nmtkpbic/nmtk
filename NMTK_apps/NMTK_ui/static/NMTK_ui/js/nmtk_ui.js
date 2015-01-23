@@ -63,6 +63,7 @@ require.config({
 		, "configureTemplate": "../templates/configure.html" // template related to job configuration
 		, "createJobTemplate": "../templates/create_job_modal.html" // modal template related to creating new jobs
 		, "deleteModalTemplate": "../templates/delete_modal.html" // Delete dialog modal template
+		, "deleteJobModalTemplate": "../templates/delete_job_modal.html" // Delete job dialog modal template
 		, "downloadDatafileTemplate": "../templates/downloaddatafile.html" // Download job dialog
 		, "feedbackTemplate": "../templates/feedback.html" // Grouse/Feedback dialog
 		, "filesTemplate": "../templates/files.html" // Template for managing job files

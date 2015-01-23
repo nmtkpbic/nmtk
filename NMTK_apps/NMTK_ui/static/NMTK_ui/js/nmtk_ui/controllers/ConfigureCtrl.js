@@ -92,7 +92,7 @@ define(['underscore',
 				}
 				return false;
 			}
-			
+			$scope.disabled=false;
 			$scope.rest.job.then(function (jobs) {
 				var job_data=_.find(jobs, function (job) {
 					return (job.id == jobid);
@@ -105,11 +105,6 @@ define(['underscore',
 				$scope.job_data=job_data;
 				$log.debug('Job data is', job_data);
 				var tool_id=job_data.tool.split('/').reverse()[1];
-				if (job_data.data_file) {
-					var file_id=job_data.data_file.split('/').reverse()[1];
-				} else {
-					var file_id=null;
-				}
 				
 				if (job_data.config) {
 					// Load the old job config if we are viewing an existing
@@ -119,12 +114,13 @@ define(['underscore',
 						$scope.disabled=true;
 					}
 					$scope.$parent.job_config=JSON.parse(job_data.config);
-					$scope.$parent.job_config_files={};
+					if (_.isUndefined($scope.$parent.job_config_files)) {
+						$scope.$parent.job_config_files={};
+					}
 					_.each(job_data.job_files, function (jf) {
 						$scope.$parent.job_config_files[jf.namespace]=jf.datafile;
 					});
 				}
-				$log.debug('Setting is ', $scope.disabled);
 				$scope.rest.tool.then(function (row) {
 					var tool_data=_.find(row, function(toolinfo) {
 						return (toolinfo.id==tool_id);
@@ -157,15 +153,20 @@ define(['underscore',
 					$scope.validation={};
 					if (! $scope.$parent.job_config) {
 						$scope.$parent.job_config={};
-						$scope.$parent.job_config_files={};
 						new_config=true;
+					}
+					if (_.isUndefined($scope.$parent.job_config_files) && 
+						$scope.$parent.job_config_files != true) {
+						$scope.$parent.job_config_files={};
 					}
 					 
 					_.each(['input','output'], function (section) {
 						_.each(tool_data.config[section], function (data) {
 							if (new_config) {
 								$scope.$parent.job_config[data.namespace]={};
-								$scope.$parent.job_config_files[data.namespace]='';
+								if (_.isUndefined($scope.$parent.job_config_files[data.namespace])) {
+									$scope.$parent.job_config_files[data.namespace]='';
+								}
 							}
 							$scope.validation[data.namespace]={};
 							_.each(data.elements, function (config_set) {
