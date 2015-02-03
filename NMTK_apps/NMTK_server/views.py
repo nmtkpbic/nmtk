@@ -25,6 +25,17 @@ from registration import models as registration_models
 
 logger=logging.getLogger(__name__)
 
+def terms_of_service(request):
+    template='NMTK_server/terms_of_service.html'
+    site=get_current_site(request) 
+    terms_of_service=models.PageContent.objects.filter(page__name='terms_of_service')
+    if terms_of_service:
+        return render(request, template,
+                      {'page_data': terms_of_service,
+                       'site': site })    
+    else:
+        raise Http404('Page does not exist!')
+
 def registerUser(request):
     if settings.REGISTRATION_OPEN==False:
         return HttpResponseRedirect(reverse('registration_disallowed'))
@@ -32,8 +43,10 @@ def registerUser(request):
                       'NMTK_server/registration_closed.html')
     template='NMTK_server/registration_form.html'
     site=get_current_site(request) 
+    # Returns 0 if there is no terms of service page content...
+    terms_of_service=models.PageContent.objects.filter(page__name='terms_of_service').count()
     if request.method == 'POST':
-        userform=forms.NMTKRegistrationForm(request.POST)
+        userform=forms.NMTKRegistrationForm(request.POST, tos=terms_of_service)
         if userform.is_valid():
             user=userform.save()
             salt=hashlib.sha1(str(random.random())).hexdigest()[:5]
@@ -48,7 +61,8 @@ def registerUser(request):
             return render(request, 
                           'NMTK_server/registration_complete.html')
     else:
-        userform=forms.NMTKRegistrationForm()
+        
+        userform=forms.NMTKRegistrationForm(tos=terms_of_service)
     return render(request, template,
                   {'form': userform,
                    'site': site })    

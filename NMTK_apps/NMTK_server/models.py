@@ -83,7 +83,7 @@ class PageContent(models.Model):
     def save(self, *args, **kwargs):
         ''' On save, update timestamps '''
         if not self.id:
-            self.create_ts = timezone.now()
+            self.created = timezone.now()
         self.modified = timezone.now()
         return super(PageContent, self).save(*args, **kwargs)
         

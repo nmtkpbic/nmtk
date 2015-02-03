@@ -1,6 +1,6 @@
 from django import forms
 from NMTK_server import models
-from django.core.urlresolvers import reverse_lazy
+from django.core.urlresolvers import reverse_lazy, reverse
 import json
 import logging
 import re
@@ -22,9 +22,14 @@ class NMTKRegistrationForm(UserCreationForm):
         'password_mismatch': _("The two password fields didn't match."),
         'duplicate_email': _("An user with that email address already exists."),
     }
-    tos = forms.BooleanField(widget=forms.CheckboxInput,
-                             label=_(u'I have read and agree to the Terms of Service'),
-                             error_messages={'required': _("You must agree to the terms to register")})
+    def __init__(self, *args, **kwargs):
+        tos=kwargs.pop('tos', False)
+        super(NMTKRegistrationForm, self).__init__(*args, **kwargs)
+        if tos:
+            tos_url=reverse('terms_of_service')
+            self.fields['tos'] = forms.BooleanField(widget=forms.CheckboxInput,
+                                                    label=mark_safe(_(u'I have read and agree to the <a target="_blank" href="{0}">Terms of Service</a>'.format(tos_url))),
+                                                    error_messages={'required': _("You must agree to the terms to register")})
     def clean_email(self):
         # Since User.username is unique, this check is redundant,
         # but it sets a nicer error message than the ORM. See #13147.

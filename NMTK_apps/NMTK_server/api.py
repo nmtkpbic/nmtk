@@ -1330,3 +1330,24 @@ class JobStatusResource(ModelResource):
         allowed_methods=['get',]
         filtering= {'job': ALL,
                     'job_id': ALL}
+
+
+class PageNameResource(ModelResource):
+    class Meta:
+        queryset = models.PageName.objects.all()
+        resource_name = 'page_name'
+        always_return_data = True
+        allowed_methods=['get',]
+        
+class PageContentResource(ModelResource):
+    
+    page=fields.ToOneField(PageNameResource, 'page')
+    class Meta:
+        queryset = models.PageContent.objects.filter(enabled=True)
+        resource_name = 'page_content'
+        always_return_data = True
+        allowed_methods=['get',]
+        filtering= {'page': ALL,}
+        
+
+    
