@@ -24,7 +24,7 @@
 	            distinct {{attributes.type}} value(s). <br />
 	            <span ng-hide="attributes.values.length || attributes.type == 'text'">The range of values starts with {{attributes.min}} and
 	            ends with {{attributes.max}}</span>
-	            <span ng-show="attributes.values">
+	            <span ng-show="selected.model_field && attributes.values">
 	              <ul>
 	                <li ng-repeat="value in attributes.values">{{value}}</li>
 	              </ul>
