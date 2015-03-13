@@ -1,9 +1,16 @@
 
 <div class="container">
    <div class="row">
-      <div class="col-md-4 col-md-offset-8">
+      <div class="col-md-12 ">
         <div class="widget">
           <div>
+            <span ng-show="other_datafiles.length > 1" class="navbar-left ic-left">
+            <label for="other_job_datafile_select">View other results from this job: </label>
+                <select ng-change="changeJobFile()" id="other_job_datafile_select" 
+                   ng-model="current_datafile_id" name="other_job_datafiles" 
+                   ng-options="item.id as item.description for item in other_datafiles">
+                </select>
+            </span>
             <button ng-click="close()" class="navbar-right btn btn-xs btn-primary ic-right">Close</button>
           </div><br/>
         </div>

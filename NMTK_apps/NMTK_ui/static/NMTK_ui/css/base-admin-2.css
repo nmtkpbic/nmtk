@@ -1608,6 +1608,10 @@ color: #000 !important;
 	margin-right: 13px;
 	margin-top: 10px;
 }
+.ic-left {
+	margin-left: 13px;
+	margin-top: 10px;
+}
 .btn-right {
 	margin-top: 5px;
 }
