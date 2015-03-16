@@ -83,7 +83,7 @@ define(['underscore',
 				}
 				if (! _.isUndefined(property.display_if_filled)) {
 					if (! _.isUndefined($scope.job_config[namespace][property.display_if_filled])) {
-						if ($scope.job_config[namespace][property.display_if_filled].value) {
+						if (String($scope.job_config[namespace][property.display_if_filled].value).length) {
 							return false;
 						} else {
 							return true;
