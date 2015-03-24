@@ -65,6 +65,9 @@ read
 # numpy might not be there (and matplotlib may fail to install), but it
 # will get it the second time around.
 for I in 1 2; do
+  for FILE in *.whl; do
+    pip install "$FILE"
+  done
   for FILE in *.exe; do
     easy_install "$FILE"
   done
