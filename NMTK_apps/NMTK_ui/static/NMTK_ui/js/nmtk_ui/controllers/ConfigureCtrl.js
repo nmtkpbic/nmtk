@@ -454,7 +454,7 @@ define(['underscore',
 				if (_.isUndefined(force_property)) {
 					force_property=false;
 				}
-				$log.debug('Called SwithFieldMode with ', namespace, field, force_constant)
+				$log.debug('Called SwitchFieldMode with ', namespace, field, force_constant)
 				// This is the valid type for this field.
 				var type=$scope.validation[namespace][field]['type'];
 				$log.debug('The type is ', type)
