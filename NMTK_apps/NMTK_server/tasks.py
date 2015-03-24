@@ -360,8 +360,6 @@ def updateToolConfig(tool):
                                 f.write(chunk)
                                 checksum.update(chunk)
                                 f.flush()
-                        logger.debug('Checksum is %s=%s', fconfig['checksum'],
-                                     checksum.hexdigest())
                         if checksum.hexdigest() == fconfig['checksum']:
                             f.seek(0)
                             # Get the file name
@@ -376,6 +374,10 @@ def updateToolConfig(tool):
                                     m.content_type=t
                             m.file.save(name, File(f))
                             objects_to_delete.append(m)
+                        else:
+                            logger.error('Checksum MISMATCH (Expected: %s, Computed: %s)', 
+                                         fconfig['checksum'],
+                                         checksum.hexdigest())
             for m in objects_to_save:
                 m2=models.ToolSampleConfig.objects.filter(tool=m.tool)
                 if len(m2) == 1:
