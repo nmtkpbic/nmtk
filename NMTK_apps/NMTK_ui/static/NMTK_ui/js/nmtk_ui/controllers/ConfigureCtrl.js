@@ -64,7 +64,10 @@ define(['underscore',
 				$scope.sections[type]=!$scope.sections[type];
 			}
 			
-			
+			/*
+                         * Function that returns true if the field should be hidden,
+                         * and false if it should be displayed.
+                         */
 			$scope.hideField=function (namespace, property) {
 				if ($scope.validation[namespace][property.name].hidden) {
 					return true;
@@ -82,8 +85,12 @@ define(['underscore',
 					}
 				}
 				if (! _.isUndefined(property.display_if_filled)) {
+					if (_.isUndefined($scope.job_config[namespace])) {
+						return false;
+					}
 					if (! _.isUndefined($scope.job_config[namespace][property.display_if_filled])) {
-						if (String($scope.job_config[namespace][property.display_if_filled].value).length) {
+						if (!_.isUndefined($scope.job_config[namespace][property.display_if_filled].value) && 
+                                                    String($scope.job_config[namespace][property.display_if_filled].value).length) {
 							return false;
 						} else {
 							return true;
