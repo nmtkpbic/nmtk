@@ -135,7 +135,7 @@ chose earlier
             
     4. Run the server command: 
     
-            start python manage.py run server
+            start python manage.py runserver
             
 16. Update the tool server location
     1. Open a browser and navigate to http://127.0.0.1:8000
