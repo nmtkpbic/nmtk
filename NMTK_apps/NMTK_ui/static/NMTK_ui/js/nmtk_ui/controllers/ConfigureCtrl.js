@@ -65,9 +65,9 @@ define(['underscore',
 			}
 			
 			/*
-                         * Function that returns true if the field should be hidden,
-                         * and false if it should be displayed.
-                         */
+	         * Function that returns true if the field should be hidden,
+	         * and false if it should be displayed.
+	         */
 			$scope.hideField=function (namespace, property) {
 				if ($scope.validation[namespace][property.name].hidden) {
 					return true;
@@ -104,13 +104,14 @@ define(['underscore',
 				var job_data=_.find(jobs, function (job) {
 					return (job.id == jobid);
 				});
-				if (typeof job_data === 'undefined') {
+				if (_.isUndefined(job_data)) {
 					$scope.$parent.job_uri=undefined;
 					$scope.$parent.job_config=undefined;
 					$location.path('/job');
+					return;
 				}
 				$scope.job_data=job_data;
-				$log.debug('Job data is', job_data);
+				// $log.debug('Job data is', job_data);
 				var tool_id=job_data.tool.split('/').reverse()[1];
 				
 				if (job_data.config) {
@@ -132,7 +133,7 @@ define(['underscore',
 					var tool_data=_.find(row, function(toolinfo) {
 						return (toolinfo.id==tool_id);
 					});
-					$log.debug('Got tool data of ', tool_data);
+					// $log.debug('Got tool data of ', tool_data);
 					/*
 					 * Go through and setup the default state of the different 
 					 * sections here.
@@ -370,7 +371,7 @@ define(['underscore',
 					var name=$scope.validation[namespace][field]['name'];
 					var field_default=$scope.validation[namespace][field]['default'];
 					if (_.isUndefined($scope.$parent.job_config[namespace][field])) {
-						$log.error('Field', field, 'is not defined in namespace', namespace);
+						//$log.error('Field', field, 'is not defined in namespace', namespace);
 						$scope.$parent.job_config[namespace][field]={
 								'type': $scope.validation[namespace][field]['type'],
 								'value': field_default
@@ -533,6 +534,16 @@ define(['underscore',
 				}
 			}		
 			
+			
+			/*
+			 * Determine if a field is required (return a true/false result)
+			 */
+			$scope.isFieldRequired=function (property) {
+				if (_.isUndefined(property.required)) {
+					return true; // If not specified the default is required
+				}
+				return property.required;
+			}
 			
 			/* I had this in a custom directive before, but the reality is that
 			 * it's much less complex here.  Also, there are issues with ng-options 

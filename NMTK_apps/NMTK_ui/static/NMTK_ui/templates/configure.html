@@ -42,19 +42,19 @@
 			    <tr ng-repeat="property in config.elements" ng-hide="hideField(config.namespace, property)">
 			       <td >
 					 <select ng-if="$parent.job_config[config.namespace][property.name]['type'] == 'property'" 
-                             ng-model="$parent.job_config[config.namespace][property.name]['value']" required
+                             ng-model="$parent.job_config[config.namespace][property.name]['value']" ng-required="isFieldRequired(property)"
                              dynamic-name="config.namespace + ':' + property.name" 
 							 ng-init="setFieldDefaultValue(config.namespace, property.name)"
 							 ng-disabled="disabled"
                              ng-options="o.value as o.label for o in file_fields[config.namespace]"></select>
                      <input ng-if="$parent.job_config[config.namespace][property.name]['type'] != 'property' && ! validation[config.namespace][property.name]['choices'] && validation[config.namespace][property.name]['type']!='boolean'"  
                             size="10" type="text" ng-model="$parent.job_config[config.namespace][property.name]['value']" 
-							ng-disabled="disabled || validation[config.namespace][property.name].readonly" required 
+							ng-disabled="disabled || validation[config.namespace][property.name].readonly" ng-required="isFieldRequired(property)" 
 							ng-init="setFieldDefaultValue(config.namespace,property.name) && validateEntry(config.namespace, property.name)"
 							ng-change="validateEntry(config.namespace, property.name)"
                             dynamic-name="config.namespace + ':' + property.name"  ></input>
 					 <select ng-if="$parent.job_config[config.namespace][property.name]['type'] != 'property' && validation[config.namespace][property.name]['choices'] && validation[config.namespace][property.name]['type']!='boolean'"
-							name="config.namespace + ':' + property.name"  required
+							name="config.namespace + ':' + property.name"  ng-required="isFieldRequired(property)"
 							ng-disabled="disabled  || validation[config.namespace][property.name].readonly" 
 							ng-init="setFieldDefaultValue(config.namespace, property.name)"
                             ng-model="$parent.job_config[config.namespace][property.name]['value']" 
@@ -134,7 +134,7 @@
 							ng-disabled="disabled  || validation[config.namespace][property.name].readonly"
 							ng-change="validateEntry(config.namespace, property.name)"
 							ng-init="setFieldDefaultValue(config.namespace,property.name) && validateEntry(config.namespace, property.name)"
-			                dynamic-name="config.namespace + ':' + property.name"  required>
+			                dynamic-name="config.namespace + ':' + property.name"  ng-required="isFieldRequired(property)">
 					<!-- The option when we have a set of choices to choose from --> 
 					<select ng-if="validation[config.namespace][property.name]['choices'] && validation[config.namespace][property.name]['type'] != 'boolean'"
 							dynamic-name="config.namespace + ':' + property.name"  required

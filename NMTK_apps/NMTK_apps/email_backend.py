@@ -1,51 +1,26 @@
-#!/usr/bin/env python
-# Non-Motorized Toolkit
-# Copyright (c) 2014 Open Technology Group Inc. (A North Carolina Corporation)
-# Developed under Federal Highway Administration (FHWA) Contracts:
-# DTFH61-12-P-00147 and DTFH61-14-P-00108
-# 
-# Redistribution and use in source and binary forms, with or without modification, 
-# are permitted provided that the following conditions are met:
-#     * Redistributions of source code must retain the above copyright notice, 
-#       this list of conditions and the following disclaimer.
-#     * Redistributions in binary form must reproduce the above copyright 
-#       notice, this list of conditions and the following disclaimer 
-#       in the documentation and/or other materials provided with the distribution.
-#     * Neither the name of the Open Technology Group, the name of the 
-#       Federal Highway Administration (FHWA), nor the names of any 
-#       other contributors may be used to endorse or promote products 
-#       derived from this software without specific prior written permission.
-# 
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
-# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
-# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL 
-# Open Technology Group Inc BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
-# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
-# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF 
-# USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED 
-# AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, 
-# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
-# OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-"""sendmail email backend class."""
-
-
+'''
+A class to cause the local sendmail daemon (or it's equivalent) to
+be used (via the sendmail command) when sending email.  This assumes
+that the local MTA is setup properly and working.
+'''
 from django.conf import settings
 from django.core.mail.backends.base import BaseEmailBackend
 from subprocess import Popen,PIPE
 import logging
 logger=logging.getLogger(__name__)
-
 class EmailBackend(BaseEmailBackend):
+    '''
+    Backend to handle local sending of email using the sendmail process.
+    '''
     def __init__(self, fail_silently=False, **kwargs):
         super(EmailBackend, self).__init__(fail_silently=fail_silently)
-
+        
     def open(self):
         return True
-
+    
     def close(self):
         pass
-
+    
     def send_messages(self, email_messages):
         """
         Sends one or more EmailMessage objects and returns the number of email
@@ -59,9 +34,11 @@ class EmailBackend(BaseEmailBackend):
             if sent:
                 num_sent += 1
         return num_sent
-
+    
     def _send(self, email_message):
-        """A helper method that does the actual sending."""
+        """
+        A helper method that does the actual sending.
+        """
         if not email_message.recipients():
             return False
         try:
@@ -69,7 +46,7 @@ class EmailBackend(BaseEmailBackend):
 #                         ["/usr/sbin/sendmail"]+list(email_message.recipients()))
             ps = Popen(["/usr/sbin/sendmail"]+list(email_message.recipients()), \
                        stdin=PIPE)
-#            logger.debug('Writing message to pipe: %s', 
+#            logger.debug('Writing message to pipe: %s',
 #                         email_message.message().as_string())
             ps.stdin.write(email_message.message().as_string())
             ps.stdin.flush()
