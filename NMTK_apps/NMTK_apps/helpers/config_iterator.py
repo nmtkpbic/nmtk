@@ -29,7 +29,7 @@ class ConfigIterator(object):
         self.iterable_fields = {}
         self._data = {}
         for key, value in self.config_data.iteritems():
-            if value['type'] == 'property':
+            if value['type'] == 'property' and value.get('value', None) is not None:
                 self.iterable_fields[key] = value.get('value', None)
             else:
                 self._data[key] = value.get('value', None)
@@ -80,7 +80,10 @@ class ConfigIterator(object):
         data = self._data.copy()
         # copy in the non-static values (properties from the file)
         for k, v in self.iterable_fields.iteritems():
-            data[k] = self.this_row['properties'][v]
+            if v is not None:
+                data[k] = self.this_row['properties'][v]
+            else:
+                data[k] = None
         # return the data itself.
         logger.debug('Returning data of %s', data)
         return data
