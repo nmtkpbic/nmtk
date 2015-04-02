@@ -590,10 +590,11 @@ define(['underscore'
 								$scope.resources['job'].post(result).then(function (api_result) {
 									$scope.refreshData('job').then(function () {
 										$scope.rest['job'].then(function (jobs) {
+											var job_id=api_result.resource_uri.split('/').reverse()[1];
 											var this_job=_.find(jobs, function (job) {
-												return job.resource_uri == api_result.resource_uri
+												return job.id == job_id;
 											})
-											var uri='/job/' + api_result.resource_uri.split('/').reverse()[1] + '/';
+											var uri='/job/' + job_id + '/';
 											if (typeof default_config !== 'undefined') {
 												$scope.rest['datafile'].then(function (user_files) {
 													if (! _.isUndefined(default_files)) {
