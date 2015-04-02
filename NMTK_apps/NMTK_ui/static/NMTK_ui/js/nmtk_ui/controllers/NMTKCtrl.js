@@ -597,7 +597,7 @@ define(['underscore'
 											var uri='/job/' + job_id + '/';
 											if (typeof default_config !== 'undefined') {
 												$scope.rest['datafile'].then(function (user_files) {
-													if (! _.isUndefined(default_files)) {
+													if (! _.isUndefined(default_files) && !_.isNull(default_files)) {
 														_.each(default_files, function (sample_file) {
 															var f=_.find(user_files, function (user_file) {
 																return (sample_file.checksum == user_file.checksum);
