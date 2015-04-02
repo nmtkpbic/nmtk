@@ -588,39 +588,40 @@ define(['underscore'
 															controller: 'CreateJobCtrl'});
 							modal_instance.result.then(function(result) {
 								$scope.resources['job'].post(result).then(function (api_result) {
-									$scope.refreshData('job');
-									$scope.rest['job'].then(function (jobs) {
-										var this_job=_.find(jobs, function (job) {
-											return job.resource_uri == api_result.resource_uri
-										})
-										var uri='/job/' + api_result.resource_uri.split('/').reverse()[1] + '/';
-										if (typeof default_config !== 'undefined') {
-											$scope.rest['datafile'].then(function (user_files) {
-												if (! _.isUndefined(default_files)) {
-													_.each(default_files, function (sample_file) {
-														var f=_.find(user_files, function (user_file) {
-															return (sample_file.checksum == user_file.checksum);
+									$scope.refreshData('job').then(function () {
+										$scope.rest['job'].then(function (jobs) {
+											var this_job=_.find(jobs, function (job) {
+												return job.resource_uri == api_result.resource_uri
+											})
+											var uri='/job/' + api_result.resource_uri.split('/').reverse()[1] + '/';
+											if (typeof default_config !== 'undefined') {
+												$scope.rest['datafile'].then(function (user_files) {
+													if (! _.isUndefined(default_files)) {
+														_.each(default_files, function (sample_file) {
+															var f=_.find(user_files, function (user_file) {
+																return (sample_file.checksum == user_file.checksum);
+															});
+															if (!_.isUndefined(f)) {
+																$scope.job_config_files[sample_file.namespace]=f.resource_uri;
+															}
 														});
-														if (!_.isUndefined(f)) {
-															$scope.job_config_files[sample_file.namespace]=f.resource_uri;
-														}
-													});
-												} else if (!_.isUndefined(default_file_config)) {
-													$scope.job_config_files=default_file_config;
-												} 
-												$scope.job_uri=uri;
-												$scope.job_config=default_config;
-												this_job.config=default_config;
-												this_job.file_config=$scope.job_config_files
-												this_job.put().then(function () {
-													$scope.refreshData('job').then(function () {
-														$location.path(uri);
+													} else if (!_.isUndefined(default_file_config)) {
+														$scope.job_config_files=default_file_config;
+													} 
+													$scope.job_uri=uri;
+													$scope.job_config=default_config;
+													this_job.config=default_config;
+													this_job.file_config=$scope.job_config_files
+													this_job.put().then(function () {
+														$scope.refreshData('job').then(function () {
+															$location.path(uri);
+														});
 													});
 												});
-											});
-										} else {
-											$location.path(uri);
-										}
+											} else {
+												$location.path(uri);
+											}
+										});
 									});
 								});			
 							});
