@@ -75,7 +75,7 @@ class ConfigIterator(object):
         # Note: this will raise the stopiteration if there are no more rows
         # in the data file to work with.
         self.this_row = next(self.file_iterator)
-        logger.debug('This row is %s', self.this_row)
+#         logger.debug('This row is %s', self.this_row)
         # Start with the static values, since those will always be the same
         data = self._data.copy()
         # copy in the non-static values (properties from the file)
@@ -85,7 +85,7 @@ class ConfigIterator(object):
             else:
                 data[k] = None
         # return the data itself.
-        logger.debug('Returning data of %s', data)
+#         logger.debug('Returning data of %s', data)
         return data
 
     def addResult(self, field, value):
