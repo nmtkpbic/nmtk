@@ -21,7 +21,7 @@ cgi-bin/mapserv
 
 # Ignore site config files
 conf/*
-
+!conf/apache*.conf
 # Ignore the config file used to rebuild stuff
 .nmtk_config
 
