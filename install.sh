@@ -164,6 +164,7 @@ fi
   sed -e 's|NMTK_INSTALL_PATH|'${NMTK_INSTALL_PATH}'|g' \
     -e 's|EMAIL|'${EMAIL}'|g' \
     -e 's|HOSTNAME|'${HOSTN}'|g' \
+    -e 's|NMTK_NAME|'${NMTK_NAME}'|g' \
     conf/${CONF_FILE} > /etc/apache2/sites-available/${NMTK_NAME}.conf
   a2ensite ${NMTK_NAME}.conf
 #fi
