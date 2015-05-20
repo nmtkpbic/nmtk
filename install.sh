@@ -154,11 +154,16 @@ EOT
 if [[ $WINDOWS == 0 ]]; then
 sudo -s -- <<EOF
 # Install the celery startup scripts
-if [ ! -f "/etc/default/celeryd-$(hostname -s)" ]; then
-  sed -e 's|NMTK_INSTALL_PATH|'${NMTK_INSTALL_PATH}'|g' celery/celeryd-nmtk.default > /etc/default/celeryd-${NMTK_NAME}
-  cp celery/celeryd-nmtk.init /etc/init.d/celeryd-${NMTK_NAME}
+#if [ ! -f "/etc/default/celeryd-${NMTK_NAME}" ]; then
+  sed -e 's|NMTK_INSTALL_PATH|'${NMTK_INSTALL_PATH}'|g' \
+      -e 's|NMTK_NAME|'${NMTK_NAME}'|g' \
+    celery/celeryd-nmtk.default > /etc/default/celeryd-${NMTK_NAME}
+  sed -e 's|NMTK_INSTALL_PATH|'${NMTK_INSTALL_PATH}'|g' \
+      -e 's|NMTK_NAME|'${NMTK_NAME}'|g' \
+    celery/celeryd-nmtk.init > /etc/init.d/celeryd-${NMTK_NAME}
+  chmod +x /etc/init.d/celeryd-${NMTK_NAME}
   update-rc.d celeryd-${NMTK_NAME} defaults 
-fi
+#fi
 
 #if [ ! -f "/etc/apache2/sites-available/${NMTK_NAME}.conf" ]; then
   sed -e 's|NMTK_INSTALL_PATH|'${NMTK_INSTALL_PATH}'|g' \
