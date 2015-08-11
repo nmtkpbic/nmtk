@@ -55,21 +55,45 @@ def tool_base_view(request, tool_name, subtool_name=None):
 
 @csrf_exempt
 def generateToolConfiguration(request, tool_name, subtool_name=None):
-    config_file='{0}.json'.format(subtool_name or 'tool_config')
+    '''
+    Return the JSON tool configuration file for tool_name/subtool_name
+    Use a generator function if available, otherwise load the JSON
+    file from the Django templates folder for the tool.
+    '''
+    tool = subtool_name or 'tool_config'
+    logger.debug("Generating tool configuration for %s"%(tool_name,))
     try:
-        config=json.loads(render_to_string(os.path.join(tool_name, config_file)))
+        module="%s.tool_configs" % (tool_name,)
+        config=import_module(".tool_configs",tool_name)
+    except Exception, e:
+        logger.debug("Could not import tool_configs from module %s"%(module,))
+        raise Http404
+    try:
+        # Create a Python dictionary for toolconfig
+        if hasattr(config,"generateToolConfiguration"):
+            # If available, call a function to generate toolconfig
+            logger.debug("Using function to generate config: %s (%s)"%(tool_name,tool))
+            toolconfig = config.generateToolConfiguration(tool_name,subtool_name)
+        else:
+            # Otherwise, pull toolconfig from a JSON file in the
+            # Django templates folder for the tool.
+            config_file='{0}.json'.format(tool)
+            logger.debug("Using Django template to generate config: %s"%(config_file,))
+            toolconfig=json.loads(render_to_string(os.path.join(tool_name, config_file)))
     except Exception, e:
         logger.exception('Failed to get config for tool!')
         raise Http404
-    # Add in the host and route data...
+
+    # Add in the host and route data for this running instance
     kwargs={'tool_name': tool_name,
             'subtool_name': subtool_name }
     if not subtool_name:
         del kwargs['subtool_name']
-    config['host']={'url': request.build_absolute_uri('/'),
-                    'route': reverse('tool_base',  
-                                     kwargs=kwargs) }
-    return HttpResponse(json.dumps(config),
+    toolconfig['host']={'url': request.build_absolute_uri('/'),
+                      'route': reverse('tool_base', kwargs=kwargs) }
+
+    # Return the configuration as JSON text
+    return HttpResponse(json.dumps(toolconfig),
                         content_type='application/json')
 
 def toolIndex(request):
@@ -83,24 +107,22 @@ def toolIndex(request):
     contains a list of the tools supported, which should match
     the urlpatterns defined in the tool.
     '''
-    tool_apps={}
     result=[]
-    for app in settings.INSTALLED_APPS:
-        module="%s.tool_configs" % (app,)
+    logger.debug('NMTK_TOOL_APPS = '+str(settings.NMTK_TOOL_APPS))
+    for app in settings.NMTK_TOOL_APPS:
         try:
-            config=__import__(module)
-            tool_apps[app]=[config.tool_configs]
-#             logger.debug('Located tool config for %s (%s)', app, config)
-            if hasattr(config.tool_configs, 'tools'):
-                for tool in getattr(config.tool_configs, 'tools',[]):
+            config=import_module(".tool_configs",app)
+            logger.debug('Located tool config for %s (%s)', app, config)
+            subtools = getattr(config,'tools',[])
+            if subtools: # if at least one name for a subtool is in the list
+                for tool in subtools:
                     result.append(reverse('tool_base', kwargs={'tool_name': app,
                                                                'subtool_name': tool }))
-            else:
+            else: # either don't have (sub)tools list, or it's empty
                 result.append(reverse('tool_base', kwargs={'tool_name': app}))
         except Exception, e:
-            if 'No module named' not in str(e):
-                logger.exception('App %s has no tool config', module)
-#     logger.debug("Tool list is %s" , result)
+            logger.exception('App %s has no tool config', app)
+    logger.debug("Tool list is %s" , result)
     return HttpResponse(json.dumps(result), 
                         content_type='application/json')
     
@@ -159,7 +181,7 @@ def runModel(request, tool_name, subtool_name=None):
     
     # here we call the task for the model.
     module_name="{0}.tasks".format(tool_name)
-    tasks=import_module(module_name)
+    tasks=import_module(".tasks",tool_name)
     logger.debug('Task module (%s) is %s (%s)', module_name, 
                  tasks.__name__, tasks.__file__)
     if hasattr(tasks, 'performModel'):
