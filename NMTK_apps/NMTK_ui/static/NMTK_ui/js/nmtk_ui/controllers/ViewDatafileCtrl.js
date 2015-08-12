@@ -629,7 +629,7 @@ define(['angular', 'underscore','leaflet',
 					        'layers': {
 					        		   'baselayers': { osm: { name: 'OpenStreetMap',
 										                      type: 'xyz',
-										                      url: 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+										                      url: '//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
 										                      layerOptions: {
 										                         subdomains: ['a', 'b', 'c'],
 										                         attribution: '© OpenStreetMap contributors',
@@ -638,7 +638,7 @@ define(['angular', 'underscore','leaflet',
 										                     },
 								                       blank: { name: 'Blank Base Map',
 									                            type: 'xyz',
-									                            url: 'http://downloads2.esri.com/support/TechArticles/blank256.png',
+									                            url: '//downloads2.esri.com/support/TechArticles/blank256.png',
 									                            layerOptions: {
 									                               continuousWorld: true
 									                            }

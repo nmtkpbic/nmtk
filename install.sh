@@ -62,15 +62,35 @@ done
 if [ -f ./.nmtk_config ]; then
   source ./.nmtk_config
 fi
+if [ ${#HOSTN} == 0 ]; then
+  read -p "URL Hostname (press enter for ${HOSTN:=$HOSTNAME}): " HOSTN 
+  if [[ ${#HOSTN} == 0 ]]; then
+    HOSTN=$HOSTNAME
+  fi
+fi
+if [ ${#SSL} == 0 ]; then
+  echo -n "Use SSL (Y/n)?  "
+  read ANSWER
+  if [[ "${ANSWER}" != 'Y' && "${ANSWER}" != 'y' ]]; then
+    SSL=0
+  else
+    SSL=1
+  fi
+fi
+HTTP='http'
+if [[ ${SSL} != 0 ]]; then
+  HTTP='https'
+fi
 if [[ $WINDOWS == 0 ]] ; then
   if [ ${#NMTK_NAME} == 0 ]; then
-    NMTK_NAME=$(hostname -s)
+    #NMTK_NAME=$(hostname -s)
+    NMTK_NAME=$(echo $HOSTN|cut -f1 -d.)
   fi
   if [ ${#URL} == 0 ]; then
-    echo -n "Enter URL for this tool server (Enter for http://$(hostname --fqdn)/): "
-    read URL
+    #echo -n "Enter URL for this tool server (Enter for http(s)://${HOSTN}/): "
+    #read URL
     if [ ${#URL} == 0 ]; then
-      URL="http://$(hostname --fqdn)/"
+      URL="$HTTP://${HOSTN}/"
     fi
   fi
 else
@@ -85,6 +105,11 @@ if [ ${#EMAIL} == 0 ]; then
   echo -n "Email Address: "
   read EMAIL
 fi
+CONF_FILE='apache.conf'
+if [[ ${SSL} != 0 ]]; then
+  CONF_FILE='apache-ssl.conf'
+fi
+echo "Using configuration file for apache in conf/$CONF_FILE"
 if [ ${#PASSWORD} == 0 ]; then
   echo -n "Enter Password for user $NMTK_USERNAME (to access the NMTK ui): "
   read -s PASSWORD
@@ -109,8 +134,7 @@ if [ ${#PGPASSWORD} == 0 ]; then
   read -s -p "PostgreSQL Password for $PGUSER (will not echo): " PGPASSWORD
   echo ""
 fi
-export FIRSTNAME LASTNAME PASSWORD EMAIL NMTK_USERNAME NMTK_NAME URL PGUSER PGPASSWORD
-if [ ! -f .nmtk_config ]; then
+export FIRSTNAME LASTNAME PASSWORD EMAIL NMTK_USERNAME NMTK_NAME URL PGUSER PGPASSWORD SSL CONF_FILE HOSTN
    cat <<-EOT > .nmtk_config
 	# These settings were built from the first run of the install.sh script
 	# to change them, remove this file and re-run the install script.
@@ -123,26 +147,34 @@ if [ ! -f .nmtk_config ]; then
 	NMTK_NAME=${NMTK_NAME}
 	URL=${URL}
 	PGUSER=${PGUSER}
+	SSL=${SSL}
+	HOSTN=${HOSTN}
 EOT
-fi
 
 if [[ $WINDOWS == 0 ]]; then
 sudo -s -- <<EOF
 # Install the celery startup scripts
-if [ ! -f "/etc/default/celeryd-$(hostname -s)" ]; then
-  sed -e 's|NMTK_INSTALL_PATH|'${NMTK_INSTALL_PATH}'|g' celery/celeryd-nmtk.default > /etc/default/celeryd-${NMTK_NAME}
-  cp celery/celeryd-nmtk.init /etc/init.d/celeryd-${NMTK_NAME}
+#if [ ! -f "/etc/default/celeryd-${NMTK_NAME}" ]; then
+  sed -e 's|NMTK_INSTALL_PATH|'${NMTK_INSTALL_PATH}'|g' \
+      -e 's|NMTK_NAME|'${NMTK_NAME}'|g' \
+    celery/celeryd-nmtk.default > /etc/default/celeryd-${NMTK_NAME}
+  sed -e 's|NMTK_INSTALL_PATH|'${NMTK_INSTALL_PATH}'|g' \
+      -e 's|NMTK_NAME|'${NMTK_NAME}'|g' \
+    celery/celeryd-nmtk.init > /etc/init.d/celeryd-${NMTK_NAME}
+  chmod +x /etc/init.d/celeryd-${NMTK_NAME}
   update-rc.d celeryd-${NMTK_NAME} defaults 
-fi
+#fi
 
-if [ ! -f "/etc/apache2/sites-available/${NMTK_NAME}.conf" ]; then
+#if [ ! -f "/etc/apache2/sites-available/${NMTK_NAME}.conf" ]; then
   sed -e 's|NMTK_INSTALL_PATH|'${NMTK_INSTALL_PATH}'|g' \
     -e 's|EMAIL|'${EMAIL}'|g' \
-    -e 's|HOSTNAME|'${HOSTNAME}'|g' \
-    conf/apache.conf > /etc/apache2/sites-available/${NMTK_NAME}.conf
+    -e 's|HOSTNAME|'${HOSTN}'|g' \
+    -e 's|NMTK_NAME|'${NMTK_NAME}'|g' \
+    conf/${CONF_FILE} > /etc/apache2/sites-available/${NMTK_NAME}.conf
   a2ensite ${NMTK_NAME}.conf
-fi
+#fi
 EOF
+echo ${NMTK_NAME}.conf
 
 BASEDIR=$(dirname $0)
 CELERYD_NAME=${NMTK_NAME}
