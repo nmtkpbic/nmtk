@@ -9,11 +9,11 @@ from django.utils.html import conditional_escape, format_html
 from django.utils.encoding import smart_text, force_text, python_2_unicode_compatible
 from django.utils import six
 from django.utils.safestring import mark_safe
-logger=logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 from django.contrib.auth.forms import UserCreationForm
 from django.utils.translation import ugettext, ugettext_lazy as _
 from django.contrib.auth import get_user_model
-User=get_user_model()
+User = get_user_model()
 
 
 class NMTKRegistrationForm(UserCreationForm):
@@ -22,14 +22,20 @@ class NMTKRegistrationForm(UserCreationForm):
         'password_mismatch': _("The two password fields didn't match."),
         'duplicate_email': _("An user with that email address already exists."),
     }
+
     def __init__(self, *args, **kwargs):
-        tos=kwargs.pop('tos', False)
+        tos = kwargs.pop('tos', False)
         super(NMTKRegistrationForm, self).__init__(*args, **kwargs)
         if tos:
-            tos_url=reverse('terms_of_service')
-            self.fields['tos'] = forms.BooleanField(widget=forms.CheckboxInput,
-                                                    label=mark_safe(_(u'I have read and agree to the <a target="_blank" href="{0}">Terms of Service</a>'.format(tos_url))),
-                                                    error_messages={'required': _("You must agree to the terms to register")})
+            tos_url = reverse('terms_of_service')
+            self.fields['tos'] = forms.BooleanField(
+                widget=forms.CheckboxInput,
+                label=mark_safe(
+                    _(
+                        u'I have read and agree to the <a target="_blank" href="{0}">Terms of Service</a>'.format(tos_url))),
+                error_messages={
+                    'required': _("You must agree to the terms to register")})
+
     def clean_email(self):
         # Since User.username is unique, this check is redundant,
         # but it sets a nicer error message than the ORM. See #13147.
@@ -39,54 +45,58 @@ class NMTKRegistrationForm(UserCreationForm):
         except User.DoesNotExist:
             return email
         raise forms.ValidationError(self.error_messages['duplicate_email'])
-    
+
     class Meta:
-        model=User
-        fields=('first_name','last_name','email','username')
-    
+        model = User
+        fields = ('first_name', 'last_name', 'email', 'username')
+
     def save(self, commit=True):
         '''
         Force active to false and superuser to false for the user object.
         '''
-        user=super(NMTKRegistrationForm,self).save(commit=False)
-        user.is_active=False
-        user.is_superuser=False
+        user = super(NMTKRegistrationForm, self).save(commit=False)
+        user.is_active = False
+        user.is_superuser = False
         if commit:
             user.save()
         return user
 
+
 class DataFileForm(forms.ModelForm):
+
     class Meta:
-        model=models.DataFile
-        fields=('file',)
-        
+        model = models.DataFile
+        fields = ('file',)
+
 
 class JobSubmissionFormTool(forms.ModelForm):
-    def __init__(self, user, *pargs,**kwargs):
+
+    def __init__(self, user, *pargs, **kwargs):
         super(JobSubmissionFormTool, self).__init__(*pargs, **kwargs)
-        self.fields["tool"].queryset=models.Tool.objects.filter(active=True)
-           
+        self.fields["tool"].queryset = models.Tool.objects.filter(active=True)
+
     class Meta:
-        model=models.Job
-        fields=('tool',)
-        
+        model = models.Job
+        fields = ('tool',)
+
+
 class JobSubmissionForm(forms.ModelForm):
-    
-    def __init__(self, user, *pargs,**kwargs):
+
+    def __init__(self, user, *pargs, **kwargs):
         super(JobSubmissionForm, self).__init__(*pargs, **kwargs)
-        self.fields["tool"].queryset=models.Tool.objects.filter(active=True)
-           
+        self.fields["tool"].queryset = models.Tool.objects.filter(active=True)
+
     class Meta:
-        model=models.Job
-        fields=('tool',)
-      
+        model = models.Job
+        fields = ('tool',)
+
 # class ToolConfigForm(forms.Form):
 #     '''
 #     Construct a form object using the configuration for
 #     a particular tool.  This should allow the user to
-#     either provide "field mappings" from the source to the destination 
+#     either provide "field mappings" from the source to the destination
 #     file, or set configuration variables (parameters) (or both.)
-#     
+#
 #     This form requires two input arguments:
 #         - config: the FULL config object for this particular
 #                   tool.
@@ -104,7 +114,7 @@ class JobSubmissionForm(forms.ModelForm):
 #         else:
 #             job=args[0]
 #             args=args[1:]
-#         # Populate the parameters list with those fields that contain 
+#         # Populate the parameters list with those fields that contain
 #         # user-settable parameters.  Populate data_fields with those
 #         # fields that should be mapped over from the fields in the source
 #         # data file.
@@ -117,7 +127,7 @@ class JobSubmissionForm(forms.ModelForm):
 # #        source_fields=data['features'][0]['properties'].keys()
 # #        logger.debug('Fields are %s', source_fields)
 #         # build choices so the user can choose the mapping(s)
-#         dataChoices=[(field, field) for field in source_fields]          
+#         dataChoices=[(field, field) for field in source_fields]
 #         input=config['input']
 #         self.fields['job_id']=forms.CharField(initial=job.pk,
 #                                               widget=forms.HiddenInput)
@@ -140,15 +150,15 @@ class JobSubmissionForm(forms.ModelForm):
 #                         fargs['initial']=field_name
 #                     self.fields[field_name]=forms.ChoiceField(**fargs)
 #                     self.data_fields.append(field_name)
-#             
+#
 #     def as_json(self):
 #         '''
 #         A method that outputs the form fields as a set of categorized JSON
 #         data structures rather that a simple <p> list.
-#         
+#
 #         def _html_output(self, normal_row, error_row, row_ender, help_text_html, errors_on_separate_row):
-# 
-#         '''    
+#
+#         '''
 #         top_errors = self.non_field_errors() # Errors that should be displayed above all fields.
 #         output, hidden_fields = [], []
 #         output={'errors': [],
@@ -180,7 +190,7 @@ class JobSubmissionForm(forms.ModelForm):
 #                 label = bf.label_tag(label) or ''
 #             else:
 #                 label = ''
-#             
+#
 #             result['help_text']=force_text(field.help_text or '')
 #             result['errors']=force_text(bf_errors)
 #             result['label']=force_text(label)

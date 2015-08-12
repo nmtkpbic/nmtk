@@ -1,7 +1,8 @@
 # (c) 2013 Chander Ganesan and contributors; written to work with Django and Paste (http://pythonpaste.org)
 # Paste CGI "middleware" for Django by Chander Ganesan <chander@otg-nc.com>
 # Open Technology Group, Inc <http://www.otg-nc.com>
-# Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+# Licensed under the MIT license:
+# http://www.opensource.org/licenses/mit-license.php
 import os
 import sys
 import subprocess
@@ -17,11 +18,14 @@ from paste.cgiapp import StdinReader, proc_communicate
 from paste.cgiapp import CGIApplication as PasteCGIApplication
 import urllib
 from django.http import HttpResponse
-# Taken from http://plumberjack.blogspot.com/2009/09/how-to-treat-logger-like-output-stream.html
+# Taken from
+# http://plumberjack.blogspot.com/2009/09/how-to-treat-logger-like-output-stream.html
 import logging
-mod_logger=logging.getLogger(__name__)
+mod_logger = logging.getLogger(__name__)
+
 
 class LoggerWriter:
+
     def __init__(self, logger, level):
         self.logger = logger
         self.level = level
@@ -30,12 +34,15 @@ class LoggerWriter:
         if message.strip() and message != '\n':
             self.logger.log(self.level, message)
 
+
 class CGIApplication(PasteCGIApplication):
+
     def __call__(self, request, environ, logger=None):
         if not logger:
-            self.logger=LoggerWriter(logging.getLogger(__name__), logging.ERROR)
+            self.logger = LoggerWriter(
+                logging.getLogger(__name__), logging.ERROR)
         else:
-            self.logger=logger
+            self.logger = logger
         if 'REQUEST_URI' not in environ:
             environ['REQUEST_URI'] = (
                 urllib.quote(environ.get('SCRIPT_NAME', ''))
@@ -47,7 +54,7 @@ class CGIApplication(PasteCGIApplication):
         for name in environ:
             # Should unicode values be encoded?
             if (name.upper() == name
-                and isinstance(environ[name], str)):
+                    and isinstance(environ[name], str)):
                 cgi_environ[name] = environ[name]
         if self.query_string is not None:
             old = cgi_environ.get('QUERY_STRING', '')
@@ -62,7 +69,7 @@ class CGIApplication(PasteCGIApplication):
             stderr=subprocess.PIPE,
             env=cgi_environ,
             cwd=os.path.dirname(self.script),
-            )
+        )
         writer = CGIWriter()
         if select and sys.platform != 'win32':
             proc_communicate(
@@ -73,11 +80,12 @@ class CGIApplication(PasteCGIApplication):
         else:
             stdout, stderr = proc.communicate(request.read())
             if stderr:
-                 self.logger.write(stderr)
+                self.logger.write(stderr)
             writer.write(stdout)
         if not writer.headers_finished:
             return HttpResponse(status=400)
         return writer.response
+
 
 class CGIWriter(object):
 
@@ -94,15 +102,17 @@ class CGIWriter(object):
             return
         self.buffer += data
         while '\n' in self.buffer:
-            if '\r\n' in self.buffer and self.buffer.find('\r\n') < self.buffer.find('\n'):
+            if '\r\n' in self.buffer and self.buffer.find(
+                    '\r\n') < self.buffer.find('\n'):
                 line1, self.buffer = self.buffer.split('\r\n', 1)
             else:
                 line1, self.buffer = self.buffer.split('\n', 1)
             if not line1:
                 self.headers_finished = True
-                self.response=HttpResponse(status=int(self.status.split(' ')[0]))
+                self.response = HttpResponse(
+                    status=int(self.status.split(' ')[0]))
                 for name, value in self.headers:
-                    self.response[name]=value
+                    self.response[name] = value
                 self.response.write(self.buffer)
                 del self.buffer
                 del self.headers
@@ -117,9 +127,9 @@ class CGIWriter(object):
                 name = name.strip()
                 if name.lower() == 'status':
                     if ' ' not in value:
-                        # WSGI requires this space, sometimes CGI scripts don't set it:
+                        # WSGI requires this space, sometimes CGI scripts don't
+                        # set it:
                         value = '%s General' % value
                     self.status = value
                 else:
                     self.headers.append((name, value))
-        

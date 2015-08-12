@@ -68,8 +68,11 @@ class PageName(models.Model):
     '''
     Valid page names (current valid value is nmtk_index, and nmtk_tos)
     '''
-    name = models.CharField(max_length=16, null=False,
-                            blank=False, help_text='The name for the page this text belongs to')
+    name = models.CharField(
+        max_length=16,
+        null=False,
+        blank=False,
+        help_text='The name for the page this text belongs to')
 
     class Meta:
         db_table = 'nmtk_pagename'
@@ -99,15 +102,19 @@ class PageContent(models.Model):
 
 
 class ToolServer(models.Model):
-    name = models.CharField(max_length=64,
-                            help_text='A descriptive name for this tool server.')
+    name = models.CharField(
+        max_length=64,
+        help_text='A descriptive name for this tool server.')
     tool_server_id = UUIDField(auto=True, primary_key=True)
-    auth_token = models.CharField(max_length=50,
-                                  default=lambda: ''.join([choice('abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)') for i in range(50)]))
-    remote_ip = IPAddressFieldNullable(blank=True, null=True,
-                                       help_text=('The IP where the tool resides' +
-                                                  ' so we can verify the request' +
-                                                  ' source IP as well if needed'))
+    auth_token = models.CharField(max_length=50, default=lambda: ''.join(
+        [choice('abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)') for i in range(50)]))
+    remote_ip = IPAddressFieldNullable(
+        blank=True,
+        null=True,
+        help_text=(
+            'The IP where the tool resides' +
+            ' so we can verify the request' +
+            ' source IP as well if needed'))
     active = models.BooleanField(default=True)
     last_modified = models.DateTimeField(auto_now=True)
     server_url = models.URLField()
@@ -217,8 +224,9 @@ class ToolSampleFile(models.Model):
     '''
     tool = models.ForeignKey(Tool, on_delete=models.CASCADE)
     namespace = models.CharField(max_length=32, null=False)
-    file = models.FileField(storage=fs, upload_to=lambda instance,
-                            filename: 'tool_files/%s/%s' % (instance.tool.pk, filename,))
+    file = models.FileField(
+        storage=fs, upload_to=lambda instance, filename: 'tool_files/%s/%s' %
+        (instance.tool.pk, filename,))
     checksum = models.CharField(max_length=50, null=False)
     content_type = models.CharField(max_length=64, null=True)
     objects = models.GeoManager()
@@ -239,7 +247,7 @@ class ToolSampleFile(models.Model):
             try:
                 if getattr(self, field, None):
                     delete_candidates.append(getattr(self, field).path)
-            except Exception, e:
+            except Exception as e:
                 logger.exception('Failed to process delete for %s (%s)',
                                  field, self.pk)
         r = super(ToolSampleFile, self).delete()
@@ -281,17 +289,26 @@ class Job(models.Model):
 #                                 blank=True, on_delete=models.PROTECT)
     # The result could contain multiple datafiles as well, so we will deal with
     # that via a separate model.
-    results_files = models.ManyToManyField('DataFile', null=True, through='ResultsFile',
-                                           related_name='results')
+    results_files = models.ManyToManyField(
+        'DataFile',
+        null=True,
+        through='ResultsFile',
+        related_name='results')
     # Now each job could have numerous data files, prevent deletion of a data file
     # if a job still requires it.
-    job_files = models.ManyToManyField('DataFile', null=True, through='JobFile',
-                                       related_name='job_files')
+    job_files = models.ManyToManyField(
+        'DataFile',
+        null=True,
+        through='JobFile',
+        related_name='job_files')
     # This will contain the config data to be sent along with the job, in
     # a JSON format of a multi-post operation.
     config = JSONField(null=True)
-    description = models.CharField(max_length=2048, null=False, blank=False,
-                                   help_text='A free-form description of this job')
+    description = models.CharField(
+        max_length=2048,
+        null=False,
+        blank=False,
+        help_text='A free-form description of this job')
     # The user that created the job (used to restrict who can view the job.)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=False)
     email = models.BooleanField(
@@ -314,13 +331,13 @@ class Job(models.Model):
 
     def save(self, *args, **kwargs):
         '''
-        Rather than have the view code have to submit the job, we'll just 
+        Rather than have the view code have to submit the job, we'll just
         monitor the job table.  Whenever a job gets configured, the
-        state change from unconfigured to configured will trigger 
+        state change from unconfigured to configured will trigger
         sending the job to the client - so we have a single entry point
         for sending jobs to the client.
 
-        In the interest of speed, the job execution work (which might take 
+        In the interest of speed, the job execution work (which might take
         some time to submit) is passed off as a celery task, so the client gets
         it's response(s) back immediately.
         '''
@@ -334,13 +351,14 @@ class Job(models.Model):
                 logger.debug('Detected a state change from Unconfigured to ' +
                              'Active for job (%s.)', self.pk)
                 logger.debug('Sending job to tool for processing.')
-                status_m = JobStatus(message='NMTK Server received job for processing.',
-                                     timestamp=timezone.now(),
-                                     job=self)
+                status_m = JobStatus(
+                    message='NMTK Server received job for processing.',
+                    timestamp=timezone.now(),
+                    job=self)
                 status_m.save()
                 # Submit the task to the client, passing in the job identifier.
                 tasks.submitJob.delay(str(self.pk))
-        elif (self.email and self._old_status <> self.status and
+        elif (self.email and self._old_status != self.status and
               self.status in (self.FAILED, self.TOOL_FAILED,
                               self.COMPLETE, self.POST_PROCESSING_FAILED)):
             tasks.email_user_job_done.delay(self)
@@ -356,7 +374,7 @@ class Job(models.Model):
 class ResultsFile(models.Model):
 
     '''
-    Since it is possible for a job to return multiple results now, we need to 
+    Since it is possible for a job to return multiple results now, we need to
     tie the job to its results.  This is done via this model.  Only one
     of the result files is considered the "primary" result though, and it's
     the one that can be used for display using the result field from the models
@@ -418,10 +436,16 @@ class DataFile(models.Model):
                   (JOB_RESULT, 'Results from Job',),
                   (JOB_BOTH, 'Result from Job, can be used for input',)
                   )
-    file = models.FileField(storage=fs,
-                            upload_to=lambda instance, filename: '%s/data_files/%s' % (instance.user.pk, filename,))
-    processed_file = models.FileField(storage=fs_geojson,
-                                      upload_to=lambda instance, filename: '%s/data_files/converted/%s' % (instance.user.pk, filename,))
+    file = models.FileField(
+        storage=fs, upload_to=lambda instance, filename: '%s/data_files/%s' %
+        (instance.user.pk, filename,))
+    processed_file = models.FileField(
+        storage=fs_geojson,
+        upload_to=lambda instance,
+        filename: '%s/data_files/converted/%s' %
+        (instance.user.pk,
+         filename,
+         ))
     name = models.CharField(max_length=64)
     type = models.CharField(choices=FILE_TYPES, max_length=10,
                             default=JOB_INPUT)
@@ -448,10 +472,15 @@ class DataFile(models.Model):
 #     legendgraphic=models.FileField(storage=fs_results,
 #                                    upload_to=lambda instance, filename: '%s/data_files/wms/%s_legend.png' % (instance.user.pk,
 # instance.pk))
-    model = models.FileField(storage=fs_results,
-                             upload_to=lambda instance, filename: '%s/data_files/%s.py' % (instance.user.pk,
-                                                                                           instance.pk,),
-                             blank=True, null=True)
+    model = models.FileField(
+        storage=fs_results,
+        upload_to=lambda instance,
+        filename: '%s/data_files/%s.py' %
+        (instance.user.pk,
+         instance.pk,
+         ),
+        blank=True,
+        null=True)
     checksum = models.CharField(max_length=50, null=False)
     objects = models.GeoManager()
 
@@ -544,7 +573,7 @@ class DataFile(models.Model):
                     if field == 'model':
                         compiled_module = "{0}s".format(self.model.path)
                         delete_candidates.append(compiled_module)
-            except Exception, e:
+            except Exception as e:
                 logger.exception('Failed to process delete for %s (%s)',
                                  field, self.pk)
         r = super(DataFile, self).delete()
@@ -609,8 +638,10 @@ class UserPreference(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=False)
 #     divs=models.CharField(null=True, blank=True, max_length=1024,
 # help_text='A JSON list of divs that are "enabled" in the UI')
-    config = models.TextField(null=False, blank=False,
-                              help_text='A JSON encoded string containing user preferences')
+    config = models.TextField(
+        null=False,
+        blank=False,
+        help_text='A JSON encoded string containing user preferences')
 
     class Meta:
         verbose_name = 'User Preference'
@@ -628,15 +659,27 @@ class MapColorStyle(models.Model):
     '''
     description = models.CharField(max_length=255)
     name = models.CharField(max_length=16, null=False)
-    other_r = models.IntegerField(null=False, validators=[MaxValueValidator(255),
-                                                          MinValueValidator(0), ],
-                                  verbose_name="R")
-    other_g = models.IntegerField(null=False, validators=[MaxValueValidator(255),
-                                                          MinValueValidator(0), ],
-                                  verbose_name="G")
-    other_b = models.IntegerField(null=False, validators=[MaxValueValidator(255),
-                                                          MinValueValidator(0), ],
-                                  verbose_name="B")
+    other_r = models.IntegerField(
+        null=False,
+        validators=[
+            MaxValueValidator(255),
+            MinValueValidator(0),
+        ],
+        verbose_name="R")
+    other_g = models.IntegerField(
+        null=False,
+        validators=[
+            MaxValueValidator(255),
+            MinValueValidator(0),
+        ],
+        verbose_name="G")
+    other_b = models.IntegerField(
+        null=False,
+        validators=[
+            MaxValueValidator(255),
+            MinValueValidator(0),
+        ],
+        verbose_name="B")
     default = models.BooleanField(default=False)
     category = models.CharField(max_length=20, null=True)
     ramp_graphic = models.ImageField(storage=fs, upload_to=lambda instance,
@@ -693,8 +736,7 @@ class MapColorStyle(models.Model):
             if self.ramp_graphic:
                 if os.path.exists(self.ramp_graphic.path):
                     os.unlink(self.ramp_graphic.path)
-            self.ramp_graphic = InMemoryUploadedFile(image_file, None,
-                                                     'ramp_graphic_{0}.png'.format(
-                                                         self.pk,),
-                                                     'image/png', len, None)
+            self.ramp_graphic = InMemoryUploadedFile(
+                image_file, None, 'ramp_graphic_{0}.png'.format(
+                    self.pk,), 'image/png', len, None)
         super(MapColorStyle, self).save(*args, **kwargs)

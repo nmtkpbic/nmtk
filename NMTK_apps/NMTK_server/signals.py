@@ -13,7 +13,7 @@ from registration.signals import user_activated
 from NMTK_server.default_data.init_account import setupAccount
 from django.core.mail import mail_managers
 
-User=get_user_model()
+User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
@@ -21,17 +21,19 @@ logger = logging.getLogger(__name__)
 def post_activation_setup(sender, user, **kwargs):
     # Deactivate the user, since the admin now needs to approve the account.
     if user.is_active:
-        #if user.datafile_set.count() == 0:
+        # if user.datafile_set.count() == 0:
           #  setupAccount(user)
         if settings.ADMIN_APPROVAL_REQUIRED:
-#             logger.debug('Deactivating account since approval is required')
-            user.is_active=False
-            
-            mail_managers('User {0} requires activation'.format(user.username),
-                        'Please go to the admin interface and activate the account (and notify the user)')
+            #             logger.debug('Deactivating account since approval is required')
+            user.is_active = False
+
+            mail_managers(
+                'User {0} requires activation'.format(
+                    user.username),
+                'Please go to the admin interface and activate the account (and notify the user)')
             user.save()
         # setup the account by populating it with any required "default" files.
-        
+
 
 @receiver(post_delete, sender=User)
 def delete_user_data(sender, instance, **kwargs):
@@ -43,8 +45,8 @@ def delete_user_data(sender, instance, **kwargs):
     '''
 #     logger.debug('Got post delete for user %s (%s)', instance.username,
 #                  instance.pk)
-    user_file_path=os.path.join(settings.FILES_PATH, 'NMTK_server', 'files',
-                                str(instance.pk))
+    user_file_path = os.path.join(settings.FILES_PATH, 'NMTK_server', 'files',
+                                  str(instance.pk))
 #     logger.debug('Removing all files for user %s (%s)', instance.pk,
 #                  user_file_path)
     shutil.rmtree(user_file_path, ignore_errors=True)
@@ -58,7 +60,8 @@ def create_user_profile(sender, instance, created, **kwargs):
         UserPreference.objects.create(user=instance,
                                       config=json.dumps({}))
 
-def find_models_with_filefield(): 
+
+def find_models_with_filefield():
     result = []
     for app in cache.get_apps():
         model_list = cache.get_models(app)
@@ -68,6 +71,7 @@ def find_models_with_filefield():
                     result.append(model)
                     break
     return result
+
 
 def remove_old_files(sender, instance, **kwargs):
     if not instance.pk:
@@ -83,11 +87,15 @@ def remove_old_files(sender, instance, **kwargs):
         old_file = getattr(old_instance, field.name)
         new_file = getattr(instance, field.name)
         storage = old_file.storage
-        if old_file and old_file != new_file and storage and storage.exists(old_file.name):
+        if old_file and old_file != new_file and storage and storage.exists(
+                old_file.name):
             try:
                 storage.delete(old_file.name)
             except Exception:
-                logger.exception("Unexpected exception while attempting to delete old file '%s'" % old_file.name)
+                logger.exception(
+                    "Unexpected exception while attempting to delete old file '%s'" %
+                    old_file.name)
+
 
 def remove_files(sender, instance, **kwargs):
     for field in instance._meta.fields:
@@ -99,7 +107,9 @@ def remove_files(sender, instance, **kwargs):
             try:
                 storage.delete(file_to_delete.name)
             except Exception:
-                logger.exception("Unexpected exception while attempting to delete file '%s'" % file_to_delete.name)
+                logger.exception(
+                    "Unexpected exception while attempting to delete file '%s'" %
+                    file_to_delete.name)
 
 
 for model in find_models_with_filefield():
