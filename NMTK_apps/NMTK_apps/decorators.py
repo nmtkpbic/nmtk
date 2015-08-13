@@ -90,7 +90,8 @@ def nmtk(func):
         api = server_api.NMTKClient(server_data['url'],
                                     tool_server_id,
                                     server_data['secret'],
-                                    job_id)
+                                    job_id,
+                                    verify_ssl=server_data.get('verify_ssl', True))
         request.NMTK = NMTKConfig(api,
                                   "%s" % (job_id,),
                                   "%s" % (tool_server_id,),

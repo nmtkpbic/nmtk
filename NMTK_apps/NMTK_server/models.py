@@ -117,6 +117,7 @@ class ToolServer(models.Model):
             ' source IP as well if needed'))
     active = models.BooleanField(default=True)
     last_modified = models.DateTimeField(auto_now=True)
+    verify_ssl = models.BooleanField(default=True, null=False)
     server_url = models.URLField()
     date_created = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(

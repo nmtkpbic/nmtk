@@ -37,14 +37,21 @@ import tempfile
 logger = logging.getLogger(__name__)
 
 geomodel_mappings = {
-    ogr.wkbPoint: (
-        'models.PointField', geos.Point, 'point'), ogr.wkbGeometryCollection: (
-            'models.GeometryField', geos.GEOSGeometry, 'point'), ogr.wkbLineString: (
-                'models.LineStringField', geos.LineString, 'line'), ogr.wkbMultiPoint: (
-                    'models.MultiPointField', geos.MultiPoint, 'point'), ogr.wkbMultiPolygon: (
-                        'models.MultiPolygonField', geos.MultiPolygon, 'polygon'), ogr.wkbPolygon: (
-                            'models.PolygonField', geos.Polygon, 'polygon'), ogr.wkbMultiLineString: (
-                                'models.MultiLineStringField', geos.MultiLineString, 'line'), }
+    ogr.wkbPoint: ('models.PointField',
+                   geos.Point, 'point'),
+    ogr.wkbGeometryCollection: ('models.GeometryField',
+                                geos.GEOSGeometry, 'point'),
+    ogr.wkbLineString: ('models.LineStringField',
+                        geos.LineString, 'line'),
+    ogr.wkbMultiPoint: ('models.MultiPointField',
+                        geos.MultiPoint, 'point'),
+    ogr.wkbMultiPolygon: ('models.MultiPolygonField',
+                          geos.MultiPolygon, 'polygon'),
+    ogr.wkbPolygon: ('models.PolygonField',
+                     geos.Polygon, 'polygon'),
+    ogr.wkbMultiLineString: ('models.MultiLineStringField',
+                             geos.MultiLineString, 'line'),
+}
 
 
 # This actually does not get done as a task - it is inline with the
@@ -241,7 +248,7 @@ def discover_tools(toolserver):
         append_slash = ''
     # index returns a json list of tools.
     url = "{0}{1}index".format(toolserver.server_url, append_slash)
-    tool_list = requests.get(url).json()
+    tool_list = requests.get(url, verify=toolserver.verify_ssl).json()
     logger.debug('Retrieved tool list of: %s', tool_list)
     for tool in tool_list:
         try:
@@ -289,7 +296,8 @@ def cancelJob(job_id, tool_id):
     digest = digest_maker.hexdigest()
     files = {'cancel': ('cancel', job_id)}
     r = requests.delete(job.tool.analyze_url, files=files,
-                        headers={'Authorization': digest})
+                        headers={'Authorization': digest},
+                        verify=job.tool.tool_server.verify_ssl)
     logger.debug(
         "Submitted cancellation request for job to %s tool, response was %s (%s)",
         tool,
@@ -341,7 +349,9 @@ def submitJob(job_id):
                 jobfile.datafile.file)
     logger.debug('Files for job are %s', files)
     r = requests.post(job.tool.analyze_url, files=files,
-                      headers={'Authorization': digest})
+                      headers={'Authorization': digest,
+                               'Referer': job.tool.analyze_url},
+                      verify=job.tool.tool_server.verify_ssl)
     logger.debug("Submitted job to %s tool, response was %s (%s)",
                  job.tool, r.text, r.status_code)
     if r.status_code != 200:
@@ -362,7 +372,8 @@ def submitJob(job_id):
 @task(ignore_result=False)
 def updateToolConfig(tool):
     from NMTK_server import models
-    json_config = requests.get(tool.config_url)
+    json_config = requests.get(
+        tool.config_url, verify=tool.tool_server.verify_ssl)
     try:
         config = tool.toolconfig
     except:
@@ -404,7 +415,8 @@ def updateToolConfig(tool):
                             raise Exception(
                                 'Only absolute URLs or fully-qualified URLs allowed')
                     logger.debug('Attempting to download %s', fconfig['uri'])
-                    data = requests.get(fconfig['uri'], stream=True)
+                    data = requests.get(fconfig['uri'], stream=True,
+                                        verify=tool.tool_server.verify_ssl)
                     checksum = hashlib.sha1()
                     if data.status_code != 200:
                         raise Exception('Failed to download data file %s',
@@ -510,7 +522,8 @@ def importDataFile(datafile, job_id=None):
                 field_mappings = [(django_model_fields.IntegerField, 'integer',),
                                   # Required because nmtk_id is an autofield..
                                   (django_model_fields.AutoField, 'integer',),
-                                  (django_model_fields.BooleanField, 'boolean',),
+                                  (django_model_fields.BooleanField,
+                                   'boolean',),
                                   # Special case holding FIPS
                                   (django_model_fields.DecimalField, 'float',),
                                   (django_model_fields.TextField, 'text',),

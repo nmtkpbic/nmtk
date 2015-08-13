@@ -24,7 +24,8 @@
             "date_created": "2013-01-15T19:26:31.332Z",
             "active": true,
             "created_by": 1,
-            "remote_ip": null
+            "remote_ip": null,
+            "verify_ssl": false
         }
     },
     {

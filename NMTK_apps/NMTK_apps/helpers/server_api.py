@@ -30,11 +30,13 @@ class NMTKClient(object):
 
     def __init__(self, url, tool_server_id=None,
                  shared_secret=None,
-                 job_id=None):
+                 job_id=None,
+                 verify_ssl=True):
         '''
         Since it's likely the caller will have the public/private keys already
         loaded up, we'll require either them, or a filename containing them.
         '''
+        self.verify_ssl = verify_ssl
         self.url = url.rstrip(
             '/')  # Remove the trailing slash if there is one..
         try:
@@ -52,6 +54,7 @@ class NMTKClient(object):
         HTTP protocol standard authorization header.
         '''
         logger.debug("%s: %s", type(payload), payload)
+        logger.debug('Signature key is %s', self.shared_secret)
         digest_maker = hmac.new(self.shared_secret,
                                 payload,
                                 hashlib.sha1)
@@ -67,7 +70,8 @@ class NMTKClient(object):
                           'tool_server_id': self.tool_server_id}
         payload_json = json.dumps(payload)
         signature = self._getSignature(payload_json)
-        headers.update({'authorization': signature})
+        headers.update({'authorization': signature,
+                        'Referer': url})
         # We use the requests library here - it'll do the correct
         # requests using requests.post, requests.get, requests.put
         # so the getattr(requests,type) uses the type provided to
@@ -77,7 +81,8 @@ class NMTKClient(object):
         logger.debug(files)
         r = getattr(requests, type)(url,
                                     files=files,
-                                    headers=headers)
+                                    headers=headers,
+                                    verify=self.verify_ssl)
         r.raise_for_status()
         # Note that everything from the server comes back as a JSON response,
         # so we always decode and return that response.
