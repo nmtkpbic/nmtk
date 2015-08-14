@@ -55,7 +55,7 @@ class NMTKClient(object):
         '''
         logger.debug("%s: %s", type(payload), payload)
         logger.debug('Signature key is %s', self.shared_secret)
-        digest_maker = hmac.new(self.shared_secret,
+        digest_maker = hmac.new(str(self.shared_secret),
                                 payload,
                                 hashlib.sha1)
         digest = digest_maker.hexdigest()

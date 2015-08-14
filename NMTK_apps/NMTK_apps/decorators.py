@@ -31,6 +31,7 @@
 from django.conf import settings
 from django.core.exceptions import PermissionDenied, SuspiciousOperation
 import hmac
+import os
 import json
 import hashlib
 import logging
@@ -67,14 +68,24 @@ def nmtk(func):
                 'Config object lacks appropriate job data, permission denied.')
             raise PermissionDenied
         tool_server_id = configobj['job']['tool_server_id']
+        location = os.path.join(settings.FILES_PATH, 'NMTK_tools', 'servers',
+                                '{0}.config'.format(tool_server_id))
+        if not os.path.exists(location):
+            logger.error('Did not find tool_server_id of %s',
+                         tool_server_id)
+            raise PermissionDenied
+        else:
+            with open(location) as server_config_file:
+                server_data = json.load(server_config_file)
         job_id = configobj['job'].get('job_id')
-        server_data = settings.NMTK_SERVERS.get(tool_server_id)
+
+#         server_data = settings.NMTK_SERVERS.get(tool_server_id)
         if not server_data:
             logger.error('Did not find tool_server_id of %s',
                          tool_server_id)
             raise PermissionDenied
         digest = hmac.new(
-            server_data['secret'],
+            str(server_data['shared_secret']),
             config,
             hashlib.sha1).hexdigest()
         auth = request.META.get('HTTP_AUTHORIZATION')
@@ -89,7 +100,7 @@ def nmtk(func):
         job_id = configobj['job'].get('job_id')
         api = server_api.NMTKClient(server_data['url'],
                                     tool_server_id,
-                                    server_data['secret'],
+                                    server_data['shared_secret'],
                                     job_id,
                                     verify_ssl=server_data.get('verify_ssl', True))
         request.NMTK = NMTKConfig(api,

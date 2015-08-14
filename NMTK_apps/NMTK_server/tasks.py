@@ -22,7 +22,7 @@ from django.contrib.sites.models import Site
 from django.core.management.base import BaseCommand, CommandError
 from django.core.management.commands import inspectdb
 from django.template.loader import render_to_string
-from django.core.mail import send_mail
+from django.core.mail import send_mail, EmailMessage
 from django.core.files.base import ContentFile
 from django.shortcuts import render
 from django.db.models import fields as django_model_fields
@@ -223,7 +223,7 @@ def email_user_job_done(job):
 
 
 @task(ignore_result=False)
-def add_toolserver(name, url, username, remote_ip=None):
+def add_toolserver(name, url, username, remote_ip=None, contact=None, verify_ssl=True):
     from NMTK_server import models
     try:
         User = get_user_model()
@@ -234,9 +234,34 @@ def add_toolserver(name, url, username, remote_ip=None):
     m = models.ToolServer(name=name,
                           server_url=url,
                           remote_ip=remote_ip,
+                          verify_ssl=verify_ssl,
+                          contact=contact,
                           created_by=user)
     m.save()
     return m
+
+
+@task(ignore_resut=True)
+def email_tool_server_admin(toolserver):
+    '''
+    Email the tool server administrator with the credentials to use/add for 
+    the tool server.
+    '''
+    context = {'toolserver': toolserver,
+               'site': Site.objects.get_current()}
+    subject = render_to_string('NMTK_server/tool_server_added_notification_subject.txt',
+                               context).strip().replace('\n', ' ')
+    message = render_to_string('NMTK_server/tool_server_added_notification.txt',
+                               context)
+    logger.debug(
+        'Sending tool server added notification email to %s',
+        toolserver.contact)
+    message = EmailMessage(subject=subject,
+                           body=message,
+                           from_email=settings.DEFAULT_FROM_EMAIL,
+                           to=[toolserver.contact, ],
+                           attachments=[('nmtk_server.config', toolserver.json_config(), 'application/json',), ])
+    message.send()
 
 
 @task(ignore_result=False)
@@ -247,8 +272,12 @@ def discover_tools(toolserver):
     else:
         append_slash = ''
     # index returns a json list of tools.
-    url = "{0}{1}index".format(toolserver.server_url, append_slash)
-    tool_list = requests.get(url, verify=toolserver.verify_ssl).json()
+    try:
+        tool_list = requests.get(
+            toolserver.server_url, verify=toolserver.verify_ssl).json()
+    except:
+        url = "{0}{1}index".format(toolserver.server_url, append_slash)
+        tool_list = requests.get(url, verify=toolserver.verify_ssl).json()
     logger.debug('Retrieved tool list of: %s', tool_list)
     for tool in tool_list:
         try:

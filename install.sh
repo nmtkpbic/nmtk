@@ -193,6 +193,7 @@ else
 fi
 echo ""
 pushd $BASEDIR &> /dev/null
+BASEDIR=$(pwd)
 if [[ $WINDOWS == 0 ]]; then
   sudo rm -rf nmtk_files/*
   source venv/bin/activate
@@ -202,9 +203,14 @@ else
 fi
 
 pushd NMTK_apps &> /dev/null
-DB_TYPE=$(python manage.py db_type -t)
-DB_NAME=$(python manage.py db_type -d)
-DB_USER=$(python manage.py db_type -u)
+DB_TYPE=$(python manage.py query_settings -t)
+DB_NAME=$(python manage.py query_settings -d)
+DB_USER=$(python manage.py query_settings -u)
+SELF_SIGNED_CERT=$(python manage.py query_settings --self-signed-cert)
+SERVER_ENABLED=$(python manage.py query_settings --nmtk-server-status)
+TOOLSERVER_ENABLED=$(python manage.py query_settings --tool-server-status)
+PRODUCTION=$(python manage.py query_settings --production)
+TOOL_SERVER_URL=$(python manage.py query_settings --tool-server-url)
 pushd ../nmtk_files &> /dev/null
 
   echo "Removing existing database (if it exists)"
@@ -218,18 +224,26 @@ popd &> /dev/null
 python manage.py syncdb --noinput
 # Use the -l argument for development, otherwise js/css changes require recopying
 
-python manage.py server_enabled
-if [[ $? == 0 ]]; then
+if [[ $PRODUCTION == 1 && ! -f "$BASEDIR/node/bin/npm" ]]; then
+  $BASEDIR/node/install.sh
+fi
+
+if [[ ${SERVER_ENABLED} == 1 ]]; then
   echo "NMTK Server is enabled, setting up default account, etc."
   python manage.py createsuperuser --noinput --email=$EMAIL --username=$NMTK_USERNAME
   echo "from django.contrib.auth import get_user_model; User=get_user_model(); u = User.objects.get(username__exact='$NMTK_USERNAME'); u.set_password('$PASSWORD'); u.first_name='$FIRSTNAME'; u.last_name='$LASTNAME'; u.save()"|python manage.py shell
-  echo "from NMTK_server.models import ToolServer; m = ToolServer.objects.all()[0]; m.server_url='${URL}'; m.save()"|python manage.py shell
+#  echo "from NMTK_server.models import ToolServer; m = ToolServer.objects.all()[0]; m.server_url='${URL}'; m.save()"|python manage.py shell
   python manage.py discover_tools
   echo "Tool discovery has been initiated, note that this may take some time to complete"
-  python manage.py minify
+  if [[ $PRODUCTION == 1 ]]; then
+    python manage.py minify
+  fi
   echo "Regenerating images for color ramps"
   python manage.py refresh_colorramps
 fi
+
+
+
 python manage.py collectstatic --noinput -l -c
 deactivate
 popd &> /dev/null
@@ -240,15 +254,25 @@ if [[ $WINDOWS == 0 ]]; then
     sudo find $DIR -exec chmod -R g+rw {} \;
   done
 fi
-popd &> /dev/null
+if [[ ${SERVER_ENABLED} == 1 && ${TOOLSERVER_ENABLED} == 1 ]]; then
+  if [[ ${SELF_SIGNED_CERT} == 1 ]]; then
+    ADDITIONAL_ARGS="--self-signed-ssl"
+  fi
+fi
 if [[ $WINDOWS == 0 ]]; then
   sudo a2dissite 000-default.conf &> /dev/null
   sudo /etc/init.d/apache2 restart
   sudo /etc/init.d/celeryd-$CELERYD_NAME start
+  
+  echo "Adding the local tool server to the NMTK server [Note: this may take some time as the celery queue may be full]"
+  $BASEDIR/venv/bin/python $BASEDIR/NMTK_apps/manage.py add_server $ADDITIONAL_ARGS -c $EMAIL -U $NMTK_USERNAME -u $TOOL_SERVER_URL "Local Sample Tool Server"|$BASEDIR/venv/bin/python $BASEDIR/NMTK_apps/manage.py add_nmtk_server
 else
   echo "To start the Windows development server run the commands:  "
   echo "start python NMTK_apps/manage.py celeryd"
   echo "start python NMTK_apps/manage.py runserver"
+  echo "$BASEDIR/venv/bin/python $BASEDIR/NMTK_apps/manage.py add_server $ADDITIONAL_ARGS -c $EMAIL -U $NMTK_USERNAME -u $TOOL_SERVER_URL "Local Sample Tool Server"|$BASEDIR/venv/bin/python $BASEDIR/manage.py add_nmtk_server"
+  
 fi
+popd &> /dev/null
 popd &> /dev/null
 

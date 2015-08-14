@@ -14,21 +14,6 @@
         }
     },
     {
-        "pk": "d0461b9536eb483d9f23c157e809af35",
-        "model": "NMTK_server.toolserver",
-        "fields": {
-            "name": "Sample tool server",
-            "auth_token": "yq@5u058y312%ebmyi85ytpfwjm9zv)1u2wu-m1s)%cngrvf_^",
-            "server_url": "http://127.0.0.1/",
-            "last_modified": "2013-01-15T19:26:31.332Z",
-            "date_created": "2013-01-15T19:26:31.332Z",
-            "active": true,
-            "created_by": 1,
-            "remote_ip": null,
-            "verify_ssl": false
-        }
-    },
-    {
         "pk": 1,
         "model": "NMTK_server.pagename",
         "fields": {

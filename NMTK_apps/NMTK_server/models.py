@@ -16,10 +16,12 @@ from django.utils.safestring import mark_safe
 from osgeo import ogr
 from django.contrib.gis.gdal import OGRGeometry
 from NMTK_server import tasks
+import json
 from NMTK_server import signals
 from NMTK_server.wms.legend import LegendGenerator
 from django.core.validators import MaxValueValidator, MinValueValidator
 import logging
+from urlparse import urlparse, urlunparse
 from django.contrib.auth.models import AbstractUser
 logger = logging.getLogger(__name__)
 
@@ -106,6 +108,7 @@ class ToolServer(models.Model):
         max_length=64,
         help_text='A descriptive name for this tool server.')
     tool_server_id = UUIDField(auto=True, primary_key=True)
+    contact = models.EmailField(null=True)
     auth_token = models.CharField(max_length=50, default=lambda: ''.join(
         [choice('abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)') for i in range(50)]))
     remote_ip = IPAddressFieldNullable(
@@ -127,16 +130,44 @@ class ToolServer(models.Model):
     def __str__(self):
         return "%s" % (self.name,)
 
+    def json_config(self):
+        if settings.SSL:
+            ssl = 's'
+        else:
+            ssl = ''
+        return json.dumps({
+            'tool_id': str(self.pk),
+            'url': 'http{0}://{1}{2}{3}'.format(ssl,
+                                                settings.SITE_DOMAIN,
+                                                settings.PORT,
+                                                reverse('nmtk_server_nmtk_index')),
+            'verify_ssl': not settings.SELF_SIGNED_SSL_CERT,
+            'shared_secret': self.auth_token
+        })
+
     def save(self, *args, **kwargs):
         '''
         Whenever a toolserver record is saved (and it's not a new record) we will
         go out and discover its tools.
         '''
+        new_record = False
+        if not self.pk:
+            new_record = True
         result = super(ToolServer, self).save(*args, **kwargs)
         logger.debug(
             'Detected a save of the ToolServer model, adding/updating tools.')
         tasks.discover_tools.delay(self)
+        # For a new record or changed contact we can send the email.
+        logger.error('New record is %s', new_record)
+        logger.error('Contact is %s = %s', self.contact, self.active)
+        if ((new_record and self.contact and self.active) or
+                (self.active and self._old_contact != self.contact)):
+            tasks.email_tool_server_admin.delay(self)
         return result
+
+    def __init__(self, *args, **kwargs):
+        super(ToolServer, self).__init__(*args, **kwargs)
+        self._old_contact = self.contact
 
     class Meta:
         db_table = 'nmtk_tool_server'
@@ -163,13 +194,23 @@ class Tool(models.Model):
 
     @property
     def analyze_url(self):
-        return "%s/%s/analyze" % (self.tool_server.server_url.rstrip('/'),
-                                  self.tool_path.strip('/'))
+        scheme, netloc, path, params, query, fragment = urlparse(
+            self.tool_server.server_url)
+        path = os.path.join(path, self.tool_path, 'analyze')
+        return urlunparse((scheme, netloc, path, params, query, fragment,))
 
     @property
     def config_url(self):
-        return "%s/%s/config" % (self.tool_server.server_url.rstrip('/'),
-                                 self.tool_path.strip('/'))
+        scheme, netloc, path, params, query, fragment = urlparse(
+            self.tool_server.server_url)
+        path = os.path.join(path, self.tool_path, 'config')
+        return urlunparse((scheme, netloc, path, params, query, fragment,))
+
+#         if tool_path[0] == '/':
+#             urlparse
+#         else:
+#             return "%s/%s/config" % (self.tool_server.server_url.rstrip('/'),
+#                                      self.tool_path.strip('/'))
 
     def save(self, *args, **kwargs):
         result = super(Tool, self).save(*args, **kwargs)
