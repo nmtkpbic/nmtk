@@ -632,7 +632,7 @@ define(['angular', 'underscore','leaflet',
 										                      url: '//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
 										                      layerOptions: {
 										                         subdomains: ['a', 'b', 'c'],
-										                         attribution: '© OpenStreetMap contributors',
+										                         attribution: 'ï¿½ OpenStreetMap contributors',
 										                         continuousWorld: true
 										                      }
 										                     },
@@ -690,10 +690,10 @@ define(['angular', 'underscore','leaflet',
 				}
 				if ($scope.datafile_api.result_field) {
 					$scope.$parent.data_file_tab_name="Results";
-					getOtherJobResults()
 				} else {
 					$scope.$parent.data_file_tab_name="Data";
 				}
+				getOtherJobResults();
 				$scope.getPagedDataAsync($scope.page_size, 0, '', 'nmtk_id');	
 				addResultWMS();
 				updateLegendGraphic();
