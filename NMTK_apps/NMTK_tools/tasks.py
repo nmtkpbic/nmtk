@@ -43,7 +43,7 @@ def add_nmtkserver(parameters):
     '''
     location = os.path.join(settings.FILES_PATH, 'NMTK_tools', 'servers')
     if not os.path.exists(location):
-        os.makedirs(location)
+        os.makedirs(location, 0700)
     required_keys = ['tool_id', 'shared_secret', 'url', ]
     for k in required_keys:
         if k not in parameters:
