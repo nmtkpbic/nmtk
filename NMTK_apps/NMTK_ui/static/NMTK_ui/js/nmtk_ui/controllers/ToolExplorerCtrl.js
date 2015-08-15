@@ -45,7 +45,9 @@ define([], function () {
 					 enableColumnResize: false,
 					 multiSelect: false,
 					 selectedItems: $scope.selections,
-					 columnDefs: [{field: 'name',
+					 columnDefs: [{field: 'tool_server',
+				           		   displayName: 'Tool Server'},
+				           		  {field: 'name',
 						           displayName: 'Tool Name'}],
 					 showColumnMenu: false };
 			$scope.$watch('selections', function () {

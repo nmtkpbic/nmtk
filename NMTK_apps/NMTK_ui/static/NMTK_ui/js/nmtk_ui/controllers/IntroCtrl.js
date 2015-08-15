@@ -51,7 +51,9 @@ define([], function () {
 					 multiSelect: false,
 					 plugins: [new ngGridFlexibleHeightPlugin()],
 					 selectedItems: $scope.selections,
-					 columnDefs: [  {field: 'name',
+					 columnDefs: [  {field: 'tool_server',
+						 			 displayName: 'Tool Server'},
+						 			{field: 'name',
 //						             width: '100%',
 						             cellTemplate: toolCellTemplate,
 						             displayName: 'Tool Name'}
