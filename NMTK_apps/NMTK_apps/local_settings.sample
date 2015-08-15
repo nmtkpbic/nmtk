@@ -212,6 +212,13 @@ ADMIN_APPROVAL_REQUIRED=True
 # The default from address for email sent from NMTK
 SERVER_EMAIL=DEFAULT_FROM_EMAIL='email_address'
 # Make this unique, and don't share it with anybody.
+# install.sh will set this to a random 64-character+digit value.  However,
+# if you aren't using install.sh, you should ensure this is set to
+# a suitable random value, using a command like this will
+# produce one:
+#
+# python -c "import string,random; print ''.join(random.choice([c for c in string.letters+string.digits+string.punctuation]) for i in xrange(50))"
+#  - If you do use the command above, be sure to enclose it in triple quotes (SECRET_KEY = '''value''')
 SECRET_KEY = 'hk(f4*q-%yo9xf*x@_4#cv=xc8zp=%03=sukgl+_6sz2=zdmy='
 
 #

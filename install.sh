@@ -211,6 +211,9 @@ SERVER_ENABLED=$(python manage.py query_settings --nmtk-server-status)
 TOOLSERVER_ENABLED=$(python manage.py query_settings --tool-server-status)
 PRODUCTION=$(python manage.py query_settings --production)
 TOOL_SERVER_URL=$(python manage.py query_settings --tool-server-url)
+SECRET=$(python -c "import string,random; print ''.join(random.choice(string.letters+string.digits) for i in xrange(64))")
+sed -i "s/^SECRET_KEY.*/SECRET_KEY = '''$SECRET'''/" $BASEDIR/NMTK_apps/NMTK_apps/local_settings.py
+
 pushd ../nmtk_files &> /dev/null
 
   echo "Removing existing database (if it exists)"
