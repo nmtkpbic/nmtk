@@ -207,11 +207,7 @@ define(['underscore'
 							});
 						} else if (api == 'datafile') {
 							$scope.rest[api].then(function (v) {
-								if (_.isUndefined($scope.datafile_cache)) {
-									$scope.datafile_cache = v;
-								} else {
-									$scope.datafile_cache = v;
-								}
+                                $scope.datafile_cache = v;
 								deferred.resolve();
 							}, function (error) {
 								if (error.status == 401) {
@@ -223,11 +219,7 @@ define(['underscore'
 							})
 						} else if (api == 'tool') {
 							$scope.rest[api].then(function (v) {
-								if (typeof $scope.datafile_cache === 'undefined') {
-									$scope.tool_cache = v;
-								} else {
-									$scope.tool_cache = v;
-								}
+                                $scope.tool_cache = v;
 								deferred.resolve();
 							}, function (error) {
 								if (error.status == 401) {
@@ -239,11 +231,7 @@ define(['underscore'
 							})
 						} else if (api == 'job') {
 							$scope.rest[api].then(function (v) {
-								if (typeof $scope.datafile_cache === 'undefined') {
-									$scope.job_cache = v;
-								} else {
-									$scope.job_cache = v;
-								}
+                                $scope.job_cache = v;
 								deferred.resolve();
 							}, function (error) {
 								if (error.status == 401) {
