@@ -274,13 +274,27 @@ define(['underscore'
 						$scope.delete_candidate={};
 					}
 					
-					$scope.deleteData=function (api, id) {
+					/*
+					 * Sometimes the refresh is done after multiple deletes, 
+					 * so give the caller the ability to skip refreshing the data
+					 * which assumes the caller will do it...
+					 */
+					$scope.deleteData=function (api, id, skip_refresh) {
 						var rest=$scope.resources[api];
-						rest.one(id).remove().then(function (r) {
-							$scope.refreshData(api);
+						var promise=rest.one(id).remove();
+						promise.then(function (r) {
+							if ($scope.results_uri && api == 'datafile' && $scope.results_uri.replace(/\/$/, "").split('/').reverse()[0] == id) {
+								$scope.results_uri = null;
+							} else if ($scope.job_uri && api == 'job' && $scope.job_uri.replace(/\/$/, "").split('/').reverse()[0] == id) {
+								$scope.job_uri = null;
+							}
+							if (! _.isUndefined(skip_refresh) && ! skip_refresh) {
+								$scope.refreshData(api);
+							}
 						}, function (r) {
 							alert('Please delete jobs for this file prior to deleting the file.')
 						});
+						return promise;
 					}
 					$scope.loginCheck=function () {
 						first_login_complete.promise.then(function () {
