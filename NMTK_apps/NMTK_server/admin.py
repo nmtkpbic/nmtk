@@ -67,12 +67,8 @@ class ToolAdmin(admin.ModelAdmin):
 
 class JobAdmin(admin.ModelAdmin):
 
-    def download_results_link(self, obj):
-        if obj.status == obj.COMPLETE:
-            return mark_safe('''<a href="%s">Results</a>''' %
-                             (obj.results_link,))
-        else:
-            return 'Not Available'
+    def job_result_status(self, obj):
+        return obj.get_status_display()
 
     list_filter = ['status', 'user']
     list_display = [
@@ -80,12 +76,12 @@ class JobAdmin(admin.ModelAdmin):
         'date_created',
         'status',
         'user',
-        'download_results_link']
+        'job_result_status']
     fields = [
         'tool',
         'date_created',
         'status',
-        'download_results_link',
+        'job_result_status',
         'config',
         'user',
     ]
@@ -93,7 +89,7 @@ class JobAdmin(admin.ModelAdmin):
         'tool',
         'status',
         'config',
-        'download_results_link',
+        'job_result_status',
         'date_created',
     )
 

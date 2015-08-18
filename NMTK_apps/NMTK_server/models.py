@@ -367,10 +367,6 @@ class Job(models.Model):
             tasks.cancelJob.delay(str(self.pk), self.tool.pk)
         return result
 
-    @property
-    def results_link(self):
-        return reverse('viewResults', kwargs={'job_id': self.job_id})
-
     def __str__(self):
         return "%s for %s" % (self.pk, self.user.username)
 
