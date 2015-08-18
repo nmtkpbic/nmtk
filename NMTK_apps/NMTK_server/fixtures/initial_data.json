@@ -1,18 +1,5 @@
 [
-    {
-        "pk": "1",
-        "model": "auth.User",
-        "fields": {
-            "username": "disabled_user",
-            "password": "DISABLED",
-            "email": "nobody@nmtk.server",
-            "first_name": "Disabled",
-            "last_name": "User",
-            "is_active": false,
-            "is_staff": false,
-            "is_superuser": false
-        }
-    },
+    
     {
         "pk": 1,
         "model": "NMTK_server.pagename",
