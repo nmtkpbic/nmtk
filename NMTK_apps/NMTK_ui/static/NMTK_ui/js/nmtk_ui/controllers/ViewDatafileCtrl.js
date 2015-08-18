@@ -670,7 +670,7 @@ define(['angular', 'underscore','leaflet',
 							// and grab those datafiles that are in the list of job files.
 							$scope.rest['datafile'].then(function (datafiles) {
 								_.each(datafiles, function (datafile) {
-									if (_.contains(datafile_ids, datafile.id)) {
+									if (_.contains(datafile_ids, datafile.id) && /complete/i.test(datafile.status)) {
 										$scope.other_datafiles.push(datafile);
 									}
 								});
