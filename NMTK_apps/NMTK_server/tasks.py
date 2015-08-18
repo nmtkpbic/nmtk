@@ -223,6 +223,15 @@ def email_user_job_done(job):
 
 
 @task(ignore_result=False)
+def verify_celery():
+    '''
+    A simple task that just returns true - used to verify if celery is actually
+    working - since we submit a job and wait for its result to come back.
+    '''
+    return True
+
+
+@task(ignore_result=False)
 def add_toolserver(name, url, username, remote_ip=None, contact=None, skip_email=False,
                    verify_ssl=True):
     from NMTK_server import models
