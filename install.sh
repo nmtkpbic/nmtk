@@ -28,6 +28,23 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # Script to install/reset the NMTK environment for testing.
+
+install_crons () {
+  NMTK_INSTALL_PATH=$1
+  NMTK_NAME=$2
+  
+  for FILE in $NMTK_INSTALL_PATH/NMTK_apps/*/crons/*; do
+    DEST_FILENAME="/etc/cron.d/$(basename ${FILE%.cron})_${NMTK_NAME}"
+    sudo -s -- <<EOF
+    sed -e 's|NMTK_INSTALL_PATH|'${NMTK_INSTALL_PATH}'|g' \
+        -e 's|NMTK_NAME|'${NMTK_NAME}'|g' \
+        $FILE > $DEST_FILENAME
+EOF
+    echo "Created new cron job for $(basename $FILE)"
+  done
+}
+
+
 cat <<-EOT
 	NOTICE: This script will cause the removal of all data, accounts, etc. 
 	        stored on this server.  For a new installation, it is acceptable
@@ -276,6 +293,8 @@ else
   echo "$BASEDIR/venv/bin/python $BASEDIR/NMTK_apps/manage.py add_server $ADDITIONAL_ARGS -c $EMAIL --skip-email -U $NMTK_USERNAME -u $TOOL_SERVER_URL "${TOOL_SERVER_URL%/*}"|$BASEDIR/venv/bin/python $BASEDIR/manage.py add_nmtk_server"
   
 fi
+
+install_crons $NMTK_INSTALL_PATH $NMTK_NAME
 popd &> /dev/null
 popd &> /dev/null
 
