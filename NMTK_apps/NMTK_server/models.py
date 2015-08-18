@@ -162,12 +162,15 @@ class ToolServer(models.Model):
         logger.error('Contact is %s = %s', self.contact, self.active)
         if ((new_record and self.contact and self.active) or
                 (self.active and self._old_contact != self.contact)):
-            tasks.email_tool_server_admin.delay(self)
+            if not getattr(self, 'skip_email', False):
+                tasks.email_tool_server_admin.delay(self)
         return result
 
     def __init__(self, *args, **kwargs):
+        skip_email = kwargs.pop('skip_email', False)
         super(ToolServer, self).__init__(*args, **kwargs)
         self._old_contact = self.contact
+        self.skip_email = skip_email
 
     class Meta:
         db_table = 'nmtk_tool_server'

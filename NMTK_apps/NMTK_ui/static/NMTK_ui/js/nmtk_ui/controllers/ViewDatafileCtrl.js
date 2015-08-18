@@ -269,8 +269,10 @@ define(['angular', 'underscore','leaflet',
 						options['filters']=angular.toJson(filters);
 					}
 					$log.info('Making request for ', $scope.datafile_api.download_url, options);
+					$scope.image_url=$scope.datafile_api.file;
 					$http.get($scope.datafile_api.download_url, {params: options}).success(function (data) {
 						$scope.totalServerItems=data.meta.total;
+						
 						$scope.pagingOptions.currentPage=(data.meta.offset/data.meta.limit)+1
 						if ($scope.paging_offset > 0) {
 							$scope.data= $scope.data.concat(data.data);

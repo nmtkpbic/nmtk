@@ -268,12 +268,12 @@ if [[ $WINDOWS == 0 ]]; then
   sudo /etc/init.d/celeryd-$CELERYD_NAME start
   
   echo "Adding the local tool server to the NMTK server [Note: this may take some time as the celery queue may be full]"
-  $BASEDIR/venv/bin/python $BASEDIR/NMTK_apps/manage.py add_server $ADDITIONAL_ARGS -c $EMAIL -U $NMTK_USERNAME -u $TOOL_SERVER_URL "Local Sample Tool Server"|$BASEDIR/venv/bin/python $BASEDIR/NMTK_apps/manage.py add_nmtk_server
+  $BASEDIR/venv/bin/python $BASEDIR/NMTK_apps/manage.py add_server $ADDITIONAL_ARGS -c $EMAIL --skip-email -U $NMTK_USERNAME -u ${TOOL_SERVER_URL} "${TOOL_SERVER_URL%/*}"|$BASEDIR/venv/bin/python $BASEDIR/NMTK_apps/manage.py add_nmtk_server
 else
   echo "To start the Windows development server run the commands:  "
   echo "start python NMTK_apps/manage.py celeryd"
   echo "start python NMTK_apps/manage.py runserver"
-  echo "$BASEDIR/venv/bin/python $BASEDIR/NMTK_apps/manage.py add_server $ADDITIONAL_ARGS -c $EMAIL -U $NMTK_USERNAME -u $TOOL_SERVER_URL "Local Sample Tool Server"|$BASEDIR/venv/bin/python $BASEDIR/manage.py add_nmtk_server"
+  echo "$BASEDIR/venv/bin/python $BASEDIR/NMTK_apps/manage.py add_server $ADDITIONAL_ARGS -c $EMAIL --skip-email -U $NMTK_USERNAME -u $TOOL_SERVER_URL "${TOOL_SERVER_URL%/*}"|$BASEDIR/venv/bin/python $BASEDIR/manage.py add_nmtk_server"
   
 fi
 popd &> /dev/null

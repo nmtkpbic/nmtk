@@ -223,7 +223,8 @@ def email_user_job_done(job):
 
 
 @task(ignore_result=False)
-def add_toolserver(name, url, username, remote_ip=None, contact=None, verify_ssl=True):
+def add_toolserver(name, url, username, remote_ip=None, contact=None, skip_email=False,
+                   verify_ssl=True):
     from NMTK_server import models
     try:
         User = get_user_model()
@@ -236,7 +237,8 @@ def add_toolserver(name, url, username, remote_ip=None, contact=None, verify_ssl
                           remote_ip=remote_ip,
                           verify_ssl=verify_ssl,
                           contact=contact,
-                          created_by=user)
+                          created_by=user,
+                          skip_email=skip_email)
     m.save()
     return m
 
@@ -537,7 +539,7 @@ def importDataFile(datafile, job_id=None):
             suffix = 'json'
         if datafile.status in (
                 datafile.IMPORTED,
-                datafile.IMPORT_RESULTS_COMPLETE):
+                datafile.IMPORT_RESULTS_COMPLETE) and datafile.feature_count:
             datafile.processed_file.save('{0}.{1}'.format(datafile.pk, suffix),
                                          ContentFile(''))
             loader.export_json(datafile.processed_file.path)
