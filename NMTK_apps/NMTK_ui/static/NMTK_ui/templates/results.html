@@ -16,7 +16,7 @@
         </div>
       </div>
    </div>
-   <div class="row">   	  
+   <div class="row ng-cloak">   	  
       <div class="col-md-12">
         <div class="widget stacked">
           <div ng-click="toggleDiv('job_result_help')" class="widget-header">
@@ -83,15 +83,15 @@
       </div><!-- /span12 -->
     </div><!-- /row -->
     <!--  The case where we have an image, rather than data. -->
-    <div ng-if="totalServerItems == 0" class="row">
-      <div class="col-md-12">
+    <div ng-if="totalServerItems == 0" class="row ng-cloak">
+      <div class="col-md-12 ng-cloak">
         <div class="widget stacked">
           <div class="widget-header">
             <span class="glyphicon glyphicon-picture" ></span>
             <h1>View {{data_file_tab_name}}</h1>
           </div> <!-- /widget-header -->
           <div class="widget-content text-center">
-            <img ng-src="{{image_url}}?display=1" style="height: 100%; width: 100%;"class="img-responsive" ></img>
+            <img ng-src="{{image_url}}?display=1" style="max-height: 100%; max-width: 100%;"class="img-responsive" ></img>
           </div> <!-- /widget-content -->
         </div><!-- /widget stacked -->
         
@@ -100,7 +100,7 @@
     
     
     
-    <div ng-if="totalServerItems > 0" class="row">
+    <div ng-if="totalServerItems > 0" class="row ng-cloak">
       <div class="col-md-6">
         <div class="widget stacked" ng-show="spatial">
           <div class="widget-header">
@@ -187,7 +187,7 @@
     
     
           
-    <div class="row">
+    <div class="row ng-cloak">
       <div class="col-md-12">
         <div class="widget stacked">
           <div class="widget-content centered">
