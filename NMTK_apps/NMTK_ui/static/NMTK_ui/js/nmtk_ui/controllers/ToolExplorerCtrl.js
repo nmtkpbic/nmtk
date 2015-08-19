@@ -112,6 +112,9 @@ define([], function () {
 				}
 			}
 			
+/*            $scope.doclink=function(tool_uri,doc_uri) {
+                return tool_uri+"/docs/"+doc_uri;
+            }; */
 			
 			$scope.loadSampleData=function (tool) {
 				/*

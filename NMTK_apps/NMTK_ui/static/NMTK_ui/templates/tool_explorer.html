@@ -84,7 +84,14 @@
 				  <tbody>
 					<tr ng-repeat="link in selections[0].config.documentation.links">						            
 					  <td><a target="_blank" ng-href="{{link.url}}">{{link.title}}</td>
-				    </tr>						          
+				    </tr>
+				  </tbody>
+				</table>
+				<table class="table table-bordered table-striped table-highlight"> 
+				  <tbody>
+					<tr ng-repeat="doc in selections[0].config.documentation.docs">
+					  <td><a target="_blank"> ng-href="doclink(selections[0].resource_uri,doc.url"{{doc.name}}</td>
+				    </tr>
 				  </tbody>
 				</table>
 			 </section>
