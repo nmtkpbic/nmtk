@@ -297,7 +297,13 @@ def discover_tools(toolserver):
             # Clean up any sample files, we will reload them now.
             if hasattr(t, 'toolsampleconfig'):
                 t.toolsampleconfig.delete()
-            t.toolsamplefile_set.all().delete()
+            # Need to iterate and delete so that the files get deleted
+            # also, since the set delete method won't call the individual
+            # delete method(s).
+            for item in t.toolsamplefile_set.all():
+                item.delete()
+
+#             t.toolsamplefile_set.all().delete()
         except ObjectDoesNotExist:
             t = models.Tool(tool_server=toolserver,
                             name=tool)
