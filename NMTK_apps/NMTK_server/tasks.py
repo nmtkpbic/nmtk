@@ -223,7 +223,17 @@ def email_user_job_done(job):
 
 
 @task(ignore_result=False)
-def add_toolserver(name, url, username, remote_ip=None, contact=None, verify_ssl=True):
+def verify_celery():
+    '''
+    A simple task that just returns true - used to verify if celery is actually
+    working - since we submit a job and wait for its result to come back.
+    '''
+    return True
+
+
+@task(ignore_result=False)
+def add_toolserver(name, url, username, remote_ip=None, contact=None, skip_email=False,
+                   verify_ssl=True):
     from NMTK_server import models
     try:
         User = get_user_model()
@@ -236,7 +246,8 @@ def add_toolserver(name, url, username, remote_ip=None, contact=None, verify_ssl
                           remote_ip=remote_ip,
                           verify_ssl=verify_ssl,
                           contact=contact,
-                          created_by=user)
+                          created_by=user,
+                          skip_email=skip_email)
     m.save()
     return m
 
@@ -286,7 +297,13 @@ def discover_tools(toolserver):
             # Clean up any sample files, we will reload them now.
             if hasattr(t, 'toolsampleconfig'):
                 t.toolsampleconfig.delete()
-            t.toolsamplefile_set.all().delete()
+            # Need to iterate and delete so that the files get deleted
+            # also, since the set delete method won't call the individual
+            # delete method(s).
+            for item in t.toolsamplefile_set.all():
+                item.delete()
+
+#             t.toolsamplefile_set.all().delete()
         except ObjectDoesNotExist:
             t = models.Tool(tool_server=toolserver,
                             name=tool)
@@ -537,7 +554,7 @@ def importDataFile(datafile, job_id=None):
             suffix = 'json'
         if datafile.status in (
                 datafile.IMPORTED,
-                datafile.IMPORT_RESULTS_COMPLETE):
+                datafile.IMPORT_RESULTS_COMPLETE) and datafile.feature_count:
             datafile.processed_file.save('{0}.{1}'.format(datafile.pk, suffix),
                                          ContentFile(''))
             loader.export_json(datafile.processed_file.path)

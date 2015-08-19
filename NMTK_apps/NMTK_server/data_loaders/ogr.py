@@ -214,6 +214,9 @@ class OGRLoader(BaseDataLoader):
         Read the output file and provide an iterable result
         '''
         if not hasattr(self, '_data'):
+            if self.ogr_obj is None:
+                self._data = None
+                return None
             layer = geom_extent = geom_type = spatial_ref = geom_srid = None
             # If we get here, then we have successfully determined the file type
             # that was provided, using OGR.  ogr_obj contains the OGR DataSource

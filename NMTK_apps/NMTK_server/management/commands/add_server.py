@@ -43,6 +43,12 @@ class Command(BaseCommand):
             default=None,
             help='Provide the contact for the user that is managing the tool server.'),
         make_option(
+            '--skip-email',
+            action='store_true',
+            dest='skip_email',
+            default=False,
+            help="Skip sending the notification email for the newly added tool server"),
+        make_option(
             '--self-signed-ssl',
             action='store_true',
             dest='self_signed_ssl',
@@ -71,6 +77,7 @@ class Command(BaseCommand):
                                           remote_ip=options['ip'],
                                           username=options['username'],
                                           contact=options['contact'],
+                                          skip_email=options['skip_email'],
                                           verify_ssl=not options['self_signed_ssl'])
         m = task.get()
         print m.json_config()

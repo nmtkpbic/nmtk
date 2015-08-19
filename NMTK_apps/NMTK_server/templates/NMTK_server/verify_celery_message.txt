@@ -1,0 +1,7 @@
+A celery job verification check failed after {{timeout}} seconds
+at {{url}} .
+
+This indicates that users may not be able to successfully load 
+data files and/or submit new jobs to tools on this server.
+
+Often, restarting the celery server will correct this issue.

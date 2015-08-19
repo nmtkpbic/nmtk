@@ -568,7 +568,8 @@ class DataFileResourceValidation(Validation):
         errors = {}
         if (not bundle.obj.pk and
                 'file' not in bundle.request.FILES):
-            errors['file'] = 'A file must be provided when creating this resource'
+            errors[
+                'file'] = 'A file must be provided when creating this resource'
         if (bundle.obj.pk and bundle.data.get('srid', False) and
                 bundle.data['srid'] != bundle.obj.srid and
                 bundle.obj.status not in
@@ -631,7 +632,7 @@ class DataFileResource(ModelResource):
             #             url(r"^(?P<resource_name>%s)/(?P<pk>\w[\w/-]*)/legend%s$" % (self._meta.resource_name,
             #                                                                          trailing_slash()),
             #                                                                          self.wrap_view('legend'),
-            #                 name="api_%s_legend" % (self._meta.resource_name,)),
+            # name="api_%s_legend" % (self._meta.resource_name,)),
         ]
 
 #     def legend(self, request, **kwargs):
@@ -746,8 +747,13 @@ class DataFileResource(ModelResource):
         # or whatever type you want there
         response = HttpResponse(wrapper, content_type=rec.content_type)
         response['Content-Length'] = rec.file.size
-        response['Content-Disposition'] = ('attachment; filename="%s"' %
-                                           (os.path.basename(rec.file.name)))
+        attachment = 'attachment; '
+        if (len(request.GET.get('display', '')) > 0 and
+                request.GET['display'] in ('1', 't', 'T')):
+            attachment = ''
+        response['Content-Disposition'] = ('{0}filename="{1}"'.format(
+                                           attachment,
+                                           os.path.basename(rec.file.name)))
         return response
 
     class Meta:

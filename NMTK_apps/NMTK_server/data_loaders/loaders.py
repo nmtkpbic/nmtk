@@ -35,7 +35,8 @@ class FormatException(Exception):
     pass
 
 DEFAULT_LOADERS = ['NMTK_server.data_loaders.ogr.OGRLoader',
-                   'NMTK_server.data_loaders.csv.CSVLoader']
+                   'NMTK_server.data_loaders.csv.CSVLoader'
+                   'NMTK_server.data_loaders.image.ImageLoader']
 
 
 class NMTKDataLoader(object):
@@ -134,7 +135,9 @@ class NMTKDataLoader(object):
         data to count the features.
         '''
         if not getattr(self, 'dl_instance', None):
+            logger.error('Loader has no Data Loader object instance?!?')
             return None
+
         if not hasattr(self, '_loader_result'):
             LoaderResult = collections.namedtuple('LoaderResult',
                                                   ['spatial',
@@ -184,7 +187,7 @@ class NMTKDataLoader(object):
                     'dimensions',
                     None),
             )
-
+        logger.debug('loader result is %s', self._loader_result)
         return self._loader_result
 
     def export_json(self, filename):

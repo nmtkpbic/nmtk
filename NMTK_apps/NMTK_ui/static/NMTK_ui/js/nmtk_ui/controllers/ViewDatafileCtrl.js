@@ -269,8 +269,10 @@ define(['angular', 'underscore','leaflet',
 						options['filters']=angular.toJson(filters);
 					}
 					$log.info('Making request for ', $scope.datafile_api.download_url, options);
+					$scope.image_url=$scope.datafile_api.file;
 					$http.get($scope.datafile_api.download_url, {params: options}).success(function (data) {
 						$scope.totalServerItems=data.meta.total;
+						
 						$scope.pagingOptions.currentPage=(data.meta.offset/data.meta.limit)+1
 						if ($scope.paging_offset > 0) {
 							$scope.data= $scope.data.concat(data.data);
@@ -668,7 +670,7 @@ define(['angular', 'underscore','leaflet',
 							// and grab those datafiles that are in the list of job files.
 							$scope.rest['datafile'].then(function (datafiles) {
 								_.each(datafiles, function (datafile) {
-									if (_.contains(datafile_ids, datafile.id)) {
+									if (_.contains(datafile_ids, datafile.id) && /complete/i.test(datafile.status)) {
 										$scope.other_datafiles.push(datafile);
 									}
 								});
