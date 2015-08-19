@@ -45,6 +45,7 @@ define([], function () {
 			$scope.gridOptions= {
 					 data: 'tool_cache',
 					 showFooter: false,
+					 filterOptions: {filterText: '', useExternalFilter: false},
 					 showFilter: true,
 					 enableRowSelection: false,
 					 enableColumnResize: false,

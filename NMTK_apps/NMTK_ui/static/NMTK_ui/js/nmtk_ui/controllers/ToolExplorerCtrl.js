@@ -41,7 +41,7 @@ define([], function () {
 			$scope.gridOptions= {
 					 data: 'tool_cache',
 					 showFooter: false,
-					 showFilter: true,
+					 showFilter: false,
 					 enableColumnResize: false,
 					 multiSelect: false,
 					 selectedItems: $scope.selections,
@@ -160,14 +160,18 @@ define([], function () {
 //				$log.info('Toolid is ', $routeParams.toolid)
 				$scope.$on('ngGridEventRows', function () {
 //					$log.info('Got event!');
-					$scope.rest.tool.then(function (tool_data) {
-						angular.forEach(tool_data, function(data, index){
-					         if (data.id == $routeParams.toolid){
-//					        	 $log.info('Selecting', data, index);
-					             $scope.gridOptions.selectItem(index, true);
-					         }
+					if ($scope.gridOptions.selectItem) {
+						$scope.rest.tool.then(function (tool_data) {
+							angular.forEach(tool_data, function(data, index){
+						         if (data.id == $routeParams.toolid){
+	//					        	 $log.info('Selecting', data, index);
+						        	 if ($scope.gridOptions.selectItem) {
+						        		 $scope.gridOptions.selectItem(index, true);
+						        	 }
+						         }
+							});
 						});
-					});
+					}
 				});
 			}	
 		}
