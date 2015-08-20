@@ -31,17 +31,23 @@
  */
 define([], function () {	
 	"use strict";
-	var controller=['$scope',
-        function ($scope) {
-			var linkCellTemplate = '<div class="ngCellText" ng-class="col.colIndex()">' +
-								   '  <a href="#/tool-explorer/{{row.getProperty(col.field)}}">Explore</a>' +
+	var controller=['$scope','$location',
+        function ($scope, $location) {
+			var toolUrlCellTemplate = '<div class="ngCellText" title="{{row.getProperty(col.field)}}" ng-class="col.colIndex()">' +
+								   '{{row.getProperty(col.field)}}' +
 								   '</div>';
 
-			var toolCellTemplate = '<div class="ngCellText" ng-class="col.colIndex()">' +
+			var toolCellTemplate = '<div class="ngCellText" title="{{row.getProperty(col.field)}}" ng-class="col.colIndex()">' +
 								   '  <a href="#/tool-explorer/{{row.entity.id}}">{{row.getProperty(col.field)}}</a>' +
 								   '</div>';
 			
 			$scope.changeTab('introduction');
+			$scope.selections=[];
+//			$scope.$watch('selections', function () {
+//				if ($scope.selections.length) {
+//					$location.path('tool-explorer/' + $scope.selections[0].id);
+//				}
+//			}, true);
 			$scope.gridOptions= {
 					 data: 'tool_cache',
 					 showFooter: false,
@@ -50,12 +56,14 @@ define([], function () {
 					 enableRowSelection: false,
 					 enableColumnResize: false,
 					 multiSelect: false,
+					 selectedItems: $scope.selections,
 					 plugins: [new ngGridFlexibleHeightPlugin()],
 					 selectedItems: $scope.selections,
 					 columnDefs: [  {field: 'tool_server',
+						 			 cellTemplate: toolUrlCellTemplate,
 						 			 displayName: 'Tool Server'},
 						 			{field: 'name',
-//						             width: '100%',
+						             width: '75%',
 						             cellTemplate: toolCellTemplate,
 						             displayName: 'Tool Name'}
 //						          , {field: 'id',
