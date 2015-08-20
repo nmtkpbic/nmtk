@@ -1438,6 +1438,10 @@ class JobStatusResourceAuthorization(Authorization):
 class JobStatusResource(ModelResource):
     job = fields.ToOneField(JobResource, 'job')
 
+    def dehydrate(self, bundle):
+        bundle.data['category'] = bundle.obj.get_category_display()
+        return bundle
+
     class Meta:
         queryset = models.JobStatus.objects.all()
         always_return_data = True

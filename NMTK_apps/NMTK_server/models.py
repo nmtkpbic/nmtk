@@ -584,7 +584,9 @@ class DataFile(models.Model):
             self.checksum = cs.hexdigest()
         result = super(DataFile, self).save(*args, **kwargs)
         content_type = magic.from_file(self.file.path, mime=True)
-        if content_type != self.content_type:
+        # Ignore it when magic finds a text/plain type, which could be something
+        # else (like json/geojson,csv, etc)
+        if content_type != self.content_type and 'text' not in content_type:
             logger.info('magic detected content type (%s) does not match uploaded type (%s) (%s)',
                         content_type, self.content_type,
                         content_type)
@@ -669,8 +671,8 @@ class JobStatus(models.Model):
                         ]
     job = models.ForeignKey(Job)
     timestamp = models.DateTimeField(auto_now_add=True)
-    category = models.CharField(max_length=10, choices=CATEGORY_CHOICES,
-                                default=CATEGORY_INFO)
+    category = models.IntegerField(max_length=10, choices=CATEGORY_CHOICES,
+                                   default=CATEGORY_INFO)
     message = models.CharField(max_length=1024)
     objects = models.GeoManager()
 

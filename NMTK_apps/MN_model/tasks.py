@@ -89,7 +89,8 @@ def performModel(input_files,
         client.updateResults(payload={'errors': failures},
                              failure=True)
     else:
-        client.updateStatus('Parameter & data file validation complete.')
+        client.updateStatus('Parameter & data file validation complete.',
+                            category='Debug')
         productSet = namedtuple(
             'OLSSet', [
                 'value', 'coefficient', 'parameter'])
