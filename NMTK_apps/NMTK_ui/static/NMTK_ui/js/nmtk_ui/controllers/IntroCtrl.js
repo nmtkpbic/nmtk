@@ -29,10 +29,10 @@
  *       OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  *       SUCH DAMAGE.
  */
-define([], function () {	
+define(['underscore'], function (_) {	
 	"use strict";
-	var controller=['$scope','$location',
-        function ($scope, $location) {
+	var controller=['$scope','$location','$timeout',
+        function ($scope, $location, $timeout) {
 			var toolUrlCellTemplate = '<div class="ngCellText" title="{{row.getProperty(col.field)}}" ng-class="col.colIndex()">' +
 								   '{{row.getProperty(col.field)}}' +
 								   '</div>';
@@ -48,10 +48,37 @@ define([], function () {
 //					$location.path('tool-explorer/' + $scope.selections[0].id);
 //				}
 //			}, true);
+			$scope.data={};
+			$scope.visible_data=[];
+			$scope.rest['tool'].then(function (data) {
+				_.each(data, function (row) {
+						$scope.visible_data.push(row);
+				});
+			});
+			$scope.filterOptions = {
+			        filterText: "",
+			        useExternalFilter: true
+			};
+			$scope.$watch('filterOptions', function () {
+				var filter_len=$scope.filterOptions.filterText.length;
+				if (filter_len > 0) {
+					var patt = new RegExp($scope.filterOptions.filterText, 'i');
+				}
+				$scope.visible_data.length=0;
+//				$timeout(function () {
+					_.each($scope.tool_cache, function (row) {
+						if (filter_len == 0 || patt.test(row.tool_server) || patt.test(row.name)) {
+							$scope.visible_data.push(row);
+						}
+					});
+//				});	
+			}, true);
+			
+			
 			$scope.gridOptions= {
-					 data: 'tool_cache',
+					 data: 'visible_data',
 					 showFooter: false,
-					 filterOptions: {filterText: '', useExternalFilter: false},
+					 filterOptions: $scope.filterOptions,
 					 showFilter: true,
 					 enableRowSelection: false,
 					 enableColumnResize: false,
