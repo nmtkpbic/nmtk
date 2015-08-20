@@ -284,12 +284,17 @@ def discover_tools(toolserver):
         append_slash = ''
     # index returns a json list of tools.
     try:
-        tool_list = requests.get(
-            toolserver.server_url, verify=toolserver.verify_ssl).json()
-    except:
-        url = "{0}{1}index".format(toolserver.server_url, append_slash)
-        tool_list = requests.get(url, verify=toolserver.verify_ssl).json()
-    logger.debug('Retrieved tool list of: %s', tool_list)
+        try:
+            tool_list = requests.get(
+                toolserver.server_url, verify=toolserver.verify_ssl).json()
+        except:
+            url = "{0}{1}index".format(toolserver.server_url, append_slash)
+            tool_list = requests.get(url, verify=toolserver.verify_ssl).json()
+        logger.debug('Retrieved tool list of: %s', tool_list)
+    except Exception, e:
+        logger.exception(
+            'Failed to reach tool server to retrieve tools: %s', str(e))
+        tool_list = []
     for tool in tool_list:
         try:
             t = models.Tool.objects.get(tool_server=toolserver,

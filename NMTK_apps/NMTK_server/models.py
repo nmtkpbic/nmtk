@@ -655,8 +655,22 @@ class JobStatus(models.Model):
     probably be removed at some point after the job completes (or at least
     all but the most recent one can be removed.)
     '''
+    CATEGORY_DEBUG, CATEGORY_INFO, CATEGORY_NOTICE, CATEGORY_WARNING, CATEGORY_ERROR = (
+        'Debug',
+        'Info',
+        'Notice',
+        'Warning',
+        'Error')
+    CATEGORY_CHOICES = [(CATEGORY_DEBUG, CATEGORY_DEBUG),
+                        (CATEGORY_INFO, CATEGORY_INFO),
+                        (CATEGORY_NOTICE, CATEGORY_NOTICE),
+                        (CATEGORY_WARNING, CATEGORY_WARNING),
+                        (CATEGORY_ERROR, CATEGORY_ERROR),
+                        ]
     job = models.ForeignKey(Job)
     timestamp = models.DateTimeField(auto_now_add=True)
+    category = models.CharField(max_length=10, choices=CATEGORY_CHOICES,
+                                default=CATEGORY_INFO)
     message = models.CharField(max_length=1024)
     objects = models.GeoManager()
 

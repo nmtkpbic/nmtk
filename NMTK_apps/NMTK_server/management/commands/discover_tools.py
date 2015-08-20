@@ -25,6 +25,8 @@ class Command(BaseCommand):
         if not settings.NMTK_SERVER:
             raise CommandError('The NMTK Server is not currently enabled')
         qs = models.ToolServer.objects.all()
+        if options['tool_name']:
+            qs = qs.filter(name__iexact=options['tool_name'])
         for m in qs:
             self.stdout.write('Updating ToolServer record for %s' % m.name)
 #            m.save()
