@@ -29,7 +29,7 @@
  *       OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  *       SUCH DAMAGE.
  */
-define([], function () {	
+define(['underscore'], function (_) {	
 	"use strict";
 	var controller=['$scope','$routeParams','$log','$location','$modal', 
 	                '$route','Restangular','$http','$q','$timeout',
@@ -38,10 +38,40 @@ define([], function () {
 			$scope.changeTab('toolexplorer');
 			$scope.enableRefresh(['datafile','tool']);
 			$scope.selections = [];
+			$scope.visible_data=[];
+			$scope.rest['tool'].then(function (data) {
+				_.each(data, function (row) {
+						$scope.visible_data.push(row);
+				});
+			});
+			$scope.filterOptions = {
+			        filterText: "",
+			        useExternalFilter: true
+			};
+			$scope.$watch('filterOptions', function () {
+				var filter_len=$scope.filterOptions.filterText.length;
+				$scope.$parent.toolExplorerfilterText=$scope.filterOptions.filterText;
+				if (filter_len > 0) {
+					var patt = new RegExp($scope.filterOptions.filterText, 'i');
+				}
+				$scope.visible_data.length=0;
+//				$timeout(function () {
+					_.each($scope.tool_cache, function (row) {
+						if (filter_len == 0 || patt.test(row.tool_server) || patt.test(row.name)) {
+							$scope.visible_data.push(row);
+						}
+					});
+//				});	
+			}, true);
+			if ($scope.$parent.toolExplorerfilterText) {
+				$scope.filterOptions.filterText=$scope.$parent.toolExplorerfilterText;
+			}
+			
 			$scope.gridOptions= {
-					 data: 'tool_cache',
+					 data: 'visible_data',
 					 showFooter: false,
-					 showFilter: false,
+					 showFilter: true,
+					 filterOptions: $scope.filterOptions,
 					 enableColumnResize: false,
 					 multiSelect: false,
 					 selectedItems: $scope.selections,
@@ -49,7 +79,7 @@ define([], function () {
 				           		   displayName: 'Tool Server'},
 				           		  {field: 'name',
 						           displayName: 'Tool Name'}],
-					 showColumnMenu: false };
+					 showColumnMenu: true };
 			$scope.$watch('selections', function () {
 				if ($scope.selections.length) {
 					if ($routeParams.toolid != $scope.selections[0]['id']) {

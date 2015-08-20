@@ -48,7 +48,6 @@ define(['underscore'], function (_) {
 //					$location.path('tool-explorer/' + $scope.selections[0].id);
 //				}
 //			}, true);
-			$scope.data={};
 			$scope.visible_data=[];
 			$scope.rest['tool'].then(function (data) {
 				_.each(data, function (row) {
