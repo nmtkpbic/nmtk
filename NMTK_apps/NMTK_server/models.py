@@ -655,17 +655,17 @@ class JobStatus(models.Model):
     probably be removed at some point after the job completes (or at least
     all but the most recent one can be removed.)
     '''
-    CATEGORY_DEBUG, CATEGORY_INFO, CATEGORY_NOTICE, CATEGORY_WARNING, CATEGORY_ERROR = (
-        'Debug',
-        'Info',
-        'Notice',
-        'Warning',
-        'Error')
-    CATEGORY_CHOICES = [(CATEGORY_DEBUG, CATEGORY_DEBUG),
-                        (CATEGORY_INFO, CATEGORY_INFO),
-                        (CATEGORY_NOTICE, CATEGORY_NOTICE),
-                        (CATEGORY_WARNING, CATEGORY_WARNING),
-                        (CATEGORY_ERROR, CATEGORY_ERROR),
+    CATEGORY_DEBUG = 1
+    CATEGORY_INFO = 2
+    CATEGORY_WARNING = 3
+    CATEGORY_ERROR = 4
+    CATEGORY_SYSTEM = 5
+
+    CATEGORY_CHOICES = [(CATEGORY_DEBUG, 'Debug'),
+                        (CATEGORY_INFO, 'Message'),
+                        (CATEGORY_WARNING, 'Warning'),
+                        (CATEGORY_ERROR, 'Error'),
+                        (CATEGORY_SYSTEM, 'System'),
                         ]
     job = models.ForeignKey(Job)
     timestamp = models.DateTimeField(auto_now_add=True)
