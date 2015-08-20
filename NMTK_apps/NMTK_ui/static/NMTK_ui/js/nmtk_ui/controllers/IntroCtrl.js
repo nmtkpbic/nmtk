@@ -29,32 +29,67 @@
  *       OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  *       SUCH DAMAGE.
  */
-define([], function () {	
+define(['underscore'], function (_) {	
 	"use strict";
-	var controller=['$scope',
-        function ($scope) {
-			var linkCellTemplate = '<div class="ngCellText" ng-class="col.colIndex()">' +
-								   '  <a href="#/tool-explorer/{{row.getProperty(col.field)}}">Explore</a>' +
+	var controller=['$scope','$location','$timeout',
+        function ($scope, $location, $timeout) {
+			var toolUrlCellTemplate = '<div class="ngCellText" title="{{row.getProperty(col.field)}}" ng-class="col.colIndex()">' +
+								   '{{row.getProperty(col.field)}}' +
 								   '</div>';
 
-			var toolCellTemplate = '<div class="ngCellText" ng-class="col.colIndex()">' +
+			var toolCellTemplate = '<div class="ngCellText" title="{{row.getProperty(col.field)}}" ng-class="col.colIndex()">' +
 								   '  <a href="#/tool-explorer/{{row.entity.id}}">{{row.getProperty(col.field)}}</a>' +
 								   '</div>';
 			
 			$scope.changeTab('introduction');
+			$scope.selections=[];
+//			$scope.$watch('selections', function () {
+//				if ($scope.selections.length) {
+//					$location.path('tool-explorer/' + $scope.selections[0].id);
+//				}
+//			}, true);
+			$scope.visible_data=[];
+			$scope.rest['tool'].then(function (data) {
+				_.each(data, function (row) {
+						$scope.visible_data.push(row);
+				});
+			});
+			$scope.filterOptions = {
+			        filterText: "",
+			        useExternalFilter: true
+			};
+			$scope.$watch('filterOptions', function () {
+				var filter_len=$scope.filterOptions.filterText.length;
+				if (filter_len > 0) {
+					var patt = new RegExp($scope.filterOptions.filterText, 'i');
+				}
+				$scope.visible_data.length=0;
+//				$timeout(function () {
+					_.each($scope.tool_cache, function (row) {
+						if (filter_len == 0 || patt.test(row.tool_server) || patt.test(row.name)) {
+							$scope.visible_data.push(row);
+						}
+					});
+//				});	
+			}, true);
+			
+			
 			$scope.gridOptions= {
-					 data: 'tool_cache',
+					 data: 'visible_data',
 					 showFooter: false,
+					 filterOptions: $scope.filterOptions,
 					 showFilter: true,
 					 enableRowSelection: false,
 					 enableColumnResize: false,
 					 multiSelect: false,
+					 selectedItems: $scope.selections,
 					 plugins: [new ngGridFlexibleHeightPlugin()],
 					 selectedItems: $scope.selections,
 					 columnDefs: [  {field: 'tool_server',
+						 			 cellTemplate: toolUrlCellTemplate,
 						 			 displayName: 'Tool Server'},
 						 			{field: 'name',
-//						             width: '100%',
+						             width: '75%',
 						             cellTemplate: toolCellTemplate,
 						             displayName: 'Tool Name'}
 //						          , {field: 'id',

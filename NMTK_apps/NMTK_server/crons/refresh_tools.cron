@@ -1,0 +1,10 @@
+# Cron job to update tool servers is working
+# this file should be updated with the appropriate (NMTK_INSTALL_PATH) and copied to
+# /etc/cron.d
+
+# This cron job will verify that celery is working properly
+BASE_DIR=NMTK_INSTALL_PATH
+
+SHELL=/bin/bash
+
+15 */4 * * * www-data $BASE_DIR/venv/bin/python $BASE_DIR/NMTK_apps/manage.py discover_tools

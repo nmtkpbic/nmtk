@@ -10,6 +10,7 @@ import hmac
 import hashlib
 import logging
 import datetime
+from django.utils import timezone
 logger = logging.getLogger(__name__)
 
 
@@ -113,18 +114,19 @@ class NMTKClient(object):
         result = self._generate_request(url, payload, "post", files=files)
         return result['status']
 
-    def updateStatus(self, status):
+    def updateStatus(self, status, category='Message', timestamp=None):
         '''
         There are two methods the analysis tool uses to communicate with the
         server - one of which is analyses/update (a URL).  This is used
         to send status updates back to the server.
         '''
         url = "%s/%s" % (self.url, "tools/update",)
-        payload = {'status': 'status'}
+        payload = {'status': status,
+                   'category': category,
+                   'timestamp': timezone.now().isoformat()}
+
         logger.debug("Logging result to %s", url)
         logger.debug('Payload is %s', payload)
-        logger.debug('Status is %s', status)
-        result = self._generate_request(url, payload, "post",
-                                        files={'data': status})
+        result = self._generate_request(url, payload, "post")
         logger.debug('Response from status update is %s', result)
         return result['status']

@@ -284,12 +284,17 @@ def discover_tools(toolserver):
         append_slash = ''
     # index returns a json list of tools.
     try:
-        tool_list = requests.get(
-            toolserver.server_url, verify=toolserver.verify_ssl).json()
-    except:
-        url = "{0}{1}index".format(toolserver.server_url, append_slash)
-        tool_list = requests.get(url, verify=toolserver.verify_ssl).json()
-    logger.debug('Retrieved tool list of: %s', tool_list)
+        try:
+            tool_list = requests.get(
+                toolserver.server_url, verify=toolserver.verify_ssl).json()
+        except:
+            url = "{0}{1}index".format(toolserver.server_url, append_slash)
+            tool_list = requests.get(url, verify=toolserver.verify_ssl).json()
+        logger.debug('Retrieved tool list of: %s', tool_list)
+    except Exception, e:
+        logger.exception(
+            'Failed to reach tool server to retrieve tools: %s', str(e))
+        tool_list = []
     for tool in tool_list:
         try:
             t = models.Tool.objects.get(tool_server=toolserver,
@@ -341,7 +346,7 @@ def cancelJob(job_id, tool_id):
                             hashlib.sha1)
     digest = digest_maker.hexdigest()
     files = {'cancel': ('cancel', job_id)}
-    r = requests.delete(job.tool.analyze_url, files=files,
+    r = requests.delete(tool.analyze_url, files=files,
                         headers={'Authorization': digest},
                         verify=job.tool.tool_server.verify_ssl)
     logger.debug(
@@ -403,15 +408,19 @@ def submitJob(job_id):
     if r.status_code != 200:
         job.status = job.TOOL_FAILED
         js = models.JobStatus(
-            job=job, message=(
-                'Tool failed to accept ' + 'job (return code %s)') %
-            (r.status_code,))
+            job=job,
+            message='Tool failed to accept job (return code %s)' % (
+                r.status_code,),
+            category=models.JobStatus.CATEGORY_SYSTEM)
         js.save()
         job.save()
     else:
         status_m = models.JobStatus(
             message='Submitted job to {0} tool, response was {1} ({2})'.format(
-                job.tool, r.text, r.status_code), timestamp=timezone.now(), job=job)
+                job.tool, r.text, r.status_code),
+            timestamp=timezone.now(),
+            job=job,
+            category=models.JobStatus.CATEGORY_SYSTEM)
         status_m.save()
 
 
@@ -638,7 +647,8 @@ def importDataFile(datafile, job_id=None):
                         job.status = job.COMPLETE
                         models.JobStatus(message='Job Completed',
                                          timestamp=timezone.now(),
-                                         job=job).save()
+                                         job=job,
+                                         category=models.JobStatus.CATEGORY_SYSTEM).save()
                     elif results_left == 1:
                         # Handle the potential race condition here - do we really need this?
                         # sort of.  Since it's possible that two files finish post-processing
@@ -653,7 +663,8 @@ def importDataFile(datafile, job_id=None):
                                 job.status = job.COMPLETE
                                 models.JobStatus(message='Job Completed',
                                                  timestamp=timezone.now(),
-                                                 job=job).save()
+                                                 job=job,
+                                                 category=models.JobStatus.CATEGORY_SYSTEM).save()
 
             except:
                 logger.exception('Failed to update job status to complete?!!')

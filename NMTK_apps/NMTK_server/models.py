@@ -16,6 +16,7 @@ from django.utils.safestring import mark_safe
 from osgeo import ogr
 from django.contrib.gis.gdal import OGRGeometry
 from NMTK_server import tasks
+import magic
 import json
 from NMTK_server import signals
 from NMTK_server.wms.legend import LegendGenerator
@@ -582,6 +583,18 @@ class DataFile(models.Model):
                 cs.update(line)
             self.checksum = cs.hexdigest()
         result = super(DataFile, self).save(*args, **kwargs)
+        content_type = magic.from_file(self.file.path, mime=True)
+        # Ignore it when magic finds a text/plain type, which could be something
+        # else (like json/geojson,csv, etc)
+        if content_type != self.content_type and 'text' not in content_type:
+            logger.info('magic detected content type (%s) does not match uploaded type (%s) (%s)',
+                        content_type, self.content_type,
+                        content_type)
+            self.content_type = content_type
+            super(DataFile, self).save(*args, **kwargs)
+        else:
+            logger.debug(
+                'Expected type (from magic) matches uploaded type (%s)', content_type)
         if import_datafile:
             '''
             If the file was just uploaded (status PENDING) then we kick off
@@ -644,8 +657,22 @@ class JobStatus(models.Model):
     probably be removed at some point after the job completes (or at least
     all but the most recent one can be removed.)
     '''
+    CATEGORY_DEBUG = 1
+    CATEGORY_INFO = 2
+    CATEGORY_WARNING = 3
+    CATEGORY_ERROR = 4
+    CATEGORY_SYSTEM = 5
+
+    CATEGORY_CHOICES = [(CATEGORY_DEBUG, 'Debug'),
+                        (CATEGORY_INFO, 'Message'),
+                        (CATEGORY_WARNING, 'Warning'),
+                        (CATEGORY_ERROR, 'Error'),
+                        (CATEGORY_SYSTEM, 'System'),
+                        ]
     job = models.ForeignKey(Job)
     timestamp = models.DateTimeField(auto_now_add=True)
+    category = models.IntegerField(max_length=10, choices=CATEGORY_CHOICES,
+                                   default=CATEGORY_INFO)
     message = models.CharField(max_length=1024)
     objects = models.GeoManager()
 
