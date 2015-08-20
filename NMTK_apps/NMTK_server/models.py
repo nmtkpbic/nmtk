@@ -16,6 +16,7 @@ from django.utils.safestring import mark_safe
 from osgeo import ogr
 from django.contrib.gis.gdal import OGRGeometry
 from NMTK_server import tasks
+import magic
 import json
 from NMTK_server import signals
 from NMTK_server.wms.legend import LegendGenerator
@@ -582,6 +583,16 @@ class DataFile(models.Model):
                 cs.update(line)
             self.checksum = cs.hexdigest()
         result = super(DataFile, self).save(*args, **kwargs)
+        content_type = magic.from_file(self.file.path, mime=True)
+        if content_type != self.content_type:
+            logger.info('magic detected content type (%s) does not match uploaded type (%s) (%s)',
+                        content_type, self.content_type,
+                        content_type)
+            self.content_type = content_type
+            super(DataFile, self).save(*args, **kwargs)
+        else:
+            logger.debug(
+                'Expected type (from magic) matches uploaded type (%s)', content_type)
         if import_datafile:
             '''
             If the file was just uploaded (status PENDING) then we kick off
