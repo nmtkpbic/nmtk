@@ -165,14 +165,15 @@
             <h4 ng-show="selected_selected.length">
                Displaying feature {{selected_selected[0].nmtk_id}}
             </h4>
-            <table class="table table-bordered table-striped table-highlight">
-			<caption>
-				 <strong>Table Caption</strong>
-				  <details>
-				   <summary>Summary</summary>
-				   <p>Description of table contents</p>
-				  </details>
-				</caption>
+            <table ng-show="selected_selected.length" 
+                   class="table table-bordered table-striped table-highlight">
+                         <caption class="hide508" >
+                                 <strong>Results Data</strong>
+                                  <details>
+                                   <summary>Summary</summary>
+                                   <p>Job results information</p>
+                                  </details>
+                                </caption>
 				
               <tbody>
 			  <tr>

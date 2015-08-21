@@ -7,7 +7,18 @@
   <div class="modal-body">
       <label>The following messages were received from the tool server (displayed in the order received):</label>
       <table class="table table-condensed table-bordered table-hover" >
-      <tr ng-repeat="status in statuses"><td><strong>{{status.message}}</strong></td><td>{{status.timestamp|date:'short'}}</td></tr>
+      <thead>
+      <tr>
+         <th>Reported Status</th>
+         <th>Category</th>
+         <th>Timestamp</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr ng-repeat="status in statuses"><td><strong>{{status.message}}</strong></td>
+                                         <td><strong>{{status.category}}</strong></td>
+                                         <td style="white-space: nowrap;"">{{status.timestamp|date:'medium'}}</td></tr>
+      </tbody>
       </table>
    </div>
    

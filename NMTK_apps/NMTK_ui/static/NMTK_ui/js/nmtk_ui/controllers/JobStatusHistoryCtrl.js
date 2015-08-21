@@ -37,6 +37,7 @@ define([], function () {
 			$scope.jobdata=jobdata;
 			$scope.updateStatus=function (timeout) {
 				Restangular.all('job_status').getList({'job': jobdata.id,
+													   'category__gte': 2,
 	     		     								   'limit': 999}).then(function (statuses) {
 	     		     									 $scope.statuses=statuses.slice().reverse();
 	     		     								   });

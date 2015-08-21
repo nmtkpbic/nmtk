@@ -149,7 +149,7 @@ def updateStatus(request):
                     break
             else:
                 logger.debug('Did not find matching status! using info')
-                json_data['category'] = models.JobStatus.CATEGORY_INFO
+                del json_data['category']
         # Parse the timestamp provided to a regular datetime value.
         if json_data.has_key('timestamp'):
             try:
@@ -163,8 +163,9 @@ def updateStatus(request):
         json_data = {'status': data}
     # Some defaults to use for missing data.
     status_data = {'timestamp': timezone.now(),
-                   'category': models.JobStatus.CATEGORY_INFO}
-    if status_data['category'] in (models.JobStatus.CATEGORY_SYSTEM,):
+                   'category': models.JobStatus.CATEGORY_STATUS}
+    if (json_data.has_key('category') and
+            json_data['category'] in (models.JobStatus.CATEGORY_SYSTEM,)):
         logger.info('Tool tried to set category to a system category!')
         status_data['category'] = models.JobStatus.CATEGORY_ERROR
     status_data.update(json_data)

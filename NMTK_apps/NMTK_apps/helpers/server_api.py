@@ -62,9 +62,12 @@ class NMTKClient(object):
         digest = digest_maker.hexdigest()
         return digest
 
-    def _generate_request(self, url, payload, type="post", files={},
+    def _generate_request(self, url, payload, type="post", files=None,
                           headers={}):
+        if files is None:
+            files = {}
         if 'config' in files.keys():
+            logger.debug('Data is %s', files['config'])
             raise NMTKAPIException('Reserved word "config" found in response')
         payload['job'] = {'timestamp': datetime.datetime.now().isoformat(),
                           'job_id': self.job_id,
@@ -114,7 +117,7 @@ class NMTKClient(object):
         result = self._generate_request(url, payload, "post", files=files)
         return result['status']
 
-    def updateStatus(self, status, category='Message', timestamp=None):
+    def updateStatus(self, status, category='Status', timestamp=None):
         '''
         There are two methods the analysis tool uses to communicate with the
         server - one of which is analyses/update (a URL).  This is used
