@@ -29,12 +29,16 @@
  *       OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  *       SUCH DAMAGE.
  */
-define(['angular', 'underscore','leaflet',
-        'text!AdvancedFiltersTemplate',
-        'text!ColorRampSelectionTemplate'], function (angular, _, 
+define([  'angular' 
+        , 'underscore'
+        , 'leaflet'
+        , 'text!AdvancedFiltersTemplate'
+        , 'text!ColorRampSelectionTemplate'
+        , 'text!JobMessageTemplate'], function (angular, _, 
         										   L, 
         										   AdvancedFiltersTemplate,
-        										   ColorRampSelectionTemplate) {
+        										   ColorRampSelectionTemplate,
+        										   JobMessageTemplate) {
 	"use strict";
 	var controller=['$scope','$routeParams','$location','$log','$http',
 	                '$timeout', 'leafletData','Restangular', '$q', '$modal',
@@ -651,6 +655,43 @@ define(['angular', 'underscore','leaflet',
 					        
 			}
 			
+			$scope.showJobStatus = function (statuses) {
+				$log.debug('Statuses to display are', statuses);
+			}
+			
+			$scope.showJobStatus = function (category) {				
+				var modal_dialog=$modal.open({
+					controller: 'ViewJobNotificationsCtrl',
+					resolve: {statuses: function () { return $scope.statuses },
+						      category: function () { return category },
+						      message_categories: function () { return _.keys($scope.message_categories) }
+					          },
+					template: JobMessageTemplate
+				});
+			}
+			
+			
+			
+			/*
+			 * Get the status data for a single job.  We only need those statuses
+			 * that are greater than 3, since the ones below that are not important
+			 * messages from the tool itself (they are status messages.)
+			 */
+			var getJobStatusData=function(job_id) {
+				Restangular.all('job_status').getList({'job': job_id,
+					   								   'category__gte': 4,
+					   								   'limit': 999}).then(function (statuses) {
+					 $scope.message_categories={};
+					 $scope.statuses=statuses.slice().reverse()
+					 _.each($scope.statuses, function (status) {
+						if (! (status.category in $scope.message_categories)) {
+							$scope.message_categories[status.category]=[];
+						}
+						$scope.message_categories[status.category].push(status);
+					 });
+			   });
+			}
+			
 			var getOtherJobResults=function () {
 				/*
 				 * Here we need to get the results entry for this datafile - since
@@ -662,6 +703,7 @@ define(['angular', 'underscore','leaflet',
 				Restangular.all('job_results').getList({'datafile': $scope.datafile_api.id}).then(function(job_result_datafile) {
 					if (job_result_datafile.length > 0) {
 						var job_id=job_result_datafile[0].job.split('/').reverse()[1]
+						getJobStatusData(job_id);
 						$scope.other_datafiles=[];
 						Restangular.all('job_results').getList({'job': job_id}).then(function (job_results) {
 							// Get the ids of the datafiles that go with this job

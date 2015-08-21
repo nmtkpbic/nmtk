@@ -659,10 +659,10 @@ class JobStatus(models.Model):
     '''
     CATEGORY_DEBUG = 1
     CATEGORY_STATUS = 2
-    CATEGORY_MESSAGE = 3
-    CATEGORY_WARNING = 4
-    CATEGORY_ERROR = 5
-    CATEGORY_SYSTEM = 6
+    CATEGORY_SYSTEM = 3
+    CATEGORY_MESSAGE = 4
+    CATEGORY_WARNING = 5
+    CATEGORY_ERROR = 6
 
     CATEGORY_CHOICES = [(CATEGORY_DEBUG, 'Debug'),
                         (CATEGORY_STATUS, 'Status'),
