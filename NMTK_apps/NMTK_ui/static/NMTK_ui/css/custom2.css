@@ -71,3 +71,10 @@ textarea {
 
 // Needed for angular-bootstrap
 .nav, .pagination, .carousel, .panel-title a { cursor: pointer; }
+
+
+.hide508 {
+   position: absolute !important;
+   top: -9999px !important;
+   left: -9999px !important;
+}
