@@ -1450,6 +1450,7 @@ class JobStatusResource(ModelResource):
         authentication = SessionAuthentication()
         allowed_methods = ['get', ]
         filtering = {'job': ALL,
+                     'category': ALL,
                      'job_id': ALL}
 
 
