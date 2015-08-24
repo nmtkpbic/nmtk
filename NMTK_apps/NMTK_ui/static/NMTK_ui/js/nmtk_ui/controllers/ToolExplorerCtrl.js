@@ -142,9 +142,12 @@ define(['underscore'], function (_) {
 				}
 			}
 			
-/*            $scope.doclink=function(tool_uri,doc_uri) {
-                return tool_uri+"/docs/"+doc_uri;
-            }; */
+            $scope.doclink=function(server_url,tool_route,doc_url) {
+                /* where do we get base tool_url for static resources?
+                   Need something like http://tool.server/static/tool
+                 */
+                return server_url+"static"+tool_route+"/docs/"+doc_url;
+            };
 			
 			$scope.loadSampleData=function (tool) {
 				/*
