@@ -36,7 +36,8 @@ class FormatException(Exception):
 
 DEFAULT_LOADERS = ['NMTK_server.data_loaders.ogr.OGRLoader',
                    'NMTK_server.data_loaders.csv.CSVLoader'
-                   'NMTK_server.data_loaders.image.ImageLoader']
+                   'NMTK_server.data_loaders.image.ImageLoader'
+                   'NMTK_server.data_loaders.rasters.RasterLoader']
 
 
 class NMTKDataLoader(object):

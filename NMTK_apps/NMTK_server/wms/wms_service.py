@@ -43,12 +43,16 @@ def generateMapfile(datafile, style_field,
                               using unique nmtk_id'''.format(datafile.id)
 
     # Determine which of the mapfile types to use (point, line, polygon...)
-    for geom_type in ['point', 'line', 'polygon']:
+    for geom_type in ['point', 'line', 'polygon', 'raster']:
         if geom_type in datafile.get_geom_type_display().lower():
             break
     data['geom_type'] = geom_type
-    res = render_to_string('NMTK_server/mapfile_common.map',
-                           data)
+    if geom_type == 'raster':
+        res = render_to_string('NMTK_server/mapfile_raster.map',
+                               data)
+    else:
+        res = render_to_string('NMTK_server/mapfile_vector.map',
+                               data)
     return res
 
 
@@ -151,7 +155,8 @@ def handleWMSRequest(request, datafile):
                     mf = generateMapfile(datafile,
                                          style_field=style_field,
                                          # Iterating over the legend object will return the colors
-                                         # so we need only pass that into the mapfile gen code.
+                                         # so we need only pass that into the
+                                         # mapfile gen code.
                                          color_values=legend)
                     with open(mapfile_path, 'w') as mapfile:
                         mapfile.write(mf)

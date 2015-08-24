@@ -462,6 +462,8 @@ class DataFile(models.Model):
                 (IMPORT_RESULTS_COMPLETE, 'Import of Job Results Complete',),
                 )
     # The supported geometry types
+    # Note that we use type of 99 for RASTER, which would mean an GDAL supported
+    # raster image.
     GEOM_TYPES = ((ogr.wkbPoint, 'POINT'),
                   (ogr.wkbGeometryCollection, 'GEOMETRYCOLLECTION'),
                   (ogr.wkbLineString, 'LINESTRING'),
@@ -469,6 +471,7 @@ class DataFile(models.Model):
                   (ogr.wkbMultiPolygon, 'MULTIPOLYGON'),
                   (ogr.wkbPolygon, 'POLYGON'),
                   (ogr.wkbMultiLineString, 'MULTILINESTRING'),
+                  (99, 'RASTER'),
                   )
     # File Types
     JOB_INPUT = 'source'
