@@ -143,9 +143,7 @@ define(['underscore'], function (_) {
 			}
 			
             $scope.doclink=function(server_url,tool_route,doc_url) {
-                /* where do we get base tool_url for static resources?
-                   Need something like http://tool.server/static/tool
-                 */
+                /* build documentation URLs for direct download of documents */
                 return server_url+"static"+tool_route+"/docs/"+doc_url;
             };
 			
