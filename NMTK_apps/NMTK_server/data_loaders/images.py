@@ -10,6 +10,7 @@ from mimetypes import MimeTypes
 import cStringIO as StringIO
 import magic
 from BaseDataLoader import *
+logger = logging.getLogger(__name__)
 
 
 class ImageLoader(BaseDataLoader):
@@ -20,10 +21,9 @@ class ImageLoader(BaseDataLoader):
         Loading an image - hopefully
         '''
         logger.debug('ImageLoader: %s, %s', args, kwargs)
-        imagefile = args[0][0]
-        self.mimetype = magic.from_file(imagefile, mime=True)
-        self.format = magic.from_file(imagefile)
-        self.name = os.path.basename(imagefile)
+        self.filename = args[0][0]
+        self.mimetype = magic.from_file(self.filename, mime=True)
+        self.format = magic.from_file(self.filename)
         super(ImageLoader, self).__init__(*args, **kwargs)
 
     def __iter__(self):
@@ -68,4 +68,4 @@ class ImageLoader(BaseDataLoader):
         return []
 
     def is_supported(self):
-        return (self.mimetype in 'image/png', 'image/jpeg', 'image/gif')
+        return (self.mimetype in ('image/png', 'image/jpeg', 'image/gif'))

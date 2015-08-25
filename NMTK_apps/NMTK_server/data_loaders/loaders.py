@@ -121,6 +121,8 @@ class NMTKDataLoader(object):
             logger.debug('Loading %s', dl_classname)
             dl_instance = dl_class(self.get_filelist(), *args, **kwargs)
             if dl_instance.is_supported():
+                logger.info(
+                    'Loader %s supports %s', dl_instance.name, dl_instance.filename)
                 self.dl_instance = dl_instance
                 return dl_instance.name
         return None
