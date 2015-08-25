@@ -147,7 +147,7 @@
           <div class="widget-header">
             <span class="glyphicon glyphicon-picture"></span>
             <h1><label for="style">Map Legend - styled by</label>
-                 <select id="style" ng-model="result_field" name="result_field" ng-options="field for field in fields">
+                 <select id="style" ng-change="updateMapComponents()" ng-model="result_data.field" name="result_field" ng-options="field for field in fields">
                    <option value=""></option>
                  </select>
             </h1>

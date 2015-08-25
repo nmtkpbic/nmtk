@@ -61,7 +61,7 @@ define([  'angular'
 			if (_.isUndefined($scope.$parent.results_uri) ||
 				$scope.$parent.results_uri != $location.path()) {
 				$scope.$parent.results_uri=$location.path();
-				//$scope.$parent.result_field=null;
+				$scope.$parent.result_data={'field': ''};
 				$scope.$parent.customFilters=[];
 			} 
 			if (_.isUndefined($scope.preferences.config.ramp)) {
@@ -209,11 +209,11 @@ define([  'angular'
 					}
 					$scope.fields=_.sortBy(JSON.parse($scope.datafile_api.fields),
 										   function (a) { return a.toLowerCase(); });
-					if (! _.contains($scope.fields, $scope.$parent.result_field)) {
-						$scope.$parent.result_field=null;
+					if (! _.contains($scope.fields, $scope.result_data.field)) {
+						$scope.result_data.field=null;
 					}
-					if ($scope.$parent.result_field==null) {
-						$scope.$parent.result_field=$scope.datafile_api.result_field;
+					if ($scope.result_data.field==null) {
+						$scope.result_data.field=$scope.datafile_api.result_field;
 					}  
 					
 					
@@ -332,7 +332,7 @@ define([  'angular'
 					            url: $scope.datafile_api.wms_url,
 					            layerOptions: { layers: "highlight_selected",
 					            	            ids: ids,
-					            	            style_field: $scope.result_field || '',
+					            	            style_field: $scope.result_data['field'] || '',
 					                    		format: 'image/png',
 					                    		ramp: $scope.preferences.config.ramp.ramp_id,
 					                    		reverse: $scope.preferences.config.ramp.reverse,
@@ -376,7 +376,7 @@ define([  'angular'
 					            url: $scope.datafile_api.wms_url,
 					            layerOptions: { layers: "highlight",
 					            	            ids: ids.join(','),
-					            	            style_field: $scope.result_field ||'',
+					            	            style_field: $scope.result_data['field'] ||'',
 					                    		format: 'image/png',
 					                    		ramp: $scope.preferences.config.ramp.ramp_id,
 					                    		reverse: $scope.preferences.config.ramp.reverse,
@@ -399,7 +399,7 @@ define([  'angular'
 				            visible: true,
 				            url: $scope.datafile_api.wms_url,
 				            layerOptions: { layers: $scope.datafile_api.layer,
-				            				style_field: $scope.result_field || '',
+				            				style_field: $scope.result_data['field'] || '',
 				                    		format: 'image/png',
 				                    		ramp: $scope.preferences.config.ramp.ramp_id,
 				                    		reverse: $scope.preferences.config.ramp.reverse,
@@ -413,7 +413,7 @@ define([  'angular'
 					var url=$scope.datafile_api.wms_url;
 					var ret = [];
 					var data={ layers: $scope.datafile_api.layer,
-            					style_field: $scope.result_field || '',
+            					style_field: $scope.result_data['field'] || '',
             					request: 'getLegendGraphic',
             					format: 'image/png',
             					ramp: $scope.preferences.config.ramp.ramp_id,
@@ -426,8 +426,9 @@ define([  'angular'
 				}
 			}
 			
-			var updateMapComponents=function () {
+			$scope.updateMapComponents=function () {
 				addResultWMS();
+//				$scope.$parent.result_field=$scope.result_field;
 				if ($scope.selected_selected) {
 					updateHighlightSelected();
 				}
@@ -442,13 +443,12 @@ define([  'angular'
 			 * data.
 			 */
 			$scope.$watch('preferences', function (newVal, oldVal) {
-				updateMapComponents();
+				$scope.updateMapComponents();
 			});
 			
-			$scope.$watch('result_field', function (newVal, oldVal){
-				$scope.$parent.result_field=newVal;
-				updateMapComponents();
-			});
+//			$scope.$watch('result_field', function (newVal, oldVal){
+//				$scope.updateMapComponents();
+//			});
 			
 			$scope.changeJobFile=function() {
 				// Change the path when the job file is changed
@@ -456,13 +456,12 @@ define([  'angular'
 			};
 			
 			$scope.$watch('job_id', function (newVal, oldVal){
-				$scope.$parent.result_field=newVal;
-				updateMapComponents();
+				$scope.updateMapComponents();
 			});
 			
 			
 			$scope.$watch('preferences.config.ramp', function (newVal, oldVal){
-				updateMapComponents();
+				$scope.updateMapComponents();
 			});
 			
 			// Whenever a feature is selected in the table, we will match that feature in
