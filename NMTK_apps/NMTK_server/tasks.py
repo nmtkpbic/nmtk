@@ -547,6 +547,8 @@ def importDataFile(datafile, job_id=None):
                          extent,)
             datafile.extent = extent
         datafile.feature_count = loader.info.feature_count
+        if not datafile.description:
+            datafile.description = loader.info.format
         if loader.is_spatial and not datafile.srid:
             datafile.status = datafile.IMPORT_FAILED
             datafile.status_message = 'Please specify SRID for this file (unable to auto-identify SRID)'

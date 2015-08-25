@@ -242,6 +242,10 @@ pushd ../nmtk_files &> /dev/null
 
 popd &> /dev/null
 python manage.py migrate --noinput
+
+# Load the initial data
+python manage.py loaddata NMTK_server/fixtures/initial_data.json
+
 # Use the -l argument for development, otherwise js/css changes require recopying
 
 if [[ $PRODUCTION == 1 && ! -f "$BASEDIR/node/bin/npm" ]]; then
