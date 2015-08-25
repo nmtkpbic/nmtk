@@ -115,7 +115,8 @@
           <div class="widget-header">
             <span class="glyphicon glyphicon-map-marker"></span>
             <h1>Spatial {{data_file_tab_name}}</h1>
-            <button class="navbar-right btn btn-xs btn-primary ic-right" ng-click="changeColors()">Change Colors</button>
+            <button ng-show="totalServerItems > 0" 
+                    class="navbar-right btn btn-xs btn-primary ic-right" ng-click="changeColors()">Change Colors</button>
           </div> <!-- /widget-header -->
           <div class="widget-content">
             <!-- <div id="map" class="angular-leaflet-map"></div> -->
