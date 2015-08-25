@@ -15,16 +15,29 @@ logger = logging.getLogger(__name__)
 
 class ImageLoader(BaseDataLoader):
     name = 'image'
+    supported_formats = ('image/png', 'image/jpeg', 'image/gif')
 
     def __init__(self, *args, **kwargs):
         '''
         Loading an image - hopefully
         '''
+        self.unpack_list = []
+
         logger.debug('ImageLoader: %s, %s', args, kwargs)
-        self.filename = args[0][0]
-        self.mimetype = magic.from_file(self.filename, mime=True)
-        self.format = magic.from_file(self.filename)
-        super(ImageLoader, self).__init__(*args, **kwargs)
+        #
+        # Iterate over the files that were passed in, and test each one
+        # to see if they support the image format we allow, if they do, then
+        # use the first one we find.
+        #
+        for filen in args[0]:
+            mimetype = magic.from_file(filen, mime=True)
+            if mimetype not in self.supported_formats:
+                continue
+            self.unpack_list.append(filen)
+            self.filename = filen
+            self.mimetype = mimetype
+            self.format = magic.from_file(self.filename)
+            super(ImageLoader, self).__init__(*args, **kwargs)
 
     def __iter__(self):
         return self
@@ -68,4 +81,4 @@ class ImageLoader(BaseDataLoader):
         return []
 
     def is_supported(self):
-        return (self.mimetype in ('image/png', 'image/jpeg', 'image/gif'))
+        return hasattr(self, 'mimetype') and (self.mimetype in self.supported_formats)

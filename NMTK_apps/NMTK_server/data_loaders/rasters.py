@@ -21,6 +21,10 @@ class RasterLoader(BaseDataLoader):
         '''
         A reader for GDAL support raster images.
         '''
+        # A list of files that should be unpacked from the archive, it's
+        # important to note that the first one is the supported file type,
+        # the others are supporting files.
+        self.unpack_list = []
         self.raster_obj = None
         self._srid = kwargs.pop('srid', None)
         super(RasterLoader, self).__init__(*args, **kwargs)
@@ -40,6 +44,8 @@ class RasterLoader(BaseDataLoader):
                 self.format = self.raster_obj.driver.name
                 logger.debug('The format of the file is %s', self.format)
                 self.filename = fn
+                self.unpack_list.append(fn)
+                logger.info('Raster file detected is %s', self.filename)
                 break
 
     @property
@@ -202,7 +208,10 @@ class RasterLoader(BaseDataLoader):
                                                    'dim', ])
 
             self._data = RasterResult(srid=geom_srid,
-                                      extent=geos_4326.extent,
+                                      extent=(geos_4326.extent[0],
+                                              geos_4326.extent[2],
+                                              geos_4326.extent[1],
+                                              geos_4326.extent[3],),
                                       ogr=None,
                                       layer=None,
                                       srs=geos_4326.srs,

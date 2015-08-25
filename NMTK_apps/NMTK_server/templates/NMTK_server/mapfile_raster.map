@@ -35,7 +35,7 @@ MAP
 
   LAYER
     NAME "results"
-    DATA "{{datafile.path}}"
+    DATA "{{datafile.file.path}}"
     TYPE RASTER
     TRANSPARENCY ALPHA
     METADATA

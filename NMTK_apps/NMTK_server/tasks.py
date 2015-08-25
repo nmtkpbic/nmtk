@@ -11,7 +11,9 @@ from django.conf import settings
 from django.core.management.color import no_style
 from django.db import connections, transaction
 import logging
+import shutil
 import os
+import cStringIO as StringIO
 from django.core.exceptions import ObjectDoesNotExist
 from NMTK_apps.helpers.data_output import getQuerySet, json_custom_serializer
 from NMTK_server.data_loaders.loaders import NMTKDataLoader
@@ -534,6 +536,23 @@ def importDataFile(datafile, job_id=None):
     try:
         loader = NMTKDataLoader(datafile.file.path,
                                 srid=datafile.srid)
+        destination = None
+        for import_file in loader.extract_files():
+            # Figure out where these files need to go.
+            if not destination:
+                destination = os.path.dirname(datafile.file.path)
+                # the first file we get (when destination is null,it's our first
+                # loop) is the one that needs to be in the model, handle that
+                # here...
+                if datafile.file.path != import_file:
+                    f = open(import_file)
+                    datafile.file.save(os.path.basename(import_file), File(f))
+            else:
+                shutil.copyfile(import_file,
+                                os.path.join(destination,
+                                             os.path.basename(import_file)))
+            logger.debug('Created a new file for %s', import_file)
+
         if loader.is_spatial:
             datafile.srid = loader.info.srid
             datafile.srs = loader.info.srs

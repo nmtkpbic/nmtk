@@ -127,6 +127,15 @@ class NMTKDataLoader(object):
                 return dl_instance.name
         return None
 
+    def extract_files(self):
+        '''
+        A generator that returns the files that need to be preserved.  The first 
+        of which ought to be the file specified in the datafile.file field.
+        '''
+        if self.dl_instance.unpack_list:
+            for f in self.dl_instance.unpack_list:
+                yield f
+
     @property
     def info(self):
         '''
