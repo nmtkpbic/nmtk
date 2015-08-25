@@ -9,7 +9,7 @@ from django.core import exceptions
 import collections
 import logging
 import io
-import simplejson as json
+import json
 from osgeo import ogr, osr
 
 __all__ = ['FormatException', ]
@@ -35,8 +35,9 @@ class FormatException(Exception):
     pass
 
 DEFAULT_LOADERS = ['NMTK_server.data_loaders.ogr.OGRLoader',
-                   'NMTK_server.data_loaders.csv.CSVLoader'
-                   'NMTK_server.data_loaders.image.ImageLoader']
+                   'NMTK_server.data_loaders.csv.CSVLoader',
+                   'NMTK_server.data_loaders.image.ImageLoader',
+                   'NMTK_server.data_loaders.rasters.RasterLoader']
 
 
 class NMTKDataLoader(object):

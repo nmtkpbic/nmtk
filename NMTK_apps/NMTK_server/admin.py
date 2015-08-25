@@ -1,7 +1,7 @@
 from django.contrib import admin
 import models
 from django.utils.safestring import mark_safe
-from django.utils import simplejson as json
+import json
 from django.conf import settings
 
 

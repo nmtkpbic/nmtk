@@ -1,4 +1,4 @@
-import simplejson as json
+import json
 from NMTK_server import models
 import decimal
 import collections

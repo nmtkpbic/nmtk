@@ -151,7 +151,15 @@ if [ ${#PGPASSWORD} == 0 ]; then
   read -s -p "PostgreSQL Password for $PGUSER (will not echo): " PGPASSWORD
   echo ""
 fi
-export FIRSTNAME LASTNAME PASSWORD EMAIL NMTK_USERNAME NMTK_NAME URL PGUSER PGPASSWORD SSL CONF_FILE HOSTN
+
+# This is the secret used in the local_settings.py file, we need to ensure
+# we don't change it, otherwise users will have to shift-reload to get a new
+# CSRF token.
+if [ ${#SECRET} == 0 ]; then
+  SECRET=$(python -c "import string,random; print ''.join(random.choice(string.letters+string.digits) for i in xrange(64))")
+fi
+
+export FIRSTNAME LASTNAME PASSWORD EMAIL NMTK_USERNAME NMTK_NAME URL PGUSER PGPASSWORD SSL CONF_FILE HOSTN SECRET
    cat <<-EOT > .nmtk_config
 	# These settings were built from the first run of the install.sh script
 	# to change them, remove this file and re-run the install script.
@@ -166,6 +174,7 @@ export FIRSTNAME LASTNAME PASSWORD EMAIL NMTK_USERNAME NMTK_NAME URL PGUSER PGPA
 	PGUSER=${PGUSER}
 	SSL=${SSL}
 	HOSTN=${HOSTN}
+	SECRET=${SECRET}
 EOT
 
 if [[ $WINDOWS == 0 ]]; then
@@ -228,7 +237,6 @@ SERVER_ENABLED=$(python manage.py query_settings --nmtk-server-status)
 TOOLSERVER_ENABLED=$(python manage.py query_settings --tool-server-status)
 PRODUCTION=$(python manage.py query_settings --production)
 TOOL_SERVER_URL=$(python manage.py query_settings --tool-server-url)
-SECRET=$(python -c "import string,random; print ''.join(random.choice(string.letters+string.digits) for i in xrange(64))")
 sed -i "s/^SECRET_KEY.*/SECRET_KEY = '''$SECRET'''/" $BASEDIR/NMTK_apps/NMTK_apps/local_settings.py
 
 pushd ../nmtk_files &> /dev/null
@@ -241,7 +249,11 @@ pushd ../nmtk_files &> /dev/null
   psql -U $PGUSER $DB_NAME -c "create extension postgis;"
 
 popd &> /dev/null
-python manage.py syncdb --noinput
+python manage.py migrate --noinput
+
+# Load the initial data
+python manage.py loaddata NMTK_server/fixtures/initial_data.json
+
 # Use the -l argument for development, otherwise js/css changes require recopying
 
 if [[ $PRODUCTION == 1 && ! -f "$BASEDIR/node/bin/npm" ]]; then

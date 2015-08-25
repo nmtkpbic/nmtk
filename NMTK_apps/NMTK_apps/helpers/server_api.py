@@ -18,6 +18,17 @@ class NMTKAPIException(Exception):
     pass
 
 
+def json_custom_serializer(obj):
+    if hasattr(obj, 'isoformat'):
+        return obj.isoformat()
+    elif isinstance(obj, decimal.Decimal):
+        return str(obj)
+    else:
+        raise TypeError(
+            "Unserializable object {} of type {}".format(obj, type(obj))
+        )
+
+
 class NMTKClient(object):
 
     '''
@@ -72,7 +83,7 @@ class NMTKClient(object):
         payload['job'] = {'timestamp': datetime.datetime.now().isoformat(),
                           'job_id': self.job_id,
                           'tool_server_id': self.tool_server_id}
-        payload_json = json.dumps(payload)
+        payload_json = json.dumps(payload, default=json_custom_serializer)
         signature = self._getSignature(payload_json)
         headers.update({'authorization': signature,
                         'Referer': url})

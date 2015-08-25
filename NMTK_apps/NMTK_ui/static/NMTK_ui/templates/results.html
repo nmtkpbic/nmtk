@@ -31,8 +31,11 @@
 		               class="navbar-right glyphicon" ></span>
 					    <span class="sr-only" >Expand or collapse</span>
 		     </button>  
-            <button  stop-event='click' class="btn btn-xs btn-primary ic-right navbar-right" ng-click="downloadDatafile(datafile_api)">Download</button>
-                     
+		    <button stop-event='click' class="btn btn-xs btn-primary ic-right navbar-right" ng-click="downloadDatafile(datafile_api)">Download</button>
+  		    <button ng-if="message_categories['Error']" stop-event='click' class="btn btn-xs btn-danger ic-right navbar-right" ng-click="showJobStatus('Error')">Error</button>
+		    <button ng-if="message_categories['Warning']" stop-event='click' class="btn btn-xs btn-warning ic-right navbar-right" ng-click="showJobStatus('Warning')">Warning</button>
+            <button ng-if="message_categories['Message']" stop-event='click' class="btn btn-xs btn-info ic-right navbar-right" ng-click="showJobStatus('Message')">Message</button>
+            
              </div> <!-- /widget-header -->
           <div ng-show="isDivEnabled('job_result_help') && job" class="widget-content">
             <p>
@@ -144,7 +147,7 @@
           <div class="widget-header">
             <span class="glyphicon glyphicon-picture"></span>
             <h1><label for="style">Map Legend - styled by</label>
-                 <select id="style" ng-model="result_field" name="result_field" ng-options="field for field in fields">
+                 <select id="style" ng-change="updateMapComponents()" ng-model="result_data.field" name="result_field" ng-options="field for field in fields">
                    <option value=""></option>
                  </select>
             </h1>

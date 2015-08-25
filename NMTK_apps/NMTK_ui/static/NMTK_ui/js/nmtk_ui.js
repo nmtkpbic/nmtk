@@ -87,6 +87,7 @@ require.config({
 		, "AdvancedFiltersTemplate": "../templates/advanced_filters_modal.html" // Template for the advanced filters modal.
 		, "ColorRampSelectionTemplate": "../templates/wms_colorramp_selection_modal.html" // Template for choosing a color ramp.
 		, "JobStatusHistoryTemplate": "../templates/job_status_history_modal.html" // Template for job status history
+		, "JobMessageTemplate": "../templates/job_message_modal.html" // Template for job status messages
 
 	}
 	, shim: {

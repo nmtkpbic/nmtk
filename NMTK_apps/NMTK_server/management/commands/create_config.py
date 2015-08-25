@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib import sites
 from django.conf import settings
 import hashlib
-import simplejson as json
+import json
 import string
 import random
 import sys
