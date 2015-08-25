@@ -9,7 +9,7 @@ from django.core import exceptions
 import collections
 import logging
 import io
-import simplejson as json
+import  json
 from osgeo import ogr, osr
 
 __all__ = ['FormatException', ]

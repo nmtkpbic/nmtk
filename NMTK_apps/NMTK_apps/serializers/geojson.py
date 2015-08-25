@@ -59,10 +59,10 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.core.serializers.json import Serializer as OverloadedSerializer
 from django.core.serializers.json import Deserializer
 #from wadofstuff.django.serializers.python import Serializer as OverloadedSerializer
-from django.utils import simplejson
+import json
 from django.contrib.gis.db.models.fields import GeometryField
 from django.contrib.gis.geos.geometry import GEOSGeometry
-from django.utils import simplejson as json
+import json
 from django.core.serializers.python import Deserializer as PythonDeserializer
 
 
@@ -79,7 +79,7 @@ class Serializer(OverloadedSerializer):
             super(Serializer, self).handle_field(obj, field)
 
     def end_serialization(self):
-        simplejson.dump(
+        json.dump(
             self.objects,
             self.stream,
             cls=DjangoGEOJSONEncoder,
@@ -124,7 +124,7 @@ def Deserializer(stream_or_string, **options):
     else:
         stream = stream_or_string
     for obj in PythonDeserializer(
-            simplejson.load(
+            json.load(
                 stream,
                 object_hook=GEOJsonToEWKT),
             **options):

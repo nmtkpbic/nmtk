@@ -241,7 +241,7 @@ pushd ../nmtk_files &> /dev/null
   psql -U $PGUSER $DB_NAME -c "create extension postgis;"
 
 popd &> /dev/null
-python manage.py syncdb --noinput
+python manage.py migrate --noinput
 # Use the -l argument for development, otherwise js/css changes require recopying
 
 if [[ $PRODUCTION == 1 && ! -f "$BASEDIR/node/bin/npm" ]]; then

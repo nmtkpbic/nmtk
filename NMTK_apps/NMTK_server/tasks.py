@@ -1,5 +1,5 @@
 from celery.task import task
-import simplejson as json
+import json
 import decimal
 import requests
 import urlparse
@@ -13,7 +13,7 @@ from django.db import connections, transaction
 import logging
 import os
 from django.core.exceptions import ObjectDoesNotExist
-from NMTK_apps.helpers.data_output import getQuerySet
+from NMTK_apps.helpers.data_output import getQuerySet, json_custom_serializer
 from NMTK_server.data_loaders.loaders import NMTKDataLoader
 from django.core.files import File
 from django.contrib.gis import geos
@@ -380,7 +380,7 @@ def submitJob(job_id):
         'timestamp': timezone.now().isoformat()}
 
     # cls=DjangoJSONEncoder)
-    config_data = json.dumps(configuration, use_decimal=True)
+    config_data = json.dumps(configuration, default=json_custom_serializer)
     digest_maker = hmac.new(str(job.tool.tool_server.auth_token),
                             config_data,
                             hashlib.sha1)
