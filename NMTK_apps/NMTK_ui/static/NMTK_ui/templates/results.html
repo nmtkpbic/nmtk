@@ -92,7 +92,7 @@
       </div><!-- /span12 -->
     </div><!-- /row -->
     <!--  The case where we have an image, rather than data. -->
-    <div ng-if="totalServerItems == 0" class="row ng-cloak">
+    <div ng-if="totalServerItems == 0 && ! spatial" class="row ng-cloak">
       <div class="col-md-12 ng-cloak">
         <div class="widget stacked">
           <div class="widget-header">
@@ -109,7 +109,7 @@
     
     
     
-    <div ng-if="totalServerItems > 0" class="row ng-cloak">
+    <div ng-if="spatial" class="row ng-cloak">
       <div class="col-md-6">
         <div class="widget stacked" ng-show="spatial">
           <div class="widget-header">
@@ -123,7 +123,7 @@
                      geojson="geojson" bounds="bounds"></leaflet>
           </div> <!-- /widget-content -->
         </div><!-- /widget stacked -->
-        <div class="widget stacked">
+        <div ng-if="totalServerItems > 0" class="widget stacked">
           <div class="widget-header">
             <span class="glyphicon glyphicon-list"></span>
             <h1 ng-hide="customFilters.length">All {{data_file_tab_name}}</h1>
@@ -140,23 +140,24 @@
         </div><!-- /widget stacked -->
       </div><!-- /span6 -->
     </div>
-    <div ng-show="totalServerItems > 0" class="row">
+    <div class="row">
 
       <div class="col-md-6">
         <div ng-show="spatial" class="widget stacked">
           <div class="widget-header">
             <span class="glyphicon glyphicon-picture"></span>
-            <h1><label for="style">Map Legend - styled by</label>
+            <h1 ng-show="totalServerItems > 0" ><label for="style">Map Legend - styled by</label>
                  <select id="style" ng-change="updateMapComponents()" ng-model="result_data.field" name="result_field" ng-options="field for field in fields">
                    <option value=""></option>
                  </select>
             </h1>
+            <h1 ng-show="totalServerItems == 0" >Map Legend</h1>
           </div> <!-- /widget-header -->
           <div style="text-align: center;" class="widget-content">
             <img alt="Map legend" ng-src="{{legend_url}}">
           </div> <!-- /widget-content -->
         </div><!-- /widget stacked -->
-        <div class="widget stacked">
+        <div ng-show="totalServerItems > 0" class="widget stacked">
           <div class="widget-header">
             <span class="glyphicon glyphicon-plus-sign"></span>
             <h1>{{selected_features.length}} Selected Features</h1>

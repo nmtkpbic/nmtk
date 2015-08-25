@@ -51,6 +51,7 @@ geomodel_mappings = {
                      geos.Polygon, 'polygon'),
     ogr.wkbMultiLineString: ('models.MultiLineStringField',
                              geos.MultiLineString, 'line'),
+    99: (None, None, 'raster'),
 }
 
 
@@ -136,6 +137,7 @@ def generate_datamodel(datafile, loader):
                 model_content.append(
                     '''{0}db_table='userdata_results_{1}' '''.format(
                         ' ' * 8, datafile.pk))
+                logger.error('working on saving the model datafile!')
                 datafile.model.save(
                     'model.py', ContentFile(
                         '\n'.join(model_content)), save=False)
@@ -199,7 +201,7 @@ def generate_datamodel(datafile, loader):
     except Exception as e:
         logger.exception('Failed to create spatialite results table')
         return datafile
-    logger.debug('About to return job back to caller - %s', datafile.pk)
+    logger.error('About to return job back to caller - %s', datafile.pk)
     return datafile
 
 
@@ -566,6 +568,7 @@ def importDataFile(datafile, job_id=None):
         if datafile.status in (
                 datafile.IMPORTED,
                 datafile.IMPORT_RESULTS_COMPLETE) and datafile.feature_count:
+            logger.error('Working on saving the model!')
             datafile.processed_file.save('{0}.{1}'.format(datafile.pk, suffix),
                                          ContentFile(''))
             loader.export_json(datafile.processed_file.path)
