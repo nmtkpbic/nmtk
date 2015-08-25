@@ -176,9 +176,9 @@ if TOOL_SERVER:
                                        ) + NMTK_TOOL_APPS
 if NMTK_SERVER:
     INSTALLED_APPS = INSTALLED_APPS + ('django.contrib.auth',
-                                       'registration',
                                        'widget_tweaks',
                                        'NMTK_server',  # The NMTK Server
+                                       'registration',
                                        'django.contrib.admin',
                                        # the UI components for NMTK server
                                        'NMTK_ui',
@@ -274,5 +274,5 @@ SESSION_SAVE_EVERY_REQUEST = True
 # Since the first loader that recognizes a file will process it.
 DATA_LOADERS = ['NMTK_server.data_loaders.ogr.OGRLoader',
                 'NMTK_server.data_loaders.csv.CSVLoader',
-                'NMTK_server.data_loaders.images.ImageLoader'
+                'NMTK_server.data_loaders.images.ImageLoader',
                 'NMTK_server.data_loaders.rasters.RasterLoader']
