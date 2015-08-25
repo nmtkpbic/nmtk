@@ -7,7 +7,7 @@ from django.db.models.loading import cache
 from django.core.files.storage import get_storage_class
 from django.contrib.auth import get_user_model
 from django.dispatch import receiver
-import simplejson as json
+import json
 import shutil
 from registration.signals import user_activated
 from NMTK_server.default_data.init_account import setupAccount

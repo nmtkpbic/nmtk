@@ -4,7 +4,7 @@ import xlwt
 import csv
 import cStringIO as StringIO
 from django.http import HttpResponse
-import simplejson as json
+import json
 from django.db.models import Q
 from django.contrib.gis.geos import Polygon, Point
 import math
@@ -27,7 +27,7 @@ def getBbox(long, lat, zoom_level, pixels=5):
         # Get the number of meters per pixel...
         # At zoom level 0 (at the equator) there are ~156413 m/pixel, then it halves for
         # each zoom level beyond that...
-        resolution = 156543.03392804062 / (2**zoom_level)
+        resolution = 156543.03392804062 / (2 ** zoom_level)
         spacing = pixels * resolution
 
         p = Point(x - spacing, y - spacing, srid=3857)
@@ -85,7 +85,7 @@ def stream_csv(datafile):
         data = read_and_flush()
         yield data
 
-    response = HttpResponse(data(), mimetype="text/csv")
+    response = HttpResponse(data(), content_type="text/csv")
     response.streaming = True
     response['Content-Disposition'] = "attachment; filename=results.csv"
     return response
@@ -121,7 +121,7 @@ def stream_xls(datafile):
             for i, v in enumerate(db_map):
                 ws.write(rowid, i, getattr(row, v[1]), style1)
         logger.debug('Getting ready to return XLS response...')
-        response = HttpResponse(mimetype="application/ms-excel")
+        response = HttpResponse(content_type="application/ms-excel")
         response.streaming = True
         response['Content-Disposition'] = "attachment; filename=results.xls"
         wb.save(response)
@@ -195,12 +195,26 @@ def data_query(request, datafile):
             data[db_col] = getattr(row, col)
         result['data'].append(data)
 
-    date_handler = lambda data: data.isoformat() if hasattr(data, 'isoformat') else data
+    date_handler = lambda data: data.isoformat() if hasattr(
+        data, 'isoformat') else data
     return HttpResponse(
         json.dumps(
             result,
-            default=date_handler),
-        mimetype='application/json')
+            default=json_custom_serializer),
+        content_type='application/json')
+
+import decimal
+
+
+def json_custom_serializer(obj):
+    if hasattr(obj, 'isoformat'):
+        return obj.isoformat()
+    elif isinstance(obj, decimal.Decimal):
+        return str(obj)
+    else:
+        raise TypeError(
+            "Unserializable object {} of type {}".format(obj, type(obj))
+        )
 
 
 def pager_output(request, datafile):
@@ -276,9 +290,9 @@ def pager_output(request, datafile):
                 if col != 'nmtk_geometry':
                     data[db_col] = getattr(row, col)
             result['data'].append(data)
-    date_handler = lambda data: data.isoformat() if hasattr(data, 'isoformat') else data
+
     return HttpResponse(
         json.dumps(
             result,
-            default=date_handler),
-        mimetype='application/json')
+            default=json_custom_serializer),
+        content_type='application/json')

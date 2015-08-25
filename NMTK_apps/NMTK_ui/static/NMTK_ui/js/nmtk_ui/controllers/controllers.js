@@ -59,17 +59,19 @@ define([
   , 'nmtk_ui/controllers/ColorRampSelectionCtrl' // Controller for managing Advanced filters
   , 'nmtk_ui/controllers/LoginCtrl' // Controller handling the user login process
   , 'nmtk_ui/controllers/JobStatusHistoryCtrl' // Controller handling the display of job status history
+  , 'nmtk_ui/controllers/ViewJobNotificationsCtrl' // Controller displaying messages for a job.
   , 'nmtk_ui/controllers/DeleteJobCtrl' // Controller handling the deletion of jobs
 ], function ( _, NMTKCtrl, SwitchJobCtrl, 
 		ChangePasswordCtrl, CloneConfigCtrl, ConfigureCtrl,
 		CreateJobCtrl, DeleteCtrl, DownloadDatafileCtrl, FeedbackCtrl,
 		FileInfoUpdateCtrl, FilesCtrl, IntroCtrl, JobCtrl,
 		ToolExplorerCtrl, ViewJobCtrl, ViewDatafileCtrl, AdvancedFiltersCtrl,
-		ColorRampSelectionCtrl, LoginCtrl, JobStatusHistoryCtrl, DeleteJobCtrl
+		ColorRampSelectionCtrl, LoginCtrl, JobStatusHistoryCtrl, 
+		ViewJobNotificationsCtrl, DeleteJobCtrl
 			 ) {
   "use strict";
   var controllers = {
-	"NMTKCtrl": NMTKCtrl
+  	  "NMTKCtrl": NMTKCtrl
 	, "SwitchJobCtrl": SwitchJobCtrl
 	, "ChangePasswordCtrl": ChangePasswordCtrl
 	, "CloneConfigCtrl": CloneConfigCtrl
@@ -89,6 +91,7 @@ define([
 	, "AdvancedFiltersCtrl": AdvancedFiltersCtrl
 	, "ColorRampSelectionCtrl": ColorRampSelectionCtrl
 	, "JobStatusHistoryCtrl": JobStatusHistoryCtrl
+	, "ViewJobNotificationsCtrl": ViewJobNotificationsCtrl
 	, "DeleteJobCtrl": DeleteJobCtrl
   };
   

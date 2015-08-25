@@ -218,8 +218,7 @@ class UserResource(ModelResource):
     def login(self, request, **kwargs):
         logger.debug('In the login view')
         self.method_check(request, allowed=['post'])
-        data = self.deserialize(request,
-                                request.raw_post_data,
+        data = self.deserialize(request, request.body,
                                 format=request.META.get('CONTENT_TYPE',
                                                         'application/json'))
 
@@ -765,7 +764,7 @@ class DataFileResource(ModelResource):
         excludes = ['file', 'processed_file', 'status', 'geom_type', 'fields',
                     'deleted', 'model',
                     'type', ]
-        authentication = CSRFBypassSessionAuthentication()
+        authentication = SessionAuthentication()
         validation = DataFileResourceValidation()
         filtering = {'status': ALL,
                      'user': ALL,
@@ -845,9 +844,11 @@ class DataFileResource(ModelResource):
         bundle.data['status'] = bundle.obj.get_status_display()
 
         bundle.data['user'] = bundle.obj.user.username
-        bundle.data['fields'] = json.dumps(bundle.obj.fields)
+        bundle.data['fields'] = json.dumps(bundle.obj.fields,
+                                           default=data_output.json_custom_serializer)
         bundle.data['field_attributes'] = json.dumps(
-            bundle.obj.field_attributes)
+            bundle.obj.field_attributes,
+            default=data_output.json_custom_serializer)
         if bundle.data['extent']:
             bundle.data['bbox'] = bundle.obj.bbox
 
@@ -1123,9 +1124,12 @@ class JobResourceValidation(Validation):
         a configuration that seems valid.  Then it's up to the tool to do the
         rest of the work in terms of processing/generating errors.
         '''
+        logger.debug('enter validation')
         errors = {}
         # if there is
-        if bundle.obj.pk and bundle.obj.status == bundle.obj.UNCONFIGURED:
+        if (bundle.obj.pk and
+                bundle.obj.status == bundle.obj.UNCONFIGURED and
+                bundle.data.get('config', None)):
             kwargs = {}
             kwargs['job'] = bundle.obj
             # Special case with POST is that the data comes in as a unicode string.
@@ -1134,7 +1138,7 @@ class JobResourceValidation(Validation):
                 if isinstance(bundle.data.get(name), (str, unicode)):
                     bundle.data[name] = json.loads(bundle.data[name])
                 elif name not in bundle.data:
-                    bundle.data[name] = '{}'
+                    bundle.data[name] = {}
             if bundle.obj.pk:
                 for field in ['tool', ]:
                     if (getattr(bundle.obj, '_old_{0}'.format(field), None) !=
@@ -1186,6 +1190,7 @@ class JobResourceValidation(Validation):
                     logger.debug('Proposed job files are %s from %s',
                                  bundle.obj.job_files_pending,
                                  bundle.data['file_config'])
+        logger.debug('exit validation')
         return errors
 
 
@@ -1213,8 +1218,7 @@ class JobResource(ModelResource):
         pass
 
     class Meta:
-        queryset = models.Job.objects.select_related('data_file',
-                                                     'jobstatus_set').all()
+        queryset = models.Job.objects.select_related().all()
         authorization = JobResourceAuthorization()
         validation = JobResourceValidation()
         always_return_data = True
@@ -1243,7 +1247,8 @@ class JobResource(ModelResource):
         bundle.data['user'] = bundle.obj.user.username
         bundle.data['tool_name'] = bundle.obj.tool.name
         bundle.data['status'] = bundle.obj.get_status_display()
-        bundle.data['config'] = json.dumps(bundle.obj.config)
+        bundle.data['config'] = json.dumps(bundle.obj.config,
+                                           default=data_output.json_custom_serializer)
 #         if len(bundle.obj.jobfile_set.all()) > 0:
 #             bundle.data['job_files']=[]
 #             for f in bundle.obj.jobfile_set.all():

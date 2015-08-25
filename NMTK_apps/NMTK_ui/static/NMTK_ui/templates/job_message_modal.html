@@ -1,0 +1,37 @@
+
+<div class="modal-content">
+  <div class="modal-header">
+    <button type="button" ng-click="close()" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    <h3 class="modal-title" id="view_job_title" ng-show="category">{{category}} Messages</h3>
+    <h3 class="modal-title" id="view_job_title" ng-hide="category">All Messages</h3>
+  </div>
+  <div class="modal-body">
+      <button class="btn btn-xs ic-right navbar-right btn-success" ng-click="switchCategory()">All</button>
+  
+      <span ng-repeat="cat in categories">
+      <button ng-class="{ 'btn-danger': (cat == 'Error'), 'btn-info': (cat == 'Message'), 'btn-warning': (cat == 'Warning') }" class="btn btn-xs ic-right navbar-right" ng-click="switchCategory(cat)">{{cat}}</button>
+      </span>
+      <label ng-show="category">The following "{{category}}" messages were received from the 
+            tool server during the processing of your job (displayed in the order received):</label>
+      <label ng-hide="category">The following messages were received from the 
+            tool server during the processing of your job (displayed in the order received):</label>
+      <table class="table table-condensed table-bordered table-hover" >
+      <thead>
+      <tr>
+         <th>Reported Status</th>
+         <th>Category</th>
+         <th>Timestamp</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr ng-repeat="status in statuses|filter:{category: category }"><td><strong>{{status.message}}</strong></td>
+                                         <td><strong>{{status.category}}</strong></td>
+                                         <td style="white-space: nowrap;"">{{status.timestamp|date:'medium'}}</td></tr>
+      </tbody>
+      </table>
+   </div>
+   
+   <div class="modal-footer">
+      <button  ng-click="close()" class="btn">Close</button>
+    </div>
+</div>

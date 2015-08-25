@@ -1,10 +1,10 @@
 from django.contrib.gis.db import models
-from uuidfield import UUIDField
 from jsonfield import JSONField
 from random import choice
 from django.conf import settings
 from django.utils import timezone
 import os
+import uuid
 from django.core.urlresolvers import reverse
 import hashlib
 from django.core.files.storage import FileSystemStorage
@@ -18,7 +18,7 @@ from django.contrib.gis.gdal import OGRGeometry
 from NMTK_server import tasks
 import magic
 import json
-from NMTK_server import signals
+# from NMTK_server import signals
 from NMTK_server.wms.legend import LegendGenerator
 from django.core.validators import MaxValueValidator, MinValueValidator
 import logging
@@ -27,7 +27,7 @@ from django.contrib.auth.models import AbstractUser
 logger = logging.getLogger(__name__)
 
 
-class IPAddressFieldNullable(models.IPAddressField):
+class IPAddressFieldNullable(models.GenericIPAddressField):
 
     def get_db_prep_save(self, value, connection):
         return value or None
@@ -104,14 +104,24 @@ class PageContent(models.Model):
         return super(PageContent, self).save(*args, **kwargs)
 
 
+'''
+Function used by ToolServer to generate a new auth token string.
+'''
+
+
+def generate_auth_token_string():
+    return ''.join(
+        [choice('abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)') for i in range(50)])
+
+
 class ToolServer(models.Model):
     name = models.CharField(
         max_length=64,
         help_text='A descriptive name for this tool server.')
-    tool_server_id = UUIDField(auto=True, primary_key=True)
+    tool_server_id = models.UUIDField(primary_key=True)
     contact = models.EmailField(null=True)
-    auth_token = models.CharField(max_length=50, default=lambda: ''.join(
-        [choice('abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)') for i in range(50)]))
+    auth_token = models.CharField(
+        max_length=50, default=generate_auth_token_string)
     remote_ip = IPAddressFieldNullable(
         blank=True,
         null=True,
@@ -154,13 +164,12 @@ class ToolServer(models.Model):
         new_record = False
         if not self.pk:
             new_record = True
+            self.pk = uuid.uuid4()
         result = super(ToolServer, self).save(*args, **kwargs)
         logger.debug(
             'Detected a save of the ToolServer model, adding/updating tools.')
         tasks.discover_tools.delay(self)
         # For a new record or changed contact we can send the email.
-        logger.error('New record is %s', new_record)
-        logger.error('Contact is %s = %s', self.contact, self.active)
         if ((new_record and self.contact and self.active) or
                 (self.active and self._old_contact != self.contact)):
             if not getattr(self, 'skip_email', False):
@@ -260,6 +269,10 @@ class ToolSampleConfig(models.Model):
         db_table = 'nmtk_tool_sample_config'
 
 
+def tool_sample_file_path(instance, filename):
+    return 'tool_files/%s/%s' % (instance.tool.pk, filename,)
+
+
 class ToolSampleFile(models.Model):
 
     '''
@@ -271,8 +284,7 @@ class ToolSampleFile(models.Model):
     tool = models.ForeignKey(Tool, on_delete=models.CASCADE)
     namespace = models.CharField(max_length=32, null=False)
     file = models.FileField(
-        storage=fs, upload_to=lambda instance, filename: 'tool_files/%s/%s' %
-        (instance.tool.pk, filename,))
+        storage=fs, upload_to=tool_sample_file_path)
     checksum = models.CharField(max_length=50, null=False)
     content_type = models.CharField(max_length=64, null=True)
     objects = models.GeoManager()
@@ -324,27 +336,22 @@ class Job(models.Model):
     def __init__(self, *args, **kwargs):
         super(Job, self).__init__(*args, **kwargs)
         self._old_status = self.status
-        self._old_tool = self.tool if hasattr(self, 'tool') else None
-    job_id = UUIDField(auto=True, primary_key=True)
+        self._old_tool = getattr(self, 'tool', None)
+    job_id = models.UUIDField(primary_key=True)
     tool = models.ForeignKey(Tool, on_delete=models.PROTECT)
     date_created = models.DateTimeField(auto_now_add=True)
     status = models.CharField(
         max_length=32, choices=STATUS_CHOICES, default=UNCONFIGURED)
-#     file=models.FileField(storage=fs, upload_to=lambda instance, filename: 'data_files/%s.geojson' % (instance.job_id,))
-#     data_file=models.ForeignKey('DataFile', null=True, related_name='job_source',
-#                                 blank=True, on_delete=models.PROTECT)
     # The result could contain multiple datafiles as well, so we will deal with
     # that via a separate model.
     results_files = models.ManyToManyField(
         'DataFile',
-        null=True,
         through='ResultsFile',
         related_name='results')
     # Now each job could have numerous data files, prevent deletion of a data file
     # if a job still requires it.
     job_files = models.ManyToManyField(
         'DataFile',
-        null=True,
         through='JobFile',
         related_name='job_files')
     # This will contain the config data to be sent along with the job, in
@@ -382,7 +389,15 @@ class Job(models.Model):
         In the interest of speed, the job execution work (which might take
         some time to submit) is passed off as a celery task, so the client gets
         it's response(s) back immediately.
+
+        Tastypie is broken with django 1.8 when it comes to the UUID field, because
+        if we use a default for the field, it assumes it has a record to work with
+        (it should use _state.adding instead.)  We work around that here by
+        detecting when a save hasn't happened and setting the uuid.
         '''
+        logger.debug('Saving!?')
+        if (not self.pk):
+            self.pk = uuid.uuid4()
         result = super(Job, self).save(*args, **kwargs)
         if self._old_status == self.UNCONFIGURED:
             if hasattr(self, 'job_files_pending'):
@@ -444,6 +459,36 @@ class JobFile(models.Model):
         db_table = 'nmtk_job_file'
 
 
+'''
+Both the functions below are for DataFile to determine paths, in a serializable
+method.
+'''
+
+
+def data_file_path(instance, filename):
+    '''
+    Django 1.8 migrations can't serialize lambdas, so we move what (was) a lambda
+    to outside the class body and make it a function
+    '''
+    return '%s/data_files/%s' % (instance.user.pk, filename,)
+
+
+def data_file_model_path(instance, filename):
+    '''
+    Django 1.8 migrations can't serialize lambdas, so we move what (was) a lambda
+    to outside the class body and make it a function
+    '''
+    return '%s/data_files/%s.py' % (instance.user.pk, filename,)
+
+
+def converted_data_file_path(instance, filename):
+    '''
+    Django 1.8 migrations can't serialize lambdas, so we move what (was) a lambda
+    to outside the class body and make it a function
+    '''
+    return '%s/data_files/converted/%s' % (instance.user.pk, filename,)
+
+
 class DataFile(models.Model):
     PENDING = 1
     PROCESSING = 2
@@ -462,6 +507,8 @@ class DataFile(models.Model):
                 (IMPORT_RESULTS_COMPLETE, 'Import of Job Results Complete',),
                 )
     # The supported geometry types
+    # Note that we use type of 99 for RASTER, which would mean an GDAL supported
+    # raster image.
     GEOM_TYPES = ((ogr.wkbPoint, 'POINT'),
                   (ogr.wkbGeometryCollection, 'GEOMETRYCOLLECTION'),
                   (ogr.wkbLineString, 'LINESTRING'),
@@ -469,6 +516,7 @@ class DataFile(models.Model):
                   (ogr.wkbMultiPolygon, 'MULTIPOLYGON'),
                   (ogr.wkbPolygon, 'POLYGON'),
                   (ogr.wkbMultiLineString, 'MULTILINESTRING'),
+                  (99, 'RASTER'),
                   )
     # File Types
     JOB_INPUT = 'source'
@@ -479,15 +527,10 @@ class DataFile(models.Model):
                   (JOB_BOTH, 'Result from Job, can be used for input',)
                   )
     file = models.FileField(
-        storage=fs, upload_to=lambda instance, filename: '%s/data_files/%s' %
-        (instance.user.pk, filename,))
+        storage=fs, upload_to=data_file_path)
     processed_file = models.FileField(
         storage=fs_geojson,
-        upload_to=lambda instance,
-        filename: '%s/data_files/converted/%s' %
-        (instance.user.pk,
-         filename,
-         ))
+        upload_to=converted_data_file_path)
     name = models.CharField(max_length=64)
     type = models.CharField(choices=FILE_TYPES, max_length=10,
                             default=JOB_INPUT)
@@ -507,20 +550,10 @@ class DataFile(models.Model):
     deleted = models.BooleanField(default=False)
     result_field = models.CharField(null=True, blank=True, max_length=32)
     result_field_units = models.CharField(null=True, blank=True, max_length=64)
-#     mapfile=models.FileField(storage=fs_results,
-#                              upload_to=lambda instance, filename: '%s/data_files/wms/%s.map' % (instance.user.pk,
-#                                                                                                 instance.pk,),
-#                              blank=True, null=True)
-#     legendgraphic=models.FileField(storage=fs_results,
-#                                    upload_to=lambda instance, filename: '%s/data_files/wms/%s_legend.png' % (instance.user.pk,
-# instance.pk))
+
     model = models.FileField(
         storage=fs_results,
-        upload_to=lambda instance,
-        filename: '%s/data_files/%s.py' %
-        (instance.user.pk,
-         instance.pk,
-         ),
+        upload_to=data_file_model_path,
         blank=True,
         null=True)
     checksum = models.CharField(max_length=50, null=False)
@@ -659,10 +692,10 @@ class JobStatus(models.Model):
     '''
     CATEGORY_DEBUG = 1
     CATEGORY_STATUS = 2
-    CATEGORY_MESSAGE = 3
-    CATEGORY_WARNING = 4
-    CATEGORY_ERROR = 5
-    CATEGORY_SYSTEM = 6
+    CATEGORY_SYSTEM = 3
+    CATEGORY_MESSAGE = 4
+    CATEGORY_WARNING = 5
+    CATEGORY_ERROR = 6
 
     CATEGORY_CHOICES = [(CATEGORY_DEBUG, 'Debug'),
                         (CATEGORY_STATUS, 'Status'),
@@ -673,7 +706,7 @@ class JobStatus(models.Model):
                         ]
     job = models.ForeignKey(Job)
     timestamp = models.DateTimeField(auto_now_add=True)
-    category = models.IntegerField(max_length=10, choices=CATEGORY_CHOICES,
+    category = models.IntegerField(choices=CATEGORY_CHOICES,
                                    default=CATEGORY_STATUS)
     message = models.CharField(max_length=1024)
     objects = models.GeoManager()
@@ -719,6 +752,14 @@ class UserPreference(models.Model):
         db_table = 'nmtk_user_preference'
 
 
+def color_ramp_graphic_path(instance, filename):
+    '''
+    Django 1.8 migrations can't serialize lambdas, so we move what (was) a lambda
+    to outside the class body and make it a function
+    '''
+    return 'color_ramps/%s' % (filename,)
+
+
 class MapColorStyle(models.Model):
 
     '''
@@ -752,8 +793,8 @@ class MapColorStyle(models.Model):
         verbose_name="B")
     default = models.BooleanField(default=False)
     category = models.CharField(max_length=20, null=True)
-    ramp_graphic = models.ImageField(storage=fs, upload_to=lambda instance,
-                                     filename: 'color_ramps/%s' % (filename,),
+    ramp_graphic = models.ImageField(storage=fs,
+                                     upload_to=color_ramp_graphic_path,
                                      null=True, blank=True)
 
     def ramp_graphic_tag(self):
