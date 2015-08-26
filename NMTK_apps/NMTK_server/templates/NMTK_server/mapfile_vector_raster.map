@@ -1,0 +1,311 @@
+{% load url from future %}{% load static %}
+MAP
+  NAME Results_WMS
+  UNITS dd
+  EXTENT {{datafile.bbox.0}} {{datafile.bbox.1}} {{datafile.bbox.2}} {{datafile.bbox.3}}
+  STATUS ON
+  SIZE 512 512
+  IMAGECOLOR 255 255 255
+  IMAGETYPE PNG
+  
+
+  # This is for the WMS requests
+  OUTPUTFORMAT
+    NAME PNG
+    DRIVER 'GD/PNG'
+    MIMETYPE 'image/png'
+    IMAGEMODE RGBA
+    EXTENSION "png"
+    TRANSPARENT ON
+  END
+
+  OUTPUTFORMAT
+    NAME "json"
+    DRIVER "TEMPLATE"
+    FORMATOPTION "FILE={{mapserver_template}}"
+    MIMETYPE "application/json"
+  END
+  
+  OUTPUTFORMAT
+    NAME "json"
+    DRIVER "TEMPLATE"
+    FORMATOPTION "FILE={{mapserver_template}}"
+    MIMETYPE "application/json"
+  END
+  
+  OUTPUTFORMAT
+    NAME "csv"
+    DRIVER "OGR/CSV"
+    MIMETYPE "text/csv"
+    FORMATOPTION "LCO:GEOMETRY=AS_WKT"
+    FORMATOPTION "STORAGE=memory"
+    FORMATOPTION "FORM=simple"
+    FORMATOPTION "FILENAME={{datafile.pk}}_nmtk.csv"
+  END
+  
+  #OUTPUTFORMAT
+  #  NAME "kml"
+  #  DRIVER "OGR/LIBKML"
+  #  MIMETYPE "application/vnd.google-earth.kml+xml"
+  #  FORMATOPTION "STORAGE=memory"
+  #  FORMATOPTION "FORM=simple"
+  #  FORMATOPTION "FILENAME={{datafile.pk}}_nmtk.kml"
+  #END
+
+  OUTPUTFORMAT
+    NAME "gml"
+    DRIVER "OGR/GML"
+    FORMATOPTION "STORAGE=filesystem"
+    FORMATOPTION "FORM=simple"
+    FORMATOPTION "FILENAME={{datafile.pk}}_nmtk.gml"
+  END
+
+  OUTPUTFORMAT
+    NAME "shapefile"
+    DRIVER "OGR/ESRI Shapefile"
+    FORMATOPTION "STORAGE=memory"
+    FORMATOPTION "FORM=zip"
+    FORMATOPTION "FILENAME={{datafile.pk}}_nmtk.zip"
+  END
+
+#  OUTPUTFORMAT
+#    NAME kml
+#    DRIVER "KML"
+#    MIMETYPE "application/vnd.google-earth.kml+xml"
+#    IMAGEMODE RGB
+#    EXTENSION "kml"
+#    FORMATOPTION "maxfeaturestodraw=10000"
+#    FORMATOPTION 'ATTACHMENT={{datafile.pk}}_nmtk.kml'  #name of kml file returned
+#  END
+
+#  OUTPUTFORMAT
+#    NAME kmz
+#    DRIVER "KMZ"
+#    MIMETYPE "application/vnd.google-earth.kmz"
+#    IMAGEMODE RGB
+#    EXTENSION "kmz"
+#    FORMATOPTION 'ATTACHMENT={{datafile.pk}}_nmtk.kmz'  #name of kml file returned
+#  END
+
+  PROJECTION
+   "init=epsg:4326"
+  END
+
+  WEB
+    IMAGEPATH "/tmp/"
+    IMAGEURL "/tmp/"
+    TEMPPATH "/tmp/"
+    LOG "/tmp/mapserv.log"
+
+    METADATA
+      wms_feature_info_mime_type "application/json"
+      ows_feature_info_mime_type "application/json"
+      "wfs_getfeature_formatlist" "kmz,kml,shapefile,csv,gml"
+      "wms_enable_request" "*"
+      "ows_enable_request" "*"
+      "wms_include_items" "text/html"
+      WMS_TITLE "Incidents"
+      WMS_ABSTRACT "NMTK Tool Results"
+      WMS_ACCESSCONSTRAINTS "none"
+      WMS_ONLINERESOURCE "{% url 'api_datafile_wms' api_name='v1' resource_name='datafile' pk=datafile.pk %}"
+      WMS_SRS "EPSG:3857 EPSG:4326"
+    END
+  END
+
+  SYMBOL
+    NAME "triangle"
+    TYPE vector
+    POINTS
+      0 4
+      1 2
+      2 0
+      3 2
+      4 4
+      0 4
+    END
+    FILLED TRUE
+  END
+
+  SYMBOL
+    NAME "circle"
+    TYPE ELLIPSE
+    POINTS
+     10 10
+    END
+    FILLED TRUE
+  END
+
+  #
+  # BEGIN LAYER DESCRIPTIONS
+  #
+
+  LAYER
+    NAME "results"
+    {% include "NMTK_server/mapfile_conninfo.map" %}
+#    DATA 'SELECT nmtk_geometry,* FROM "{{datafile.pk}}_results"'
+    
+       TYPE {{geom_type}}
+       {% if geom_type != 'raster' %}
+#       STATUS ON
+       DUMP TRUE
+       PROJECTION
+         "init=epsg:4326"
+       END
+    
+
+       TOLERANCE 4
+       TRANSPARENCY ALPHA
+       TEMPLATE "results.html"
+    {% else %}
+       PROCESSING "BANDS={{band}}"
+    {% endif %}
+    METADATA
+     "wms_getfeature_formatlist" "gml,json"
+      WMS_TITLE "Results"
+      WMS_ABSTRACT "Results from NMTK Tool"
+      WMS_SRS "EPSG:4326"
+      WMS_GROUP_TITLE "Results"
+      "gml_include_items" "all"
+      "gml_types" "auto"
+    END
+    
+    
+    {% for color in colors %}
+    CLASS
+      {% if color.type == 'ramp' %}
+      NAME "Results less than or equal to {{color.max}}"
+      EXPRESSION ([{{result_field}}] <= {{color.max}})  
+      {% elif color.type == 'values' %}
+      NAME "{{color.value}}"
+        {% if color.numeric %}
+          EXPRESSION ([{{result_field}}] = {{color.value}})
+        {% elif not color.value %}
+          EXPRESSION ("[{{result_field}}]" = "") 
+        {% else %}
+          EXPRESSION ("[{{result_field}}]" = "{{color.value}}")  
+        {% endif %}
+      {% else %}
+      NAME "All Results"
+      {% endif %}
+      STYLE
+        COLOR {{color.rgb.0}} {{color.rgb.1}} {{color.rgb.2}}
+        {% if geom_type != 'raster' %}
+	        OPACITY {{color.opacity}}
+		    {% if geom_type == 'point' %}
+		   	  OUTLINECOLOR 0 0 0
+		      SYMBOL "circle"
+		    {% elif geom_type != 'line' %}
+		    	OUTLINECOLOR 0 0 0
+		    {% else %}
+		      WIDTH 3
+		    {% endif %}
+	        ANTIALIAS TRUE
+        {% endif %}
+      END # END STYLE
+    END
+    {% endfor %}
+    {% if unmatched_color %}
+    CLASS
+      NAME "Other Features"
+      STYLE
+        COLOR {{unmatched_color.rgb.0}} {{unmatched_color.rgb.1}} {{unmatched_color.rgb.2}}
+        {% if geom_type != 'raster' %}
+        
+	        OPACITY {{unmatched_color.opacity}}
+		    {% if geom_type == 'point' %}
+		      OUTLINECOLOR 0 0 0
+		      SYMBOL "circle"
+		    {% elif geom_type != 'line' %}
+		    	OUTLINECOLOR 0 0 0
+		    {% else %}
+		      WIDTH 3
+		    {% endif %}
+	        ANTIALIAS TRUE
+        {% endif %}
+      END # END STYLE
+    END
+    {% endif %}
+  END
+  
+  
+{% if geom_type != 'raster' %}
+  LAYER
+    NAME "highlight"
+	{% include "NMTK_server/mapfile_highlight_conninfo.map" %}
+    VALIDATION
+      "ids" "[0-9,]+"
+    END
+    TYPE {{geom_type}}
+#    STATUS ON
+    DUMP TRUE
+    PROJECTION
+      "init=epsg:4326"
+    END
+    TRANSPARENCY ALPHA
+    CLASS
+      NAME "Selected Results"
+      STYLE
+        COLOR 0 0 0
+  	    {% if geom_type == 'point' %}
+	      OUTLINECOLOR 0 0 0
+	      SYMBOL "circle"
+	    {% elif geom_type != 'line' %}
+	    	OUTLINECOLOR 0 0 0
+	    	ANTIALIAS TRUE
+	    {% else %}
+	      WIDTH 3
+	    {% endif %}
+        ANTIALIAS TRUE
+      END # END STYLE
+    END
+
+    METADATA
+      WMS_TITLE "Highlights"
+      WMS_ABSTRACT "Selected results"
+      WMS_SRS "EPSG:4326"
+      WMS_GROUP_TITLE "Highlights"
+      GML_INCLUDE_ITEMS "all"
+    END
+  END
+  
+  LAYER
+    NAME "highlight_selected"
+	{% include "NMTK_server/mapfile_highlight_conninfo.map" %}
+    VALIDATION
+      "ids" "[0-9,]+"
+    END
+    TYPE {{geom_type}}
+#    STATUS ON
+    DUMP TRUE
+    PROJECTION
+      "init=epsg:4326"
+    END
+    TRANSPARENCY ALPHA
+    CLASS
+      NAME "Selected Results"
+      STYLE
+        COLOR 160 160 160
+  	    {% if geom_type == 'point' %}
+	      OUTLINECOLOR 0 0 0
+	      SYMBOL "circle"
+	    {% elif geom_type != 'line' %}
+	      OUTLINECOLOR 0 0 0
+	    {% else %}
+	      WIDTH 3
+	    {% endif %}
+        ANTIALIAS TRUE
+      END # END STYLE
+    END
+
+    METADATA
+      WMS_TITLE "Highlight Selected"
+      WMS_ABSTRACT "Selected results"
+      WMS_SRS "EPSG:4326"
+      WMS_GROUP_TITLE "Highlights"
+      GML_INCLUDE_ITEMS "all"
+    END
+  END
+  {% endif %}
+
+END
+
