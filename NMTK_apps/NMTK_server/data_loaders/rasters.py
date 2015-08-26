@@ -1,16 +1,19 @@
-from osgeo import ogr, osr
 import logging
 import collections
 import datetime
 from dateutil.parser import parse
 from BaseDataLoader import *
 from loaders import FormatException
+from ogr import osr
+from django.contrib.gis.gdal import \
+    GDALRaster, SpatialReference, CoordTransform
+from django.contrib.gis.geos import Polygon
 
 logger = logging.getLogger(__name__)
 
 
 class RasterLoader(BaseDataLoader):
-    name = 'GDAL'
+    name = 'Raster'
 
     types = 99
 
@@ -18,108 +21,61 @@ class RasterLoader(BaseDataLoader):
         '''
         A reader for GDAL support raster images.
         '''
+        # A list of files that should be unpacked from the archive, it's
+        # important to note that the first one is the supported file type,
+        # the others are supporting files.
+        self.unpack_list = []
+        self.raster_obj = None
         self._srid = kwargs.pop('srid', None)
         super(RasterLoader, self).__init__(*args, **kwargs)
         for fn in self.filelist:
-            self.ogr_obj = ogr.Open(fn)
             try:
-                self.data
+                self.raster_obj = GDALRaster(fn)
             except:
                 if logger.isEnabledFor(logging.DEBUG):
                     logger.exception('Failed to open file %s', fn)
                 else:
-                    logger.info('The OGR Loader does not support this data ' +
+                    logger.info('The GDAL Loader does not support this data ' +
                                 'format, deferring to the next loader ' +
                                 'in the chain.')
                 self.ogr_obj = None
-            if self.ogr_obj is not None:
+            if self.raster_obj is not None:
                 self.spatial = True
-                self.format = self.ogr_obj.GetDriver().name
+                self.format = self.raster_obj.driver.name
                 logger.debug('The format of the file is %s', self.format)
                 self.filename = fn
+                self.unpack_list.append(fn)
+                logger.info('Raster file detected is %s', self.filename)
                 break
+
+    def bands(self):
+        Band = collections.namedtuple('RasterBand',
+                                      ['min', 'max', 'type', ])
+        for band in self.raster_obj.bands:
+            band_type = band.datatype(as_string=True).lower()
+            if 'float' in band_type:
+                bt = 'float'
+            elif 'int' in band_type:
+                bt = 'integer'
+            elif 'byte' in band_type:
+                bt = 'integer'
+            else:
+                bt = 'float'
+            yield Band(band.min, band.max, bt)
 
     @property
     def dimensions(self):
-        return self._dimensions
+        return 2
 
     def determineGeometryType(self, layer):
         '''
         In the case of a KML/KMZ file, we need to iterate over the data to determine
         the appropriate geometry type to use.
         '''
-        if (not hasattr(self, '_determineGeometryType')):
-            self._determineGeometryType = ogr.wkbPoint
-            geom_types = set()
-            while True:
-                feat = layer.GetNextFeature()
-                if not feat:
-                    break
-                try:
-                    geom = feat.geometry()
-                    if not geom:
-                        logger.debug('Skipping apparent null geometry!')
-                        continue
-                    # Get the dimensions of the geometry.
-                    self._dimensions = max(
-                        geom.GetCoordinateDimension(), self._dimensions)
-                    geom_types.add(geom.GetGeometryName())
-                except Exception as e:
-                    logger.exception(
-                        'Failed to get geometry type when iterating over data during ingest')
-            layer.ResetReading()
-            geom_types_string = ' '.join(geom_types)
-            if 'POINT' in geom_types_string:
-                self._determineGeometryType = ogr.wkbPoint
-            elif 'LINE' in geom_types_string:
-                self._determineGeometryType = ogr.wkbLine
-            elif 'POLY' in geom_types_string:
-                self._determineGeometryType = ogr.wkbPolygon
-        return self._determineGeometryType
+        return None
 
     def __iter__(self):
-        self.data.layer.ResetReading()
-        return self
-
-    def next(self):
-        '''
-        The iterator shall return a dictionary of key/value pairs for each
-        iteration over a particular feature.  It will always return a two-tuple
-        that contains both the attributes and the geometry.
-        '''
-        geom_column = None
-        feature = self.data.layer.GetNextFeature()
-        if not feature:
-            raise StopIteration
-        else:
-            feature = self.geomTransform(feature)
-            data = dict((field, getattr(feature, field))
-                        for field in self.fields())
-            # It seems that sometimes OGR is returning a non-valid (for django) date string
-            # rather than a date/datetime/time instance.  Here we check if that is the case,
-            # and if it is then we will simply use dateutil's parser to parse the value
-            # if that fails, then we just proceed and hope for the best..
-            for field, type in self.datefields.iteritems():
-                if not isinstance(
-                    data[field],
-                    (datetime.datetime,
-                     datetime.date,
-                     datetime.time)):
-                    try:
-                        if data[field]:
-                            v = parse(data[field])
-                            data[field] = v
-                    except:
-                        logger.exception(
-                            'Failed to parse field %s, value %s with dateutil\'s parser - wierd!',
-                            field,
-                            data[field])
-            geom = feature.geometry()
-            if geom:
-                wkt = geom.ExportToWkt()
-            else:
-                wkt = None
-            return (data, wkt)
+        return iter([])
 
     @property
     def spatial_type(self):
@@ -144,25 +100,9 @@ class RasterLoader(BaseDataLoader):
 
         In this case, we return true if it's an OGR supported file type.
         '''
-        if self.ogr_obj:
+        if self.raster_obj:
             return True
         return False
-
-    def geomTransform(self, feature):
-        if feature:
-            transform = getattr(self, '_geomTransform', None)
-            if transform or self.data.reprojection:
-                geom = feature.geometry()
-                if geom:
-                    if transform:
-                        geom = transform(geom)
-                    if self.data.reprojection:
-                        geom.Transform(self.data.reprojection)
-                    # in theory this makes a copy of the geometry, which
-                    # feature then copies - but it seems to fix the crashing
-                    # issue.
-                    feature.SetGeometry(geom.Clone())
-        return feature
 
     def fields(self):
         '''
@@ -170,22 +110,22 @@ class RasterLoader(BaseDataLoader):
         and their respective data types.  So now we need to preserve the support
         of retrieval of fields for backwards compatibility.
         '''
-        return [field for field, type, ogr_type in self.data.fields]
+
+        return [str(i + 1) for i, b in enumerate(self.raster_obj.bands)]
 
     def fields_types(self):
         '''
         This returns a list of tuples, with the first being a field name
         and the second element of each being the python type of the field.
         '''
-        return [(field, type) for field, type, ogr_type in self.data.fields]
+        return []
 
     def ogr_fields_types(self):
         '''
         This returns a list of tuples, with the first being a field name
         and the second element of each being the python type of the field.
         '''
-        return [(field, ogr_type)
-                for field, type, ogr_type in self.data.fields]
+        return []
 
     @property
     def extent(self):
@@ -198,7 +138,7 @@ class RasterLoader(BaseDataLoader):
         Read the output file and provide an iterable result
         '''
         if not hasattr(self, '_data'):
-            if self.ogr_obj is None:
+            if self.raster_obj is None:
                 self._data = None
                 return None
             layer = geom_extent = geom_type = spatial_ref = geom_srid = None
@@ -208,124 +148,94 @@ class RasterLoader(BaseDataLoader):
 
             # We only support single layer uploads, if there is more than one
             # layer then we will raise an exception
-            if self.ogr_obj.GetLayerCount() != 1:
-                raise FormatException(
-                    'Too many (or too few) layers recognized ' +
-                    'in this data source (%s layers)',
-                    self.ogr_obj.GetLayerCount())
-            driver = self.ogr_obj.GetDriver()
-            # Deny VRT files, since they can be used to reference any file on the
-            # filesystem, and even external URLs.
-            if 'vrt' in str(driver).lower():
-                raise FormatException(
-                    'VRT format datafiles are not currently ' + 'supported')
+            driver = self.raster_obj.driver.name
 
-            layer = self.ogr_obj.GetLayer()
-            geom_extent = layer.GetExtent()
-            geom_type = layer.GetGeomType()
-            # We can determine it experimentally if possible...
-            if geom_type == 0:
-                geom_type = self.determineGeometryType(layer)
-            if geom_type not in self.types:
-                raise FormatException(
-                    'Unsupported Geometry Type (%s)' % (geom_type,))
-            spatial_ref = layer.GetSpatialRef()
-            if spatial_ref and not self._srid:
-                spatial_ref.AutoIdentifyEPSG()
-                geom_srid = self._srid or spatial_ref.GetAuthorityCode(None)
-            elif self._srid:
+            layer = None
+            geom_extent = self.raster_obj.extent
+            geom_type = 99
+
+            srs = self.raster_obj.srs
+            geos_extent = Polygon.from_bbox(self.raster_obj.extent)
+            ogr_extent = geos_extent.ogr
+            srid = None
+            # USer supplied SRID, so we will use that...
+            if self._srid:
+                srs = None
                 geom_srid = self._srid
-                srs = osr.SpatialReference()
                 epsg = str('EPSG:%s' % (geom_srid,))
-                logger.debug('Setting output SRID to %s (%s)',
-                             epsg, type(epsg))
-                srs.SetFromUserInput(epsg)
-            if (geom_srid <= 0 or geom_srid is None) and not spatial_ref:
+                logger.debug('Setting output SRID to %s',
+                             epsg)
+                try:
+                    srs = SpatialReference(epsg)
+
+                    srs.validate()
+                    geom_srid = srs.srid
+                except Exception, e:
+                    if logger.isEnabledFor(logging.DEBUG):
+                        logger.exception('Invalid SRS (or none): %s', e)
+                    srs = None
+            # No SRID! Let's try to detect it
+            if srs and not geom_srid:
+                srs.identify_epsg()
+                geom_srid = srs.srid
+                logger.debug('Auto-detect of SRID yielded %s', srid)
+            if srs and not geom_srid:
+                '''
+                Still no SRID - but we have an srs - so let's try to 
+                reproject...
+                '''
+                try:
+                    reprojection = CoordTransform(
+                        r.srs, SpatialReference('EPSG:4326'))
+                    ogr_extent.transform(reprojection)
+                    geos_extent = ogr_extent.geos
+                    geom_srid = geos_extent.srid
+                except Exception, e:
+                    if logger.isEnabledFor(logging.DEBUG):
+                        logger.exception('Failed to transform: %s', e)
+                    raise FormatException('Unable to determine valid SRID ' +
+                                          'for this data')
+            if not geom_srid:
                 raise FormatException('Unable to determine valid SRID ' +
                                       'for this data')
 
-            # Get fields and their types by looping over one row of features.
-            fields = []
-            type_lookups = {ogr.OFTReal: float,
-                            ogr.OFTInteger: int,
-                            ogr.OFTString: str,
-                            ogr.OFTIntegerList: None,
-                            ogr.OFTRealList: None,
-                            ogr.OFTStringList: None,
-                            ogr.OFTDate: datetime.date,
-                            ogr.OFTTime: datetime.time,
-                            ogr.OFTDateTime: datetime.datetime}
-            for feat in layer:
-                for i in range(feat.GetFieldCount()):
-                    field_definition = feat.GetFieldDefnRef(i)
-                    field_type = type_lookups.get(
-                        field_definition.GetType(), None)
-                    field_name = field_definition.GetNameRef()
-                    if field_type:
-                        fields.append((field_name,
-                                       field_type,
-                                       field_definition.GetType()))
-                        # it appears that sometimes OGR isn't giving us a date type when we iterate
-                        # over values, so we will store the date types and convert if needed when we
-                        # iterate over the results.
-                        if field_type in (
-                                datetime.date,
-                                datetime.time,
-                                datetime.datetime):
-                            self.datefields[field_name] = field_type
-                    else:
-                        raise FormatException(
-                            'The field {0} is of an unsupported type'.format(
-                                field_name,))
-                break
-    #         logger.debug('Fields are %s', fields)
-            # Just to be on the safe side..
-            layer.ResetReading()
-
-            OGRResult = collections.namedtuple('OGRResult',
-                                               ['srid',
-                                                'extent',
-                                                'srs',
-                                                'layer',
-                                                'feature_count',
-                                                'ogr',
-                                                'type',
-                                                'type_text',
-                                                'fields',
-                                                'reprojection',
-                                                'dest_srs',
-                                                'dim', ])
-            # Note that we must preserve the OGR object here (even though
-            # we do not use it elsewhere), because
-            # otherwise it gets garbage collected, and the OGR Layer object
-            # will break.
-            if geom_type in self.type_conversions:
-                logger.debug(
-                    'Converting geometry from %s to %s (geom_type upgrade)',
-                    geom_type,
-                    self.type_conversions[geom_type][0])
-                geom_type, self._geomTransform = self.type_conversions[
-                    geom_type]
+            # Ensure we have an extent that is in EPSG 4326
+            if geom_srid != 4326:
+                reprojection = CoordTransform(
+                    srs, SpatialReference('EPSG:4326'))
+                ogr_extent.transform(reprojection)
+                geos_4326 = ogr_extent.geos
+                geom_srid = 4326
             else:
-                self._geomTransform = lambda a: a
+                geos_4326 = geos_extent
 
-            epsg_4326 = osr.SpatialReference()
-            epsg_4326.SetWellKnownGeogCS("EPSG:4326")
-            if (not spatial_ref.IsSame(epsg_4326)):
-                reprojection = osr.CoordinateTransformation(
-                    spatial_ref, epsg_4326)
-            else:
-                reprojection = None
-            self._data = OGRResult(srid=geom_srid,
-                                   extent=geom_extent,
-                                   ogr=self.ogr_obj,
-                                   layer=layer,
-                                   srs=spatial_ref,
-                                   feature_count=layer.GetFeatureCount(),
-                                   type=geom_type,
-                                   type_text=self.types[geom_type],
-                                   fields=fields,
-                                   dest_srs=epsg_4326,
-                                   reprojection=reprojection,
-                                   dim=self.dimensions)
+            RasterResult = collections.namedtuple('RasterResult',
+                                                  ['srid',
+                                                   'extent',
+                                                   'srs',
+                                                   'layer',
+                                                   'feature_count',
+                                                   'ogr',
+                                                   'type',
+                                                   'type_text',
+                                                   'fields',
+                                                   'reprojection',
+                                                   'dest_srs',
+                                                   'dim', ])
+
+            self._data = RasterResult(srid=geom_srid,
+                                      extent=(geos_4326.extent[0],
+                                              geos_4326.extent[2],
+                                              geos_4326.extent[1],
+                                              geos_4326.extent[3],),
+                                      ogr=None,
+                                      layer=None,
+                                      srs=geos_4326.srs,
+                                      feature_count=0,
+                                      type=geom_type,
+                                      type_text='Raster',
+                                      fields=[],
+                                      dest_srs=None,
+                                      reprojection=None,
+                                      dim=self.dimensions)
         return self._data

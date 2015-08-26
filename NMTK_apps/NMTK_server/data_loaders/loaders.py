@@ -121,9 +121,20 @@ class NMTKDataLoader(object):
             logger.debug('Loading %s', dl_classname)
             dl_instance = dl_class(self.get_filelist(), *args, **kwargs)
             if dl_instance.is_supported():
+                logger.info(
+                    'Loader %s supports %s', dl_instance.name, dl_instance.filename)
                 self.dl_instance = dl_instance
                 return dl_instance.name
         return None
+
+    def extract_files(self):
+        '''
+        A generator that returns the files that need to be preserved.  The first 
+        of which ought to be the file specified in the datafile.file field.
+        '''
+        if self.dl_instance.unpack_list:
+            for f in self.dl_instance.unpack_list:
+                yield f
 
     @property
     def info(self):

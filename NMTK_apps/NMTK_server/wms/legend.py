@@ -36,10 +36,10 @@ class LegendGenerator(object):
         except Exception as e:
             return x
 
-    def __init__(self, color_format, min_value=None, max_value=None,
+    def __init__(self, color_format=None, min_value=None, max_value=None,
                  reverse=False, steps=255, values_list=None,
                  min_text=None, max_text=None, units=None,
-                 other_features_color=None, column_type='text'):
+                 other_features_color=None, column_type='text', description=None):
         '''
         There are really two ways this piece of code works - either by
         using a values list (discrete values) or a min/max value.  In the
@@ -52,6 +52,7 @@ class LegendGenerator(object):
         self.values_list = values_list
         self.steps = steps  # The number of steps in the range.
         self.other_features_color = other_features_color
+        self.description = description
 
         self.include_unmatched = False
         # If the user provided min/max information then we'll need to generate
@@ -87,12 +88,13 @@ class LegendGenerator(object):
         # Verify that the user has chosen to use one of the available color
         # ramp formats.  If they reverse it, then append an _r so that the code
         # knows to use the reverse of the ramp as appropriate.
-        if color_format not in [
-                v2 for v in self.supported_formats() for v2 in v[1]]:
-            raise Exception('Unsupported color format specified')
-        if reverse:
-            color_format = '{0}_r'.format(color_format)
-        self.cmap = plt.get_cmap(color_format)
+        if color_format:
+            if color_format not in [
+                    v2 for v in self.supported_formats() for v2 in v[1]]:
+                raise Exception('Unsupported color format specified')
+            if reverse:
+                color_format = '{0}_r'.format(color_format)
+            self.cmap = plt.get_cmap(color_format)
 
     def __iter__(self):
         '''
@@ -477,5 +479,20 @@ class LegendGenerator(object):
                         im = im2
                     else:
                         im = color_legend
+            if not im and self.description:
+                color_legend = Image.new(
+                    'RGBA', (width, component_height), "white")
+                font = ImageFont.truetype(settings.LEGEND_FONT, font_size)
+                text_pos = component_height + legend_text_min_separation
+                text_center_offset_height = int(
+                    (component_height - font_size) / 2)
+                draw = ImageDraw.Draw(color_legend)
+                draw.text((text_pos, text_center_offset_height),
+                          self.description,
+                          fill=(0, 0, 0),
+                          font=font)
+                del draw
+                im = color_legend
+                pass
         logger.debug('Returning graphic')
         return im
