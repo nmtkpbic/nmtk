@@ -276,7 +276,7 @@ define(['underscore'
 							} else if ($scope.job_uri && api == 'job' && $scope.job_uri.replace(/\/$/, "").split('/').reverse()[0] == id) {
 								$scope.job_uri = null;
 							}
-							if (! _.isUndefined(skip_refresh) && ! skip_refresh) {
+							if (_.isUndefined(skip_refresh) || ! skip_refresh) {
 								$scope.refreshData(api);
 							}
 						}, function (r) {
