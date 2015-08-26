@@ -115,8 +115,8 @@
           <div class="widget-header">
             <span class="glyphicon glyphicon-map-marker"></span>
             <h1>Spatial {{data_file_tab_name}}</h1>
-            <button ng-show="totalServerItems > 0" 
-                    class="navbar-right btn btn-xs btn-primary ic-right" ng-click="changeColors()">Change Colors</button>
+            <button class="navbar-right btn btn-xs btn-primary ic-right" 
+                    ng-click="changeColors()">Change Colors</button>
           </div> <!-- /widget-header -->
           <div class="widget-content">
             <!-- <div id="map" class="angular-leaflet-map"></div> -->
@@ -147,12 +147,13 @@
         <div ng-show="spatial" class="widget stacked">
           <div class="widget-header">
             <span class="glyphicon glyphicon-picture"></span>
-            <h1 ng-show="totalServerItems > 0" ><label for="style">Map Legend - styled by</label>
+            <h1 ><label  ng-if="datafile_api.geom_type != 'RASTER'"  for="style">Map Legend - styled by </label>
+                 <label  ng-if="datafile_api.geom_type == 'RASTER'"  for="style">Map Legend - Choose Band </label>
                  <select id="style" ng-change="updateMapComponents()" ng-model="result_data.field" name="result_field" ng-options="field for field in fields">
                    <option value=""></option>
                  </select>
             </h1>
-            <h1 ng-show="totalServerItems == 0" >Map Legend</h1>
+            
           </div> <!-- /widget-header -->
           <div style="text-align: center;" class="widget-content">
             <img alt="Map legend" ng-src="{{legend_url}}">

@@ -48,6 +48,21 @@ class RasterLoader(BaseDataLoader):
                 logger.info('Raster file detected is %s', self.filename)
                 break
 
+    def bands(self):
+        Band = collections.namedtuple('RasterBand',
+                                      ['min', 'max', 'type', ])
+        for band in self.raster_obj.bands:
+            band_type = band.datatype(as_string=True).lower()
+            if 'float' in band_type:
+                bt = 'float'
+            elif 'int' in band_type:
+                bt = 'integer'
+            elif 'byte' in band_type:
+                bt = 'integer'
+            else:
+                bt = 'float'
+            yield Band(band.min, band.max, bt)
+
     @property
     def dimensions(self):
         return 2
@@ -95,7 +110,8 @@ class RasterLoader(BaseDataLoader):
         and their respective data types.  So now we need to preserve the support
         of retrieval of fields for backwards compatibility.
         '''
-        return []
+
+        return [str(i + 1) for i, b in enumerate(self.raster_obj.bands)]
 
     def fields_types(self):
         '''
