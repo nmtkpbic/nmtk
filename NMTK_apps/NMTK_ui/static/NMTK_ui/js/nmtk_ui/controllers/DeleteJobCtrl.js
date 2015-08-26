@@ -31,7 +31,7 @@
  */
 define(['underscore'], function (_) {	
 	"use strict";
-	var controller=['$scope','$log','$q','$modalInstance','api','id','name','type','operation',
+	var controller=['$scope', '$log','$q','$modalInstance','api','id','name','type','operation',
 	                'jobdata','Restangular',
 		function ($scope, $log, $q, $modalInstance, api, id, name, type, operation,
 				  jobdata, Restangular) {
@@ -71,7 +71,8 @@ define(['underscore'], function (_) {
 				 * the file delete after the job delete completes.
 				 * 
 				 */
-				$scope.deleteData('job', id, True).then(function () {
+				var parentScope=angular.element(document.getElementById('nmtk')).scope()
+				parentScope.deleteData('job', id, true).then(function () {
 					if ($scope.form_params['delete']) {
 						// Remove each of the job files in question.
 						_.each($scope.jobs_in, function (job_file) {
@@ -80,7 +81,7 @@ define(['underscore'], function (_) {
 							 * NMTKCtrl controller
 							 * this will also close the datafile if it is open...
 							 */
-							promises.push($scope.deleteData('datafile', id, True));
+							promises.push(parentScope.deleteData('datafile', id, true));
 						});
 					}
 					var p=$q.all(promises);
