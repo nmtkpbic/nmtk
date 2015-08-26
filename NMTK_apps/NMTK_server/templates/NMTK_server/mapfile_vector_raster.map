@@ -12,7 +12,7 @@ MAP
   # This is for the WMS requests
   OUTPUTFORMAT
     NAME PNG
-    DRIVER 'GD/PNG'
+    DRIVER 'AGG/PNG'
     MIMETYPE 'image/png'
     IMAGEMODE RGBA
     EXTENSION "png"
@@ -145,6 +145,11 @@ MAP
 #    DATA 'SELECT nmtk_geometry,* FROM "{{datafile.pk}}_results"'
     
        TYPE {{geom_type}}
+       {% if geom_type == 'raster' %}
+       PROJECTION
+         AUTO
+       END
+       {% endif %}
        {% if geom_type != 'raster' %}
 #       STATUS ON
        DUMP TRUE
