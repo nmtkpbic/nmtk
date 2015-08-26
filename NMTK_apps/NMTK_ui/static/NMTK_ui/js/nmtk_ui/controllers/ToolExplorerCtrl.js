@@ -142,9 +142,10 @@ define(['underscore'], function (_) {
 				}
 			}
 			
-/*            $scope.doclink=function(tool_uri,doc_uri) {
-                return tool_uri+"/docs/"+doc_uri;
-            }; */
+            $scope.doclink=function(server_url,tool_route,doc_url) {
+                /* build documentation URLs for direct download of documents */
+                return server_url+"static"+tool_route+"/docs/"+doc_url;
+            };
 			
 			$scope.loadSampleData=function (tool) {
 				/*

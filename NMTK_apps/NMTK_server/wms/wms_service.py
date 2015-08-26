@@ -17,6 +17,10 @@ logger = logging.getLogger(__name__)
 
 def generateMapfile(datafile, style_field,
                     color_values):
+    for geom_type in ['point', 'line', 'polygon', 'raster']:
+        if geom_type in datafile.get_geom_type_display().lower():
+            break
+
     dbtype = 'postgis'
     data = {'datafile': datafile,
             'dbtype': dbtype,
@@ -24,6 +28,9 @@ def generateMapfile(datafile, style_field,
             'colors': color_values,
             'unmatched_color': color_values.unmatched(),
             'mapserver_template': settings.MAPSERVER_TEMPLATE}
+    if geom_type == 'raster':
+        data['band'] = style_field
+        data['result_field'] = 'pixel'
     data['connectiontype'] = 'POSTGIS'
     dbs = settings.DATABASES['default']
     data['connection'] = '''host={0} dbname={1} user={2} password={3} port={4}'''.format(
@@ -36,29 +43,32 @@ def generateMapfile(datafile, style_field,
         dbs.get(
             'PORT',
             None) or '5432')
-    data['data'] = 'nmtk_geometry from userdata_results_{0}'.format(
-        datafile.id)
+    if geom_type == 'raster':
+        data['data'] = datafile.file.path
+    else:
+        data['data'] = 'nmtk_geometry from userdata_results_{0}'.format(
+            datafile.id)
     data[
         'highlight_data'] = '''nmtk_geometry from (select * from userdata_results_{0} where nmtk_id in (%ids%)) as subquery
                               using unique nmtk_id'''.format(datafile.id)
 
     # Determine which of the mapfile types to use (point, line, polygon...)
-    for geom_type in ['point', 'line', 'polygon', 'raster']:
-        if geom_type in datafile.get_geom_type_display().lower():
-            break
+
     data['geom_type'] = geom_type
-    if geom_type == 'raster':
-        res = render_to_string('NMTK_server/mapfile_raster.map',
-                               data)
-    else:
-        res = render_to_string('NMTK_server/mapfile_vector.map',
-                               data)
+
+    res = render_to_string('NMTK_server/mapfile_vector_raster.map',
+                           data)
     return res
 
 
 def handleWMSRequest(request, datafile):
     get_uc = dict((k.upper(), v) for k, v in request.GET.iteritems())
+    style_field = legend = None
+    raster = (datafile.geom_type == 99)
     style_field = get_uc.get('STYLE_FIELD', datafile.result_field or None)
+    if raster:
+        if datafile.field_attributes.keys() > 0:
+            style_field = '1'
     legend_units = get_uc.get('LEGEND_UNITS', None)
     reverse = get_uc.get('REVERSE', 'false')
     if reverse.lower() in ('true', 't', '1'):
@@ -70,7 +80,10 @@ def handleWMSRequest(request, datafile):
     if style_field == datafile.result_field:
         legend_units = datafile.result_field_units
     if style_field and style_field not in attributes:
-        logger.error('Field specified (%s) does not exist.', style_field)
+        logger.error(
+            'Field specified (%s) does not exist (%s): %s.',
+            style_field, type(style_field),
+            attributes)
         return HttpResponseBadRequest(
             'Specified style field ({0}) does not exist'.format(style_field))
     if style_field:
@@ -103,7 +116,8 @@ def handleWMSRequest(request, datafile):
         color_ramp_identifier = models.MapColorStyle.objects.get(
             **ramp_lookup_kwargs)
         ramp_id = color_ramp_identifier.pk
-        # If we have an enumerated set of values then there is no "other color"
+        # If we have an enumerated set of values then there is no "other
+        # color"
         if 'values' not in field_attributes:
             other_features_color = color_ramp_identifier.other_color
     except Exception as e:
@@ -117,7 +131,6 @@ def handleWMSRequest(request, datafile):
                              units=legend_units,
                              other_features_color=other_features_color,
                              column_type=field_attributes.get('type', None))
-
     # If there's a values_list then we'll let the WMS server generate the
     # legend, since it would be using discrete colors anyway, and would be better
     # at creating the legend.
@@ -148,26 +161,19 @@ def handleWMSRequest(request, datafile):
                 datafile.mapfile_path, "{0}{1}_ramp_{2}.map".format(
                     base_name, datafile.pk, ramp_id))
         if not os.path.exists(mapfile_path):
-            if not os.path.exists(mapfile_path):
-                #                 lock=LockFile(mapfile_path)
-                try:
-                    #                     lock.acquire(0)
-                    mf = generateMapfile(datafile,
-                                         style_field=style_field,
-                                         # Iterating over the legend object will return the colors
-                                         # so we need only pass that into the
-                                         # mapfile gen code.
-                                         color_values=legend)
-                    with open(mapfile_path, 'w') as mapfile:
-                        mapfile.write(mf)
-#                 except AlreadyLocked:
-#                     logger.debug('Waiting for lock to be released')
-#                     start=time.time()
-#                     while lock.is_locked() and (time.time()-start) > 5 :
-#                         time.sleep(.0025)
-                finally:
-                    pass
-#                     lock.release()
+            if not os.path.exists(os.path.dirname(mapfile_path)):
+                os.makedirs(os.path.dirname(mapfile_path), 0750)
+            try:
+                mf = generateMapfile(datafile,
+                                     style_field=style_field,
+                                     # Iterating over the legend object will return the colors
+                                     # so we need only pass that into the
+                                     # mapfile gen code.
+                                     color_values=legend)
+                with open(mapfile_path, 'w') as mapfile:
+                    mapfile.write(mf)
+            finally:
+                pass
         # Create the app to call mapserver.
         app = djpaste.CGIApplication(global_conf=None,
                                      script=settings.MAPSERV_PATH,

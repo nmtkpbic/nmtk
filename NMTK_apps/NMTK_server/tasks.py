@@ -11,7 +11,9 @@ from django.conf import settings
 from django.core.management.color import no_style
 from django.db import connections, transaction
 import logging
+import shutil
 import os
+import cStringIO as StringIO
 from django.core.exceptions import ObjectDoesNotExist
 from NMTK_apps.helpers.data_output import getQuerySet, json_custom_serializer
 from NMTK_server.data_loaders.loaders import NMTKDataLoader
@@ -51,6 +53,7 @@ geomodel_mappings = {
                      geos.Polygon, 'polygon'),
     ogr.wkbMultiLineString: ('models.MultiLineStringField',
                              geos.MultiLineString, 'line'),
+    99: (None, None, 'raster'),
 }
 
 
@@ -136,6 +139,7 @@ def generate_datamodel(datafile, loader):
                 model_content.append(
                     '''{0}db_table='userdata_results_{1}' '''.format(
                         ' ' * 8, datafile.pk))
+                logger.error('working on saving the model datafile!')
                 datafile.model.save(
                     'model.py', ContentFile(
                         '\n'.join(model_content)), save=False)
@@ -199,7 +203,7 @@ def generate_datamodel(datafile, loader):
     except Exception as e:
         logger.exception('Failed to create spatialite results table')
         return datafile
-    logger.debug('About to return job back to caller - %s', datafile.pk)
+    logger.error('About to return job back to caller - %s', datafile.pk)
     return datafile
 
 
@@ -532,6 +536,23 @@ def importDataFile(datafile, job_id=None):
     try:
         loader = NMTKDataLoader(datafile.file.path,
                                 srid=datafile.srid)
+        destination = None
+        for import_file in loader.extract_files():
+            # Figure out where these files need to go.
+            if not destination:
+                destination = os.path.dirname(datafile.file.path)
+                # the first file we get (when destination is null,it's our first
+                # loop) is the one that needs to be in the model, handle that
+                # here...
+                if datafile.file.path != import_file:
+                    f = open(import_file)
+                    datafile.file.save(os.path.basename(import_file), File(f))
+            else:
+                shutil.copyfile(import_file,
+                                os.path.join(destination,
+                                             os.path.basename(import_file)))
+            logger.debug('Created a new file for %s', import_file)
+
         if loader.is_spatial:
             datafile.srid = loader.info.srid
             datafile.srs = loader.info.srs
@@ -565,77 +586,106 @@ def importDataFile(datafile, job_id=None):
             suffix = 'json'
         if datafile.status in (
                 datafile.IMPORTED,
-                datafile.IMPORT_RESULTS_COMPLETE) and datafile.feature_count:
-            datafile.processed_file.save('{0}.{1}'.format(datafile.pk, suffix),
-                                         ContentFile(''))
-            loader.export_json(datafile.processed_file.path)
-            generate_datamodel(datafile, loader)
-            # Here we load the spatialite data using the model that was created
-            # by generate_datamodel.  We need to use this to get the range
-            # and type information for each field...
-            try:
+                datafile.IMPORT_RESULTS_COMPLETE):
+            if datafile.geom_type == 99:
                 field_attributes = {}
-                qs = getQuerySet(datafile)
-                field_mappings = [(django_model_fields.IntegerField, 'integer',),
-                                  # Required because nmtk_id is an autofield..
-                                  (django_model_fields.AutoField, 'integer',),
-                                  (django_model_fields.BooleanField,
-                                   'boolean',),
-                                  # Special case holding FIPS
-                                  (django_model_fields.DecimalField, 'float',),
-                                  (django_model_fields.TextField, 'text',),
-                                  (django_model_fields.FloatField, 'float'),
-                                  (django_model_fields.DateField, 'date',),
-                                  (django_model_fields.TimeField, 'time'),
-                                  (django_model_fields.DateTimeField, 'datetime')]
-                if qs.count() > 0:
-                    # Get a single row so that we can try to work with the
-                    # fields.
-                    sample_row = qs[0]
-                    for field in sample_row._meta.fields:
-                        field_name = field.name
-                        db_column = field.db_column or field.name
-                        # convert the django field type to a text string.
-                        for ftype, field_type in field_mappings:
-                            if isinstance(field, (ftype,)):
-                                break
-                        else:
-                            logger.info(
-                                'Unable to map field of type %s (this is expected for GIS fields)', type(
-                                    field, ))
-                            continue
-                        values_aggregates = qs.aggregate(
-                            Count(field_name, distinct=True))
-                        field_attributes[db_column] = {
-                            'type': field_type,
-                            'field_name': field_name,
-                            'distinct': values_aggregates[
-                                '{0}__count'.format(field_name)]}
-                        if field_attributes[db_column]['distinct'] < 10:
-                            distinct_values = list(
-                                qs.order_by().values_list(
-                                    field_name, flat=True).distinct())
-                            field_attributes[db_column][
-                                'values'] = distinct_values
-                        else:
-                            logger.debug(
-                                'There are more than 10 values for %s (%s), enumerating..',
-                                db_column,
-                                field_attributes[db_column]['distinct'])
-                            # formerly the aggregates happened above - with the count. However, Django doesn't
-                            # allow those aggregates with boolean fields - so here we split it up to only do the
-                            # aggregates in the cases where we have to (i.e.,
-                            # the distinct values is above the threshold.)
+                # This is a raster...
+                for pos, band in enumerate(loader.dl_instance.bands()):
+                    field_attributes[pos + 1] = {
+                        'type': band.type,
+                        'field_name': 'pixel',
+                        'min': band.min,
+                        'max': band.max}
+                datafile.field_attributes = field_attributes
+            elif datafile.feature_count:
+                logger.error('Working on saving the model!')
+                datafile.processed_file.save('{0}.{1}'.format(datafile.pk, suffix),
+                                             ContentFile(''))
+                loader.export_json(datafile.processed_file.path)
+                generate_datamodel(datafile, loader)
+                # Here we load the spatialite data using the model that was created
+                # by generate_datamodel.  We need to use this to get the range
+                # and type information for each field...
+                try:
+                    field_attributes = {}
+                    qs = getQuerySet(datafile)
+                    field_mappings = [(django_model_fields.IntegerField, 'integer', int),
+                                      # Required because nmtk_id is an
+                                      # autofield..
+                                      (django_model_fields.AutoField,
+                                       'integer', int,),
+                                      (django_model_fields.BooleanField,
+                                       'boolean', bool),
+                                      # Special case holding FIPS
+                                      (django_model_fields.DecimalField,
+                                       'float', float),
+                                      (django_model_fields.TextField,
+                                       'text', None),
+                                      (django_model_fields.FloatField,
+                                       'float', float),
+                                      (django_model_fields.DateField,
+                                       'date', None,),
+                                      (django_model_fields.TimeField,
+                                       'time', None,),
+                                      (django_model_fields.DateTimeField,
+                                       'datetime', None)]
+                    if qs.count() > 0:
+                        # Get a single row so that we can try to work with the
+                        # fields.
+                        sample_row = qs[0]
+                        for field in sample_row._meta.fields:
+                            field_name = field.name
+                            db_column = field.db_column or field.name
+                            # convert the django field type to a text string.
+                            for ftype, field_type, caster in field_mappings:
+                                if isinstance(field, (ftype,)):
+                                    break
+                            else:
+                                logger.info(
+                                    'Unable to map field of type %s (this is expected for GIS fields)', type(
+                                        field, ))
+                                continue
                             values_aggregates = qs.aggregate(
-                                Max(field_name), Min(field_name), )
-                            field_attributes[db_column]['min'] = values_aggregates[
-                                '{0}__min'.format(field_name)]
-                            field_attributes[db_column]['max'] = values_aggregates[
-                                '{0}__max'.format(field_name)]
-                    datafile.field_attributes = field_attributes
-            except Exception as e:
-                logger.exception('Failed to get range for model %s',
-                                 datafile.pk)
+                                Count(field_name, distinct=True))
+                            field_attributes[db_column] = {
+                                'type': field_type,
+                                'field_name': field_name,
+                                'distinct': values_aggregates[
+                                    '{0}__count'.format(field_name)]}
+                            if field_attributes[db_column]['distinct'] < 10:
+                                distinct_values = list(
+                                    qs.order_by().values_list(
+                                        field_name, flat=True).distinct())
+                                if not caster:
+                                    field_attributes[db_column][
+                                        'values'] = distinct_values
+                                else:
+                                    field_attributes[db_column][
+                                        'values'] = map(caster, distinct_values)
+                            else:
+                                logger.debug(
+                                    'There are more than 10 values for %s (%s), enumerating..',
+                                    db_column,
+                                    field_attributes[db_column]['distinct'])
+                                # formerly the aggregates happened above - with the count. However, Django doesn't
+                                # allow those aggregates with boolean fields - so here we split it up to only do the
+                                # aggregates in the cases where we have to (i.e.,
+                                # the distinct values is above the threshold.)
+                                values_aggregates = qs.aggregate(
+                                    Max(field_name), Min(field_name), )
+                                field_attributes[db_column]['min'] = values_aggregates[
+                                    '{0}__min'.format(field_name)]
+                                field_attributes[db_column]['max'] = values_aggregates[
+                                    '{0}__max'.format(field_name)]
+                                if caster:
+                                    field_attributes[db_column]['min'] = caster(
+                                        field_attributes[db_column]['min'])
+                                    field_attributes[db_column]['max'] = caster(
+                                        field_attributes[db_column]['max'])
+                        datafile.field_attributes = field_attributes
+                except Exception as e:
+                    logger.exception('Failed to get range for model %s',
+                                     datafile.pk)
         if job_id:
             try:
                 job = models.Job.objects.get(pk=job_id)
