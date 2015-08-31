@@ -42,9 +42,9 @@ __all__=['SITE_DOMAIN', 'PRODUCTION',
          'TEMPLATE_DEBUG','TASTYPIE_FULL_DEBUG',
          'NODE_PATH', 'LEGEND_FONT', 'MAPSERVER_TEMPLATE',
          'SERVER_EMAIL','DEFAULT_FROM_EMAIL','SECRET_KEY',
-         'FILES_PATH','LOGFILE_PATH','NMTK_SERVERS',
+         'FILES_PATH','LOGFILE_PATH', 'SSL',
          'NMTK_TOOL_APPS', 'NMTK_SERVER','TOOL_SERVER',
-         'NMTK_BANNER_OVERRIDE_URL',
+         'NMTK_BANNER_OVERRIDE_URL', 'PORT', 'SELF_SIGNED_SSL_CERT',
          'DATABASES','USER_MODELS_LOCATION','DATABASE_TYPE']
 import os
 import socket
@@ -122,6 +122,23 @@ USER_MODELS_LOCATION='postgis' # Store user data in postgis.
 # assign a resolvable hostname, rather than rely on using an IP address directly. 
 #
 SITE_DOMAIN=SITE_DOMAIN or socket.getfqdn()
+
+#
+# Indicates that this site uses SSL
+#
+SSL = True
+
+
+#
+# Indicates that this server uses a self signed SSL certificate.  If the
+# answer is "yes" then tool servers added will not perform certificate
+# validation.  Otherwise, the API requests will fail because certificate
+# validation is the default.
+#
+
+SELF_SIGNED_SSL_CERT = True
+
+
 # if production is set to true, then the minified version of the
 # code will be loaded instead of the regular version. This means that
 # python manage.py minify would have to be run before collectstatic
@@ -195,26 +212,14 @@ ADMIN_APPROVAL_REQUIRED=True
 # The default from address for email sent from NMTK
 SERVER_EMAIL=DEFAULT_FROM_EMAIL='email_address'
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = 'hk(f4*q-%yo9xf*x@_4#cv=xc8zp=%03=sukgl+_6sz2=zdmy='
-
-# This dictionary is used by NMTK tools to interact with the NMTK server
-# In particular, it stores the public/private keys for each tool server.
+# install.sh will set this to a random 64-character+digit value.  However,
+# if you aren't using install.sh, you should ensure this is set to
+# a suitable random value, using a command like this will
+# produce one:
 #
-# Note: by design if you are using the NMTK_server app (which is a 
-# client-interface to NMTK tools that provides data management, among other
-# things) it won't use this data - it's for tools only.  The Server app will
-# use it's database records for managing this.  However, it's important to
-# note that what's here, and what's in the DB should match or requests to/from
-# the server will fail.
-
-# In the case below, the key is the public key that the server has assigned 
-# to this tool.  The url is the URL for the server, and the secret is the
-# shared secret key used for signing requests.  Note that the client identifies
-# the server using the public key - which is included in any dialog between 
-# the client and the server.
-NMTK_SERVERS={'d0461b9536eb483d9f23c157e809af35': {'url': 'http://{0}{1}/server'.format(SITE_DOMAIN, PORT),
-                                                   'secret': '''yq@5u058y312%ebmyi85ytpfwjm9zv)1u2wu-m1s)%cngrvf_^''' },
-              }
+# python -c "import string,random; print ''.join(random.choice([c for c in string.letters+string.digits+string.punctuation]) for i in xrange(50))"
+#  - If you do use the command above, be sure to enclose it in triple quotes (SECRET_KEY = '''value''')
+SECRET_KEY = 'hk(f4*q-%yo9xf*x@_4#cv=xc8zp=%03=sukgl+_6sz2=zdmy='
 
 #
 # When TOOL_SERVER Is set to True, the NMTK server and UI components

@@ -28,6 +28,23 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # Script to install/reset the NMTK environment for testing.
+
+install_crons () {
+  NMTK_INSTALL_PATH=$1
+  NMTK_NAME=$2
+  
+  for FILE in $NMTK_INSTALL_PATH/NMTK_apps/*/crons/*; do
+    DEST_FILENAME="/etc/cron.d/$(basename ${FILE%.cron})_${NMTK_NAME}"
+    sudo -s -- <<EOF
+    sed -e 's|NMTK_INSTALL_PATH|'${NMTK_INSTALL_PATH}'|g' \
+        -e 's|NMTK_NAME|'${NMTK_NAME}'|g' \
+        $FILE > $DEST_FILENAME
+EOF
+    echo "Created new cron job for $(basename $FILE)"
+  done
+}
+
+
 cat <<-EOT
 	NOTICE: This script will cause the removal of all data, accounts, etc. 
 	        stored on this server.  For a new installation, it is acceptable
@@ -62,15 +79,35 @@ done
 if [ -f ./.nmtk_config ]; then
   source ./.nmtk_config
 fi
+if [ ${#HOSTN} == 0 ]; then
+  read -p "URL Hostname (press enter for ${HOSTN:=$HOSTNAME}): " HOSTN 
+  if [[ ${#HOSTN} == 0 ]]; then
+    HOSTN=$HOSTNAME
+  fi
+fi
+if [ ${#SSL} == 0 ]; then
+  echo -n "Use SSL (Y/n)?  "
+  read ANSWER
+  if [[ "${ANSWER}" != 'Y' && "${ANSWER}" != 'y' ]]; then
+    SSL=0
+  else
+    SSL=1
+  fi
+fi
+HTTP='http'
+if [[ ${SSL} != 0 ]]; then
+  HTTP='https'
+fi
 if [[ $WINDOWS == 0 ]] ; then
   if [ ${#NMTK_NAME} == 0 ]; then
-    NMTK_NAME=$(hostname -s)
+    #NMTK_NAME=$(hostname -s)
+    NMTK_NAME=$(echo $HOSTN|cut -f1 -d.)
   fi
   if [ ${#URL} == 0 ]; then
-    echo -n "Enter URL for this tool server (Enter for http://$(hostname --fqdn)/): "
-    read URL
+    #echo -n "Enter URL for this tool server (Enter for http(s)://${HOSTN}/): "
+    #read URL
     if [ ${#URL} == 0 ]; then
-      URL="http://$(hostname --fqdn)/"
+      URL="$HTTP://${HOSTN}/"
     fi
   fi
 else
@@ -85,6 +122,11 @@ if [ ${#EMAIL} == 0 ]; then
   echo -n "Email Address: "
   read EMAIL
 fi
+CONF_FILE='apache.conf'
+if [[ ${SSL} != 0 ]]; then
+  CONF_FILE='apache-ssl.conf'
+fi
+echo "Using configuration file for apache in conf/$CONF_FILE"
 if [ ${#PASSWORD} == 0 ]; then
   echo -n "Enter Password for user $NMTK_USERNAME (to access the NMTK ui): "
   read -s PASSWORD
@@ -109,8 +151,15 @@ if [ ${#PGPASSWORD} == 0 ]; then
   read -s -p "PostgreSQL Password for $PGUSER (will not echo): " PGPASSWORD
   echo ""
 fi
-export FIRSTNAME LASTNAME PASSWORD EMAIL NMTK_USERNAME NMTK_NAME URL PGUSER PGPASSWORD
-if [ ! -f .nmtk_config ]; then
+
+# This is the secret used in the local_settings.py file, we need to ensure
+# we don't change it, otherwise users will have to shift-reload to get a new
+# CSRF token.
+if [ ${#SECRET} == 0 ]; then
+  SECRET=$(python -c "import string,random; print ''.join(random.choice(string.letters+string.digits) for i in xrange(64))")
+fi
+
+export FIRSTNAME LASTNAME PASSWORD EMAIL NMTK_USERNAME NMTK_NAME URL PGUSER PGPASSWORD SSL CONF_FILE HOSTN SECRET
    cat <<-EOT > .nmtk_config
 	# These settings were built from the first run of the install.sh script
 	# to change them, remove this file and re-run the install script.
@@ -123,26 +172,35 @@ if [ ! -f .nmtk_config ]; then
 	NMTK_NAME=${NMTK_NAME}
 	URL=${URL}
 	PGUSER=${PGUSER}
+	SSL=${SSL}
+	HOSTN=${HOSTN}
+	SECRET=${SECRET}
 EOT
-fi
 
 if [[ $WINDOWS == 0 ]]; then
 sudo -s -- <<EOF
 # Install the celery startup scripts
-if [ ! -f "/etc/default/celeryd-$(hostname -s)" ]; then
-  sed -e 's|NMTK_INSTALL_PATH|'${NMTK_INSTALL_PATH}'|g' celery/celeryd-nmtk.default > /etc/default/celeryd-${NMTK_NAME}
-  cp celery/celeryd-nmtk.init /etc/init.d/celeryd-${NMTK_NAME}
+#if [ ! -f "/etc/default/celeryd-${NMTK_NAME}" ]; then
+  sed -e 's|NMTK_INSTALL_PATH|'${NMTK_INSTALL_PATH}'|g' \
+      -e 's|NMTK_NAME|'${NMTK_NAME}'|g' \
+    celery/celeryd-nmtk.default > /etc/default/celeryd-${NMTK_NAME}
+  sed -e 's|NMTK_INSTALL_PATH|'${NMTK_INSTALL_PATH}'|g' \
+      -e 's|NMTK_NAME|'${NMTK_NAME}'|g' \
+    celery/celeryd-nmtk.init > /etc/init.d/celeryd-${NMTK_NAME}
+  chmod +x /etc/init.d/celeryd-${NMTK_NAME}
   update-rc.d celeryd-${NMTK_NAME} defaults 
-fi
+#fi
 
-if [ ! -f "/etc/apache2/sites-available/${NMTK_NAME}.conf" ]; then
+#if [ ! -f "/etc/apache2/sites-available/${NMTK_NAME}.conf" ]; then
   sed -e 's|NMTK_INSTALL_PATH|'${NMTK_INSTALL_PATH}'|g' \
     -e 's|EMAIL|'${EMAIL}'|g' \
-    -e 's|HOSTNAME|'${HOSTNAME}'|g' \
-    conf/apache.conf > /etc/apache2/sites-available/${NMTK_NAME}.conf
+    -e 's|HOSTNAME|'${HOSTN}'|g' \
+    -e 's|NMTK_NAME|'${NMTK_NAME}'|g' \
+    conf/${CONF_FILE} > /etc/apache2/sites-available/${NMTK_NAME}.conf
   a2ensite ${NMTK_NAME}.conf
-fi
+#fi
 EOF
+echo ${NMTK_NAME}.conf
 
 BASEDIR=$(dirname $0)
 CELERYD_NAME=${NMTK_NAME}
@@ -161,6 +219,7 @@ else
 fi
 echo ""
 pushd $BASEDIR &> /dev/null
+BASEDIR=$(pwd)
 if [[ $WINDOWS == 0 ]]; then
   sudo rm -rf nmtk_files/*
   source venv/bin/activate
@@ -170,9 +229,16 @@ else
 fi
 
 pushd NMTK_apps &> /dev/null
-DB_TYPE=$(python manage.py db_type -t)
-DB_NAME=$(python manage.py db_type -d)
-DB_USER=$(python manage.py db_type -u)
+DB_TYPE=$(python manage.py query_settings -t)
+DB_NAME=$(python manage.py query_settings -d)
+DB_USER=$(python manage.py query_settings -u)
+SELF_SIGNED_CERT=$(python manage.py query_settings --self-signed-cert)
+SERVER_ENABLED=$(python manage.py query_settings --nmtk-server-status)
+TOOLSERVER_ENABLED=$(python manage.py query_settings --tool-server-status)
+PRODUCTION=$(python manage.py query_settings --production)
+TOOL_SERVER_URL=$(python manage.py query_settings --tool-server-url)
+sed -i "s/^SECRET_KEY.*/SECRET_KEY = '''$SECRET'''/" $BASEDIR/NMTK_apps/NMTK_apps/local_settings.py
+
 pushd ../nmtk_files &> /dev/null
 
   echo "Removing existing database (if it exists)"
@@ -183,21 +249,33 @@ pushd ../nmtk_files &> /dev/null
   psql -U $PGUSER $DB_NAME -c "create extension postgis;"
 
 popd &> /dev/null
-python manage.py syncdb --noinput
+python manage.py migrate --noinput
+
+# Load the initial data
+python manage.py loaddata NMTK_server/fixtures/initial_data.json
+
 # Use the -l argument for development, otherwise js/css changes require recopying
 
-python manage.py server_enabled
-if [[ $? == 0 ]]; then
+if [[ $PRODUCTION == 1 && ! -f "$BASEDIR/node/bin/npm" ]]; then
+  $BASEDIR/node/install.sh
+fi
+
+if [[ ${SERVER_ENABLED} == 1 ]]; then
   echo "NMTK Server is enabled, setting up default account, etc."
   python manage.py createsuperuser --noinput --email=$EMAIL --username=$NMTK_USERNAME
   echo "from django.contrib.auth import get_user_model; User=get_user_model(); u = User.objects.get(username__exact='$NMTK_USERNAME'); u.set_password('$PASSWORD'); u.first_name='$FIRSTNAME'; u.last_name='$LASTNAME'; u.save()"|python manage.py shell
-  echo "from NMTK_server.models import ToolServer; m = ToolServer.objects.all()[0]; m.server_url='${URL}'; m.save()"|python manage.py shell
+#  echo "from NMTK_server.models import ToolServer; m = ToolServer.objects.all()[0]; m.server_url='${URL}'; m.save()"|python manage.py shell
   python manage.py discover_tools
   echo "Tool discovery has been initiated, note that this may take some time to complete"
-  python manage.py minify
+  if [[ $PRODUCTION == 1 ]]; then
+    python manage.py minify
+  fi
   echo "Regenerating images for color ramps"
   python manage.py refresh_colorramps
 fi
+
+
+
 python manage.py collectstatic --noinput -l -c
 deactivate
 popd &> /dev/null
@@ -208,15 +286,27 @@ if [[ $WINDOWS == 0 ]]; then
     sudo find $DIR -exec chmod -R g+rw {} \;
   done
 fi
-popd &> /dev/null
+if [[ ${SERVER_ENABLED} == 1 && ${TOOLSERVER_ENABLED} == 1 ]]; then
+  if [[ ${SELF_SIGNED_CERT} == 1 ]]; then
+    ADDITIONAL_ARGS="--self-signed-ssl"
+  fi
+fi
 if [[ $WINDOWS == 0 ]]; then
   sudo a2dissite 000-default.conf &> /dev/null
   sudo /etc/init.d/apache2 restart
   sudo /etc/init.d/celeryd-$CELERYD_NAME start
+  
+  echo "Adding the local tool server to the NMTK server [Note: this may take some time as the celery queue may be full]"
+  $BASEDIR/venv/bin/python $BASEDIR/NMTK_apps/manage.py add_server $ADDITIONAL_ARGS -c $EMAIL --skip-email -U $NMTK_USERNAME -u ${TOOL_SERVER_URL} "${TOOL_SERVER_URL%/*}"|$BASEDIR/venv/bin/python $BASEDIR/NMTK_apps/manage.py add_nmtk_server
 else
   echo "To start the Windows development server run the commands:  "
   echo "start python NMTK_apps/manage.py celeryd"
   echo "start python NMTK_apps/manage.py runserver"
+  echo "$BASEDIR/venv/bin/python $BASEDIR/NMTK_apps/manage.py add_server $ADDITIONAL_ARGS -c $EMAIL --skip-email -U $NMTK_USERNAME -u $TOOL_SERVER_URL "${TOOL_SERVER_URL%/*}"|$BASEDIR/venv/bin/python $BASEDIR/manage.py add_nmtk_server"
+  
 fi
+
+install_crons $NMTK_INSTALL_PATH $NMTK_NAME
+popd &> /dev/null
 popd &> /dev/null
 

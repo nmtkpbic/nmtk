@@ -5,22 +5,25 @@ that the local MTA is setup properly and working.
 '''
 from django.conf import settings
 from django.core.mail.backends.base import BaseEmailBackend
-from subprocess import Popen,PIPE
+from subprocess import Popen, PIPE
 import logging
-logger=logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
+
+
 class EmailBackend(BaseEmailBackend):
     '''
     Backend to handle local sending of email using the sendmail process.
     '''
+
     def __init__(self, fail_silently=False, **kwargs):
         super(EmailBackend, self).__init__(fail_silently=fail_silently)
-        
+
     def open(self):
         return True
-    
+
     def close(self):
         pass
-    
+
     def send_messages(self, email_messages):
         """
         Sends one or more EmailMessage objects and returns the number of email
@@ -34,7 +37,7 @@ class EmailBackend(BaseEmailBackend):
             if sent:
                 num_sent += 1
         return num_sent
-    
+
     def _send(self, email_message):
         """
         A helper method that does the actual sending.
@@ -42,10 +45,13 @@ class EmailBackend(BaseEmailBackend):
         if not email_message.recipients():
             return False
         try:
-#            logger.debug('Sending email: %s',
-#                         ["/usr/sbin/sendmail"]+list(email_message.recipients()))
-            ps = Popen(["/usr/sbin/sendmail"]+list(email_message.recipients()), \
-                       stdin=PIPE)
+            #            logger.debug('Sending email: %s',
+            #                         ["/usr/sbin/sendmail"]+list(email_message.recipients()))
+            ps = Popen(
+                ["/usr/sbin/sendmail"] +
+                list(
+                    email_message.recipients()),
+                stdin=PIPE)
 #            logger.debug('Writing message to pipe: %s',
 #                         email_message.message().as_string())
             ps.stdin.write(email_message.message().as_string())

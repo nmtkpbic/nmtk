@@ -15,9 +15,9 @@ class ConfigIterator(object):
     of data being a dictionary whose keys are the names of the config fields.
 
     The idea here is that one of these is created for each of the namespaces
-    and then used to retrieve values.  Ideally the tool will know when to use 
+    and then used to retrieve values.  Ideally the tool will know when to use
     these as an iterable vs as just getting a value set (obj.data) to work
-    with.  
+    with.
 
     Note: this used to use a namedtuple, but since it's possible that the
           "fields" could start with a number, this was changed to a dictionary.
@@ -29,7 +29,8 @@ class ConfigIterator(object):
         self.iterable_fields = {}
         self._data = {}
         for key, value in self.config_data.iteritems():
-            if value['type'] == 'property' and value.get('value', None) is not None:
+            if value['type'] == 'property' and value.get(
+                    'value', None) is not None:
                 self.iterable_fields[key] = value.get('value', None)
             else:
                 self._data[key] = value.get('value', None)

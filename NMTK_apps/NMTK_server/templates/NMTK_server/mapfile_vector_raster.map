@@ -12,7 +12,7 @@ MAP
   # This is for the WMS requests
   OUTPUTFORMAT
     NAME PNG
-    DRIVER 'GD/PNG'
+    DRIVER 'AGG/PNG'
     MIMETYPE 'image/png'
     IMAGEMODE RGBA
     EXTENSION "png"
@@ -143,15 +143,27 @@ MAP
     NAME "results"
     {% include "NMTK_server/mapfile_conninfo.map" %}
 #    DATA 'SELECT nmtk_geometry,* FROM "{{datafile.pk}}_results"'
-    TYPE {{geom_type}}
-#    STATUS ON
-    DUMP TRUE
-    PROJECTION
-      "init=epsg:4326"
-    END
-    TOLERANCE 4
-    TRANSPARENCY ALPHA
-    TEMPLATE "results.html"
+    
+       TYPE {{geom_type}}
+       {% if geom_type == 'raster' %}
+       PROJECTION
+         AUTO
+       END
+       {% endif %}
+       {% if geom_type != 'raster' %}
+#       STATUS ON
+       DUMP TRUE
+       PROJECTION
+         "init=epsg:4326"
+       END
+    
+
+       TOLERANCE 4
+       TRANSPARENCY ALPHA
+       TEMPLATE "results.html"
+    {% else %}
+       PROCESSING "BANDS={{band}}"
+    {% endif %}
     METADATA
      "wms_getfeature_formatlist" "gml,json"
       WMS_TITLE "Results"
@@ -182,16 +194,18 @@ MAP
       {% endif %}
       STYLE
         COLOR {{color.rgb.0}} {{color.rgb.1}} {{color.rgb.2}}
-        OPACITY {{color.opacity}}
-	    {% if geom_type == 'point' %}
-	   	  OUTLINECOLOR 0 0 0
-	      SYMBOL "circle"
-	    {% elif geom_type != 'line' %}
-	    	OUTLINECOLOR 0 0 0
-	    {% else %}
-	      WIDTH 3
-	    {% endif %}
-        ANTIALIAS TRUE
+        {% if geom_type != 'raster' %}
+	        OPACITY {{color.opacity}}
+		    {% if geom_type == 'point' %}
+		   	  OUTLINECOLOR 0 0 0
+		      SYMBOL "circle"
+		    {% elif geom_type != 'line' %}
+		    	OUTLINECOLOR 0 0 0
+		    {% else %}
+		      WIDTH 3
+		    {% endif %}
+	        ANTIALIAS TRUE
+        {% endif %}
       END # END STYLE
     END
     {% endfor %}
@@ -200,21 +214,26 @@ MAP
       NAME "Other Features"
       STYLE
         COLOR {{unmatched_color.rgb.0}} {{unmatched_color.rgb.1}} {{unmatched_color.rgb.2}}
-        OPACITY {{unmatched_color.opacity}}
-	    {% if geom_type == 'point' %}
-	      OUTLINECOLOR 0 0 0
-	      SYMBOL "circle"
-	    {% elif geom_type != 'line' %}
-	    	OUTLINECOLOR 0 0 0
-	    {% else %}
-	      WIDTH 3
-	    {% endif %}
-        ANTIALIAS TRUE
+        {% if geom_type != 'raster' %}
+        
+	        OPACITY {{unmatched_color.opacity}}
+		    {% if geom_type == 'point' %}
+		      OUTLINECOLOR 0 0 0
+		      SYMBOL "circle"
+		    {% elif geom_type != 'line' %}
+		    	OUTLINECOLOR 0 0 0
+		    {% else %}
+		      WIDTH 3
+		    {% endif %}
+	        ANTIALIAS TRUE
+        {% endif %}
       END # END STYLE
     END
     {% endif %}
   END
-
+  
+  
+{% if geom_type != 'raster' %}
   LAYER
     NAME "highlight"
 	{% include "NMTK_server/mapfile_highlight_conninfo.map" %}
@@ -291,6 +310,7 @@ MAP
       GML_INCLUDE_ITEMS "all"
     END
   END
+  {% endif %}
 
 END
 

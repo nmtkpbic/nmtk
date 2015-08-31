@@ -1,0 +1,21 @@
+{% load url from future %}{% load static %}{% load widget_tweaks %}
+Your tool server was added to the NMTK server at 
+http{% if request.is_secure %}s{% endif %}://{{site.domain}}{% url 'nmtk_server_nmtk_index' %}.
+
+The URL of your tool server is {{toolserver.server_url}} 
+
+Your tool server has been given the name "{{toolserver.name}}", and
+the tools for the server should be available via the NMTK server very soon.
+
+In order for the NMTK Server and Tool Server to communicate with each other,
+the attached file needs to be added to the Tool Server.  In order to do so,
+please perform the following sequence of steps:
+
+1.  Transfer the attached file (nmtk_server.config) to your tool server.
+
+2.  Run the management command to import the configuration file:
+
+	python manage.py add_nmtk_server <filename>
+
+Once you have added the configuration file, you should be able to successfully
+execute jobs using the NMTK server.

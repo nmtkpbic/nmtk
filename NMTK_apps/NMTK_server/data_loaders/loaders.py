@@ -9,7 +9,7 @@ from django.core import exceptions
 import collections
 import logging
 import io
-import simplejson as json
+import json
 from osgeo import ogr, osr
 
 __all__ = ['FormatException', ]
@@ -35,7 +35,9 @@ class FormatException(Exception):
     pass
 
 DEFAULT_LOADERS = ['NMTK_server.data_loaders.ogr.OGRLoader',
-                   'NMTK_server.data_loaders.csv.CSVLoader']
+                   'NMTK_server.data_loaders.csv.CSVLoader',
+                   'NMTK_server.data_loaders.image.ImageLoader',
+                   'NMTK_server.data_loaders.rasters.RasterLoader']
 
 
 class NMTKDataLoader(object):
@@ -50,7 +52,7 @@ class NMTKDataLoader(object):
     def __init__(self, filename, srid=None):
         '''
         On init, unpack the directory containing the files and
-        generate an inventory of files.  
+        generate an inventory of files.
         '''
         kwargs = {}
         if srid:
@@ -114,18 +116,30 @@ class NMTKDataLoader(object):
                 dl_class = getattr(mod, dl_classname)
             except AttributeError as e:
                 raise exceptions.ImproperlyConfigured(
-                    'DataLoader module "%s" does not define a "%s" class' % (dl_module, dl_classname))
+                    'DataLoader module "%s" does not define a "%s" class' %
+                    (dl_module, dl_classname))
             logger.debug('Loading %s', dl_classname)
             dl_instance = dl_class(self.get_filelist(), *args, **kwargs)
             if dl_instance.is_supported():
+                logger.info(
+                    'Loader %s supports %s', dl_instance.name, dl_instance.filename)
                 self.dl_instance = dl_instance
                 return dl_instance.name
         return None
 
+    def extract_files(self):
+        '''
+        A generator that returns the files that need to be preserved.  The first 
+        of which ought to be the file specified in the datafile.file field.
+        '''
+        if self.dl_instance.unpack_list:
+            for f in self.dl_instance.unpack_list:
+                yield f
+
     @property
     def info(self):
         '''
-        Returns an info object which contains all the information that 
+        Returns an info object which contains all the information that
         we were able to determine about this particular datafile.
 
         Generally, it's a good idea to get the feature count *after* getting the
@@ -133,7 +147,9 @@ class NMTKDataLoader(object):
         data to count the features.
         '''
         if not getattr(self, 'dl_instance', None):
+            logger.error('Loader has no Data Loader object instance?!?')
             return None
+
         if not hasattr(self, '_loader_result'):
             LoaderResult = collections.namedtuple('LoaderResult',
                                                   ['spatial',
@@ -150,27 +166,40 @@ class NMTKDataLoader(object):
                                                    'dest_srs',
                                                    'dimensions', ])
 
-            self._loader_result = LoaderResult(self.is_spatial,
-                                               getattr(
-                                                   self.dl_instance, 'srid', None),
-                                               getattr(
-                                                   self.dl_instance, 'spatial_type', None),
-                                               self.dl_instance.feature_count,
-                                               self.fields(),
-                                               self.fields_types(),
-                                               self.ogr_fields_types(),
-                                               self.dl_instance.format,
-                                               self.dl_instance.name,
-                                               getattr(
-                                                   self.dl_instance, 'extent', None),
-                                               getattr(
-                                                   self.dl_instance, 'srs', None),
-                                               getattr(
-                                                   self.dl_instance, 'dest_srs', None),
-                                               getattr(
-                                                   self.dl_instance, 'dimensions', None),
-                                               )
-
+            self._loader_result = LoaderResult(
+                self.is_spatial,
+                getattr(
+                    self.dl_instance,
+                    'srid',
+                    None),
+                getattr(
+                    self.dl_instance,
+                    'spatial_type',
+                    None),
+                self.dl_instance.feature_count,
+                self.fields(),
+                self.fields_types(),
+                self.ogr_fields_types(),
+                self.dl_instance.format,
+                self.dl_instance.name,
+                getattr(
+                    self.dl_instance,
+                    'extent',
+                    None),
+                getattr(
+                    self.dl_instance,
+                    'srs',
+                    None),
+                getattr(
+                    self.dl_instance,
+                    'dest_srs',
+                    None),
+                getattr(
+                    self.dl_instance,
+                    'dimensions',
+                    None),
+            )
+        logger.debug('loader result is %s', self._loader_result)
         return self._loader_result
 
     def export_json(self, filename):
@@ -212,8 +241,8 @@ class NMTKDataLoader(object):
         # Create the fields in the data file
         for field_name, field_type in self.info.ogr_fields_types:
             logger.debug('Create field - name is %s', field_name)
-            field_defn = ogr.FieldDefn(field_name.decode('utf-8').encode('utf-8', 'ignore'),
-                                       field_type)
+            field_defn = ogr.FieldDefn(field_name.decode(
+                'utf-8').encode('utf-8', 'ignore'), field_type)
             if layer.CreateField(field_defn) != 0:
                 logger.debug("Creating %s field failed.", field_name)
                 raise Exception('Failed to create field!')
@@ -248,7 +277,7 @@ class NMTKDataLoader(object):
 
     def get_filelist(self):
         '''
-        Unpack the archive if it is an archive, and return a list of 
+        Unpack the archive if it is an archive, and return a list of
         file names that should be examined by OGR to determine if they are
         OGR supported file types.
 
@@ -263,18 +292,20 @@ class NMTKDataLoader(object):
                 try:
                     # Ensure that the files are output in the working dir, and
                     # subdirectories are omitted (so it's a flat dir structure)
-                    archive_util.unpack_archive(self.filename, self.working_dir,
-                                                progress_filter=self._progress_filter)
+                    archive_util.unpack_archive(
+                        self.filename, self.working_dir, progress_filter=self._progress_filter)
                     logger.debug('Unpacked archive %s to %s', self.filename,
                                  self.working_dir)
-                    files = [fn for fn in map(lambda dir: os.path.join(self.working_dir,
-                                                                       dir),
-                                              os.listdir(self.working_dir))
-                             if not os.path.isdir(fn)]
+                    files = [
+                        fn for fn in map(
+                            lambda dir: os.path.join(
+                                self.working_dir, dir), os.listdir(
+                                self.working_dir)) if not os.path.isdir(fn)]
                     self._files = files
-                except archive_util.UnrecognizedFormat, e:
-                    logger.debug('Specified file (%s) is not a recognized archive',
-                                 self.filename)
+                except archive_util.UnrecognizedFormat as e:
+                    logger.debug(
+                        'Specified file (%s) is not a recognized archive',
+                        self.filename)
                     self._files = [self.filename, ]
             else:
                 self._files = [self.filename, ]

@@ -20,9 +20,11 @@ class OGRLoader(BaseDataLoader):
              ogr.wkbPolygon: 'POLYGON',
              ogr.wkbMultiLineString: 'MULTILINESTRING', }
 
-    type_conversions = {ogr.wkbPoint: (ogr.wkbMultiPoint, ogr.ForceToMultiPoint),
-                        ogr.wkbLineString: (ogr.wkbMultiLineString, ogr.ForceToMultiLineString),
-                        ogr.wkbPolygon: (ogr.wkbMultiPolygon, ogr.ForceToMultiPolygon)}
+    type_conversions = {
+        ogr.wkbPoint: (
+            ogr.wkbMultiPoint, ogr.ForceToMultiPoint), ogr.wkbLineString: (
+            ogr.wkbMultiLineString, ogr.ForceToMultiLineString), ogr.wkbPolygon: (
+                ogr.wkbMultiPolygon, ogr.ForceToMultiPolygon)}
 
     def __init__(self, *args, **kwargs):
         '''
@@ -78,7 +80,7 @@ class OGRLoader(BaseDataLoader):
                     self._dimensions = max(
                         geom.GetCoordinateDimension(), self._dimensions)
                     geom_types.add(geom.GetGeometryName())
-                except Exception, e:
+                except Exception as e:
                     logger.exception(
                         'Failed to get geometry type when iterating over data during ingest')
             layer.ResetReading()
@@ -114,14 +116,20 @@ class OGRLoader(BaseDataLoader):
             # and if it is then we will simply use dateutil's parser to parse the value
             # if that fails, then we just proceed and hope for the best..
             for field, type in self.datefields.iteritems():
-                if not isinstance(data[field], (datetime.datetime, datetime.date, datetime.time)):
+                if not isinstance(
+                    data[field],
+                    (datetime.datetime,
+                     datetime.date,
+                     datetime.time)):
                     try:
                         if data[field]:
                             v = parse(data[field])
                             data[field] = v
                     except:
-                        logger.exception('Failed to parse field %s, value %s with dateutil\'s parser - wierd!',
-                                         field, data[field])
+                        logger.exception(
+                            'Failed to parse field %s, value %s with dateutil\'s parser - wierd!',
+                            field,
+                            data[field])
             geom = feature.geometry()
             if geom:
                 wkt = geom.ExportToWkt()
@@ -192,7 +200,8 @@ class OGRLoader(BaseDataLoader):
         This returns a list of tuples, with the first being a field name
         and the second element of each being the python type of the field.
         '''
-        return [(field, ogr_type) for field, type, ogr_type in self.data.fields]
+        return [(field, ogr_type)
+                for field, type, ogr_type in self.data.fields]
 
     @property
     def extent(self):
@@ -205,6 +214,9 @@ class OGRLoader(BaseDataLoader):
         Read the output file and provide an iterable result
         '''
         if not hasattr(self, '_data'):
+            if self.ogr_obj is None:
+                self._data = None
+                return None
             layer = geom_extent = geom_type = spatial_ref = geom_srid = None
             # If we get here, then we have successfully determined the file type
             # that was provided, using OGR.  ogr_obj contains the OGR DataSource
@@ -212,16 +224,17 @@ class OGRLoader(BaseDataLoader):
 
             # We only support single layer uploads, if there is more than one
             # layer then we will raise an exception
-            if self.ogr_obj.GetLayerCount() <> 1:
-                raise FormatException('Too many (or too few) layers recognized ' +
-                                      'in this data source (%s layers)',
-                                      self.ogr_obj.GetLayerCount())
+            if self.ogr_obj.GetLayerCount() != 1:
+                raise FormatException(
+                    'Too many (or too few) layers recognized ' +
+                    'in this data source (%s layers)',
+                    self.ogr_obj.GetLayerCount())
             driver = self.ogr_obj.GetDriver()
             # Deny VRT files, since they can be used to reference any file on the
             # filesystem, and even external URLs.
             if 'vrt' in str(driver).lower():
-                raise FormatException('VRT format datafiles are not currently ' +
-                                      'supported')
+                raise FormatException(
+                    'VRT format datafiles are not currently ' + 'supported')
 
             layer = self.ogr_obj.GetLayer()
             geom_extent = layer.GetExtent()
@@ -271,11 +284,15 @@ class OGRLoader(BaseDataLoader):
                         # it appears that sometimes OGR isn't giving us a date type when we iterate
                         # over values, so we will store the date types and convert if needed when we
                         # iterate over the results.
-                        if field_type in (datetime.date, datetime.time, datetime.datetime):
+                        if field_type in (
+                                datetime.date,
+                                datetime.time,
+                                datetime.datetime):
                             self.datefields[field_name] = field_type
                     else:
                         raise FormatException(
-                            'The field {0} is of an unsupported type'.format(field_name,))
+                            'The field {0} is of an unsupported type'.format(
+                                field_name,))
                 break
     #         logger.debug('Fields are %s', fields)
             # Just to be on the safe side..
@@ -299,8 +316,10 @@ class OGRLoader(BaseDataLoader):
             # otherwise it gets garbage collected, and the OGR Layer object
             # will break.
             if geom_type in self.type_conversions:
-                logger.debug('Converting geometry from %s to %s (geom_type upgrade)',
-                             geom_type, self.type_conversions[geom_type][0])
+                logger.debug(
+                    'Converting geometry from %s to %s (geom_type upgrade)',
+                    geom_type,
+                    self.type_conversions[geom_type][0])
                 geom_type, self._geomTransform = self.type_conversions[
                     geom_type]
             else:

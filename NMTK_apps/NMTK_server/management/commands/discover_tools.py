@@ -9,13 +9,14 @@ from django.conf import settings
 class Command(BaseCommand):
     help = 'Go out to the NMTK servers and discover new tools, update configs.'
     option_list = BaseCommand.option_list + (
-                make_option('-t','--tool-name',
+        make_option('-t', '--tool-name',
                     type='string',
                     action='store',
                     dest='tool_name',
                     default=None,
-                    help='Specify a single tool server ID to update.'),             
-                )
+                    help='Specify a single tool server ID to update.'),
+    )
+
     def handle(self, *args, **options):
         '''
         A save of the toolserver model will trigger an update of the config
@@ -23,9 +24,10 @@ class Command(BaseCommand):
         '''
         if not settings.NMTK_SERVER:
             raise CommandError('The NMTK Server is not currently enabled')
-        qs=models.ToolServer.objects.all()
+        qs = models.ToolServer.objects.all()
+        if options['tool_name']:
+            qs = qs.filter(name__iexact=options['tool_name'])
         for m in qs:
             self.stdout.write('Updating ToolServer record for %s' % m.name)
 #            m.save()
             tasks.discover_tools.delay(m)
-

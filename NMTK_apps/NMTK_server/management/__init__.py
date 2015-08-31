@@ -2,9 +2,10 @@
 Setup the site using information from settings.py
 '''
 
-from django.contrib.sites import models 
-from django.db.models import signals 
+from django.contrib.sites import models
+from django.db.models import signals
 from django.conf import settings
+
 
 def create_site(app, created_models, verbosity, **kwargs):
     """

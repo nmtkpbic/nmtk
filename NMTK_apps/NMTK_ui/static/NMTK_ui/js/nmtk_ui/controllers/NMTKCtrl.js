@@ -30,6 +30,7 @@
  *       SUCH DAMAGE.
  */
 define(['underscore'
+        , 'jquery'
         , 'text!deleteModalTemplate'
         , 'text!feedbackTemplate'
         , 'text!changePasswordTemplate'
@@ -38,24 +39,24 @@ define(['underscore'
         , 'text!downloadDatafileTemplate'
         , 'text!createJobTemplate'
         , 'text!loginTemplate'], 
-		function (_, deleteModalTemplate, feedbackTemplate, changePasswordTemplate,
+		function (_, $, deleteModalTemplate, feedbackTemplate, changePasswordTemplate,
 				passwordChangeStatusModalTemplate, switchJobModalTemplate,
 				downloadDatafileTemplate, createJobTemplate, loginTemplate) {	
 			"use strict";
-			var controller=['$scope','Restangular','$timeout','$modal','$location',
-			                '$http','$q', '$log',
+			var controller=['$scope','Restangular', '$timeout','$modal','$location',
+			                '$http','$q', '$log','$cookies',
 				/* 
 				 * This "base" controller provides some default scope components for all the
 				 * other controllers.  It also handles the auto-reloading of things like jobs 
 				 * in progress and uploads, etc. 
 				 */
 				function ($scope, Restangular, $timeout, $modal, $location, 
-						  $http, $q, $log) {
+						  $http, $q, $log, $cookies) {
 					// A Function used to update data via a rest call to an API interface,
 					// since it seems like we will refresh far more often than we don't, might
 					// as well do this.
 					$log.info('NMTK Controller running!');
-					$scope.csrftoken=CONFIG.csrftoken;
+					$scope.csrftoken=$cookies['csrftoken'];
 					$scope.login_url=CONFIG.api_path + 'user/login/';
 					var first_login_complete=$q.defer();
 					$scope.register_url=CONFIG.register_url;
@@ -183,6 +184,7 @@ define(['underscore'
 								 */
 								$scope.logged_in=true;
 								$scope.$broadcast('login', true);
+								
 								if ($scope.user.resource_uri != data[0].resource_uri) {
 									$scope.user=data[0];
 									$scope.refreshAllData();
@@ -207,11 +209,7 @@ define(['underscore'
 							});
 						} else if (api == 'datafile') {
 							$scope.rest[api].then(function (v) {
-								if (_.isUndefined($scope.datafile_cache)) {
-									$scope.datafile_cache = v;
-								} else {
-									$scope.datafile_cache = v;
-								}
+                                $scope.datafile_cache = v;
 								deferred.resolve();
 							}, function (error) {
 								if (error.status == 401) {
@@ -223,11 +221,7 @@ define(['underscore'
 							})
 						} else if (api == 'tool') {
 							$scope.rest[api].then(function (v) {
-								if (typeof $scope.datafile_cache === 'undefined') {
-									$scope.tool_cache = v;
-								} else {
-									$scope.tool_cache = v;
-								}
+                                $scope.tool_cache = v;
 								deferred.resolve();
 							}, function (error) {
 								if (error.status == 401) {
@@ -239,11 +233,7 @@ define(['underscore'
 							})
 						} else if (api == 'job') {
 							$scope.rest[api].then(function (v) {
-								if (typeof $scope.datafile_cache === 'undefined') {
-									$scope.job_cache = v;
-								} else {
-									$scope.job_cache = v;
-								}
+                                $scope.job_cache = v;
 								deferred.resolve();
 							}, function (error) {
 								if (error.status == 401) {
@@ -274,13 +264,27 @@ define(['underscore'
 						$scope.delete_candidate={};
 					}
 					
-					$scope.deleteData=function (api, id) {
+					/*
+					 * Sometimes the refresh is done after multiple deletes, 
+					 * so give the caller the ability to skip refreshing the data
+					 * which assumes the caller will do it...
+					 */
+					$scope.deleteData=function (api, id, skip_refresh) {
 						var rest=$scope.resources[api];
-						rest.one(id).remove().then(function (r) {
-							$scope.refreshData(api);
+						var promise=rest.one(id).remove();
+						promise.then(function (r) {
+							if ($scope.results_uri && api == 'datafile' && $scope.results_uri.replace(/\/$/, "").split('/').reverse()[0] == id) {
+								$scope.results_uri = null;
+							} else if ($scope.job_uri && api == 'job' && $scope.job_uri.replace(/\/$/, "").split('/').reverse()[0] == id) {
+								$scope.job_uri = null;
+							}
+							if (_.isUndefined(skip_refresh) || ! skip_refresh) {
+								$scope.refreshData(api);
+							}
 						}, function (r) {
 							alert('Please delete jobs for this file prior to deleting the file.')
 						});
+						return promise;
 					}
 					$scope.loginCheck=function () {
 						first_login_complete.promise.then(function () {
@@ -379,7 +383,7 @@ define(['underscore'
 					$scope.logout= function () {
 						$http({method: 'GET',
 							   url: $scope.user.logout,
-							   headers: {'X-CSRFToken': $scope.csrftoken }
+							   headers: {'X-CSRFToken': $cookies['csrftoken'] }
 						}).success(function (data, status, headers, config) {
 							$scope.refreshData('user');
 						});
@@ -392,6 +396,11 @@ define(['underscore'
 					 * occurs
 					 */
 					$scope.refreshAllData=function () {
+						$scope.csrftoken=$cookies['csrftoken'];
+						Restangular.setDefaultHeaders({'X-CSRFToken': $cookies['csrftoken'] });
+						$.ajaxSetup({
+						    headers: {'X-CSRFToken': $cookies['csrftoken'] }
+						});
 						_.each(['datafile','job', 'preference','tool'], function (item) {
 							$scope.resources[item]=Restangular.all(item);
 							$scope.refreshData(item);
@@ -588,6 +597,7 @@ define(['underscore'
 															controller: 'CreateJobCtrl'});
 							modal_instance.result.then(function(result) {
 								$scope.resources['job'].post(result).then(function (api_result) {
+									$log.debug('Created a new job!');
 									$scope.refreshData('job').then(function () {
 										$scope.rest['job'].then(function (jobs) {
 											var job_id=api_result.resource_uri.split('/').reverse()[1];
@@ -624,9 +634,11 @@ define(['underscore'
 											}
 										});
 									});
+								}, function (failed) {
+									$log.debug('Failed to create job', failed);
 								});			
 							});
-							$log.info('Creating a new job!');
+							
 						}
 					};
 				}

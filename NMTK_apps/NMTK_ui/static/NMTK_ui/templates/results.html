@@ -16,7 +16,7 @@
         </div>
       </div>
    </div>
-   <div class="row">   	  
+   <div class="row ng-cloak">   	  
       <div class="col-md-12">
         <div class="widget stacked">
           <div ng-click="toggleDiv('job_result_help')" class="widget-header">
@@ -31,8 +31,11 @@
 		               class="navbar-right glyphicon" ></span>
 					    <span class="sr-only" >Expand or collapse</span>
 		     </button>  
-            <button  stop-event='click' class="btn btn-xs btn-primary ic-right navbar-right" ng-click="downloadDatafile(datafile_api)">Download</button>
-                     
+		    <button stop-event='click' class="btn btn-xs btn-primary ic-right navbar-right" ng-click="downloadDatafile(datafile_api)">Download</button>
+  		    <button ng-if="message_categories['Error']" stop-event='click' class="btn btn-xs btn-danger ic-right navbar-right" ng-click="showJobStatus('Error')">Error</button>
+		    <button ng-if="message_categories['Warning']" stop-event='click' class="btn btn-xs btn-warning ic-right navbar-right" ng-click="showJobStatus('Warning')">Warning</button>
+            <button ng-if="message_categories['Message']" stop-event='click' class="btn btn-xs btn-info ic-right navbar-right" ng-click="showJobStatus('Message')">Message</button>
+            
              </div> <!-- /widget-header -->
           <div ng-show="isDivEnabled('job_result_help') && job" class="widget-content">
             <p>
@@ -40,6 +43,12 @@
             GeoSpatial data, then the page will be split to contain a map showing your
             spatial results, and a section with the row data.  Otherwise, you will just see
 	    the row data.
+	    </p>
+	    <p ng-show="other_datafiles.length > 1">
+	    The data you are currently viewing was returned by a job that had more than one 
+	    NMTK supported result file.  The other data files that are viewable are available from a 
+	    drop-down appearing above.  You can choose one of the other output files to 
+	    view them.
 	    </p>
 	    <p>
 	       In the row data, you can choose which data fields to display, sort the fields, or use the advanced filters to examine just those
@@ -82,13 +91,32 @@
         </div><!-- /widget stacked -->
       </div><!-- /span12 -->
     </div><!-- /row -->
-    <div class="row">
+    <!--  The case where we have an image, rather than data. -->
+    <div ng-if="totalServerItems == 0 && ! spatial" class="row ng-cloak">
+      <div class="col-md-12 ng-cloak">
+        <div class="widget stacked">
+          <div class="widget-header">
+            <span class="glyphicon glyphicon-picture" ></span>
+            <h1>View {{data_file_tab_name}}</h1>
+          </div> <!-- /widget-header -->
+          <div class="widget-content text-center">
+            <img ng-src="{{image_url}}?display=1" style="max-height: 100%; max-width: 100%;"class="img-responsive" ></img>
+          </div> <!-- /widget-content -->
+        </div><!-- /widget stacked -->
+        
+      </div><!-- /span12 -->
+    </div>
+    
+    
+    
+    <div ng-if="spatial" class="row ng-cloak">
       <div class="col-md-6">
         <div class="widget stacked" ng-show="spatial">
           <div class="widget-header">
             <span class="glyphicon glyphicon-map-marker"></span>
             <h1>Spatial {{data_file_tab_name}}</h1>
-            <button class="navbar-right btn btn-xs btn-primary ic-right" ng-click="changeColors()">Change Colors</button>
+            <button class="navbar-right btn btn-xs btn-primary ic-right" 
+                    ng-click="changeColors()">Change Colors</button>
           </div> <!-- /widget-header -->
           <div class="widget-content">
             <!-- <div id="map" class="angular-leaflet-map"></div> -->
@@ -96,7 +124,7 @@
                      geojson="geojson" bounds="bounds"></leaflet>
           </div> <!-- /widget-content -->
         </div><!-- /widget stacked -->
-        <div class="widget stacked">
+        <div ng-if="totalServerItems > 0" class="widget stacked">
           <div class="widget-header">
             <span class="glyphicon glyphicon-list"></span>
             <h1 ng-hide="customFilters.length">All {{data_file_tab_name}}</h1>
@@ -119,17 +147,19 @@
         <div ng-show="spatial" class="widget stacked">
           <div class="widget-header">
             <span class="glyphicon glyphicon-picture"></span>
-            <h1><label for="style">Map Legend - styled by</label>
-                 <select id="style" ng-model="result_field" name="result_field" ng-options="field for field in fields">
+            <h1 ><label  ng-if="datafile_api.geom_type != 'RASTER'"  for="style">Map Legend - styled by </label>
+                 <label  ng-if="datafile_api.geom_type == 'RASTER'"  for="style">Map Legend - Choose Band </label>
+                 <select id="style" ng-change="updateMapComponents()" ng-model="result_data.field" name="result_field" ng-options="field for field in fields">
                    <option value=""></option>
                  </select>
             </h1>
+            
           </div> <!-- /widget-header -->
           <div style="text-align: center;" class="widget-content">
             <img alt="Map legend" ng-src="{{legend_url}}">
           </div> <!-- /widget-content -->
         </div><!-- /widget stacked -->
-        <div class="widget stacked">
+        <div ng-show="totalServerItems > 0" class="widget stacked">
           <div class="widget-header">
             <span class="glyphicon glyphicon-plus-sign"></span>
             <h1>{{selected_features.length}} Selected Features</h1>
@@ -141,14 +171,15 @@
             <h4 ng-show="selected_selected.length">
                Displaying feature {{selected_selected[0].nmtk_id}}
             </h4>
-            <table class="table table-bordered table-striped table-highlight">
-			<caption>
-				 <strong>Table Caption</strong>
-				  <details>
-				   <summary>Summary</summary>
-				   <p>Description of table contents</p>
-				  </details>
-				</caption>
+            <table ng-show="selected_selected.length" 
+                   class="table table-bordered table-striped table-highlight">
+                         <caption class="hide508" >
+                                 <strong>Results Data</strong>
+                                  <details>
+                                   <summary>Summary</summary>
+                                   <p>Job results information</p>
+                                  </details>
+                                </caption>
 				
               <tbody>
 			  <tr>
@@ -169,7 +200,7 @@
     
     
           
-    <div class="row">
+    <div class="row ng-cloak">
       <div class="col-md-12">
         <div class="widget stacked">
           <div class="widget-content centered">

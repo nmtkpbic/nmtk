@@ -31,7 +31,7 @@
  */
 define(['underscore'], function (_) {	
 	"use strict";
-	var controller=['$scope','$log','$q','$modalInstance','api','id','name','type','operation',
+	var controller=['$scope', '$log','$q','$modalInstance','api','id','name','type','operation',
 	                'jobdata','Restangular',
 		function ($scope, $log, $q, $modalInstance, api, id, name, type, operation,
 				  jobdata, Restangular) {
@@ -42,6 +42,10 @@ define(['underscore'], function (_) {
 			$scope.type=type;
 			$scope.jobs_in=[];
 			$scope.jobs_out=[];
+			/*
+			 * Get a list of all the files tied to this particular job, since
+			 * we'll want to either leave them or delete them also.
+			 */
 			Restangular.all('job_results').getList({'job': id,
 													'limit': 999}).then(function (filedata) {
 				if (filedata.length) {
@@ -62,15 +66,22 @@ define(['underscore'], function (_) {
 			
 			$scope.delete=function () {
 				var promises=[];
-				// Remove the job in question, then cascade to the file.
-				// The job needs to go before the file, so we will only do
-				// the file delete after the job delete completes.
-				Restangular.all('job').one(id).remove().then(function () {
+				/* Remove the job in question, then cascade to the file.
+				 * The job needs to go before the file, so we will only do
+				 * the file delete after the job delete completes.
+				 * 
+				 */
+				var parentScope=angular.element(document.getElementById('nmtk')).scope()
+				parentScope.deleteData('job', id, true).then(function () {
 					if ($scope.form_params['delete']) {
 						// Remove each of the job files in question.
 						_.each($scope.jobs_in, function (job_file) {
 							var id=job_file.datafile.split('/').reverse()[1];
-							promises.push(Restangular.all('datafile').one(id).remove());
+							/* Use the deleteData function (defined in the 
+							 * NMTKCtrl controller
+							 * this will also close the datafile if it is open...
+							 */
+							promises.push(parentScope.deleteData('datafile', id, true));
 						});
 					}
 					var p=$q.all(promises);
@@ -80,6 +91,7 @@ define(['underscore'], function (_) {
 				});
 				
 				// Wait until all the deletes complete before doing the close/refresh.
+				// Since the caller should/will refresh the data.
 				
 			}
 			$scope.close=function () {

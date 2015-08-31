@@ -29,12 +29,16 @@
  *       OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  *       SUCH DAMAGE.
  */
-define(['angular', 'underscore','leaflet',
-        'text!AdvancedFiltersTemplate',
-        'text!ColorRampSelectionTemplate'], function (angular, _, 
+define([  'angular' 
+        , 'underscore'
+        , 'leaflet'
+        , 'text!AdvancedFiltersTemplate'
+        , 'text!ColorRampSelectionTemplate'
+        , 'text!JobMessageTemplate'], function (angular, _, 
         										   L, 
         										   AdvancedFiltersTemplate,
-        										   ColorRampSelectionTemplate) {
+        										   ColorRampSelectionTemplate,
+        										   JobMessageTemplate) {
 	"use strict";
 	var controller=['$scope','$routeParams','$location','$log','$http',
 	                '$timeout', 'leafletData','Restangular', '$q', '$modal',
@@ -57,7 +61,7 @@ define(['angular', 'underscore','leaflet',
 			if (_.isUndefined($scope.$parent.results_uri) ||
 				$scope.$parent.results_uri != $location.path()) {
 				$scope.$parent.results_uri=$location.path();
-				//$scope.$parent.result_field=null;
+				$scope.$parent.result_data={'field': ''};
 				$scope.$parent.customFilters=[];
 			} 
 			if (_.isUndefined($scope.preferences.config.ramp)) {
@@ -205,11 +209,11 @@ define(['angular', 'underscore','leaflet',
 					}
 					$scope.fields=_.sortBy(JSON.parse($scope.datafile_api.fields),
 										   function (a) { return a.toLowerCase(); });
-					if (! _.contains($scope.fields, $scope.$parent.result_field)) {
-						$scope.$parent.result_field=null;
+					if (! _.contains($scope.fields, $scope.result_data.field)) {
+						$scope.result_data.field=null;
 					}
-					if ($scope.$parent.result_field==null) {
-						$scope.$parent.result_field=$scope.datafile_api.result_field;
+					if ($scope.result_data.field==null) {
+						$scope.result_data.field=$scope.datafile_api.result_field;
 					}  
 					
 					
@@ -269,8 +273,10 @@ define(['angular', 'underscore','leaflet',
 						options['filters']=angular.toJson(filters);
 					}
 					$log.info('Making request for ', $scope.datafile_api.download_url, options);
+					$scope.image_url=$scope.datafile_api.file;
 					$http.get($scope.datafile_api.download_url, {params: options}).success(function (data) {
 						$scope.totalServerItems=data.meta.total;
+						
 						$scope.pagingOptions.currentPage=(data.meta.offset/data.meta.limit)+1
 						if ($scope.paging_offset > 0) {
 							$scope.data= $scope.data.concat(data.data);
@@ -326,7 +332,7 @@ define(['angular', 'underscore','leaflet',
 					            url: $scope.datafile_api.wms_url,
 					            layerOptions: { layers: "highlight_selected",
 					            	            ids: ids,
-					            	            style_field: $scope.result_field || '',
+					            	            style_field: $scope.result_data['field'] || '',
 					                    		format: 'image/png',
 					                    		ramp: $scope.preferences.config.ramp.ramp_id,
 					                    		reverse: $scope.preferences.config.ramp.reverse,
@@ -370,7 +376,7 @@ define(['angular', 'underscore','leaflet',
 					            url: $scope.datafile_api.wms_url,
 					            layerOptions: { layers: "highlight",
 					            	            ids: ids.join(','),
-					            	            style_field: $scope.result_field ||'',
+					            	            style_field: $scope.result_data['field'] ||'',
 					                    		format: 'image/png',
 					                    		ramp: $scope.preferences.config.ramp.ramp_id,
 					                    		reverse: $scope.preferences.config.ramp.reverse,
@@ -393,7 +399,7 @@ define(['angular', 'underscore','leaflet',
 				            visible: true,
 				            url: $scope.datafile_api.wms_url,
 				            layerOptions: { layers: $scope.datafile_api.layer,
-				            				style_field: $scope.result_field || '',
+				            				style_field: $scope.result_data['field'] || '',
 				                    		format: 'image/png',
 				                    		ramp: $scope.preferences.config.ramp.ramp_id,
 				                    		reverse: $scope.preferences.config.ramp.reverse,
@@ -407,7 +413,7 @@ define(['angular', 'underscore','leaflet',
 					var url=$scope.datafile_api.wms_url;
 					var ret = [];
 					var data={ layers: $scope.datafile_api.layer,
-            					style_field: $scope.result_field || '',
+            					style_field: $scope.result_data['field'] || '',
             					request: 'getLegendGraphic',
             					format: 'image/png',
             					ramp: $scope.preferences.config.ramp.ramp_id,
@@ -420,8 +426,9 @@ define(['angular', 'underscore','leaflet',
 				}
 			}
 			
-			var updateMapComponents=function () {
+			$scope.updateMapComponents=function () {
 				addResultWMS();
+//				$scope.$parent.result_field=$scope.result_field;
 				if ($scope.selected_selected) {
 					updateHighlightSelected();
 				}
@@ -436,13 +443,12 @@ define(['angular', 'underscore','leaflet',
 			 * data.
 			 */
 			$scope.$watch('preferences', function (newVal, oldVal) {
-				updateMapComponents();
+				$scope.updateMapComponents();
 			});
 			
-			$scope.$watch('result_field', function (newVal, oldVal){
-				$scope.$parent.result_field=newVal;
-				updateMapComponents();
-			});
+//			$scope.$watch('result_field', function (newVal, oldVal){
+//				$scope.updateMapComponents();
+//			});
 			
 			$scope.changeJobFile=function() {
 				// Change the path when the job file is changed
@@ -450,13 +456,12 @@ define(['angular', 'underscore','leaflet',
 			};
 			
 			$scope.$watch('job_id', function (newVal, oldVal){
-				$scope.$parent.result_field=newVal;
-				updateMapComponents();
+				$scope.updateMapComponents();
 			});
 			
 			
 			$scope.$watch('preferences.config.ramp', function (newVal, oldVal){
-				updateMapComponents();
+				$scope.updateMapComponents();
 			});
 			
 			// Whenever a feature is selected in the table, we will match that feature in
@@ -629,16 +634,16 @@ define(['angular', 'underscore','leaflet',
 					        'layers': {
 					        		   'baselayers': { osm: { name: 'OpenStreetMap',
 										                      type: 'xyz',
-										                      url: 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+										                      url: '//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
 										                      layerOptions: {
 										                         subdomains: ['a', 'b', 'c'],
-										                         attribution: '© OpenStreetMap contributors',
+										                         attribution: 'ï¿½ OpenStreetMap contributors',
 										                         continuousWorld: true
 										                      }
 										                     },
 								                       blank: { name: 'Blank Base Map',
 									                            type: 'xyz',
-									                            url: 'http://downloads2.esri.com/support/TechArticles/blank256.png',
+									                            url: '//downloads2.esri.com/support/TechArticles/blank256.png',
 									                            layerOptions: {
 									                               continuousWorld: true
 									                            }
@@ -647,6 +652,43 @@ define(['angular', 'underscore','leaflet',
 									   'overlays': { }
 					        }
 					        
+			}
+			
+			$scope.showJobStatus = function (statuses) {
+				$log.debug('Statuses to display are', statuses);
+			}
+			
+			$scope.showJobStatus = function (category) {				
+				var modal_dialog=$modal.open({
+					controller: 'ViewJobNotificationsCtrl',
+					resolve: {statuses: function () { return $scope.statuses },
+						      category: function () { return category },
+						      message_categories: function () { return _.keys($scope.message_categories) }
+					          },
+					template: JobMessageTemplate
+				});
+			}
+			
+			
+			
+			/*
+			 * Get the status data for a single job.  We only need those statuses
+			 * that are greater than 3, since the ones below that are not important
+			 * messages from the tool itself (they are status messages.)
+			 */
+			var getJobStatusData=function(job_id) {
+				Restangular.all('job_status').getList({'job': job_id,
+					   								   'category__gte': 4,
+					   								   'limit': 999}).then(function (statuses) {
+					 $scope.message_categories={};
+					 $scope.statuses=statuses.slice().reverse()
+					 _.each($scope.statuses, function (status) {
+						if (! (status.category in $scope.message_categories)) {
+							$scope.message_categories[status.category]=[];
+						}
+						$scope.message_categories[status.category].push(status);
+					 });
+			   });
 			}
 			
 			var getOtherJobResults=function () {
@@ -660,6 +702,7 @@ define(['angular', 'underscore','leaflet',
 				Restangular.all('job_results').getList({'datafile': $scope.datafile_api.id}).then(function(job_result_datafile) {
 					if (job_result_datafile.length > 0) {
 						var job_id=job_result_datafile[0].job.split('/').reverse()[1]
+						getJobStatusData(job_id);
 						$scope.other_datafiles=[];
 						Restangular.all('job_results').getList({'job': job_id}).then(function (job_results) {
 							// Get the ids of the datafiles that go with this job
@@ -668,7 +711,7 @@ define(['angular', 'underscore','leaflet',
 							// and grab those datafiles that are in the list of job files.
 							$scope.rest['datafile'].then(function (datafiles) {
 								_.each(datafiles, function (datafile) {
-									if (_.contains(datafile_ids, datafile.id)) {
+									if (_.contains(datafile_ids, datafile.id) && /complete/i.test(datafile.status)) {
 										$scope.other_datafiles.push(datafile);
 									}
 								});
@@ -690,10 +733,10 @@ define(['angular', 'underscore','leaflet',
 				}
 				if ($scope.datafile_api.result_field) {
 					$scope.$parent.data_file_tab_name="Results";
-					getOtherJobResults()
 				} else {
 					$scope.$parent.data_file_tab_name="Data";
 				}
+				getOtherJobResults();
 				$scope.getPagedDataAsync($scope.page_size, 0, '', 'nmtk_id');	
 				addResultWMS();
 				updateLegendGraphic();

@@ -33,16 +33,16 @@ class LegendGenerator(object):
             if flip:
                 v = v * -1
             return v
-        except Exception, e:
+        except Exception as e:
             return x
 
-    def __init__(self, color_format, min_value=None, max_value=None,
+    def __init__(self, color_format=None, min_value=None, max_value=None,
                  reverse=False, steps=255, values_list=None,
                  min_text=None, max_text=None, units=None,
-                 other_features_color=None, column_type='text'):
+                 other_features_color=None, column_type='text', description=None):
         '''
         There are really two ways this piece of code works - either by
-        using a values list (discrete values) or a min/max value.  In the 
+        using a values list (discrete values) or a min/max value.  In the
         latter case the assumption is that we're attempting to generate
         a color ramp of values (encompassing ranges).  In the former, the
         assumption is that we'll use discrete values split evenly across
@@ -52,6 +52,7 @@ class LegendGenerator(object):
         self.values_list = values_list
         self.steps = steps  # The number of steps in the range.
         self.other_features_color = other_features_color
+        self.description = description
 
         self.include_unmatched = False
         # If the user provided min/max information then we'll need to generate
@@ -87,11 +88,13 @@ class LegendGenerator(object):
         # Verify that the user has chosen to use one of the available color
         # ramp formats.  If they reverse it, then append an _r so that the code
         # knows to use the reverse of the ramp as appropriate.
-        if color_format not in [v2 for v in self.supported_formats() for v2 in v[1]]:
-            raise Exception('Unsupported color format specified')
-        if reverse:
-            color_format = '{0}_r'.format(color_format)
-        self.cmap = plt.get_cmap(color_format)
+        if color_format:
+            if color_format not in [
+                    v2 for v in self.supported_formats() for v2 in v[1]]:
+                raise Exception('Unsupported color format specified')
+            if reverse:
+                color_format = '{0}_r'.format(color_format)
+            self.cmap = plt.get_cmap(color_format)
 
     def __iter__(self):
         '''
@@ -100,11 +103,11 @@ class LegendGenerator(object):
         provided.)  The idea here is that one could iterate over
         each of the available steps.
 
-        The value iterator returns a step number, and a value indicating the 
+        The value iterator returns a step number, and a value indicating the
         minimum value (greater than or equal to) that this step should match.
 
-        For a min/max range it should be noted that the final color (highest one) 
-        will be uniquely styled with the highest/last color value.  
+        For a min/max range it should be noted that the final color (highest one)
+        will be uniquely styled with the highest/last color value.
         '''
         logger.debug('Initializing iterator...')
         if (self.numeric and
@@ -124,11 +127,10 @@ class LegendGenerator(object):
             # in this case the min/max values are the same since we are using a
             # values list.  Generating the color uses only the step number...
             # Here we get a list of integer values..
-            logger.debug(','.join(
-                map(str, np.linspace(0, self.steps, num=max(3, len(self.values_list))))))
-            self.value_iterator = izip(map(int,
-                                           np.linspace(0, self.steps, num=max(3, len(self.values_list)))),
-                                       self.values_list)
+            logger.debug(','.join(map(str, np.linspace(
+                0, self.steps, num=max(3, len(self.values_list))))))
+            self.value_iterator = izip(map(int, np.linspace(
+                0, self.steps, num=max(3, len(self.values_list)))), self.values_list)
             logger.debug('Used values list...')
         else:
             self.value_iterator = iter([])
@@ -158,11 +160,11 @@ class LegendGenerator(object):
     def next(self):
         '''
         The "other" part of the iterator this should return a dictionary containing
-        a color key (with an r,g,b tuple) and either a "value" (indicating a 
-        single value) or a 'max' keys - indicating a range that 
+        a color key (with an r,g,b tuple) and either a "value" (indicating a
+        single value) or a 'max' keys - indicating a range that
         this color should be used for (less than match.)
 
-        The opacity is a value between 0 and 1 indicating how opaque the color 
+        The opacity is a value between 0 and 1 indicating how opaque the color
         should be (1 indicates fully opaque/100% opaque)
         '''
         # We use the value iterator to get the step and the min/max
@@ -209,7 +211,7 @@ class LegendGenerator(object):
             else:
                 color[key] = value
             logger.debug('Next iterated value is %s', color)
-        except Exception, e:
+        except Exception as e:
             logger.exception('Failed to get value: %s, %s, %s',
                              value, self.values_list, color)
             raise e
@@ -252,29 +254,29 @@ class LegendGenerator(object):
             Colormaps that don't fit into the categories above.
 
         """
-        return [('Sequential 1',     ['Blues', 'BuGn', 'BuPu',
-                                      'GnBu', 'Greens', 'Greys', 'Oranges', 'OrRd',
-                                      'PuBu', 'PuBuGn', 'PuRd', 'Purples', 'RdPu', ]),
-                ('Sequential 2',     ['Reds', 'YlGn', 'YlGnBu', 'YlOrBr', 'YlOrRd',
-                                      'afmhot', 'autumn', 'bone', 'cool', 'copper',
-                                      'gist_heat', 'gray', 'hot', 'pink',
-                                      'spring', 'summer', 'winter']),
-                ('Diverging',      ['BrBG', 'bwr', 'coolwarm', 'PiYG', 'PRGn', 'PuOr',
-                                    'RdBu', 'RdGy', 'RdYlBu', 'RdYlGn', 'Spectral',
-                                    'seismic']),
-                ('Qualitative',    ['Accent', 'Dark2', 'Paired', 'Pastel1',
-                                    'Pastel2', 'Set1', 'Set2', 'Set3']),
-                ('Miscellaneous',  ['gist_earth', 'terrain', 'ocean', 'gist_stern',
-                                    'brg', 'CMRmap', 'cubehelix',
-                                    'gnuplot', 'gnuplot2', 'gist_ncar',
-                                    'nipy_spectral', 'jet', 'rainbow',
-                                    'gist_rainbow', 'hsv', 'flag', 'prism'])]
+        return [('Sequential 1', ['Blues', 'BuGn', 'BuPu',
+                                  'GnBu', 'Greens', 'Greys', 'Oranges', 'OrRd',
+                                  'PuBu', 'PuBuGn', 'PuRd', 'Purples', 'RdPu', ]),
+                ('Sequential 2', ['Reds', 'YlGn', 'YlGnBu', 'YlOrBr', 'YlOrRd',
+                                  'afmhot', 'autumn', 'bone', 'cool', 'copper',
+                                  'gist_heat', 'gray', 'hot', 'pink',
+                                  'spring', 'summer', 'winter']),
+                ('Diverging', ['BrBG', 'bwr', 'coolwarm', 'PiYG', 'PRGn', 'PuOr',
+                               'RdBu', 'RdGy', 'RdYlBu', 'RdYlGn', 'Spectral',
+                               'seismic']),
+                ('Qualitative', ['Accent', 'Dark2', 'Paired', 'Pastel1',
+                                 'Pastel2', 'Set1', 'Set2', 'Set3']),
+                ('Miscellaneous', ['gist_earth', 'terrain', 'ocean', 'gist_stern',
+                                   'brg', 'CMRmap', 'cubehelix',
+                                   'gnuplot', 'gnuplot2', 'gist_ncar',
+                                   'nipy_spectral', 'jet', 'rainbow',
+                                   'gist_rainbow', 'hsv', 'flag', 'prism'])]
 
     def generateSampleRamp(self, height=16, width=257):
         '''
         Generate a color ramp usign the current style.  Here we override the
         values so we can generate a sample image, then we reset them when we
-        are done.  This is used by the model(s) which generate sample 
+        are done.  This is used by the model(s) which generate sample
         images, as well as the legend generators, which need to generate
         an image.
         '''
@@ -315,7 +317,7 @@ class LegendGenerator(object):
         '''
         Function to use a ramp function to generate a set of values for a color ramp.
 
-        Each legend graphic (whether a ramp or otherwise) is "component_height" 
+        Each legend graphic (whether a ramp or otherwise) is "component_height"
         high.  In the case of a ramp, we put the text underneath the ramp and,
         include a ramp_text_separator buffer between the graphic and text (if any),
         spacing between legend components will be element_separator pixels.
@@ -368,7 +370,8 @@ class LegendGenerator(object):
             # three pixels to the height to compensate - which works for the "default"
             # font.  For ease of use, this is in settings also...but defaults
             # to 3
-            text_height = (max(min_text_height, max_text_height) + ramp_text_separator +
+            text_height = (max(min_text_height, max_text_height) +
+                           ramp_text_separator +
                            getattr(settings, 'FONT_GLYPH_HORIZONTAL_COMPENSATION', 3))
 
             text_image = Image.new('RGBA', (width, text_height), "white")
@@ -396,9 +399,13 @@ class LegendGenerator(object):
             if self.units:
                 units_width, units_height = font.getsize(self.units)
                 # Another pixel for space, then the units text
-                total_text_height = (units_height +
-                                     ramp_text_separator +
-                                     getattr(settings, 'FONT_GLYPH_HORIZONTAL_COMPENSATION', 3))
+                total_text_height = (
+                    units_height +
+                    ramp_text_separator +
+                    getattr(
+                        settings,
+                        'FONT_GLYPH_HORIZONTAL_COMPENSATION',
+                        3))
                 text_image = Image.new(
                     'RGBA', (width, total_text_height), "white")
                 text_pos = int((width - units_width) / 2)
@@ -464,14 +471,28 @@ class LegendGenerator(object):
 
                     del draw
                     if im:
-                        im2 = Image.new('RGBA', (width, (component_height +
-                                                         im.size[1] +
-                                                         element_separator)), "white")
+                        im2 = Image.new(
+                            'RGBA', (width, (component_height + im.size[1] + element_separator)), "white")
                         im2.paste(im, (0, 0))
                         im2.paste(
                             color_legend, (0, im.size[1] + element_separator))
                         im = im2
                     else:
                         im = color_legend
+            if not im and self.description:
+                color_legend = Image.new(
+                    'RGBA', (width, component_height), "white")
+                font = ImageFont.truetype(settings.LEGEND_FONT, font_size)
+                text_pos = component_height + legend_text_min_separation
+                text_center_offset_height = int(
+                    (component_height - font_size) / 2)
+                draw = ImageDraw.Draw(color_legend)
+                draw.text((text_pos, text_center_offset_height),
+                          self.description,
+                          fill=(0, 0, 0),
+                          font=font)
+                del draw
+                im = color_legend
+                pass
         logger.debug('Returning graphic')
         return im

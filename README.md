@@ -288,6 +288,8 @@ the risk of inadvertently leaving security holes.
 
   ###### Note
   
+  The compilation and installation of components may fail if you have less than 512 MB of available RAM.
+  
   Sometimes the GDAL installation will still fail because pip gets the bindings, but not the entire 
   GDAL library (which GDAL's setup requires.)  This can be handled using the following procedure:
 

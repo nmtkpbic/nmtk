@@ -31,9 +31,13 @@
 			<div class="error-container">
 				
 				<div class="error-details">
-					Your account is now pending adminsitrator activation.  Once this is
+				{% if not REGISTRATION_OPEN %}
+					Your account is now pending administrator activation.  Once this is
 					complete you may <a href="{% url 'login' %}">login</a> to this
 					NMTK server.
+				{% else %}
+				    Thank you.  Your NMTK Account is now active, you may now <a href="{% url 'login' %}">log in</a>. 
+				{% endif %}
 				</div> <!-- /error-details -->
 										
 			</div> <!-- /error-container -->			

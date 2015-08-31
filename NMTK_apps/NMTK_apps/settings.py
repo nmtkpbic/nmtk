@@ -3,55 +3,57 @@
 # Copyright (c) 2014 Open Technology Group Inc. (A North Carolina Corporation)
 # Developed under Federal Highway Administration (FHWA) Contracts:
 # DTFH61-12-P-00147 and DTFH61-14-P-00108
-# 
-# Redistribution and use in source and binary forms, with or without modification, 
+#
+# Redistribution and use in source and binary forms, with or without modification,
 # are permitted provided that the following conditions are met:
-#     * Redistributions of source code must retain the above copyright notice, 
+#     * Redistributions of source code must retain the above copyright notice,
 #       this list of conditions and the following disclaimer.
-#     * Redistributions in binary form must reproduce the above copyright 
-#       notice, this list of conditions and the following disclaimer 
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer
 #       in the documentation and/or other materials provided with the distribution.
-#     * Neither the name of the Open Technology Group, the name of the 
-#       Federal Highway Administration (FHWA), nor the names of any 
-#       other contributors may be used to endorse or promote products 
+#     * Neither the name of the Open Technology Group, the name of the
+#       Federal Highway Administration (FHWA), nor the names of any
+#       other contributors may be used to endorse or promote products
 #       derived from this software without specific prior written permission.
-# 
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
-# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
-# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL 
-# Open Technology Group Inc BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
-# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
-# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF 
-# USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED 
-# AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, 
-# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
+# Open Technology Group Inc BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+# USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
+# AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # Django settings for NMTK_apps project.
 import os
 import djcelery
 import socket
-import warnings 
+import warnings
 import platform
 
-BASE_PATH=os.path.dirname(__file__)
+BASE_PATH = os.path.dirname(__file__)
 
 # Used to initialize the sites model (see: NMTK_server/management/__init__.py)
 # This should be overridden by the VHOST name, but it is defaulted to the FQDN
 # since in most cases that will be the same.
 # It should be noted that if you use any kind of vhost setup, then this
-# probably won't work, and will result in all kinds of broken-ness :-) 
+# probably won't work, and will result in all kinds of broken-ness :-)
 
 
 DEBUG = False
 TEMPLATE_DEBUG = TASTYPIE_FULL_DEBUG = DEBUG
 from local_settings import *
-warnings.filterwarnings('ignore',r"'NoneType' object has no attribute 'finishGEOS_r'")
-warnings.filterwarnings('ignore',r"'NoneType' object has no attribute 'destroy_geom'")
+warnings.filterwarnings(
+    'ignore', r"'NoneType' object has no attribute 'finishGEOS_r'")
+warnings.filterwarnings(
+    'ignore', r"'NoneType' object has no attribute 'destroy_geom'")
 djcelery.setup_loader()
 
 MANAGERS = ADMINS
-ALLOWED_HOSTS=[SITE_DOMAIN,'127.0.0.1']
+ALLOWED_HOSTS = [SITE_DOMAIN, '127.0.0.1']
 
 
 # Local time zone for this installation. Choices can be found here:
@@ -88,9 +90,9 @@ MEDIA_URL = ''
 
 # Absolute path to the directory static files should be collected to.
 # Don't put anything in this directory yourself; store your static files
-# in apps' "static/" subdirectories and in STATICFILES_DIRS.
+# in apps' "static/" sub-directories and in STATICFILES_DIRS.
 # Example: "/home/media/media.lawrence.com/static/"
-STATIC_ROOT=os.path.abspath(os.path.join('..', 'htdocs/static'))
+STATIC_ROOT = os.path.abspath(os.path.join('..', 'htdocs/static'))
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
@@ -103,21 +105,29 @@ STATICFILES_DIRS = (
     # Don't forget to use absolute paths, not relative paths.
 )
 
+
+#
+# Disable the ability to use a browser-cached version of the page to do things
+# like reloading the page from cache and then POSTing (which isn't possible
+# with our single page app anyways.)  This might alleviate some issues
+# with regard to re-initializing the server also.
+#
+CSRF_COOKIE_AGE = None
+
 # List of finder classes that know how to find static files in
 # various locations.
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-#    'django.contrib.staticfiles.finders.DefaultStorageFinder',
+    #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
-
 
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
+    #     'django.template.loaders.eggs.Loader',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -142,21 +152,21 @@ TEMPLATE_DIRS = (
 
     # This directory adds the templates that are stored in the NMTK_apps directory,
     # Which is not an app - but the underpinnings for everything else.
-    os.path.join(BASE_PATH,'templates'),
+    os.path.join(BASE_PATH, 'templates'),
 )
 
 
-
-
-TEMPLATE_CONTEXT_PROCESSORS=("django.contrib.auth.context_processors.auth",
-                             "django.core.context_processors.debug",
-                             "django.core.context_processors.i18n",
-                             "django.core.context_processors.media",
-                             "django.core.context_processors.static",
-                             "django.core.context_processors.tz",
-                             "django.contrib.messages.context_processors.messages",
-                             "django.core.context_processors.request", 
-                              )
+TEMPLATE_CONTEXT_PROCESSORS = (
+    "django.contrib.auth.context_processors.auth",
+    "django.core.context_processors.debug",
+    "django.core.context_processors.i18n",
+    "django.core.context_processors.media",
+    "django.core.context_processors.static",
+    "django.core.context_processors.tz",
+    "django.contrib.messages.context_processors.messages",
+    "django.core.context_processors.request",
+    "NMTK_apps.context_processors.registration_open",
+)
 
 INSTALLED_APPS = (
     'django.contrib.contenttypes',
@@ -166,49 +176,50 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'djcelery',
     'kombu.transport.django',
-    )
+)
 
-TASTYPIE_DEFAULT_FORMATS = ['json',]
+TASTYPIE_DEFAULT_FORMATS = ['json', ]
 
 if TOOL_SERVER:
-    INSTALLED_APPS = INSTALLED_APPS + ('NMTK_tools', # An app used to generate a list of tools.
+    INSTALLED_APPS = INSTALLED_APPS + ('NMTK_tools',  # An app used to generate a list of tools.
                                        ) + NMTK_TOOL_APPS
 if NMTK_SERVER:
     INSTALLED_APPS = INSTALLED_APPS + ('django.contrib.auth',
-                                       'registration',
                                        'widget_tweaks',
-                                       'NMTK_server', # The NMTK Server
+                                       'NMTK_server',  # The NMTK Server
+                                       'registration',
                                        'django.contrib.admin',
-                                       'NMTK_ui', # the UI components for NMTK server
+                                       # the UI components for NMTK server
+                                       'NMTK_ui',
                                        'tastypie',
                                        )
 
 # The test tool only gets installed if debug is set to true.
 # if not PRODUCTION and TOOL_SERVER:
 #     INSTALLED_APPS=INSTALLED_APPS + (
-#                                      'test_tool', # A sample tool designed for testing new stuff.
+# 'test_tool', # A sample tool designed for testing new stuff.
 #                                      )
 
 
 # Define a GeoJSON serializer so we can serialize and return results of
 # various tasks in the GeoJSON format.
-SERIALIZATION_MODULES = { 'geojson' : 'NMTK_apps.serializers.geojson' }
+SERIALIZATION_MODULES = {'geojson': 'NMTK_apps.serializers.geojson'}
 
 
 # The URL Used for logins
-LOGIN_URL='/server/login/'
+LOGIN_URL = '/server/login/'
 
 # if you want to change the logging (to disable debug) do it here..
 if DEBUG:
-    MIN_LOG_LEVEL='DEBUG' # 'INFO' for non-debug, 'DEBUG' for debugging
+    MIN_LOG_LEVEL = 'DEBUG'  # 'INFO' for non-debug, 'DEBUG' for debugging
 else:
-    MIN_LOG_LEVEL='INFO'
+    MIN_LOG_LEVEL = 'INFO'
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
 # the site admins on every HTTP 500 error when DEBUG=False.
 # See http://docs.djangoproject.com/en/dev/topics/logging for
 # more details on how to customize your logging configuration.
-    
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': True,
@@ -219,39 +230,39 @@ LOGGING = {
     },
     'handlers': {
         'null': {
-            'level':'DEBUG',
-            'class':'django.utils.log.NullHandler',
+            'level': 'DEBUG',
+            'class': 'django.utils.log.NullHandler',
         },
         'debug': {
-            'level':'DEBUG',
-            'class':'logging.handlers.WatchedFileHandler',
-            'filename': os.path.join(LOGFILE_PATH,'django-debug.log'),
-            'formatter':'standard',
-        },  
+            'level': 'DEBUG',
+            'class': 'logging.handlers.WatchedFileHandler',
+            'filename': os.path.join(LOGFILE_PATH, 'django-debug.log'),
+            'formatter': 'standard',
+        },
         'default': {
-            'level':'INFO',
-            'class':'logging.handlers.WatchedFileHandler',
-            'filename': os.path.join(LOGFILE_PATH,'django-request.log'),
-            'formatter':'standard',
+            'level': 'INFO',
+            'class': 'logging.handlers.WatchedFileHandler',
+            'filename': os.path.join(LOGFILE_PATH, 'django-request.log'),
+            'formatter': 'standard',
         },
         'apache': {
-            'level':'INFO',
-            'class':'logging.StreamHandler',
-            'formatter':'standard',
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'standard',
         },
     },
-    'loggers': {    
+    'loggers': {
         '': {
             'handlers': ['debug', 'default'],
             'level': MIN_LOG_LEVEL,
             'propagate': True,
         },
-        'django.request': { # Stop request debug from logging to main logger
+        'django.request': {  # Stop request debug from logging to main logger
             'handlers': ['apache'],
             'level': 'INFO',
             'propagate': False,
         },
-        'django.db': { # We can turn on db logging by switching the handler to debug
+        'django.db': {  # We can turn on db logging by switching the handler to debug
             'handlers': ['null'],
             'level': MIN_LOG_LEVEL,
             'propagate': False,
@@ -263,11 +274,14 @@ LOGGING = {
 BROKER_URL = 'django://'
 
 # Make our session keys stay for 14 days since the last access.
-# because the default SESSION_COOKIE_AGE is 1209600 (60*60*24*14)=14 days in seconds
-SESSION_SAVE_EVERY_REQUEST=True
+# because the default SESSION_COOKIE_AGE is 1209600 (60*60*24*14)=14 days
+# in seconds
+SESSION_SAVE_EVERY_REQUEST = True
 
 
 # A list of modules used by the data loader, note that order is important here
 # Since the first loader that recognizes a file will process it.
-DATA_LOADERS=['NMTK_server.data_loaders.ogr.OGRLoader',
-              'NMTK_server.data_loaders.csv.CSVLoader']
+DATA_LOADERS = ['NMTK_server.data_loaders.ogr.OGRLoader',
+                'NMTK_server.data_loaders.csv.CSVLoader',
+                'NMTK_server.data_loaders.images.ImageLoader',
+                'NMTK_server.data_loaders.rasters.RasterLoader']
