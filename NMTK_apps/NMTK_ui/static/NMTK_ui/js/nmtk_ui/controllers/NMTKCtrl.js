@@ -590,6 +590,7 @@ define(['underscore'
 															controller: 'CreateJobCtrl'});
 							modal_instance.result.then(function(result) {
 								$scope.resources['job'].post(result).then(function (api_result) {
+									$log.debug('Created a new job!');
 									$scope.refreshData('job').then(function () {
 										$scope.rest['job'].then(function (jobs) {
 											var job_id=api_result.resource_uri.split('/').reverse()[1];
@@ -626,9 +627,11 @@ define(['underscore'
 											}
 										});
 									});
+								}, function (failed) {
+									$log.debug('Failed to create job', failed);
 								});			
 							});
-							$log.info('Creating a new job!');
+							
 						}
 					};
 				}

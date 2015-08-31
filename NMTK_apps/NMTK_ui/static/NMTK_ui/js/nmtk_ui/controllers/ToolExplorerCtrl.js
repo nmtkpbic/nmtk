@@ -168,12 +168,14 @@ define(['underscore'], function (_) {
 							                                  		     'tool': tool.id}).then(function (sample_files) {
 							    var deferred_things=[]
                   		    	_.each(sample_files, function (data) {
-                  		    		deferred_things.push($http.get(data.load_sample_data));
+                  		    		deferred_things.push($http.post(data.load_sample_data));
 							    });
 							    $q.all(deferred_things).then(function (d) {
 							    	$scope.refreshData('datafile').then(function (f) {
 										updateToolInfo(tool);
 									});
+							    }, function () {
+							    	$log.info('Failed to load sample data, perhaps a CSRF token issue?')
 							    });
                   		    });
 						}

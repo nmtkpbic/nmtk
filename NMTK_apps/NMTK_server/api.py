@@ -21,6 +21,7 @@ from NMTK_server.wms import wms_service
 from validation.tool_config_validator import ToolConfigValidator
 import simplejson as json
 from tastypie.validation import Validation
+from django.middleware.csrf import rotate_token
 from PIL import Image
 import cStringIO as StringIO
 import logging
@@ -229,6 +230,7 @@ class UserResource(ModelResource):
         if user:
             if user.is_active:
                 login(request, user)
+                rotate_token(request)
                 uri = reverse(
                     "api_dispatch_detail",
                     kwargs={
@@ -983,6 +985,7 @@ class ToolSampleFileResource(ModelResource):
 
     def load_sample_data(self, request, **kwargs):
         if request.user.is_authenticated():
+            self.method_check(request, allowed=['post'])
             rec = self._meta.queryset.get(pk=kwargs['pk'])
             if models.DataFile.objects.filter(checksum=rec.checksum,
                                               user=request.user).count():

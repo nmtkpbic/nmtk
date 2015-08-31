@@ -105,6 +105,15 @@ STATICFILES_DIRS = (
     # Don't forget to use absolute paths, not relative paths.
 )
 
+
+#
+# Disable the ability to use a browser-cached version of the page to do things
+# like reloading the page from cache and then POSTing (which isn't possible
+# with our single page app anyways.)  This might alleviate some issues
+# with regard to reinitilaizing the server also.
+#
+CSRF_COOKIE_AGE = None
+
 # List of finder classes that know how to find static files in
 # various locations.
 STATICFILES_FINDERS = (
