@@ -45,6 +45,7 @@ define(['jquery'
         , 'angular-elastic'
         , 'restangular'
         , 'ng-grid'
+        , 'angular-cookies'
         , 'angular-bootstrap'
         , 'bootstrap-slider'
         ],
@@ -53,16 +54,16 @@ define(['jquery'
 				  explorerTemplate, introTemplate, L) {
 			"use strict";
 			var initialize=function () {
-				$.ajaxSetup({
-				    headers: {'X-CSRFToken': CONFIG.csrftoken }
-				});
+//				$.ajaxSetup({
+//				    headers: {'X-CSRFToken': CONFIG.csrftoken }
+//				});
 				$.event.props.push('dataTransfer');
 				
 				/*  
 				 * Initialize our application
 				 */
 				
-				var nmtk_app=angular.module('nmtk', ['ui.bootstrap', 'restangular', 'ngGrid', 
+				var nmtk_app=angular.module('nmtk', ['ui.bootstrap', 'restangular', 'ngGrid', 'ngCookies',
 				                                     'leaflet-directive', 'monospaced.elastic']).
 				   config(['RestangularProvider', 
 					function(RestangularProvider) {
@@ -72,7 +73,7 @@ define(['jquery'
 						  api_path=CONFIG.api_path.substring(0, CONFIG.api_path.length-1);
 					  }
 					  RestangularProvider.setBaseUrl(api_path);
-					  RestangularProvider.setDefaultHeaders({'X-CSRFToken': CONFIG.csrftoken });
+//					  RestangularProvider.setDefaultHeaders({'X-CSRFToken': CONFIG.csrftoken });
 					  RestangularProvider.setDefaultRequestParams({format: 'json',
 						                                           limit: 9999});
 					  // If the trailing slash isn't there, we redirect to the trailing slash url

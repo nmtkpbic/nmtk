@@ -50,7 +50,7 @@
 	<![endif]--> 
 	{% endcomment %}
 	<script>
-	   CONFIG={'csrftoken': '{{csrf_token}}',
+	   CONFIG={
 			   'api_path': '{% url 'api_v1_top_level' api_name='v1' %}',
 			   'reset_url': '{% url 'password_reset' %}',
 			   'register_url': '{% url 'nmtk_register' %}'

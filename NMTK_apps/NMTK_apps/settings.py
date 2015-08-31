@@ -90,7 +90,7 @@ MEDIA_URL = ''
 
 # Absolute path to the directory static files should be collected to.
 # Don't put anything in this directory yourself; store your static files
-# in apps' "static/" subdirectories and in STATICFILES_DIRS.
+# in apps' "static/" sub-directories and in STATICFILES_DIRS.
 # Example: "/home/media/media.lawrence.com/static/"
 STATIC_ROOT = os.path.abspath(os.path.join('..', 'htdocs/static'))
 
@@ -110,7 +110,7 @@ STATICFILES_DIRS = (
 # Disable the ability to use a browser-cached version of the page to do things
 # like reloading the page from cache and then POSTing (which isn't possible
 # with our single page app anyways.)  This might alleviate some issues
-# with regard to reinitilaizing the server also.
+# with regard to re-initializing the server also.
 #
 CSRF_COOKIE_AGE = None
 
