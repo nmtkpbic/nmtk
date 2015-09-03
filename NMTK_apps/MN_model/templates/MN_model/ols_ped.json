@@ -196,25 +196,25 @@
       "elements":[
         {
           "required":true,
-          "type":"property",
+          "type":"number",
           "name":"Pctnonwhite",
           "description":"Fraction of neighborhood residents that are non-white (range 001)"
         },
         {
           "required":true,
-          "type":"property",
+          "type":"number",
           "name":"PctU5_O65",
           "description":"Fraction of neighborhood residents over 65 or under 5 (range 0-1)"
         },
         {
           "required":true,
-          "type":"property",
+          "type":"number",
           "name":"Pctw4ormore",
           "description":"Fraction of neighborhood residents with a college education (range 0-1)"
         },
         {
           "required":true,
-          "type":"property",
+          "type":"number",
           "name":"MedHHInc",
           "description":"Median household income (1000's of dollars)"
         },
@@ -227,67 +227,66 @@
         },
         {
           "required":true,
-          "type":"property",
+          "type":"number",
           "name":"PDperkm2",
           "description":"Population density (persons per square kilometer)"
         },
         {
           "required":true,
-          "type":"property",
+          "type":"number",
           "name":"LUMix",
           "description":"Measure of mixing of land uses (range 0-1)"
         },
         {
           "required":true,
-          "type":"property",
+          "type":"number",
           "name":"WatDist_km",
           "description":"Distance from nearest body of water (kilometers)"
         },
         {
           "required":true,
-          "type":"property",
+          "type":"number",
           "name":"CBDdist_km",
           "description":"Distance from central business district (kilometers)"
         },
         {
           "required":false,
-          "type":"property",
+          "type":"number",
           "name":"EmployAccess",
           "description":"Number of jobs within 30 minutes by transit, less than 3 transfers."
         },
         {
           "required":true,
-          "type":"property",
+          "type":"number",
           "name":"Principal",
           "description":"Principal arterial street (1/0)"
         },
         {
           "required":true,
-          "type":"property",
+          "type":"number",
           "name":"Arterial",
           "description":"Arterial street (1/0)"
         },
         {
           "required":true,
-          "type":"property",
+          "type":"number",
           "name":"Collector",
           "description":"Collector street  (1/0)"
         },
         {
           "required":true,
-          "type":"property",
+          "type":"number",
           "name":"BusRoute",
           "description":"Presence of one of more bus routes (1/0)"
         },
         {
           "required":true,
-          "type":"property",
+          "type":"number",
           "name":"OffstreetTrail",
           "description":"Off-street trail (1/0)"
         }
       ],
       "description":"Specify the location of each required parameter field in the input file. You may ignore certain properties, and you may also choose to specify a global value to be applied to all features (Global values are listed in the next section).",
-      "required":true,
       "label":"Input File Fields",
       "type":"File",
       "primary": true,

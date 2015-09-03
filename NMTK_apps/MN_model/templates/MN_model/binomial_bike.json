@@ -197,25 +197,25 @@
       "elements":[
         {
           "required":true,
-          "type":"property",
+          "type":"number",
           "name":"Pctnonwhite",
           "description":"Percentage of neighborhood residents that are non-white"
         },
         {
           "required":true,
-          "type":"property",
+          "type":"number",
           "name":"PctU5_O65",
           "description":"Percentage of neighborhood residents over 65 or under 5"
         },
         {
           "required":true,
-          "type":"property",
+          "type":"number",
           "name":"Pctw4ormore",
           "description":"Percentage of neighborhood residents with a college education"
         },
         {
           "required":true,
-          "type":"property",
+          "type":"number",
           "name":"MedHHInc",
           "description":"Median household income"
         },
@@ -228,67 +228,66 @@
         },
         {
           "required":true,
-          "type":"property",
+          "type":"number",
           "name":"PDperkm2",
           "description":"Population density in persons per square kilometer"
         },
         {
           "required":true,
-          "type":"property",
+          "type":"number",
           "name":"LUMix",
           "description":"Measure of mixing of land uses (range 0-1)"
         },
         {
           "required":true,
-          "type":"property",
+          "type":"number",
           "name":"WatDist_km",
           "description":"Distance from nearest body of water, in kilometers"
         },
         {
           "required":true,
-          "type":"property",
+          "type":"number",
           "name":"CBDdist_km",
           "description":"Distance from central business district, kilometers"
         },
         {
           "required":true,
-          "type":"property",
+          "type":"number",
           "name":"EmployAccess",
           "description":"Number of jobs accessible via transit."
         },
         {
           "required":true,
-          "type":"property",
+          "type":"number",
           "name":"Principal",
           "description":"Principal arterial street (1/0)"
         },
         {
           "required":true,
-          "type":"property",
+          "type":"number",
           "name":"Arterial",
           "description":"Arterial street (1/0)"
         },
         {
           "required":true,
-          "type":"property",
+          "type":"number",
           "name":"Collector",
           "description":"Collector street  (1/0)"
         },
         {
           "required":true,
-          "type":"property",
+          "type":"number",
           "name":"OnstreetFacility",
           "description":"On street bicycle facility (1/0)"
         },
         {
           "required":true,
-          "type":"property",
+          "type":"number",
           "name":"OffstreetTrail",
           "description":"Off-street trail (1/0)"
         }
       ],
       "description":"The indicated properties should be provided for each row of input data.  Omitting a property will result in an incomplete execution of the model as the missing property and its coefficients will be omitted from the model entirely.",
-      "required":true,
       "label":"Input File Fields",
       "type":"File",
       "primary": true,
