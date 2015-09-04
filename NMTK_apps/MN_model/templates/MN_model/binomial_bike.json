@@ -198,49 +198,56 @@
         {
           "required":true,
           "type":"number",
+          "default": 0.33,
           "name":"Pctnonwhite",
-          "description":"Percentage of neighborhood residents that are non-white"
+          "description":"Fraction of neighborhood residents that are non-white"
         },
         {
           "required":true,
           "type":"number",
+          "default": 0.15,
           "name":"PctU5_O65",
           "description":"Percentage of neighborhood residents over 65 or under 5"
         },
         {
           "required":true,
           "type":"number",
+          "default": 0.39,
           "name":"Pctw4ormore",
           "description":"Percentage of neighborhood residents with a college education"
         },
         {
           "required":true,
           "type":"number",
+          "default": 39,
           "name":"MedHHInc",
-          "description":"Median household income"
+          "description":"Median household income ($1000s per year)"
         },
         {
           "required":true,
-          "default":0,
+          "default": 50,
           "type":"number",
           "name":"Crime",
-          "description":"Average number of violent crimes/year"
+          "description":"Average number of violent crimes/year (in neighborhood)"
         },
         {
           "required":true,
           "type":"number",
+          "default": 3300,
           "name":"PDperkm2",
           "description":"Population density in persons per square kilometer"
         },
         {
           "required":true,
           "type":"number",
+          "default": 0.56,
           "name":"LUMix",
-          "description":"Measure of mixing of land uses (range 0-1)"
+          "description":"Measure of mixing of land uses (range 0-1); see report"
         },
         {
           "required":true,
           "type":"number",
+          "default": 2.9,
           "name":"WatDist_km",
           "description":"Distance from nearest body of water, in kilometers"
         },
@@ -248,42 +255,49 @@
           "required":true,
           "type":"number",
           "name":"CBDdist_km",
+          "default": 1.29,
           "description":"Distance from central business district, kilometers"
         },
         {
           "required":true,
           "type":"number",
           "name":"EmployAccess",
-          "description":"Number of jobs accessible via transit."
+          "default": 30215,
+          "description":"Number of jobs accessible via a transit trip of 30 minutes or less."
         },
         {
           "required":true,
           "type":"number",
           "name":"Principal",
+          "default": 0,
           "description":"Principal arterial street (1/0)"
         },
         {
           "required":true,
           "type":"number",
           "name":"Arterial",
+          "default": 1,
           "description":"Arterial street (1/0)"
         },
         {
           "required":true,
           "type":"number",
           "name":"Collector",
+          "default": 0,
           "description":"Collector street  (1/0)"
         },
         {
           "required":true,
           "type":"number",
           "name":"OnstreetFacility",
+          "default": 1,
           "description":"On street bicycle facility (1/0)"
         },
         {
           "required":true,
           "type":"number",
           "name":"OffstreetTrail",
+          "default": 0,
           "description":"Off-street trail (1/0)"
         }
       ],
