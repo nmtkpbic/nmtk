@@ -53,7 +53,7 @@ warnings.filterwarnings(
 djcelery.setup_loader()
 
 MANAGERS = ADMINS
-ALLOWED_HOSTS = [SITE_DOMAIN, '127.0.0.1']
+ALLOWED_HOSTS = [SITE_DOMAIN, '127.0.0.1', '67.227.190.6']
 
 
 # Local time zone for this installation. Choices can be found here:
