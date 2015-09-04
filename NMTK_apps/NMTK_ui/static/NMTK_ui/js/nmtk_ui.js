@@ -49,6 +49,7 @@ require.config({
 		, "domReady": "lib/domReady" // requirejs - test if the Dom is ready
 		, "angular": "lib/angular" // Angular JS 
 		, "angular-bootstrap": "lib/ui-bootstrap-tpls" // Bootstrap for angular, with templates
+		, "angular-cookies": "lib/angular-cookies" // Angular cookies plugin
 		, "bootstrap-slider": "lib/bootstrap-slider" // Bootstrap for angular, with templates
 		, "ng-grid": "lib/ng-grid" // Angular Grid library (for gridded tables)
 		, "restangular": "lib/restangular" // REST Support for AngularJS
@@ -102,6 +103,7 @@ require.config({
 	    , "angular-leaflet": ["angular", "leaflet"]
 	    , "angular-elastic": ["angular"]
 	    , "restangular": ["angular"]
+	    , "angular-cookies": ["angular"]
 	    , "ng-grid": ["angular", "ng-grid-flexible-height", "ng-grid-layout"]
 	    , "angular-bootstrap": ["angular"]
 	    , "bootstrap-slider": ["angular", "angular-bootstrap"]
