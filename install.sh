@@ -264,7 +264,7 @@ if [[ ${SERVER_ENABLED} == 1 ]]; then
   echo "NMTK Server is enabled, setting up default account, etc."
   python manage.py createsuperuser --noinput --email=$EMAIL --username=$NMTK_USERNAME
   echo "from django.contrib.auth import get_user_model; User=get_user_model(); u = User.objects.get(username__exact='$NMTK_USERNAME'); u.set_password('$PASSWORD'); u.first_name='$FIRSTNAME'; u.last_name='$LASTNAME'; u.save()"|python manage.py shell
-#  echo "from NMTK_server.models import ToolServer; m = ToolServer.objects.all()[0]; m.server_url='${URL}'; m.save()"|python manage.py shell
+  echo "from django.contrib.sites import models; m = models.Site.objects.all()[0]; m.domain='${HOSTN}'; m.name='${NMTK_NAME}'; m.save()"|python manage.py shell
   python manage.py discover_tools
   echo "Tool discovery has been initiated, note that this may take some time to complete"
   if [[ $PRODUCTION == 1 ]]; then
