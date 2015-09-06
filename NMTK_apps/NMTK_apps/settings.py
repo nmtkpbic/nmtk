@@ -257,6 +257,10 @@ LOGGING = {
             'level': MIN_LOG_LEVEL,
             'propagate': True,
         },
+        'django.security.DisallowedHost': {
+            'handlers': ['null'],
+            'propagate': False,
+        },
         'django.request': {  # Stop request debug from logging to main logger
             'handlers': ['apache'],
             'level': 'INFO',
