@@ -477,8 +477,11 @@ def data_file_model_path(instance, filename):
     '''
     Django 1.8 migrations can't serialize lambdas, so we move what (was) a lambda
     to outside the class body and make it a function
+
+    Note that to prevent a name of .py.py we don't auto-append a .py to the 
+    model file.
     '''
-    return '%s/data_files/%s.py' % (instance.user.pk, filename,)
+    return '%s/data_files/%s' % (instance.user.pk, filename,)
 
 
 def converted_data_file_path(instance, filename):
