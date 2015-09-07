@@ -171,7 +171,8 @@ class ToolServer(models.Model):
         tasks.discover_tools.delay(self)
         # For a new record or changed contact we can send the email.
         if ((new_record and self.contact and self.active) or
-                (self.active and self._old_contact != self.contact)):
+                (self.active and self._old_contact != self.contact) or
+                getattr(self, 'send_email', False)):
             if not getattr(self, 'skip_email', False):
                 tasks.email_tool_server_admin.delay(self)
         return result
