@@ -171,7 +171,8 @@ class ToolServer(models.Model):
         tasks.discover_tools.delay(self)
         # For a new record or changed contact we can send the email.
         if ((new_record and self.contact and self.active) or
-                (self.active and self._old_contact != self.contact)):
+                (self.active and self._old_contact != self.contact) or
+                getattr(self, 'send_email', False)):
             if not getattr(self, 'skip_email', False):
                 tasks.email_tool_server_admin.delay(self)
         return result
@@ -477,8 +478,11 @@ def data_file_model_path(instance, filename):
     '''
     Django 1.8 migrations can't serialize lambdas, so we move what (was) a lambda
     to outside the class body and make it a function
+
+    Note that to prevent a name of .py.py we don't auto-append a .py to the 
+    model file.
     '''
-    return '%s/data_files/%s.py' % (instance.user.pk, filename,)
+    return '%s/data_files/%s' % (instance.user.pk, filename,)
 
 
 def converted_data_file_path(instance, filename):

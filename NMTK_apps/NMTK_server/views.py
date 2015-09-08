@@ -63,7 +63,7 @@ def registerUser(request):
             profile = registration_models.RegistrationProfile(
                 user=user, activation_key=activation_key)
             profile.save()
-            profile.send_activation_email(site)
+            profile.send_activation_email(site, request)
             return render(request,
                           'NMTK_server/registration_complete.html')
     else:
