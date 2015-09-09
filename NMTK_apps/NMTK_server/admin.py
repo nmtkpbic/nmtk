@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django import forms
 import models
 from django.utils.safestring import mark_safe
 import json
@@ -12,10 +13,22 @@ from django.conf import settings
 #
 #    readonly_fields=['json_config_pretty',]
 #    fields=('json_config_pretty',)
+class ToolServerForm(forms.ModelForm):
+    resend_email = forms.BooleanField(
+        required=False, label="Re-send Tool Configuration Email")
+
+    def save(self, commit=True):
+        resend_email = self.cleaned_data.get('resend_email', None)
+        instance = super(ToolServerForm, self).save(commit=commit)
+        if resend_email:
+            instance.send_email = True
+        return instance
+
 
 class ToolServerAdmin(admin.ModelAdmin):
     readonly_fields = ('created_by',)
     list_display = ['name', 'tool_server_id', 'active', ]
+    form = ToolServerForm
 
     def save_model(self, request, instance, form, change):
         user = request.user
