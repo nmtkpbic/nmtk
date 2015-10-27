@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Non-Motorized Toolkit
+# Nonmotorized Toolkit
 # Copyright (c) 2014 Open Technology Group Inc. (A North Carolina Corporation)
 # Developed under Federal Highway Administration (FHWA) Contracts:
 # DTFH61-12-P-00147 and DTFH61-14-P-00108
