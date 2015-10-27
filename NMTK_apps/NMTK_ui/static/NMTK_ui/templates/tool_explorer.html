@@ -16,41 +16,41 @@
           </div> <!-- /widget-header -->
           <div ng-show="isDivEnabled('toolexplorer_intro')" class="widget-content">
           <p>
-           The Tool Explorer shows you the tools that are available,
+           The Tool Explorer allows you to view available analysis tools,
            review their documentation and supporting materials, and explore sample data sets.
 	  </p>
 	  <p>
-	     In order to use a tool described here, you will need to do the following:
+	     In order to use one of the tools described here, you will need to do the following:
 	     <ul>
 		<li>Prepare and upload the necessary data for your selected tool through the <a href="#/files/">Files</a> tab
-		   (or you can use the sample data as described below).</li>
-		<li>Start a new job, filling in the necessary job parameters. There are several ways to start a job:
+		   (you can look at the sample data to see what you will need).</li>
+		<li>Start a new analysis job, filling in the necessary information, including the file you would like to analyze. There are several ways to start an analysis job:
 		   <ul>
 		      <li>Using sample data by first choosing to "Load Tool Sample Data" and then choosing "Create Sample Job"</li>
-		      <li>With the tool displayed on this page using the "Create Job with this Tool" button</li>
-		      <li>With any available tool from the <a href="#/job/">Jobs</a> tab</li>
+		      <li>With the tool displayed on this page using the "Create Job with this Tool" button, using your own uploaded data</li>
+		      <li>With any available tool from the <a href="#/job/">Jobs</a> tab, also using your own uploaded data</li>
 		   </ul>
 		</li>
-		<li>Submit the job
+		<li>Submit the analysis job
 		   <ul>
 		      <li>Your data will be sent to the tool for processing</li>
-		      <li>Check the job status on the <a href="#/job/">Jobs</a> tab</li>
+		      <li>Check the status on the <a href="#/job/">Jobs</a> tab</li>
 		   </ul>
 		</li>
-		<li>Once the job is done, you can view the results (and, for spatial data, you can explore it on a map),
-		or you can download the results in one of these formats:
+		<li>Once the analysis is complete, you can view the results (for spatial data you can explore the results on a map),
+		or you can download the results in one of several popular formats, including:
 		<ul>
-		   <li>As a Microsoft Excel Spreadsheet (XLS) file (no geography)</li>
-		   <li>As a Comma-Separated Values (CSV) file (no geography)</li>
-		   <li>As a JSON file (for files with spatial data, NMTK Server will provide the data in GeoJSON format, 
-		                       a popular geographic file format)</li>
+		   <li>A Microsoft Excel Spreadsheet (XLS) file (no geography)</li>
+		   <li>A Comma-Separated Values (CSV) file (no geography)</li>
+		   <li>A JSON file (for tabular or geographic data)</li>
+                 <li>A zipped Shapefile (for geographic data)</li>
 		</ul>
 		</li>
 	     </ul>
 	  </p>
 	  <p>
-	     If you are just interested in seeing what a tool does, load its sample data, then create a sample job and submit it.
-	     When you are ready, you can upload your own data and run up your own job.
+	     If you want to see what a tool does, load its sample data, then create a sample job and submit it.
+	     When you are ready, you can upload your own data and do your own custom analysis.
 	  </p>
           </div> <!-- /widget-content -->
         </div><!-- /widget stacked -->
