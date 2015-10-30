@@ -1,7 +1,7 @@
 
 {
   "info":{
-    "text":"\n<P>This tool implements a predictive model of Pedestrian Volume estimated using a Negative Binomial regression method.\nThe volumes estimated cover a 12-hour period (morning to evening).</P>\n<P>The model is based on a combination of environmental and demographic factors that showed a relationship with observed\nlevels of pedestrian activity.  The model may be applied to road and trail segments.  This model is most useful for\nforecasting the level of activity that would be expected under different conditions.  The Negative Binomial model is\nforced to estimate counts that are zero or greater (unlike the Ordinary Least Squares model), and its results can be\ncompared to collected counts.</P>\n<P>The coefficients for the model were estimated by a team from the University of Minnesota (UMN) based on counts\ncollected in Minneapolis, and published by the UMN Center for Transportation Studies in July 2012.  The model\nimplementation presented here was developed by the Open Technology Group (Morrisville, NC) under contract with the\nFederal Highway Administration.</P>\n<P>The full report on the study and model development is available in the tool documentation links.</P>\n",
+    "text":"<P>This tool provides a predictive model of pedestrian volume estimated\nusing a Negative Binomial regression method.  The volumes estimated\ncover a 12-hour period (morning to evening).</P>\n<P>This model is most useful for forecasting the level of activity that\nwould be expected under different conditions.  The model is based on a\ncombination of environmental and demographic factors that showed a\nrelationship with observed levels of pedestrian activity.  The model\nmay be applied to road and trail segments.  The Negative Binomial\nmodel is forced to estimate counts that are zero or greater (unlike\nthe Ordinary Least Squares model), and its results can be compared to\ncollected counts.</P>\n<P>The coefficients for the model were estimated by a team from the\nUniversity of Minnesota (UMN) based on counts collected in\nMinneapolis, and published by the UMN Center for Transportation\nStudies in July 2012.  The model implementation presented here was\ndeveloped by the Open Technology Group (Morrisville, NC) under\ncontract with the Federal Highway Administration.</P>\n<P>The full report on the study and model development is available in the\ntool Documentation Links.</P>",
     "version":"0.3",
     "name":"Pedestrian Volume (Negative Binomial Method, UMN)"
   },
@@ -168,7 +168,7 @@
     "links":[
       {
         "url":"http://www.its.umn.edu/Publications/ResearchReports/pdfdownload.pl?id=1754",
-        "title":"Understanding the Use of Non-Motorized Transportation Facilities (Report)"
+        "title":"Understanding the Use of Nonmotorized Transportation Facilities (Report)"
       }
     ]
   },
