@@ -18,7 +18,7 @@
         "pk": 1,
         "model": "NMTK_server.pagecontent",
         "fields": {
-            "content": "Welcome to the Test Installation of the Non-Motorized Travel Analysis Toolkit (NMTK) web application.  The NMTK is designed to support planning for non-motorized forms of transportation by allowing developers to share analytic tools with planners, who can then use the NMTK to apply those tools to their own data. The NMTK is a distributed system with well-defined interfaces (APIs) that allow agencies, research institutions, or commercial vendors to develop interoperable tools, data management services, and user interfaces.",
+            "content": "Welcome to the Test Installation of the Nonmotorized Travel Analysis Toolkit (NMTK) web application.  The NMTK is designed to support planning for non-motorized forms of transportation by allowing developers to share analytic tools with planners, who can then use the NMTK to apply those tools to their own data. The NMTK is a distributed system with well-defined interfaces (APIs) that allow agencies, research institutions, or commercial vendors to develop interoperable tools, data management services, and user interfaces.",
             "enabled": true,
             "page": 1,
             "order": 1,
