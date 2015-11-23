@@ -60,7 +60,7 @@ class Command(BaseCommand):
         if not settings.NMTK_SERVER:
             raise CommandError('The NMTK Server is not currently enabled')
         if not len(args):
-            raise CommandError('Please the name of the tool to add')
+            raise CommandError('Please enter the name of the tool to add')
         if not options['url']:
             raise CommandError(
                 'Please provide the --url option and a server URL')
