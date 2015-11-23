@@ -66,8 +66,20 @@ def handleWMSRequest(request, datafile):
     style_field = legend = None
     raster = (datafile.geom_type == 99)
     style_field = get_uc.get('STYLE_FIELD', datafile.result_field or None)
+    logger.info('Style field is %s, attributes are %s (Found: %s)',
+                style_field, datafile.field_attributes.keys(),
+                style_field in datafile.field_attributes.keys())
     if raster:
-        if datafile.field_attributes.keys() > 0:
+        if datafile.field_attributes:
+            if (style_field not in
+                    datafile.field_attributes.keys()):
+                logger.debug('Requested style_field was %s', style_field)
+                style_field = datafile.field_attributes.keys()[0]
+                logger.debug(
+                    'Setting the style field to %s', style_field)
+        else:
+            logger.error(
+                'No style fields found for raster, using default of 1')
             style_field = '1'
     legend_units = get_uc.get('LEGEND_UNITS', None)
     reverse = get_uc.get('REVERSE', 'false')
