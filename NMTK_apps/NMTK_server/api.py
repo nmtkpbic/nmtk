@@ -857,6 +857,31 @@ class DataFileResource(ModelResource):
         return bundle
 
 
+class ToolResourceAuthorization(Authorization):
+
+    def read_list(self, object_list, bundle):
+        '''
+        Ensure that users can see tools if there is either no list of 
+        authorized_users, or if the user is in the list of users.
+        '''
+        if bundle.request.user.is_superuser:
+            return object_list
+
+        return [record for record in object_list
+                if (record.authorized_users.count() == 0 or
+                    bundle.request.user in record.authorized_users.all())]
+
+    def read_detail(self, object_list, bundle):
+        '''
+        Ensure that users can see tools if there is either no list of 
+        authorized_users, or if the user is in the list of users.
+        '''
+        if bundle.request.user.is_superuser:
+            return True
+        return (record.authorized_users.count() == 0 or
+                bundle.request.user in record.authorized_users.all())
+
+
 class ToolResource(ModelResource):
     last_modified = fields.DateTimeField('last_modified', readonly=True,
                                          null=True)
@@ -866,8 +891,10 @@ class ToolResource(ModelResource):
                               help_text='Tool Configuration (as JSON)')
 
     class Meta:
-        queryset = models.Tool.objects.filter(active=True)
+        queryset = models.Tool.objects.prefetch_related(
+            'authorized_users').filter(active=True)
         resource_name = 'tool'
+        authorization = ToolResourceAuthorization()
         always_return_data = True
         fields = ['name', 'last_modified']
         allowed_methods = ['get', ]

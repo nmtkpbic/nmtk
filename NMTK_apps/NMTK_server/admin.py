@@ -24,11 +24,16 @@ class ToolServerForm(forms.ModelForm):
             instance.send_email = True
         return instance
 
+#
+# class ToolServerAuthorizedUsersInline(admin.TabularInline):
+#     model = ToolServer.authorized_users.through
+
 
 class ToolServerAdmin(admin.ModelAdmin):
     readonly_fields = ('created_by',)
     list_display = ['name', 'tool_server_id', 'active', ]
     form = ToolServerForm
+#     inlines = [ToolServerAuthorizedUsersInline]
 
     def save_model(self, request, instance, form, change):
         user = request.user

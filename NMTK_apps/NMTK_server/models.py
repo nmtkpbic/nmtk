@@ -170,10 +170,20 @@ class ToolServer(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
-    authorized_users = models.ManyToManyField(settings.AUTH_USER_MODEL,
-                                              swappable=True,
-                                              db_table='tool_server_authorized_users',
-                                              related_name='authorized_tool_servers')
+    authorized_users = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        swappable=True,
+        blank=True,
+        db_table='tool_server_authorized_users',
+        related_name='authorized_tool_servers',
+        help_text=('To make this available to all users, make sure no' +
+                   ' users are selected.  Otherwise, select only those' +
+                   ' users that should have access to tools provided' +
+                   ' by this tool server.  Note: This sets the default users' +
+                   ' that can view all tools for new tools discovered on' +
+                   ' this tool server, changes' +
+                   ' here will NOT overwrite any existing per-tool user' +
+                   ' restrictions (or lack thereof.)'))
     objects = models.GeoManager()
 
     def __str__(self):
@@ -242,10 +252,19 @@ class Tool(models.Model):
     tool_server = models.ForeignKey(ToolServer)
     active = models.BooleanField(default=True)
     last_modified = models.DateTimeField(auto_now=True)
-    authorized_users = models.ManyToManyField(settings.AUTH_USER_MODEL,
-                                              swappable=True,
-                                              db_table='tool_authorized_users',
-                                              related_name='authorized_tools')
+    authorized_users = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        swappable=True,
+        blank=True,
+        db_table='tool_authorized_users',
+        related_name='authorized_tools',
+        help_text=('To make this available to all users, make sure no' +
+                   ' users are selected.  Otherwise, select only those' +
+                   ' users that should have access to this tool' +
+                   ' Note: Changes to the tool server' +
+                   ' list of allowed users will NOT effect this, and changes' +
+                   ' made here may override changes at the tool server level' +
+                   ' restrictions.'))
     objects = models.GeoManager()
 
     @property
