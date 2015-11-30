@@ -15,6 +15,7 @@ from django.conf import settings
 from django.utils.safestring import mark_safe
 from osgeo import ogr
 from django.contrib.gis.gdal import OGRGeometry
+from django.utils.deconstruct import deconstructible
 from NMTK_server import tasks
 import magic
 import json
@@ -33,7 +34,18 @@ class IPAddressFieldNullable(models.GenericIPAddressField):
         return value or None
 
 
+@deconstructible
 class NMTKDataFileSystemStorage(FileSystemStorage):
+    base_location = os.path.join(settings.FILES_PATH, 'NMTK_server', 'files')
+
+    def __init__(self, subdir='', location=None):
+        self.subdir = subdir
+        super(NMTKDataFileSystemStorage, self).__init__(
+            location=os.path.join(self.base_location,
+                                  self.subdir))
+
+    def __eq__(self, other):
+        return self.subdir == other.subdir
 
     def url(self, name):
         raise NotImplementedError
@@ -41,7 +53,18 @@ class NMTKDataFileSystemStorage(FileSystemStorage):
                        kwargs={'file_id': name})
 
 
+@deconstructible
 class NMTKGeoJSONFileSystemStorage(FileSystemStorage):
+    base_location = os.path.join(settings.FILES_PATH, 'NMTK_server', 'files')
+
+    def __init__(self, subdir='', location=None):
+        self.subdir = subdir
+        super(NMTKGeoJSONFileSystemStorage, self).__init__(
+            location=os.path.join(self.base_location,
+                                  self.subdir))
+
+    def __eq__(self, other):
+        return self.subdir == other.subdir
 
     def url(self, name):
         raise NotImplementedError
@@ -49,21 +72,32 @@ class NMTKGeoJSONFileSystemStorage(FileSystemStorage):
                        kwargs={'file_id': name})
 
 
+@deconstructible
 class NMTKResultsFileSystemStorage(FileSystemStorage):
 
     '''
     Kind of hokey here, but we will use the filename to determine the job
     id, and thereby figure out how to generate the download link.
     '''
+    base_location = os.path.join(settings.FILES_PATH, 'NMTK_server', 'files')
+
+    def __init__(self, subdir='', location=None):
+        self.subdir = subdir
+        super(NMTKResultsFileSystemStorage, self).__init__(
+            location=os.path.join(self.base_location,
+                                  self.subdir))
+
+    def __eq__(self, other):
+        return self.subdir == other.subdir
 #     def url(self, name):
 # raise NotImplementedError
 #         return reverse('downloadResults',
 # kwargs={'job_id': name.rsplit('/',2)[-1].split('.')[0]})
 
-location = os.path.join(settings.FILES_PATH, 'NMTK_server', 'files')
-fs = NMTKDataFileSystemStorage(location=location)
-fs_geojson = NMTKGeoJSONFileSystemStorage(location=location)
-fs_results = NMTKResultsFileSystemStorage(location=location)
+
+fs = NMTKDataFileSystemStorage()
+fs_geojson = NMTKGeoJSONFileSystemStorage()
+fs_results = NMTKResultsFileSystemStorage()
 
 
 class PageName(models.Model):
@@ -136,6 +170,20 @@ class ToolServer(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    authorized_users = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        swappable=True,
+        blank=True,
+        db_table='tool_server_authorized_users',
+        related_name='authorized_tool_servers',
+        help_text=('To make this available to all users, make sure no' +
+                   ' users are selected.  Otherwise, select only those' +
+                   ' users that should have access to tools provided' +
+                   ' by this tool server.  Note: This sets the default users' +
+                   ' that can view all tools for new tools discovered on' +
+                   ' this tool server, changes' +
+                   ' here will NOT overwrite any existing per-tool user' +
+                   ' restrictions (or lack thereof.)'))
     objects = models.GeoManager()
 
     def __str__(self):
@@ -204,6 +252,19 @@ class Tool(models.Model):
     tool_server = models.ForeignKey(ToolServer)
     active = models.BooleanField(default=True)
     last_modified = models.DateTimeField(auto_now=True)
+    authorized_users = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        swappable=True,
+        blank=True,
+        db_table='tool_authorized_users',
+        related_name='authorized_tools',
+        help_text=('To make this available to all users, make sure no' +
+                   ' users are selected.  Otherwise, select only those' +
+                   ' users that should have access to this tool' +
+                   ' Note: Changes to the tool server' +
+                   ' list of allowed users will NOT effect this, and changes' +
+                   ' made here may override changes at the tool server level' +
+                   ' restrictions.'))
     objects = models.GeoManager()
 
     @property

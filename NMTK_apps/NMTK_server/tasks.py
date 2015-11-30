@@ -300,6 +300,7 @@ def discover_tools(toolserver):
             'Failed to reach tool server to retrieve tools: %s', str(e))
         tool_list = []
     for tool in tool_list:
+        authorized_users = None
         try:
             t = models.Tool.objects.get(tool_server=toolserver,
                                         tool_path=tool)
@@ -316,11 +317,15 @@ def discover_tools(toolserver):
         except ObjectDoesNotExist:
             t = models.Tool(tool_server=toolserver,
                             name=tool)
+            authorized_users = toolserver.authorized_users.all()
+
         t.active = True
         t.tool_path = tool
         t.name = tool
         t.save()
-
+        if authorized_users:
+            t.authorized_users = authorized_users
+            t.save()
     # Locate all the tools that aren't there anymore and disable them.
     for row in models.Tool.objects.exclude(
             tool_path__in=tool_list).filter(
@@ -435,10 +440,12 @@ def updateToolConfig(tool):
         tool.config_url, verify=tool.tool_server.verify_ssl)
     try:
         config = tool.toolconfig
-    except:
+    except Exception, e:
+        logger.exception('Could not get toolconfig: %s', e)
         config = models.ToolConfig(tool=tool)
     config_data = json_config.json()
     config.json_config = config_data
+
     config.save()
     if hasattr(tool, 'toolsampleconfig') and tool.toolsampleconfig.pk:
         tool.toolsampleconfig.delete()
