@@ -19,7 +19,6 @@ django-tastypie==0.12.2
 django-widget-tweaks==1.4.1
 enum34==1.0.4
 funcsigs==0.4
-jdcal==1.0
 kombu==3.0.26
 lxml==3.4.4
 matplotlib==1.4.3
