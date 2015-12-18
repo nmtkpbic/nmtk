@@ -115,7 +115,6 @@ class NMTKClient(object):
               field used to send the file, and at least one of those keys should match
               the 'result_field' value.
         '''
-        logger.debug('Sending status update back with payload of %s', payload)
         url = "%s/%s" % (self.url, "tools/result",)
         if failure:
             payload['status'] = 'error'
