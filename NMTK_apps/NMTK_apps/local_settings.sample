@@ -196,7 +196,16 @@ EMAIL_HOST_USER=None
 # and working properly.
 #
 #EMAIL_BACKEND='NMTK_apps.email_backend.EmailBackend'
-EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend'
+
+# The default operation is to simply log emails to the console, it should
+# not be used in production.
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Uncomment the line below to enable sending email via an SMTP server
+# (using the EMAIL_* settings above.)
+# 
+#EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend'
+
 
 
 # Indicates that once an account is created, an admin needs to approve it/enable it
