@@ -51,12 +51,19 @@ def generateMapfile(datafile, style_field,
                         'unique nmtk_id using srid=4326').format(
             ','.join(r'\"{0}\"'.format(f) for f in datafile.fields),
             datafile.id)
-    data[
-        'highlight_data'] = ('nmtk_geometry from (select *, ' +
-                             'st_astext(nmtk_geometry) as geom_text from ' +
-                             'userdata_results_{0} where nmtk_id in ' +
-                             '(%ids%)) as subquery' +
-                             'using unique nmtk_id using srid=4326').format(
+#     data[
+#         'highlight_data'] = ('nmtk_geometry from (select *, ' +
+#                              'st_astext(nmtk_geometry) as geom_text from ' +
+#                              'userdata_results_{0} where nmtk_id in ' +
+#                              '(%ids%)) as subquery ' +
+#                              'using unique nmtk_id using srid=4326').format(
+#         datafile.id)
+    # There's no point in getting all the data, since we style this
+    # black always...
+    data['highlight_data'] = ('nmtk_geometry from (select nmtk_geometry, ' +
+                              'nmtk_id from userdata_results_{0} where ' +
+                              'nmtk_id in (%ids%)) as subquery ' +
+                              'using unique nmtk_id using srid=4326').format(
         datafile.id)
 
     # Determine which of the mapfile types to use (point, line, polygon...)

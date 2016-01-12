@@ -479,16 +479,17 @@ define([  'angular'
 			
 			// When someone selects items via the "results" grid it goes
 			// into selections, which we then need to copy over to selected_features
-			
+			$scope.selected_features=[];
 			$scope.$watch('selections', function (newVal, oldVal) {
 				// If we're working with results from a map-click, then clicking on
 				// a row will remove those results.
+				$scope.selected_features.length=0;
 				if ($scope.feature_query_results) {
-					$scope.selected_features=[];
+					
 					$scope.selected_selected.length=0;
 					$scope.feature_query_results=false;
 				}
-				var ids=[]
+				var ids=[];
 				_.each($scope.selected_features, function (data) {
 					ids.push(data.nmtk_id);
 				});
@@ -513,9 +514,6 @@ define([  'angular'
 			 * stuff to 0 and then reload the data for the grid (to unselect items.)
 			 */
 			$scope.clearSelection=function() {
-//				_.each($scope.selected_features, function (v, index) {
-//					$scope.gridOptions2.selectItem(index, false);
-//				});
 				_.each($scope.data, function (v, index) {
 					$scope.gridOptions.selectItem(index, false);
 				});
