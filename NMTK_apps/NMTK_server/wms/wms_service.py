@@ -46,11 +46,18 @@ def generateMapfile(datafile, style_field,
     if geom_type == 'raster':
         data['data'] = datafile.file.path
     else:
-        data['data'] = 'nmtk_geometry from userdata_results_{0}'.format(
+        data['data'] = ('nmtk_geometry from (select {0}, nmtk_geometry, ' +
+                        'nmtk_id from userdata_results_{1})  as data using ' +
+                        'unique nmtk_id using srid=4326').format(
+            ','.join(r'\"{0}\"'.format(f) for f in datafile.fields),
             datafile.id)
     data[
-        'highlight_data'] = '''nmtk_geometry from (select * from userdata_results_{0} where nmtk_id in (%ids%)) as subquery
-                              using unique nmtk_id'''.format(datafile.id)
+        'highlight_data'] = ('nmtk_geometry from (select *, ' +
+                             'st_astext(nmtk_geometry) as geom_text from ' +
+                             'userdata_results_{0} where nmtk_id in ' +
+                             '(%ids%)) as subquery' +
+                             'using unique nmtk_id using srid=4326').format(
+        datafile.id)
 
     # Determine which of the mapfile types to use (point, line, polygon...)
 

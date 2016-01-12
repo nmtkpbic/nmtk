@@ -194,7 +194,7 @@ define(['jquery'
 									 * user config.
 									 */
 									_.each(default_config, function (value, key) {
-										if (_.isUndefined(config.key)) {
+										if (_.isUndefined(config[key])) {
 											config[key]=angular.copy(value);
 										};
 									});
