@@ -175,6 +175,77 @@ define(['jquery'
 					            }
 					        });
 					    }
+					}]).service('preferences', ['Restangular',
+					                            function (Restangular) {
+						var self=this;
+						var default_config = {'divs': [],
+											  'ramp': {'ramp_id': 0,
+												  	   'reverse': 'false'}
+											  };
+						var config=angular.copy(default_config);
+						this.login=_.debounce(function() {
+							Restangular.all('preference').getList().then(function (response) {
+								if (response.length) {
+									self.preferences=response[0]
+				            		config=JSON.parse(self.preferences.config);
+									/* 
+									 * If the default config has keys that the
+									 * user config doesn't have, then update the
+									 * user config.
+									 */
+									_.each(default_config, function (value, key) {
+										if (_.isUndefined(config.key)) {
+											config[key]=angular.copy(value);
+										};
+									});
+				            	} else {
+				            		self.preferences=Restangular.all('preference');
+				            	}
+							}, function () {
+								self.logout();
+							});
+						}, 200);
+					    this.logout = function () {
+					    	/*
+							 * If the user is not logged in then we give them 
+							 * empty preference data.
+							 */
+					    	config = angular.copy(default_config);
+					    	self.preferences=undefined
+					    };
+						this.save = function () {
+							if (self.preferences) {
+								self.preferences.config=JSON.stringify(config);
+								if (_.isUndefined(self.preferences.resource_uri)) {
+									self.preferences.post();
+									self.login();
+								} else {
+									self.preferences.put();
+								}
+							}
+						};
+						this.toggleDiv=function(div) {
+							if (_.isUndefined(config.divs)) {
+								config.divs=[];
+							}
+							if (_.indexOf(config.divs, div) > -1) {
+								config.divs=_.without(config.divs, div);
+							} else {
+								config.divs.push(div);
+							}
+							self.save();
+						};
+						this.isDivEnabled=function(div) {
+							return _.indexOf(config.divs, div) == -1;
+						}
+						this.getRampSettings =function () {
+							return config.ramp;
+						}
+						this.setRampSettings =function (setting) {
+							config.ramp=setting;
+							self.save();
+						}
+						
 					}]);
 				
 		        controllers.initialize(nmtk_app);

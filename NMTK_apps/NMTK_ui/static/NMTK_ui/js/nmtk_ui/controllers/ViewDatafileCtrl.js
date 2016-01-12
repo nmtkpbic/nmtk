@@ -42,16 +42,18 @@ define([  'angular'
 	"use strict";
 	var controller=['$scope','$routeParams','$location','$log','$http',
 	                '$timeout', 'leafletData','Restangular', '$q', '$modal',
+	                'preferences',
         /*
 		 * A variant of the ViewResults Controller that uses leaflet-directive 
 		 * rather than leaflet directly.
 		 */
 	        
 		function ($scope, $routeParams, $location, $log, $http, $timeout, 
-				  leafletData, Restangular, $q, $modal) {
+				  leafletData, Restangular, $q, $modal, preferences) {
 			$scope.loginCheck();
 			$scope.changeTab('datafile_view');
 			$scope.layercount=0;
+			$scope.preferences=preferences;
 			/*
 			 * Filters will be specific for datafile or job, so here we will
 			 * actually store the filters and reset them if the results_uri
@@ -64,10 +66,7 @@ define([  'angular'
 				$scope.$parent.result_data={'field': ''};
 				$scope.$parent.customFilters=[];
 			} 
-			if (_.isUndefined($scope.preferences.config.ramp)) {
-				$scope.preferences.config.ramp={'ramp_id': 0,
-						     					'reverse': 'false'};
-			} 
+			
 			/*
 			 * Here we figure out of we are viewing a file, or a set of job
 			 * results.  The difference is that a file will have an integer
@@ -109,7 +108,7 @@ define([  'angular'
 				var opts = {
 					    template:  ColorRampSelectionTemplate, // OR: templateUrl: 'path/to/view.html',
 					    controller: 'ColorRampSelectionCtrl',
-					    resolve:{'ramp': function () { return $scope.preferences.config.ramp; } },
+					    resolve:{'ramp': function () { return preferences.getRampSettings(); } },
 					    scope: $scope
 					  };
 				
@@ -121,8 +120,7 @@ define([  'angular'
 					 * we let that happen in the $watch defined later - so no 
 					 * need to handle it here - we'll just store the changed value.
 					 */
-					$scope.preferences.config.ramp=result;
-					$scope.savePreferences();
+					preferences.setRampSettings(result);
 				});
 			}
 			
@@ -334,8 +332,8 @@ define([  'angular'
 					            	            ids: ids,
 					            	            style_field: $scope.result_data['field'] || '',
 					                    		format: 'image/png',
-					                    		ramp: $scope.preferences.config.ramp.ramp_id,
-					                    		reverse: $scope.preferences.config.ramp.reverse,
+					                    		ramp: preferences.getRampSettings().ramp_id,
+					                    		reverse: preferences.getRampSettings().reverse,
 					                    		transparent: true }
 					    }
 					}
@@ -378,8 +376,8 @@ define([  'angular'
 					            	            ids: ids.join(','),
 					            	            style_field: $scope.result_data['field'] ||'',
 					                    		format: 'image/png',
-					                    		ramp: $scope.preferences.config.ramp.ramp_id,
-					                    		reverse: $scope.preferences.config.ramp.reverse,
+					                    		ramp: preferences.getRampSettings().ramp_id,
+					                    		reverse: preferences.getRampSettings().reverse,
 					                    		transparent: true }
 					    }
 					}
@@ -401,8 +399,8 @@ define([  'angular'
 				            layerOptions: { layers: $scope.datafile_api.layer,
 				            				style_field: $scope.result_data['field'] || '',
 				                    		format: 'image/png',
-				                    		ramp: $scope.preferences.config.ramp.ramp_id,
-				                    		reverse: $scope.preferences.config.ramp.reverse,
+				                    		ramp: preferences.getRampSettings().ramp_id,
+				                    		reverse: preferences.getRampSettings().reverse,
 				                    		transparent: true }
 				    };
 				}
@@ -416,8 +414,8 @@ define([  'angular'
             					style_field: $scope.result_data['field'] || '',
             					request: 'getLegendGraphic',
             					format: 'image/png',
-            					ramp: $scope.preferences.config.ramp.ramp_id,
-            					reverse: $scope.preferences.config.ramp.reverse,
+            					ramp: preferences.getRampSettings().ramp_id,
+            					reverse: preferences.getRampSettings().reverse,
             					transparent: true }
 				    for (var d in data)
 				       ret.push(encodeURIComponent(d.toUpperCase()) + "=" + encodeURIComponent(data[d]));
@@ -442,7 +440,11 @@ define([  'angular'
 			 * If preferences are loaded then we need to use the loaded preference
 			 * data.
 			 */
-			$scope.$watch('preferences', function (newVal, oldVal) {
+			$scope.$watch(function () { return preferences.getRampSettings().ramp_id; }, function (newVal, oldVal) {
+				$scope.updateMapComponents();
+			});
+			
+			$scope.$watch(function () { return preferences.getRampSettings().reverse; } , function (newVal, oldVal){
 				$scope.updateMapComponents();
 			});
 			
@@ -460,9 +462,7 @@ define([  'angular'
 			});
 			
 			
-			$scope.$watch('preferences.config.ramp', function (newVal, oldVal){
-				$scope.updateMapComponents();
-			});
+			
 			
 			// Whenever a feature is selected in the table, we will match that feature in
 			// the view window...

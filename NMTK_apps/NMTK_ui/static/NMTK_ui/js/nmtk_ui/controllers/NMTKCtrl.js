@@ -44,14 +44,14 @@ define(['underscore'
 				downloadDatafileTemplate, createJobTemplate, loginTemplate) {	
 			"use strict";
 			var controller=['$scope','Restangular', '$timeout','$modal','$location',
-			                '$http','$q', '$log','$cookies',
+			                '$http','$q', '$log','$cookies','preferences',
 				/* 
 				 * This "base" controller provides some default scope components for all the
 				 * other controllers.  It also handles the auto-reloading of things like jobs 
 				 * in progress and uploads, etc. 
 				 */
 				function ($scope, Restangular, $timeout, $modal, $location, 
-						  $http, $q, $log, $cookies) {
+						  $http, $q, $log, $cookies, preferences) {
 					// A Function used to update data via a rest call to an API interface,
 					// since it seems like we will refresh far more often than we don't, might
 					// as well do this.
@@ -83,7 +83,6 @@ define(['underscore'
 					/* 
 					 * A default set of preferences until they are loaded properly.
 					 */
-					$scope.preferences={'config': {}};
 					$scope.job_config=undefined;
 					$scope.preview_datafile=undefined;
 					$scope.views={}
@@ -91,42 +90,16 @@ define(['underscore'
 						$scope.views[view]=!$scope.views[view];
 					}
 					$scope.user={};
-					$scope.savePreferences=function () {
-						if ($scope.logged_in) {
-							var copy=Restangular.copy($scope.preferences);
-							copy.config=JSON.stringify($scope.preferences.config);
-							copy.put();
-						}
-					}
 					
-					$scope.toggleDiv=function(div) {
-						if (_.isUndefined($scope.preferences.config.divs)) {
-							$scope.preferences.config.divs=[];
-						}
-						if (_.indexOf($scope.preferences.config.divs, div) > -1) {
-							$scope.preferences.config.divs=_.without($scope.preferences.config.divs, div);
-						} else {
-							$scope.preferences.config.divs.push(div);
-						}
-						$scope.savePreferences();
-					}
-					
+					// Check to see if a div is enabled and return a true/false response.
+					$scope.isDivEnabled=preferences.isDivEnabled;
+					$scope.toggleDiv = preferences.toggleDiv;
 					
 				    $scope.isCollapsed = true;
 				    $scope.isCollapsedSubnav = true;
 					
-					// Check to see if a div is enabled and return a true/false response.
-					$scope.isDivEnabled=function(div) {
-						// Preferences loaded yet?
-						if (_.isUndefined($scope.preferences)) {
-							return true;
-						} else if (_.isUndefined($scope.preferences.config)) {
-							$scope.preferences.config= {'divs': [] };
-						} else if (_.isUndefined($scope.preferences.config.divs)) {
-							$scope.preferences.config.divs=[];
-						}
-						return _.indexOf($scope.preferences.config.divs, div) == -1;
-					}
+					
+						
 					/*
 					 * A simple function that returns an empty list as it's
 					 * promise result.  This "fakes out" things like datafile
@@ -140,6 +113,7 @@ define(['underscore'
 					}
 					
 					$scope.refreshData=function (api, offset) {
+						
 						var deferred=$q.defer();
 						if (typeof $scope.restargs[api] === 'undefined') {
 							$scope.restargs[api]={};
@@ -163,19 +137,7 @@ define(['underscore'
 						 * we process the updated data.
 						 * 
 						 */
-						if (api == 'preference') {
-							$scope.rest[api].then(function (data) {
-								if (data.length) {
-									/*
-									 * The preference field divs has a list of divs that should
-									 * be collapsed in the UI.
-									 */
-									$scope.preferences=data[0];
-									$scope.preferences.config=JSON.parse($scope.preferences.config);
-								}
-								deferred.resolve();
-							});
-						} else if (api == 'user') {
+						if (api == 'user') {
 							$scope.rest[api].then(function (data) {
 								/* 
 								 * Only update the user information if the URI of
@@ -202,7 +164,6 @@ define(['underscore'
 									$scope.logged_in=false;
 									$scope.user={};
 									$scope.refreshAllData();
-									$scope.preferences={};
 								}
 								first_login_complete.resolve([]);
 								deferred.resolve();
@@ -401,10 +362,11 @@ define(['underscore'
 						$.ajaxSetup({
 						    headers: {'X-CSRFToken': $cookies['csrftoken'] }
 						});
-						_.each(['datafile','job', 'preference','tool'], function (item) {
+						_.each(['datafile','job', 'tool'], function (item) {
 							$scope.resources[item]=Restangular.all(item);
 							$scope.refreshData(item);
 						});
+						preferences.login();
 					}
 										
 					$scope.refreshAllData();					
