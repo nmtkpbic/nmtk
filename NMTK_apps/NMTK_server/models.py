@@ -583,6 +583,7 @@ class DataFile(models.Model):
                   (ogr.wkbMultiLineString, 'MULTILINESTRING'),
                   (99, 'RASTER'),
                   )
+    POLY_TYPES = (ogr.wkbMultiPolygon, ogr.wkbPolygon)
     # File Types
     JOB_INPUT = 'source'
     JOB_RESULT = 'result'
