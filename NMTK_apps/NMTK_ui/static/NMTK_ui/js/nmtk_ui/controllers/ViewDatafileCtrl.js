@@ -230,6 +230,7 @@ define([  'angular'
 			$scope.pagingOptions= {
 			};
 			$scope.columnOptions=[];
+			$scope.columnOptions2=[];
 			$scope.sortInfo= { fields: ['nmtk_id'],
 							   directions: ['asc'] };
 
@@ -283,7 +284,8 @@ define([  'angular'
 							$scope.data=data.data;
 						}
 						if ($scope.columnOptions.length == 0) {
-							$scope.columnOptions=[]
+							$scope.columnOptions=[];
+							$scope.columnOptions2=[];
 							var visible=false;
 							var i=0;
 							var result_field=$scope.datafile_api.result_field;
@@ -301,29 +303,70 @@ define([  'angular'
 								}
 								$scope.columnOptions.push({ field: col_name,
 									                        visible: visible});
+								$scope.columnOptions2.push({ field: col_name,
+			                        						 visible: visible});
 								i += 1;
 							});
+							$scope.columnOptions2.push({ sortable: false,
+					              						 visible: true,
+					              						 width: '70px',
+					              						 cellTemplate: '<div class="ngCellText"><button style="line-height: 0;" ng-click="removeRow(row.entity);"><span class="glyphicon glyphicon-remove"></span></button></div>',
+					              						 displayName: ''});
 //							}
 						}
 					});
 				}
 			};
+			
+			$scope.removeRow=function (data) {
+				var pos=-1; // Start with -1, since we increment before we return.
+				_.find($scope.selected_features, function (value) {
+					pos += 1;
+					return value.nmtk_id == data.nmtk_id; // Stop iterating when we find it.
+				});
+				if (pos < $scope.selected_features.length) {
+					$scope.selected_features.splice(pos, 1);
+				}
+				
+				/*
+				 * In the case when the table is used to select rows, we
+				 * need to remove the selections to ensure that selecting 
+				 * a new row won't cause all the rows to be copied back
+				 * to the selected_features list.
+				 */
+				if ($scope.selections.length > 0) {
+					var pos=-1; // Start with -1, since we increment before we return.
+					_.find($scope.data, function (value) {
+						pos += 1;
+						return value.nmtk_id == data.nmtk_id; // Stop iterating when we find it.
+					});
+					if (pos < $scope.data.length) {
+						$scope.gridOptions.selectItem(pos, false);
+					}
+				}
+			}
+			
 			$scope.olcount=0;
 			$scope.olsubcount=0;
 			$scope.leaflet_layer_count=0;
-			
+			var flasher;
 			var updateHighlightSelected=function () {
 				if ($scope.spatial) {
+					if (!_.isUndefined(flasher)) {
+						$timeout.cancel(flasher);
+						flasher=undefined;
+					}
 					if ($scope.leaflet.layers.overlays['highlight_selected' + $scope.olsubcount]) {
 						delete $scope.leaflet.layers.overlays['highlight_selected'+$scope.olsubcount];
 					}
 					$scope.olsubcount += 1;
-					if ($scope.highlight_selected) {
+					$scope.highlight_selected=1;
+					if ($scope.selected_selected.length > 0) {
 						var ids=[];
-						_.each(newVal, function (data) {
+						_.each($scope.selected_selected, function (data) {
 							ids.push(data.nmtk_id);
 						});
-						$scope.leaflet.layers.overlays['highlight_selected'+$scope.olsubcount]= {
+						var layer_def={
 					            name: 'Visible Feature',
 					            type: 'wms',
 					            visible: true,
@@ -336,6 +379,17 @@ define([  'angular'
 					                    		reverse: preferences.getRampSettings().reverse,
 					                    		transparent: true }
 					    }
+						var flash_layer=function (olsubcount, layer_def) {
+							if (olsubcount == $scope.olsubcount) {
+								if ($scope.leaflet.layers.overlays['highlight_selected' + olsubcount]) {
+									delete $scope.leaflet.layers.overlays['highlight_selected'+olsubcount];
+								} else {
+									$scope.leaflet.layers.overlays['highlight_selected'+olsubcount]=layer_def;
+								}
+								flasher=$timeout(function () { flash_layer(olsubcount, layer_def) }, 1000);
+							}
+						}
+						flash_layer($scope.olsubcount, layer_def)
 					}
 				}
 			}
@@ -363,9 +417,7 @@ define([  'angular'
 					if ($scope.leaflet.layers.overlays['highlight' + $scope.olcount]) {
 						delete $scope.leaflet.layers.overlays['highlight'+$scope.olcount];
 					}
-				}
-				$scope.olcount += 1;
-				if ($scope.spatial) {
+					$scope.olcount += 1;
 					if (ids.length) {
 						$scope.leaflet.layers.overlays['highlight'+$scope.olcount]= {
 					            name: 'Selected Features',
@@ -564,7 +616,7 @@ define([  'angular'
 		    $scope.gridOptions2={data: 'selected_features',
 		    		             showColumnMenu: true,
 		    		             multiSelect: false,
-		    		             columnDefs: 'columnOptions',
+		    		             columnDefs: 'columnOptions2',
 		    		             showFooter: false,
 		    		             selectedItems: $scope.selected_selected}
 		    
