@@ -73,6 +73,7 @@ echo "Restarting services..."
 sudo service apache2 restart
 sudo service celeryd-${NMTK_NAME} restart
 
+python manage.py cleanup_mapfiles
 if [[ ${SERVER_ENABLED} == 1 ]]; then
   echo "NMTK Server is enabled"
   echo "Rediscovering tools from tool servers..."

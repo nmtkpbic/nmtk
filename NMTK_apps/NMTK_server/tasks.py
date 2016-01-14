@@ -6,6 +6,7 @@ import urlparse
 import hmac
 import hashlib
 import uuid
+import glob
 from django.utils import timezone
 from django.conf import settings
 from django.core.management.color import no_style
@@ -534,6 +535,14 @@ def updateToolConfig(tool):
     models.Tool.objects.filter(
         pk=config.tool.pk).update(
         name=config_data['info']['name'])
+
+
+@task(ignore_result=False)
+def cleanup_mapfiles():
+    from NMTK_server import models
+    for m in models.DataFile.objects.all():
+        for filename in glob.glob(os.path.join(m.mapfile_path, '*.map')):
+            os.unlink(filename)
 
 
 @task(ignore_result=False)
