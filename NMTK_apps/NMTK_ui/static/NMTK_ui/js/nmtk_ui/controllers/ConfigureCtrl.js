@@ -359,6 +359,27 @@ define(['underscore',
 			});
 			
 			/*
+			 * A function that, when given a field from a file, returns
+			 * true if the field is being used more than one time.
+			 */
+			$scope.fieldUseCount=function (namespace, property_name) {
+				var count=0; // Don't default to 1, since we'll count this field again!
+				if (! _.isUndefined($scope.$parent.job_config[namespace]) && 
+					! _.isUndefined($scope.$parent.job_config[namespace][property_name]) &&
+					! _.isUndefined($scope.$parent.job_config[namespace][property_name]['value'])) {
+					var value=$scope.$parent.job_config[namespace][property_name]['value']
+					// Note that in the loop below we count the current field, as well
+					// as any other fields in the same namespace...
+					_.each($scope.$parent.job_config[namespace], function (settings, property_name) {
+						if (settings['value'] == value) {
+							count += 1;
+						}
+					});
+				}
+				return count;
+			}
+			
+			/*
 			 * When a field is generated, this init function will set the 
 			 * current default value for the field.  It is called from the 
 			 * template using ng-init for all the form fields, and is also 

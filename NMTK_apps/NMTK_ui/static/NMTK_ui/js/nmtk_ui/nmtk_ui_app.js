@@ -175,6 +175,23 @@ define(['jquery'
 					            }
 					        });
 					    }
+					}]).filter('addUsageClass', ['$log', function($log) {
+					  return function(curr_property, namespace, scope) {
+						    var i=-1;
+						    _.find(scope.file_fields[namespace],function(item, index) {
+						    	i += 1;
+						        return (item.value === curr_property) 
+						    });
+						    var useCount=scope.fieldUseCount(namespace, curr_property);
+						    var elem = angular.element("select > option[value='" + i + "']");
+//						    $log.debug(i, curr_property ,': Usecount is', useCount, 'elem', elem);
+						    if (useCount == 1) {
+						      elem.addClass('used');
+						    } else if (useCount > 1) {
+						      elem.addClass('duplicate');
+						    }
+						    return curr_property;
+						  }
 					}]).service('preferences', ['Restangular',
 					                            function (Restangular) {
 						var self=this;

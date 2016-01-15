@@ -78,3 +78,15 @@ textarea {
    top: -9999px !important;
    left: -9999px !important;
 }
+
+/*
+ * Style the duplicate fields in select boxes in the NMTK config UI.
+ *  If a field is selected more than once it ought to appear in a specific
+ * other color.
+ */
+option .duplicate {
+	color: #fcc;
+}
+option .used {
+	color: #eee;
+}
