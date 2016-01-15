@@ -34,6 +34,20 @@ yesno () {
     echo "Yes"
   fi
 }
+TRUNCATE_LOGS=0
+while getopts ":c" opt; do
+  case $opt in
+    c)
+      TRUNCATE_LOGS=1
+      ;;
+    \?)
+      echo "Usage: $0 [-c]" >&2
+      echo "-c can be used to clean logs" >&2
+      exit 1
+      ;;
+  esac
+done
+
 
 if [ -d venv/bin ]; then
   source venv/bin/activate
@@ -47,6 +61,14 @@ fi
 
 if [ ${#NMTK_NAME} == 0 ]; then
   NMTK_NAME=$(echo $HOSTN|cut -f1 -d.)
+fi
+
+
+if [[ $TRUNCATE_LOGS == 1 ]]; then
+  for FILE in logs/*; do
+    echo "Truncating log: $FILE"
+    > $FILE
+  done
 fi
 
 echo "Gathering NMTK confguration details"
@@ -82,6 +104,11 @@ if [[ ${SERVER_ENABLED} == 1 ]]; then
   if [[ $PRODUCTION == 1 ]]; then
     echo "Minifying code"
     python manage.py minify
+    echo "Refreshing static media (copying files)"
+    python manage.py collectstatic --noinput -v 0 -c
+  else
+    echo "Refreshing static media (using symboling links)"
+    python manage.py collectstatic --noinput -v 0 -c -l
   fi
   echo "Regenerating images for color ramps"
   python manage.py refresh_colorramps
