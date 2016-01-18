@@ -22,7 +22,7 @@
              <p><label for="{{config.namespace}}">{{config.description}}</label></p>
 			 <h4>Choose a file: <select ng-model="$parent.job_config_files[config.namespace]" dynamic-name="config.namespace" 
 									    ng-change="updateFileFieldsFromResourceURI(config.namespace)" required
-										ng-disabled="disabled"
+										ng-disabled="disabled" class="form-control"
 										ng-init="updateFileFieldsFromResourceURI(config.namespace)"
                      ng-options="o.resource_uri as getFileStr(o) for o in list_files(config)"></select>
 			     <p class="help-block error" ng-show="submit_attempted && job_config_form[config.namespace].$invalid">This field is required</p>
@@ -45,19 +45,19 @@
                              ng-model="$parent.job_config[config.namespace][property.name]['value']" ng-required="isFieldRequired(property)"
                              dynamic-name="config.namespace + ':' + property.name" 
 							 ng-init="setFieldDefaultValue(config.namespace, property.name)"
-							 ng-disabled="disabled"
+							 ng-disabled="disabled" class="form-control" ng-class="{'duplicate': fieldUseCount(config.namespace, $parent.job_config[config.namespace][property.name]['value']) > 1}"
                              ng-options="o.value|addUsageClass:config.namespace:property.name:this as o.label for o in file_fields[config.namespace]">
 							 <option value=""></option></select>
                      <input ng-if="$parent.job_config[config.namespace][property.name]['type'] != 'property' && ! validation[config.namespace][property.name]['choices'] && validation[config.namespace][property.name]['type']!='boolean'"  
                             size="10" type="text" ng-model="$parent.job_config[config.namespace][property.name]['value']" 
 							ng-disabled="disabled || validation[config.namespace][property.name].readonly" ng-required="isFieldRequired(property)" 
 							ng-init="setFieldDefaultValue(config.namespace,property.name) && validateEntry(config.namespace, property.name)"
-							ng-change="validateEntry(config.namespace, property.name)"
+							ng-change="validateEntry(config.namespace, property.name)" class="form-control"
                             dynamic-name="config.namespace + ':' + property.name"  ></input>
 					 <select ng-if="$parent.job_config[config.namespace][property.name]['type'] != 'property' && validation[config.namespace][property.name]['choices'] && validation[config.namespace][property.name]['type']!='boolean'"
 							name="config.namespace + ':' + property.name"  ng-required="isFieldRequired(property)"
 							ng-disabled="disabled  || validation[config.namespace][property.name].readonly" 
-							ng-init="setFieldDefaultValue(config.namespace, property.name)"
+							ng-init="setFieldDefaultValue(config.namespace, property.name)" class="form-control"
                             ng-model="$parent.job_config[config.namespace][property.name]['value']" 
  							ng-options="item.value as item.label for item in get_options(validation[config.namespace][property.name]['choices'])"></select>
 					<!-- The option when we have a boolean field (so on/off) -->
@@ -65,14 +65,14 @@
 					<input type="radio" 
 							dynamic-name="config.namespace + ':' + property.name" ng-required="!$parent.job_config[config.namespace][property.name]['value']"
 							ng-disabled="disabled  || validation[config.namespace][property.name].readonly"
-							ng-init="setFieldDefaultValue(config.namespace,property.name)"
+							ng-init="setFieldDefaultValue(config.namespace,property.name)" class="form-control"
                             ng-model="$parent.job_config[config.namespace][property.name]['value']" 
 							value="1"
  							ng-options="item.value as item.label for item in get_options(validation[config.namespace][property.name]['choices'])"></input> True<br />
 					<input type="radio"
 							dynamic-name="config.namespace + ':' + property.name" ng-required="!$parent.job_config[config.namespace][property.name]['value']"
 							ng-disabled="disabled  || validation[config.namespace][property.name].readonly"
-							ng-init="setFieldDefaultValue(config.namespace,property.name)"
+							ng-init="setFieldDefaultValue(config.namespace,property.name)" class="form-control"
 							value="0"
                             ng-model="$parent.job_config[config.namespace][property.name]['value']" 
  							ng-options="item.value as item.label for item in get_options(validation[config.namespace][property.name]['choices'])"></input> False
@@ -81,7 +81,7 @@
 			       </td>
                    <td>
 					  <select ng-disabled="disabled || constants_only[config.namespace]" ng-change="switchFieldMode(config.namespace, property.name)" 
-                              ng-model="$parent.job_config[config.namespace][property.name]['type']" 
+                              ng-model="$parent.job_config[config.namespace][property.name]['type']"  class="form-control"
                               ng-if="validation[config.namespace][property.name]['type'] != 'property'"
 						      ng-options="item.value as item.detail for item in getFieldOptions(config.namespace, property.name)">
                       </select>
@@ -133,14 +133,14 @@
 			         <input ng-if="!validation[config.namespace][property.name]['choices'] && validation[config.namespace][property.name]['type'] != 'boolean'" 
 							type="text" ng-model="$parent.job_config[config.namespace][property.name]['value']" 
 							ng-disabled="disabled  || validation[config.namespace][property.name].readonly"
-							ng-change="validateEntry(config.namespace, property.name)"
+							ng-change="validateEntry(config.namespace, property.name)" class="form-control"
 							ng-init="setFieldDefaultValue(config.namespace,property.name) && validateEntry(config.namespace, property.name)"
 			                dynamic-name="config.namespace + ':' + property.name"  ng-required="isFieldRequired(property)">
 					<!-- The option when we have a set of choices to choose from --> 
 					<select ng-if="validation[config.namespace][property.name]['choices'] && validation[config.namespace][property.name]['type'] != 'boolean'"
 							dynamic-name="config.namespace + ':' + property.name"  required
 							ng-disabled="disabled  || validation[config.namespace][property.name].readonly"
-							ng-init="setFieldDefaultValue(config.namespace,property.name)"
+							ng-init="setFieldDefaultValue(config.namespace,property.name)" class="form-control"
                             ng-model="$parent.job_config[config.namespace][property.name]['value']" 
  							ng-options="item.value as item.label for item in get_options(validation[config.namespace][property.name]['choices'])"></select>
 					<!-- The option when we have a boolean field (so on/off) -->
@@ -148,14 +148,14 @@
 					<input type="radio" 
 							dynamic-name="config.namespace + ':' + property.name" ng-required="!$parent.job_config[config.namespace][property.name]['value']"
 							ng-disabled="disabled  || validation[config.namespace][property.name].readonly"
-							ng-init="setFieldDefaultValue(config.namespace,property.name)"
+							ng-init="setFieldDefaultValue(config.namespace,property.name)" class="form-control"
                             ng-model="$parent.job_config[config.namespace][property.name]['value']" 
 							value="1"
  							ng-options="item.value as item.label for item in get_options(validation[config.namespace][property.name]['choices'])"></input> True<br />
 					<input type="radio"
 							dynamic-name="config.namespace + ':' + property.name" ng-required="!$parent.job_config[config.namespace][property.name]['value']"
 							ng-disabled="disabled  || validation[config.namespace][property.name].readonly"
-							ng-init="setFieldDefaultValue(config.namespace,property.name)"
+							ng-init="setFieldDefaultValue(config.namespace,property.name)" class="form-control"
 							value="0"
                             ng-model="$parent.job_config[config.namespace][property.name]['value']" 
  							ng-options="item.value as item.label for item in get_options(validation[config.namespace][property.name]['choices'])"></input> False

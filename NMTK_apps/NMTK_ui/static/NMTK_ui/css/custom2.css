@@ -79,14 +79,24 @@ textarea {
    left: -9999px !important;
 }
 
+
+/* 
+ * Alter the default form controls
+ */
+.form-control {
+	height: 24px;
+	font-size: 12px;
+}
+
 /*
  * Style the duplicate fields in select boxes in the NMTK config UI.
  *  If a field is selected more than once it ought to appear in a specific
  * other color.
  */
-option .duplicate {
-	color: #fcc;
+.duplicate {
+	background-color: #fcc;
 }
 option .used {
 	color: #eee;
 }
+

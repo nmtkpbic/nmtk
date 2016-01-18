@@ -372,7 +372,6 @@ define(['underscore',
 						count += 1;
 					}
 				});
-				$log.debug('Count for', selected_input_field, 'is', count);
 				return count;
 			}
 			

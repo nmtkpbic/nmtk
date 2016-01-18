@@ -178,13 +178,35 @@ define(['jquery'
 					}]).filter('addUsageClass', ['$log', function($log) {
 					  return function(curr_property, namespace, field, scope) {
 						    var i=-1;
+						    /*
+						     * The value for options is numeric starting at 0
+						     * based on the field position in the list of available
+						     * fields, so we need to figure out what the position
+						     * is for this one.  Look through until we find a 
+						     * item whose field name (value) matches the currently
+						     * selected property.
+						     */
 						    _.find(scope.file_fields[namespace],function(item, index) {
 						    	i += 1;
 						        return (item.value === curr_property) 
 						    });
+						    /*
+						     * Count up the number of times a field is used from
+						     * the current property.
+						     */
 						    var useCount=scope.fieldUseCount(namespace, curr_property);
+						    /*
+						     * Construct a jQuery query to selectively get just this
+						     * option from the select list for this particular field.
+						     * Note: The fields are (dynamically) named "namespace:field"
+						     */
 						    var elem = angular.element("select[name='"+ namespace + ":" + field  +"'] > option[value='" + i + "']");
-//						    $log.debug(i, curr_property ,': Usecount is', useCount, 'elem', elem);
+						  
+						    /*
+						     * Apply classes to the option based on the usage count, allowing
+						     * us to style these option values differently based on CSS style 
+						     * rules.
+						     */
 						    if (useCount == 1) {
 						      elem.addClass('used');
 						      elem.removeClass('duplicate');
