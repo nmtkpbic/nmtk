@@ -4,6 +4,8 @@ import models
 from django.utils.safestring import mark_safe
 import json
 from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.contrib.admin.widgets import FilteredSelectMultiple
 
 
 # class ToolConfigAdmin(admin.TabularInline):
@@ -16,6 +18,10 @@ from django.conf import settings
 class ToolServerForm(forms.ModelForm):
     resend_email = forms.BooleanField(
         required=False, label="Re-send Tool Configuration Email")
+    authorized_users = forms.ModelMultipleChoiceField(
+        widget=FilteredSelectMultiple(
+            "Users", is_stacked=False),
+        queryset=get_user_model().objects.all())
 
     def save(self, commit=True):
         resend_email = self.cleaned_data.get('resend_email', None)
@@ -23,6 +29,14 @@ class ToolServerForm(forms.ModelForm):
         if resend_email:
             instance.send_email = True
         return instance
+
+
+class ToolAdminForm(forms.ModelForm):
+    authorized_users = forms.ModelMultipleChoiceField(
+        widget=FilteredSelectMultiple(
+            "Users", is_stacked=False),
+        queryset=get_user_model().objects.all())
+
 
 #
 # class ToolServerAuthorizedUsersInline(admin.TabularInline):
@@ -57,6 +71,7 @@ class ToolServerAdmin(admin.ModelAdmin):
 
 
 class ToolAdmin(admin.ModelAdmin):
+    form = ToolAdminForm
 
     def json_configuration(self, obj):
         '''
@@ -76,9 +91,8 @@ class ToolAdmin(admin.ModelAdmin):
     )
 
     class Media:
-        js = ("NMTK_server/js/jquery-1.10.1.min.js",
-              "NMTK_server/admin/js/tree.jquery.js",
-              "NMTK_server/admin/js/treeview.js",)
+        js = ("NMTK_server/admin/js/jquery-2.2.0.min.js",
+              "NMTK_server/admin/js/tree.jquery.js",)
         css = {"tree": ("NMTK_server/admin/css/jqtree.css",)
                }
 
