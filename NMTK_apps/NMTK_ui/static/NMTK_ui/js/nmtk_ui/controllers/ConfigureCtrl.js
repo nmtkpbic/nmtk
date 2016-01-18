@@ -360,22 +360,19 @@ define(['underscore',
 			
 			/*
 			 * A function that, when given a field from a file, returns
-			 * true if the field is being used more than one time.
+			 * the number of times the field is used as input parameters 
+			 * 			
 			 */
-			$scope.fieldUseCount=function (namespace, property_name) {
+			$scope.fieldUseCount=function (namespace, selected_input_field) {
 				var count=0; // Don't default to 1, since we'll count this field again!
-				if (! _.isUndefined($scope.$parent.job_config[namespace]) && 
-					! _.isUndefined($scope.$parent.job_config[namespace][property_name]) &&
-					! _.isUndefined($scope.$parent.job_config[namespace][property_name]['value'])) {
-					var value=$scope.$parent.job_config[namespace][property_name]['value']
-					// Note that in the loop below we count the current field, as well
-					// as any other fields in the same namespace...
-					_.each($scope.$parent.job_config[namespace], function (settings, property_name) {
-						if (settings['value'] == value) {
-							count += 1;
-						}
-					});
-				}
+				// Note that in the loop below we count the current field, as well
+				// as any other fields in the same namespace...
+				_.each($scope.$parent.job_config[namespace], function (setting, property_name) {
+					if (setting['value'] == selected_input_field) {
+						count += 1;
+					}
+				});
+				$log.debug('Count for', selected_input_field, 'is', count);
 				return count;
 			}
 			
