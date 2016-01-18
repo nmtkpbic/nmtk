@@ -32,9 +32,10 @@
 define(['underscore',
         'text!configureErrorsServerTemplate',
         'text!configureErrorsClientTemplate',
-        'text!cloneConfigTemplate'], function (_, configureErrorsServerTemplate,
+        'text!cloneConfigTemplate',
+        'text!duplicateErrorTemplate'], function (_, configureErrorsServerTemplate,
         		configureErrorsClientTemplate,
-        		cloneConfigTemplate) {	
+        		cloneConfigTemplate, duplicateErrorTemplate) {	
 	"use strict";
 	var controller=['$scope', '$routeParams', '$location', '$modal', '$log',
 		/*
@@ -560,6 +561,23 @@ define(['underscore',
 					return true; // If not specified the default is required
 				}
 				return property.required;
+			}
+			
+			
+			$scope.notifyDuplicate=function (namespace, property) {
+				var usage_count=$scope.fieldUseCount(namespace, 
+						$scope.$parent.job_config[namespace][property]['value']);
+				if (usage_count > 1) {
+					var opts = {
+						    template: duplicateErrorTemplate, // OR: templateUrl: 'path/to/view.html',
+						    controller: ['$scope','$modalInstance', function ($scope, $modalInstance) {
+											$scope.close=function () {
+												$modalInstance.close();
+											}
+										}]
+						  };
+					var d=$modal.open(opts);
+				}
 			}
 			
 			/* I had this in a custom directive before, but the reality is that

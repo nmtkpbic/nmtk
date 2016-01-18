@@ -89,6 +89,7 @@ require.config({
 		, "ColorRampSelectionTemplate": "../templates/wms_colorramp_selection_modal.html" // Template for choosing a color ramp.
 		, "JobStatusHistoryTemplate": "../templates/job_status_history_modal.html" // Template for job status history
 		, "JobMessageTemplate": "../templates/job_message_modal.html" // Template for job status messages
+		, "duplicateErrorTemplate": "../templates/duplicate_error_modal.html" // Modal template for duplicate fields in job config.
 
 	}
 	, shim: {
