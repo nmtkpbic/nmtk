@@ -175,6 +175,14 @@ define(['jquery'
 					            }
 					        });
 					    }
+					}]).filter('range', [function() {
+						  return function(input, min, max, step) {
+							    min = parseInt(min); //Make string input int
+							    max = parseInt(max);
+							    for (var i=min; i<=max; i+=step)
+							      input.push(i);
+							    return input;
+							  };
 					}]).filter('addUsageClass', ['$log', function($log) {
 					  return function(curr_property, namespace, field, scope) {
 						    var i=-1;
@@ -288,6 +296,17 @@ define(['jquery'
 						this.setRampSettings =function (setting) {
 							config.ramp=setting;
 							self.save();
+						}
+						this.setOpacity = function (opacity) {
+							config.opacity=opacity;
+							self.save();
+						}
+						this.getOpacity = function () {
+							if (config.opacity) {
+								return config.opacity;
+							} else {
+								return .7;
+							}
 						}
 						
 					}]);

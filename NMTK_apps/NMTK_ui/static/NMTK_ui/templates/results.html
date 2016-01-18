@@ -117,6 +117,9 @@
             <h1>Spatial {{data_file_tab_name}}</h1>
             <button class="navbar-right btn btn-xs btn-primary ic-right" 
                     ng-click="changeColors()">Change Colors</button>
+	            
+	            <select name="opacity" ng-change="updateOpacity()" style="width: 150px;" class="form-control navbar-right ic-right"
+	                    ng-model="opacity" ng-options="n/100 as (100-n)+'% Transparent' for n in [] | range:10:100:10"></select>
           </div> <!-- /widget-header -->
           <div class="widget-content">
             <!-- <div id="map" class="angular-leaflet-map"></div> -->

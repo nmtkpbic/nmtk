@@ -54,6 +54,7 @@ define([  'angular'
 			$scope.changeTab('datafile_view');
 			$scope.layercount=0;
 			$scope.preferences=preferences;
+			$scope.opacity=preferences.getOpacity();
 			/*
 			 * Filters will be specific for datafile or job, so here we will
 			 * actually store the filters and reset them if the results_uri
@@ -123,6 +124,8 @@ define([  'angular'
 					preferences.setRampSettings(result);
 				});
 			}
+			
+			
 			
 			$scope.advanced_filters=function () {
 				var opts = {
@@ -449,6 +452,7 @@ define([  'angular'
 				            visible: true,
 				            url: $scope.datafile_api.wms_url,
 				            layerOptions: { layers: $scope.datafile_api.layer,
+					            			opacity: $scope.opacity,
 				            				style_field: $scope.result_data['field'] || '',
 				                    		format: 'image/png',
 				                    		ramp: preferences.getRampSettings().ramp_id,
@@ -458,6 +462,8 @@ define([  'angular'
 				}
 			}
 			
+			
+			
 			var updateLegendGraphic=function () {
 				if ($scope.spatial) {
 					var url=$scope.datafile_api.wms_url;
@@ -466,6 +472,7 @@ define([  'angular'
             					style_field: $scope.result_data['field'] || '',
             					request: 'getLegendGraphic',
             					format: 'image/png',
+		            			opacity: preferences.getOpacity(),
             					ramp: preferences.getRampSettings().ramp_id,
             					reverse: preferences.getRampSettings().reverse,
             					transparent: true }
@@ -474,6 +481,14 @@ define([  'angular'
 					url = url + '?' + ret.join("&");
 					$scope.legend_url=url;
 				}
+			}
+			/*
+			 * When the user changes the opacity, update it in preferences
+			 * 
+			 */
+			$scope.updateOpacity=function () {
+				preferences.setOpacity($scope.opacity/100.0);
+				addResultWMS();
 			}
 			
 			$scope.updateMapComponents=function () {
