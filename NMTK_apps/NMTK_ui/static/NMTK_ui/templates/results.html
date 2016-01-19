@@ -119,7 +119,7 @@
                     ng-click="changeColors()">Change Colors</button>
 	            
 	            <select name="opacity" ng-change="updateOpacity()" style="width: 150px;" class="form-control navbar-right ic-right"
-	                    ng-model="opacity" ng-options="n/100 as (100-n)+'% Transparent' for n in [] | range:10:100:10"></select>
+	                    ng-model="opacity_percent" ng-options="n as 100-n + '% Transparent' for n in [] | range:0:100:10"></select>
           </div> <!-- /widget-header -->
           <div class="widget-content">
             <!-- <div id="map" class="angular-leaflet-map"></div> -->
@@ -150,9 +150,9 @@
         <div ng-show="spatial" class="widget stacked">
           <div class="widget-header">
             <span class="glyphicon glyphicon-picture"></span>
-            <h1 ><label  ng-if="datafile_api.geom_type != 'RASTER'"  for="style">Map Legend - styled by </label>
-                 <label  ng-if="datafile_api.geom_type == 'RASTER'"  for="style">Map Legend - Choose Band </label>
-                 <select id="style" ng-change="updateMapComponents()" ng-model="result_data.field" name="result_field" ng-options="field for field in fields">
+            <h1 ng-if="datafile_api.geom_type != 'RASTER'"  for="style">Map Legend - styled by </h1>
+            <h1  ng-if="datafile_api.geom_type == 'RASTER'"  for="style">Map Legend - Choose Band </h1>
+                 <select id="style" style="width: 150px;" class="form-control navbar-right ic-right" ng-change="updateMapComponents()" ng-model="result_data.field" name="result_field" ng-options="field for field in fields">
                    <option value=""></option>
                  </select>
             </h1>
