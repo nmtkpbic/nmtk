@@ -240,6 +240,14 @@ define(['jquery'
 								if (response.length) {
 									self.preferences=response[0]
 				            		config=JSON.parse(self.preferences.config);
+									/*
+									 * Handle the historic case when the opacity
+									 * was a single value for all geom types by
+									 * removing the old setting.
+									 */
+									if (! _.isObject(config.opacity)) {
+										delete config.opacity;
+									}
 									/* 
 									 * If the default config has keys that the
 									 * user config doesn't have, then update the
@@ -297,13 +305,18 @@ define(['jquery'
 							config.ramp=setting;
 							self.save();
 						}
-						this.setOpacity = function (opacity) {
-							config.opacity=opacity;
+						this.setOpacity = function (type, opacity) {
+							if (! config.opacity) {
+								config.opacity={};
+							} 
+							config.opacity[type]=opacity;
 							self.save();
 						}
-						this.getOpacity = function () {
-							if (config.opacity) {
-								return config.opacity;
+						this.getOpacity = function (type) {
+							if ((config.opacity) && config.opacity[type]) {
+								return config.opacity[type];
+							} else if (/line/i.test(type) || /point/i.test(type)) {
+								return 1;
 							} else {
 								return .7;
 							}

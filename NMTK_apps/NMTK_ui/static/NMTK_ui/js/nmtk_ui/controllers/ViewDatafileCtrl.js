@@ -54,7 +54,6 @@ define([  'angular'
 			$scope.changeTab('datafile_view');
 			$scope.layercount=0;
 			$scope.preferences=preferences;
-			$scope.opacity_percent=Math.round(preferences.getOpacity()*100);
 			/*
 			 * Filters will be specific for datafile or job, so here we will
 			 * actually store the filters and reset them if the results_uri
@@ -489,7 +488,7 @@ define([  'angular'
 			$scope.updateOpacity=function () {
 				$scope.opacity=$scope.opacity_percent/100
 				$log.debug('Setting opacity to', $scope.opacity);
-				preferences.setOpacity($scope.opacity);
+				preferences.setOpacity($scope.datafile_api.geom_type, $scope.opacity);
 				addResultWMS();
 			}
 			
@@ -794,6 +793,7 @@ define([  'angular'
 			var process_data=function () {
 				if ($scope.datafile_api.geom_type) {
 					$scope.bounds=getBounds($scope.datafile_api.bbox);
+					$scope.opacity_percent=Math.round(preferences.getOpacity($scope.datafile_api.geom_type)*100);
 					$scope.spatial=true;
 				} else {
 					$scope.spatial=false;
