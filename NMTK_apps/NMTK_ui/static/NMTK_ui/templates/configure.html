@@ -47,7 +47,7 @@
 							 ng-init="setFieldDefaultValue(config.namespace, property.name)"
 							 ng-change="notifyDuplicate(config.namespace, property.name)"
 							 ng-disabled="disabled" class="form-control" ng-class="{'duplicate': fieldUseCount(config.namespace, $parent.job_config[config.namespace][property.name]['value']) > 1}"
-                             ng-options="o.value|addUsageClass:config.namespace:property.name:this as o.label for o in file_fields[config.namespace]">
+                             ng-options="o.value as o.label for o in file_fields[config.namespace]">
 							 <option value=""></option></select>
                      <input ng-if="$parent.job_config[config.namespace][property.name]['type'] != 'property' && ! validation[config.namespace][property.name]['choices'] && validation[config.namespace][property.name]['type']!='boolean'"  
                             size="10" type="text" ng-model="$parent.job_config[config.namespace][property.name]['value']" 
