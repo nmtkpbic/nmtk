@@ -83,10 +83,11 @@ textarea {
 /* 
  * Alter the default form controls
  */
+ /*
 .form-control {
 	height: 24px;
 	font-size: 12px;
-}
+} */
 
 /*
  * Style the duplicate fields in select boxes in the NMTK config UI.

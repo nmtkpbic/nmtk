@@ -487,7 +487,6 @@ define([  'angular'
 			 */
 			$scope.updateOpacity=function () {
 				$scope.opacity=$scope.opacity_percent/100
-				$log.debug('Setting opacity to', $scope.opacity);
 				preferences.setOpacity($scope.datafile_api.geom_type, $scope.opacity);
 				addResultWMS();
 			}
