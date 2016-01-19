@@ -368,7 +368,7 @@ define(['underscore',
 				var count=0; // Don't default to 1, since we'll count this field again!
 				// Note that in the loop below we count the current field, as well
 				// as any other fields in the same namespace...
-				if (setting['value']) {
+				if (selected_input_field) {
 					_.each($scope.$parent.job_config[namespace], function (setting, property_name) {
 						if (setting['value'] == selected_input_field) {
 							count += 1;
