@@ -1,7 +1,7 @@
 <script type="text/ng-template" id="config.html">
      <!-- Handle the case where we are getting a file whose inputs we use for 
           data mappings -->
-     <div ng-if="config.type == 'File'" class="col-md-12" >
+     <div ng-if="namespacePrerequisites(config.namespace) && config.type == 'File'" class="col-md-12" >
        <div class="widget stacked">
          <div ng-click="toggleSection(config.namespace)"  class="widget-header">
            <span class="glyphicon glyphicon-edit"></span>
@@ -102,7 +102,7 @@
      </div><!-- /col-md-12 -->
 
   <!--  Handle the case where the user needs to enter configuration data -->
-     <div ng-if="config.type == 'ConfigurationPage'" class="col-md-12" >
+     <div ng-if="namespacePrerequisites(config.namespace) && config.type == 'ConfigurationPage'" class="col-md-12" >
        <div class="widget stacked">
          <div ng-click="toggleSection(config.namespace)"  class="widget-header">
            <span class="glyphicon glyphicon-edit"></span>

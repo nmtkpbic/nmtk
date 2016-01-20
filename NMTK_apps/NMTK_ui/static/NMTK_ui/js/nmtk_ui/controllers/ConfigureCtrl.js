@@ -360,6 +360,42 @@ define(['underscore',
 			});
 			
 			/*
+			 * If the job configuration contains a "display_if_true" setting
+			 * then this namespace will only be displayed if the pre-requisite
+			 * namespace is set. 
+			 * 
+			 */
+			
+			$scope.namespacePrerequisites=function (namespace) {
+				/*
+				 * Locate the namespace configuration in the tool config, so
+				 * we can examine it...
+				 */
+				var namespace_config=_.find($scope.tool_data.config.input, function (row) {
+					return (row.namespace == namespace);
+				});
+				/*
+				 * If we don't find it, or if display_if_true isn't set, then always display
+				 * it, since in that case the default is true.
+				 */
+				if (_.isUndefined(namespace_config) || _.isUndefined(namespace_config.display_if_true)) {
+					return true;
+				} else {
+					/*
+					 * If the value is set, then check on the status of the
+					 * pre-requisite namespace - if it's filled in, then
+					 * we can go ahead and display it.
+					 */
+					if ($scope.$parent.job_config_files[namespace_config.display_if_true]) {
+						return true;
+					} else {
+						return false;
+					}
+				}
+			}
+			
+			
+			/*
 			 * A function that, when given a field from a file, returns
 			 * the number of times the field is used as input parameters 
 			 * 			
