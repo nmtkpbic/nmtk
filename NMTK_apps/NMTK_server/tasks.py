@@ -641,8 +641,8 @@ def importDataFile(datafile, job_id=None):
         # Get the list of actual fields in the input datafile...
         available_fields = loader.info.fields
         # eliminate fields that are not in the list of output fields.
-        logger.info('Desired field order is: %s', desired_field_order)
-        logger.info('Loader provided field order is: %s', available_fields)
+        logger.debug('Desired field order is: %s', desired_field_order)
+        logger.debug('Loader provided field order is: %s', available_fields)
         ordered_fields = [field for field in desired_field_order
                           if field in available_fields]
         # Add in any fields using the order first, then following with
@@ -651,7 +651,7 @@ def importDataFile(datafile, job_id=None):
         datafile.fields = list(unique_everseen(
             desired_field_order + available_fields))
 
-        logger.info('Final field order is %s', datafile.fields)
+        logger.debug('Final field order is %s', datafile.fields)
         # Create an empty file using ContentFile, then we can overwrite it
         # with the desired GeoJSON data.
         if loader.is_spatial:

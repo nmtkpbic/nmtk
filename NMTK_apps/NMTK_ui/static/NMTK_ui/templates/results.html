@@ -118,7 +118,7 @@
             <button class="navbar-right btn btn-xs btn-primary ic-right" 
                     ng-click="changeColors()">Change Colors</button>
 	            
-	            <select name="opacity" ng-change="updateOpacity()" style="width: 150px;" class="form-control navbar-right ic-right"
+	            <select name="opacity" ng-change="updateOpacity()" style="width: 150px;" class="navbar-right ic-right"
 	                    ng-model="opacity_percent" ng-options="n as 100-n + '% Transparent' for n in [] | range:0:100:10"></select>
           </div> <!-- /widget-header -->
           <div class="widget-content">
@@ -152,7 +152,7 @@
             <span class="glyphicon glyphicon-picture"></span>
             <h1 ng-if="datafile_api.geom_type != 'RASTER'"  for="style">Map Legend - styled by </h1>
             <h1  ng-if="datafile_api.geom_type == 'RASTER'"  for="style">Map Legend - Choose Band </h1>
-                 <select id="style" style="width: 150px;" class="form-control navbar-right ic-right" ng-change="updateMapComponents()" ng-model="result_data.field" name="result_field" ng-options="field for field in fields">
+                 <select id="style" style="width: 150px;" class="navbar-right ic-right" ng-change="updateMapComponents()" ng-model="result_data.field" name="result_field" ng-options="field for field in fields">
                    <option value=""></option>
                  </select>
             </h1>
