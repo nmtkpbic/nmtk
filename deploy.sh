@@ -54,7 +54,8 @@ if [ -d venv/bin ]; then
 elif [ -d venv/scripts ]; then
   source venv/scripts/activate
 fi
-
+echo "Updating/Installing required python modules."
+pip install --upgrade -r requirements.txt|grep -v up-to-date
 if [ -f .nmtk_config ]; then
   source .nmtk_config
 fi

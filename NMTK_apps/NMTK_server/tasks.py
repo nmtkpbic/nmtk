@@ -34,6 +34,7 @@ from osgeo import ogr
 import imp
 import datetime
 from django.contrib.gis.geos import GEOSGeometry
+from more_itertools import unique_everseen
 import tempfile
 
 #from django.core.serializers.json import DjangoJSONEncoder
@@ -593,7 +594,64 @@ def importDataFile(datafile, job_id=None):
             datafile.status = datafile.IMPORTED
         else:
             datafile.status = datafile.IMPORT_RESULTS_COMPLETE
-        datafile.fields = loader.info.fields
+
+        # We need to merge these things..
+        desired_field_order = datafile.fields or []
+        # Now that we have a desired field order from the model, we can
+        # go the next step of getting job data.
+        job = None
+        if job_id:
+            try:
+                job = models.Job.objects.select_related('tool').get(pk=job_id)
+            except Exception as e:
+                logger.debug('Failed to get job with id of %s', job_id,
+                             exc_info=True)
+
+        # From the job data we can get the tool config:
+        config_field_list = config_namespace = None
+        # Get the list of field names, with the unique ones first...
+        if job:
+            tool_config = job.tool.toolconfig.json_config
+            # there might be multiple input files, but we'll use the first
+            # one as the basis for format for the output, since we don't
+            # really have a better option.  The tool developer ought to
+            # specify a list of fields in the output if they don't like
+            # this behaviour, since this is just a "default" for the order.
+            for t in job.tool.toolconfig.json_config['input']:
+                if t.get('type', '').lower() == 'file':
+                    config_namespace = t.get('name', None)
+                    if config_namespace:
+                        config_field_list = [f['name']
+                                             for f in t.get('elements', []) if
+                                             isinstance(f.get('name', None),
+                                                        (str, unicode))]
+                    break
+            # Now that we have a list of fields from the tool configuration,
+            # get the input fields from the file for each of the tool fields,
+            # since we want that to be the default order of output.
+            if config_field_list:
+                job_config = job.config[config_namespace]
+                for f in config_field_list:
+                    if (f in job_config and
+                            job_config[f].get('type', None) == 'property' and
+                            isinstance(job_config[f].get('value', None),
+                                       (str, unicode))):
+                        desired_field_order.append(job_config[f]['value'])
+
+        # Get the list of actual fields in the input datafile...
+        available_fields = loader.info.fields
+        # eliminate fields that are not in the list of output fields.
+        logger.info('Desired field order is: %s', desired_field_order)
+        logger.info('Loader provided field order is: %s', available_fields)
+        ordered_fields = [field for field in desired_field_order
+                          if field in available_fields]
+        # Add in any fields using the order first, then following with
+        # any fields not in the ordered list, but in the output list
+        # of fields.
+        datafile.fields = list(unique_everseen(
+            desired_field_order + available_fields))
+
+        logger.info('Final field order is %s', datafile.fields)
         # Create an empty file using ContentFile, then we can overwrite it
         # with the desired GeoJSON data.
         if loader.is_spatial:
@@ -702,9 +760,8 @@ def importDataFile(datafile, job_id=None):
                 except Exception as e:
                     logger.exception('Failed to get range for model %s',
                                      datafile.pk)
-        if job_id:
+        if job:
             try:
-                job = models.Job.objects.get(pk=job_id)
                 # There might be multiple results files from this job, so we will only
                 # mark the job as complete if all the results files are
                 # processed.

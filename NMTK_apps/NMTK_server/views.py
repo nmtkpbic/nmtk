@@ -211,6 +211,23 @@ def processResults(request):
         result_field = config['results']['field']
         result_field_units = config['results'].get('units', None)
 
+        # the optional ordered list of fields, we require a list
+        # of field names, and use a default of nothing if such a list isn't
+        # provided.
+        field_order = config['results'].get('field_order', None)
+        if field_order is None:
+            field_order = []
+        elif not isinstance(field_order, (list, tuple),):
+            logger.error('Result field_order should be a list or ' +
+                         'tuple, not %s: %s', type(
+                             field_order),
+                         str(field_order))
+            field_order = []
+        logger.debug('Default field order is %s', field_order)
+        # Now we have the field order provided by the tool itself
+        # which we need to (eventually) augment with the fields from
+        # the job itself.
+
         result_file = config['results']['file']
 
         if config['results']['file'] not in request.FILES:
@@ -247,6 +264,7 @@ def processResults(request):
                                      content_type=request.FILES[
                                          namespace].content_type,
                                      type=models.DataFile.JOB_RESULT,
+                                     fields=field_order,
                                      result_field=field,
                                      result_field_units=result_field_units)
             filename = os.path.basename(request.FILES[namespace].name)
