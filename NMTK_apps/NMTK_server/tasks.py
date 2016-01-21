@@ -550,6 +550,7 @@ def cleanup_mapfiles():
 def importDataFile(datafile, job_id=None):
     from NMTK_server import models
     datafile.status_message = None
+    job = None
     try:
         loader = NMTKDataLoader(datafile.file.path,
                                 srid=datafile.srid)
@@ -599,7 +600,6 @@ def importDataFile(datafile, job_id=None):
         desired_field_order = datafile.fields or []
         # Now that we have a desired field order from the model, we can
         # go the next step of getting job data.
-        job = None
         if job_id:
             try:
                 job = models.Job.objects.select_related('tool').get(pk=job_id)
@@ -802,14 +802,16 @@ def importDataFile(datafile, job_id=None):
             datafile.status = datafile.IMPORT_RESULTS_FAILED
         datafile.status_message = "%s" % (e,)
         if job_id:
-            logger.debug('Job id is %s', job_id)
             try:
-                job = models.Job.objects.get(pk=job_id)
+                if not job:
+                    job = models.Job.objects.get(pk=job_id)
                 job.status = job.POST_PROCESSING_FAILED
+                logger.info('Set post processing to failed for job %s', job.pk)
             except:
-                logger.exception('Failed to update job status to failed?!!')
+                logger.error(
+                    'Failed to update job status to failed?!!', exc_info=True)
 
-    if job_id:
+    if job:
         job.save()
     # Now we need to create the spatialite version of this thing.
     datafile.save()

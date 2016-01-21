@@ -391,7 +391,7 @@ class Job(models.Model):
                       (TOOL_FAILED, 'Tool Failed to Accept Job',),
                       (POST_PROCESSING, 'Post-processing results',),
                       (POST_PROCESSING_FAILED,
-                       'Post-processing of results failed'),
+                       'Failed to process results'),
                       (COMPLETE, 'Complete'),
                       )
 
