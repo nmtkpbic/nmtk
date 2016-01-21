@@ -794,7 +794,7 @@ def importDataFile(datafile, job_id=None):
             except:
                 logger.exception('Failed to update job status to complete?!!')
     except Exception as e:
-        logger.exception('Failed import process!')
+        logger.debug('Failed import process!', )
         datafile.processed_file = None
         if not job_id:
             datafile.status = datafile.IMPORT_FAILED
@@ -802,6 +802,7 @@ def importDataFile(datafile, job_id=None):
             datafile.status = datafile.IMPORT_RESULTS_FAILED
         datafile.status_message = "%s" % (e,)
         if job_id:
+            logger.debug('Job id is %s', job_id)
             try:
                 job = models.Job.objects.get(pk=job_id)
                 job.status = job.POST_PROCESSING_FAILED
