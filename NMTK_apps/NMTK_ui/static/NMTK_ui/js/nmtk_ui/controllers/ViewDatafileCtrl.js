@@ -50,10 +50,11 @@ define([  'angular'
 	        
 		function ($scope, $routeParams, $location, $log, $http, $timeout, 
 				  leafletData, Restangular, $q, $modal, preferences) {
-			$scope.loginCheck(true);
+			$scope.loginCheck(true); 
 			$scope.changeTab('datafile_view');
 			$scope.layercount=0;
 			$scope.preferences=preferences;
+			$scope.opacity=preferences.getOpacity(); 
 			/*
 			 * Filters will be specific for datafile or job, so here we will
 			 * actually store the filters and reset them if the results_uri
@@ -471,7 +472,6 @@ define([  'angular'
             					style_field: $scope.result_data['field'] || '',
             					request: 'getLegendGraphic',
             					format: 'image/png',
-		            			opacity: preferences.getOpacity(),
             					ramp: preferences.getRampSettings().ramp_id,
             					reverse: preferences.getRampSettings().reverse,
             					transparent: true }
