@@ -247,13 +247,16 @@ define(['underscore'
 						});
 						return promise;
 					}
-					$scope.loginCheck=function () {
+					$scope.loginCheck=function (required) {
 						first_login_complete.promise.then(function () {
 							if (! $scope.user.is_active ) {
 								var path=$location.path();
-								$location.path('/');
+//								$location.path('/');
 								$log.info('Running logincheck w/redirect to', path);
-								$scope.login({'redirect': path});
+								if (required) {
+									$location.path('/');
+									$scope.login({'redirect': path});
+								}
 							}
 						});
 					}

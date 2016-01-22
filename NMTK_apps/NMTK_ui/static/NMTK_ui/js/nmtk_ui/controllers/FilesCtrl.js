@@ -40,7 +40,7 @@ define(['underscore'
 	                '$q', 'Restangular','$window',
         function ($scope, $timeout, $route, $modal, $location, $log, $q,
         		  Restangular, $window) {
-			$scope.loginCheck();
+			$scope.loginCheck(true);
 			$scope.enableRefresh(['datafile']);
 			$scope.changeTab('files');
 			

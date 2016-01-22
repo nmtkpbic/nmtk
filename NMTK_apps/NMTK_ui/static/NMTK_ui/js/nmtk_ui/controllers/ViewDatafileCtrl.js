@@ -50,7 +50,7 @@ define([  'angular'
 	        
 		function ($scope, $routeParams, $location, $log, $http, $timeout, 
 				  leafletData, Restangular, $q, $modal, preferences) {
-			$scope.loginCheck();
+			$scope.loginCheck(true);
 			$scope.changeTab('datafile_view');
 			$scope.layercount=0;
 			$scope.preferences=preferences;

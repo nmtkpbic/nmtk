@@ -48,7 +48,7 @@ define(['underscore',
 		function ($scope, $routeParams, $location, $modal, $log) {
 			var FLOAT_REGEXP = /^\-?\d+((\.)\d+)?$/;
 			var INTEGER_REGEXP= /^\-?\d+$/;
-			$scope.loginCheck();
+			$scope.loginCheck(true);
 			var jobid=$routeParams.jobid;
 			if (typeof $scope.$parent.job_uri === 'undefined' || 
 			    ($scope.$parent.job_uri != $location.path())) {
