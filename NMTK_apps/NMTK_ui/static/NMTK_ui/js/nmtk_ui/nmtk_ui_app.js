@@ -48,6 +48,7 @@ define(['jquery'
         , 'angular-cookies'
         , 'angular-bootstrap'
         , 'bootstrap-slider'
+        , 'ng-droplet'
         ],
 		function ($, angular, _, controllers, deleteModalTemplate,
 				  resultsTemplate, jobTemplate, filesTemplate, configureTemplate,
@@ -64,7 +65,8 @@ define(['jquery'
 				 */
 				
 				var nmtk_app=angular.module('nmtk', ['ui.bootstrap', 'restangular', 'ngGrid', 'ngCookies',
-				                                     'leaflet-directive', 'monospaced.elastic']).
+				                                     'leaflet-directive', 'monospaced.elastic',
+				                                     'ngDroplet']).
 				   config(['RestangularProvider', 
 					function(RestangularProvider) {
 					  var api_path=CONFIG.api_path;

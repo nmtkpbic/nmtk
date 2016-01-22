@@ -36,12 +36,9 @@ require.config({
 		"json2": "lib/json2" // Create a JSON object if one does not exist.
 		, "html5shiv": "lib/html5shiv" // For IE 8 and earlier, this adds some HTML5 elements
 		/* End IE backwards compatibility components */
-		/* Required for the blueimp jquery file uploader (drag and drop file upload) */
-		, "jquery": "lib/jquery" // Used for the file upload drag-and-drop stuff - and nothing else.
-		, "jquery.ui.widget": "lib/jquery.ui.widget" // UI Widget needed for file upload
-		, "jquery-iframe-transport": "lib/jquery.iframe-transport" // Used for file upload
+		, "jquery": "lib/jquery" // Used by ng-grid.
+		, "ng-droplet": "lib/ng-droplet" // ng-droplet used for file upload
 		, "angular-elastic": "lib/angular-elastic" // Used for auto-resize of textarea fields
-		, "jquery-fileupload": "lib/jquery.fileupload" // Used for file upload
 		/* End drag-and-drop upload required files */
 		, "browserdetect": "lib/browserdetect" // Might not be needed - detect browser version
 		, "underscore": "lib/underscore" // Underscore.js
@@ -97,10 +94,6 @@ require.config({
 		, "leaflet": { exports: 'L' }
 	    , "angular": { exports: 'angular',
 	    	           deps: ['jquery']} // Note: Jquery must load first so we don't use jqlite
-	    , "jquery.ui.widget": ["jquery"]
-	    , "jquery-iframe-transport": ["jquery", "jquery-fileupload",
-	                                  "jquery.ui.widget"]
-	    , "jquery-fileupload": ["jquery", "jquery.ui.widget"]
 	    , "angular-leaflet": ["angular", "leaflet"]
 	    , "angular-elastic": ["angular"]
 	    , "restangular": ["angular"]
@@ -124,8 +117,7 @@ require.config({
 // scope so we need only require them here to make sure they are loaded.
 // then we need not ever call them again...
 require(['require', 'jquery','html5shiv','json2',
-         'jquery.ui.widget','jquery-fileupload','respond',
-         'jquery-iframe-transport', 'browserdetect', 
+        'respond', 'browserdetect', 
          'ng-grid-flexible-height', 'ng-grid-layout'], 
      function (require) {	
   	    require(['nmtk_ui_app'], function (nmtk_ui_app) {
