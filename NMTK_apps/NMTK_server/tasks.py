@@ -604,12 +604,14 @@ def importDataFile(datafile, job_id=None):
             try:
                 job = models.Job.objects.select_related('tool').get(pk=job_id)
             except Exception as e:
-                logger.debug('Failed to get job with id of %s', job_id,
+                logger.error('Failed to get job with id of %s', job_id,
                              exc_info=True)
 
         # From the job data we can get the tool config:
         config_field_list = config_namespace = None
         # Get the list of field names, with the unique ones first...
+        tool_config_field_units = {}
+        job_config_field_units = {}
         if job:
             tool_config = job.tool.toolconfig.json_config
             # there might be multiple input files, but we'll use the first
@@ -625,6 +627,16 @@ def importDataFile(datafile, job_id=None):
                                              for f in t.get('elements', []) if
                                              isinstance(f.get('name', None),
                                                         (str, unicode))]
+                        # If there are units, then we store the units
+                        # here, so we can use that with the field data.
+                        for f in t.get('elements', []):
+                            if 'units' in f:
+                                tool_config_field_units[
+                                    f['name']] = f.get('units', None)
+                            elif 'description' in f:
+                                tool_config_field_units[f['name']] = f.get(
+                                    'description', None)
+
                     break
             # Now that we have a list of fields from the tool configuration,
             # get the input fields from the file for each of the tool fields,
@@ -632,11 +644,24 @@ def importDataFile(datafile, job_id=None):
             if config_field_list:
                 job_config = job.config[config_namespace]
                 for f in config_field_list:
-                    if (f in job_config and
-                            job_config[f].get('type', None) == 'property' and
-                            isinstance(job_config[f].get('value', None),
-                                       (str, unicode))):
-                        desired_field_order.append(job_config[f]['value'])
+                    if f in job_config:
+                        if job_config[f].get('type', None) == 'property':
+                            if isinstance(job_config[f].get('value', None),
+                                          (str, unicode)):
+                                desired_field_order.append(
+                                    job_config[f]['value'])
+                            # Map the tool config field (f) to the selected data file field
+                            # (job_config[f]['value'] so we can grab the units from the
+                            # tool config.
+                            if datafile.units and job_config[f] in datafile.units:
+                                job_config_field_units[
+                                    job_config[f]['value']] = datafile.units.get(f, '')
+                            # If the tool didn't give us the units to use for fields
+                            # we can fall back to the tool config to see what they
+                            # ought to be.
+                            elif f in tool_config_field_units:
+                                job_config_field_units[
+                                    job_config[f]['value']] = tool_config_field_units.get(f, '')
 
         # Get the list of actual fields in the input datafile...
         available_fields = loader.info.fields
@@ -726,6 +751,10 @@ def importDataFile(datafile, job_id=None):
                                 'field_name': field_name,
                                 'distinct': values_aggregates[
                                     '{0}__count'.format(field_name)]}
+                            # Add the units from the config to the data.
+                            if db_column in job_config_field_units:
+                                field_attributes[db_column][
+                                    'units'] = job_config_field_units[db_column]
                             if field_attributes[db_column]['distinct'] < 10:
                                 distinct_values = list(
                                     qs.order_by().values_list(
@@ -757,6 +786,7 @@ def importDataFile(datafile, job_id=None):
                                     field_attributes[db_column]['max'] = caster(
                                         field_attributes[db_column]['max'])
                         datafile.field_attributes = field_attributes
+                        datafile.units = job_config_field_units
                 except Exception as e:
                     logger.exception('Failed to get range for model %s',
                                      datafile.pk)
@@ -794,7 +824,7 @@ def importDataFile(datafile, job_id=None):
             except:
                 logger.exception('Failed to update job status to complete?!!')
     except Exception as e:
-        logger.debug('Failed import process!', )
+        logger.error('Failed import process!', exc_info=True)
         datafile.processed_file = None
         if not job_id:
             datafile.status = datafile.IMPORT_FAILED

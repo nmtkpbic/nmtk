@@ -209,7 +209,21 @@ def processResults(request):
                 job=request.NMTK_JOB).save()
             return HttpResponseServerError('Invalid result format')
         result_field = config['results']['field']
-        result_field_units = config['results'].get('units', None)
+        result_field_units = field_units = None
+
+        # field units can be an object also, in which case it's really
+        # a set of fields and their units:
+        if 'units' in config['results']:
+            if isinstance(config['results']['units'], (str, unicode)):
+                result_field_units = config['results']['units']
+            else:
+                try:
+                    result_field_units = config['results'][
+                        'units'].get(result_field, None)
+                    field_units = config['results']['units']
+                except Exception as e:
+                    logger.debug('Failed to parse field units' +
+                                 ', expected an object: %s', e)
 
         # the optional ordered list of fields, we require a list
         # of field names, and use a default of nothing if such a list isn't
@@ -265,6 +279,7 @@ def processResults(request):
                                          namespace].content_type,
                                      type=models.DataFile.JOB_RESULT,
                                      fields=field_order,
+                                     units=field_units,
                                      result_field=field,
                                      result_field_units=result_field_units)
             filename = os.path.basename(request.FILES[namespace].name)

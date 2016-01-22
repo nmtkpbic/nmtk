@@ -612,6 +612,7 @@ class DataFile(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=False)
     fields = JSONField(null=True, blank=True)
+    units = JSONField(null=True, blank=True)
     field_attributes = JSONField(null=True, blank=True)
     deleted = models.BooleanField(default=False)
     result_field = models.CharField(null=True, blank=True, max_length=32)
