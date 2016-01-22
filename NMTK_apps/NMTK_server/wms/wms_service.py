@@ -103,8 +103,10 @@ def handleWMSRequest(request, datafile):
         reverse = False
     ramp = get_uc.get('RAMP', 0)
     attributes = datafile.field_attributes
-    if style_field == datafile.result_field:
-        legend_units = datafile.result_field_units
+    logger.debug('Units is %s', datafile.units)
+    logger.debug('Style field is %s', style_field)
+    if datafile.units and style_field in datafile.units:
+        legend_units = datafile.units[style_field]
     if style_field and style_field not in attributes:
         logger.error(
             'Field specified (%s) does not exist (%s): %s.',

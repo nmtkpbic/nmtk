@@ -208,15 +208,17 @@ def processResults(request):
                 timestamp=timezone.now(),
                 job=request.NMTK_JOB).save()
             return HttpResponseServerError('Invalid result format')
-        result_field = config['results']['field']
+        result_field = config['results'].get('field', None)
         result_field_units = field_units = None
-
+        field_units = {}
         # field units can be an object also, in which case it's really
         # a set of fields and their units:
         if 'units' in config['results']:
-            if isinstance(config['results']['units'], (str, unicode)):
+            if result_field and isinstance(config['results'].get('units', None),
+                                           (str, unicode)):
                 result_field_units = config['results']['units']
-            else:
+                field_units[result_field] = result_field_units
+            elif 'units' in config['results']:
                 try:
                     result_field_units = config['results'][
                         'units'].get(result_field, None)

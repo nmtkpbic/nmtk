@@ -611,7 +611,7 @@ def importDataFile(datafile, job_id=None):
         config_field_list = config_namespace = None
         # Get the list of field names, with the unique ones first...
         tool_config_field_units = {}
-        job_config_field_units = {}
+        job_config_field_units = datafile.units or {}
         if job:
             tool_config = job.tool.toolconfig.json_config
             # there might be multiple input files, but we'll use the first
@@ -653,7 +653,7 @@ def importDataFile(datafile, job_id=None):
                             # Map the tool config field (f) to the selected data file field
                             # (job_config[f]['value'] so we can grab the units from the
                             # tool config.
-                            if datafile.units and job_config[f] in datafile.units:
+                            if datafile.units and f in datafile.units:
                                 job_config_field_units[
                                     job_config[f]['value']] = datafile.units.get(f, '')
                             # If the tool didn't give us the units to use for fields
