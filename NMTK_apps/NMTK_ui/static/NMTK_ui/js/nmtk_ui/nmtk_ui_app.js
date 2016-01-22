@@ -66,6 +66,7 @@ define(['jquery'
 				
 				var nmtk_app=angular.module('nmtk', ['ui.bootstrap', 'restangular', 'ngGrid', 'ngCookies',
 				                                     'leaflet-directive', 'monospaced.elastic',
+				                                     'ui.bootstrap.progressbar',
 				                                     'ngDroplet']).
 				   config(['RestangularProvider', 
 					function(RestangularProvider) {

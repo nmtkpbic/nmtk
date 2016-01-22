@@ -40,6 +40,7 @@
         </div><!-- /widget stacked -->
       </div><!-- /span12 -->
     </div><!-- /row -->
+    
     <div droplet ng-model="upload_files" class="row">
       <div class="col-md-12">
         <div class="widget stacked">
@@ -48,26 +49,24 @@
             <h1>Add New Files</h1>
             <span class="add-files">
             	<button class="navbar-right btn btn-xs btn-primary ic-right">Upload File</button>
-            	<droplet-upload-single class="pull-right" ng-model="upload_files"></droplet-upload-single>
+            	<droplet-upload-multiple class="pull-right" ng-model="upload_files"></droplet-upload-multiple>
 			</span>
           </div> <!-- /widget-header -->
           <div class="widget-content">
-            
-            <div ng-hide="(browser_name=='Explorer' || views.classic_file_upload)" class="fileUploadView well">
-	          <form action="{{upload_uri}}" id="fileUpload" method="POST" enctype="multipart/form-data">
-		         <div class="progress progress-success progress-striped active" id="progress">
-		           <div class="bar" style="width: 0%;"></div>
-		         </div> <!-- /progress -->
+            <div class="fileUploadView well">
+		         
 		        <h4 class="text-center">Drag one or more data files here to add them to your list of files.</h4>
 		        <p class="text-center">(Files will upload one at a time, with a progress bar reflecting upload status.)</p>
-	          </form>
 	        </div> <!-- /fileUploadView -->
-	        
-	        
           </div> <!-- /widget-content -->
         </div><!-- /widget stacked -->
       </div><!-- /span12 -->
     </div><!-- /row -->
+    <div class="progress progress-success progress-striped active" id="progress">
+		           <div class="progress-bar" ng-style="progressBarStyle">
+		           	<span class="sr-only">{{percent}}% Complete</span>
+		           </div>
+		         </div> <!-- /progress -->
     <div ng-hide="datafile_cache.length" class="row">
       <div class="col-md-12">
         <div class="widget stacked">

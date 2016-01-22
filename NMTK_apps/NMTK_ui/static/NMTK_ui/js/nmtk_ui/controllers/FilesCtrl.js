@@ -58,9 +58,13 @@ define(['underscore'
 			/*
 			 * when a file is added we can do the upload immediately
 			 */
+			$scope.percent=0;
+			$scope.progressBarStyle={width: '0%'}
 			$scope.$on('$dropletFileAdded', function (v) {
 //				$timeout(function () {
-					_.each($scope.upload_files.getFiles(), function (data) {
+				$scope.uploading = true;
+					// Only iterate over the non-deleted files, since they haven't been uploaded yet.
+					_.each($scope.upload_files.getFiles($scope.upload_files.FILE_TYPES.VALID), function (data) {
 						var formData = new $window.FormData();
 						var deferred = $q.defer();
 						formData.append('file', data.file)
@@ -73,15 +77,25 @@ define(['underscore'
 						httpRequest.setRequestHeader('X-CSRFToken',
 								$scope.csrftoken);
 						httpRequest.upload.onprogress = function (event) {
-							var requestLength = data.size;
-							$scope.$apply(function () {
+							var requestLength = data.file.size;
+							$scope.$apply(function (scope) {
 								if (event.lengthComputable) {
-									var percent = Math.min(100, Math.round(event.loaded/requestLength) * 100)
-									$log.info('Percent uploaded is', percent, '%');
+									scope.percent = Math.min(100, Math.round(100*(event.loaded/requestLength)))
+									$log.info('Percent uploaded is', scope.percent, '%');
+									$scope.progressBarStyle.width = scope.percent + '%';
+									if (scope.percent == 100) {
+										$timeout(function () {
+											$log.debug('Disabling display...')
+											scope.progressBarStyle.width = '0%';
+											scope.percent=0;
+										}, 1000)
+									}
 								}
 							});
 						}
 						httpRequest.send(formData);
+						/* Mark it as deleted, since it's been uploaded now. */
+						data.deleteFile();
 					});
 //				});
 			});
