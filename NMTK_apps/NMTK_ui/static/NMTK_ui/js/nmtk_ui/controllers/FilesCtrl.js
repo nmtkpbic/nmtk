@@ -88,6 +88,7 @@ define(['underscore'
 											$log.debug('Disabling display...')
 											scope.progressBarStyle.width = '0%';
 											scope.percent=0;
+											$scope.refreshData('datafile');
 										}, 1000)
 									}
 								}
