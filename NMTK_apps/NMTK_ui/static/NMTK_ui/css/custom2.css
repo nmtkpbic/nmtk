@@ -101,3 +101,12 @@ option .used {
 	color: #eee;
 }
 
+input.droplet-multiple, input.droplet-single {
+	position: relative;
+	font-size: 20px;
+	left: 90px;
+	z-index: 1001;
+	opacity: 0.00001;
+	cursor: pointer;
+}
+

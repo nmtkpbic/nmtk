@@ -100,6 +100,7 @@ require.config({
 	    , "angular-cookies": ["angular"]
 	    , "ng-grid": ["angular", "ng-grid-flexible-height", "ng-grid-layout"]
 	    , "angular-bootstrap": ["angular"]
+	    , "ng-droplet": ["angular"]
 	    , "bootstrap-slider": ["angular", "angular-bootstrap"]
 	    , "jquery": { exports: '$' }
 	}
