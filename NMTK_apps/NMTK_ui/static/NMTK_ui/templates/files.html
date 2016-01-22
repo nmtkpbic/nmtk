@@ -41,7 +41,7 @@
       </div><!-- /span12 -->
     </div><!-- /row -->
     
-    <div droplet ng-model="upload_files" class="row">
+    <div class="row">
       <div class="col-md-12">
         <div class="widget stacked">
           <div class="widget-header">
@@ -49,10 +49,10 @@
             <h1>Add New Files</h1>
             <span class="add-files">
             	<button class="navbar-right btn btn-xs btn-primary ic-right">Upload File</button>
-            	<droplet-upload-multiple class="pull-right" ng-model="upload_files"></droplet-upload-multiple>
+            	<droplet-upload-single ng-model="upload_files" class="pull-right"></droplet-upload-single>
 			</span>
           </div> <!-- /widget-header -->
-          <div class="widget-content">
+          <div droplet ng-model="upload_files" class="widget-content">
             <div class="fileUploadView well">
 		         
 		        <h4 class="text-center">Drag one or more data files here to add them to your list of files.</h4>
