@@ -653,13 +653,15 @@ def importDataFile(datafile, job_id=None):
                             # Map the tool config field (f) to the selected data file field
                             # (job_config[f]['value'] so we can grab the units from the
                             # tool config.
-                            if datafile.units and f in datafile.units:
+                            if (datafile.units and f in datafile.units and
+                                    'value' in job_config[f]):
                                 job_config_field_units[
                                     job_config[f]['value']] = datafile.units.get(f, '')
                             # If the tool didn't give us the units to use for fields
                             # we can fall back to the tool config to see what they
                             # ought to be.
-                            elif f in tool_config_field_units:
+                            elif (f in tool_config_field_units and
+                                  'value' in job_config[f]):
                                 job_config_field_units[
                                     job_config[f]['value']] = tool_config_field_units.get(f, '')
 
