@@ -20,22 +20,28 @@ def getBbox(long, lat, zoom_level, pixels=5):
     '''
     try:
         p = Point(long, lat, srid=4326)
-        logger.debug('Got point of %s', p.coords)
-        p.transform(3857)
-        x, y = p.coords
-        logger.debug('Transformed %s to 3857', p.coords)
-        # Get the number of meters per pixel...
-        # At zoom level 0 (at the equator) there are ~156413 m/pixel, then it halves for
-        # each zoom level beyond that...
-        resolution = 156543.03392804062 / (2 ** zoom_level)
-        spacing = pixels * resolution
+        # if the pixel range is 0, then just don't do the heavy lifting
+        # to figure out the bbox...
+        if pixels > 0:
+            logger.debug('Got point of %s', p.coords)
+            p.transform(3857)
+            x, y = p.coords
+            logger.debug('Transformed %s to 3857', p.coords)
+            # Get the number of meters per pixel...
+            # At zoom level 0 (at the equator) there are ~156413 m/pixel, then it halves for
+            # each zoom level beyond that...
+            resolution = 156543.03392804062 / (2 ** zoom_level)
+            spacing = pixels * resolution
 
-        p = Point(x - spacing, y - spacing, srid=3857)
-        p.transform(4326)
-        xv1, yv1 = p.coords
-        p = Point(x + spacing, y + spacing, srid=3857)
-        p.transform(4326)
-        xv2, yv2 = p.coords
+            p = Point(x - spacing, y - spacing, srid=3857)
+            p.transform(4326)
+            xv1, yv1 = p.coords
+            p = Point(x + spacing, y + spacing, srid=3857)
+            p.transform(4326)
+            xv2, yv2 = p.coords
+        else:
+            xv1, yv1 = p.coords
+            xv2, yv2 = p.coords
 
         xmin = min(xv1, xv2)
         xmax = max(xv1, xv2)
@@ -145,11 +151,16 @@ def data_query(request, datafile):
             # Get the zoom and compute the resolution.
             zoom = int(request.GET.get('zoom'))
             if datafile.geom_type in datafile.POLY_TYPES:
+                bbox = None
                 pixels = 0
+                qs = qs.filter(
+                    nmtk_geometry__intersects=Point(long, lat,
+                                                    srid=4326))
             else:
                 pixels = int(request.GET.get('pixels', 5))
-
-            bbox = getBbox(long, lat, zoom, pixels)
+                bbox = getBbox(long, lat, zoom, pixels)
+                p = Point(long, lat, srid=4326)
+                qs = qs.filter(nmtk_geometry__intersects=bbox)
             if bbox:
                 logger.debug(
                     'Found BBOx of %s given long: %s, lat: %s, zoom: %s, pixels: %s',
@@ -159,6 +170,8 @@ def data_query(request, datafile):
                     zoom,
                     pixels)
                 qs = qs.filter(nmtk_geometry__intersects=bbox)
+            else:
+                qs = qs.filter()
         except:
             logger.exception('Something went wrong with geo_query parameters?')
     ids = request.GET.get('id', None)
