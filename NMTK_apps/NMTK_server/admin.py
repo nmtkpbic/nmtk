@@ -19,8 +19,10 @@ class ToolServerForm(forms.ModelForm):
     resend_email = forms.BooleanField(
         required=False, label="Re-send Tool Configuration Email")
     authorized_users = forms.ModelMultipleChoiceField(
+        required=False,
         widget=FilteredSelectMultiple(
             "Users", is_stacked=False),
+
         queryset=get_user_model().objects.all())
 
     def save(self, commit=True):
@@ -33,6 +35,7 @@ class ToolServerForm(forms.ModelForm):
 
 class ToolAdminForm(forms.ModelForm):
     authorized_users = forms.ModelMultipleChoiceField(
+        required=False,
         widget=FilteredSelectMultiple(
             "Users", is_stacked=False),
         queryset=get_user_model().objects.all())
