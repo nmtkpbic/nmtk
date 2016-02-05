@@ -891,8 +891,8 @@ class ToolResourceAuthorization(Authorization):
         '''
         if bundle.request.user.is_superuser:
             return True
-        return (record.authorized_users.count() == 0 or
-                bundle.request.user in record.authorized_users.all())
+        return (bundle.obj.authorized_users.count() == 0 or
+                bundle.request.user in bundle.obj.authorized_users.all())
 
 
 class ToolResource(ModelResource):
