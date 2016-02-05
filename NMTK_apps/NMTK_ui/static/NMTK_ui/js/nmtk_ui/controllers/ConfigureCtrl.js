@@ -32,9 +32,10 @@
 define(['underscore',
         'text!configureErrorsServerTemplate',
         'text!configureErrorsClientTemplate',
-        'text!cloneConfigTemplate'], function (_, configureErrorsServerTemplate,
+        'text!cloneConfigTemplate',
+        'text!duplicateErrorTemplate'], function (_, configureErrorsServerTemplate,
         		configureErrorsClientTemplate,
-        		cloneConfigTemplate) {	
+        		cloneConfigTemplate, duplicateErrorTemplate) {	
 	"use strict";
 	var controller=['$scope', '$routeParams', '$location', '$modal', '$log',
 		/*
@@ -47,7 +48,7 @@ define(['underscore',
 		function ($scope, $routeParams, $location, $modal, $log) {
 			var FLOAT_REGEXP = /^\-?\d+((\.)\d+)?$/;
 			var INTEGER_REGEXP= /^\-?\d+$/;
-			$scope.loginCheck();
+			$scope.loginCheck(true);
 			var jobid=$routeParams.jobid;
 			if (typeof $scope.$parent.job_uri === 'undefined' || 
 			    ($scope.$parent.job_uri != $location.path())) {
@@ -359,6 +360,61 @@ define(['underscore',
 			});
 			
 			/*
+			 * If the job configuration contains a "display_if_true" setting
+			 * then this namespace will only be displayed if the pre-requisite
+			 * namespace is set. 
+			 * 
+			 */
+			
+			$scope.namespacePrerequisites=function (namespace) {
+				/*
+				 * Locate the namespace configuration in the tool config, so
+				 * we can examine it...
+				 */
+				var namespace_config=_.find($scope.tool_data.config.input, function (row) {
+					return (row.namespace == namespace);
+				});
+				/*
+				 * If we don't find it, or if display_if_true isn't set, then always display
+				 * it, since in that case the default is true.
+				 */
+				if (_.isUndefined(namespace_config) || _.isUndefined(namespace_config.display_if_true)) {
+					return true;
+				} else {
+					/*
+					 * If the value is set, then check on the status of the
+					 * pre-requisite namespace - if it's filled in, then
+					 * we can go ahead and display it.
+					 */
+					if ($scope.$parent.job_config_files[namespace_config.display_if_true]) {
+						return true;
+					} else {
+						return false;
+					}
+				}
+			}
+			
+			
+			/*
+			 * A function that, when given a field from a file, returns
+			 * the number of times the field is used as input parameters 
+			 * 			
+			 */
+			$scope.fieldUseCount=function (namespace, selected_input_field) {
+				var count=0; // Don't default to 1, since we'll count this field again!
+				// Note that in the loop below we count the current field, as well
+				// as any other fields in the same namespace...
+				if (selected_input_field) {
+					_.each($scope.$parent.job_config[namespace], function (setting, property_name) {
+						if (setting['value'] == selected_input_field) {
+							count += 1;
+						}
+					});
+				}
+				return count;
+			}
+			
+			/*
 			 * When a field is generated, this init function will set the 
 			 * current default value for the field.  It is called from the 
 			 * template using ng-init for all the form fields, and is also 
@@ -543,6 +599,23 @@ define(['underscore',
 					return true; // If not specified the default is required
 				}
 				return property.required;
+			}
+			
+			
+			$scope.notifyDuplicate=function (namespace, property) {
+				var usage_count=$scope.fieldUseCount(namespace, 
+						$scope.$parent.job_config[namespace][property]['value']);
+				if (usage_count > 1) {
+					var opts = {
+						    template: duplicateErrorTemplate, // OR: templateUrl: 'path/to/view.html',
+						    controller: ['$scope','$modalInstance', function ($scope, $modalInstance) {
+											$scope.close=function () {
+												$modalInstance.close();
+											}
+										}]
+						  };
+					var d=$modal.open(opts);
+				}
 			}
 			
 			/* I had this in a custom directive before, but the reality is that

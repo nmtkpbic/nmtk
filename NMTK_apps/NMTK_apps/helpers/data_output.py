@@ -20,22 +20,28 @@ def getBbox(long, lat, zoom_level, pixels=5):
     '''
     try:
         p = Point(long, lat, srid=4326)
-        logger.debug('Got point of %s', p.coords)
-        p.transform(3857)
-        x, y = p.coords
-        logger.debug('Transformed %s to 3857', p.coords)
-        # Get the number of meters per pixel...
-        # At zoom level 0 (at the equator) there are ~156413 m/pixel, then it halves for
-        # each zoom level beyond that...
-        resolution = 156543.03392804062 / (2 ** zoom_level)
-        spacing = pixels * resolution
+        # if the pixel range is 0, then just don't do the heavy lifting
+        # to figure out the bbox...
+        if pixels > 0:
+            logger.debug('Got point of %s', p.coords)
+            p.transform(3857)
+            x, y = p.coords
+            logger.debug('Transformed %s to 3857', p.coords)
+            # Get the number of meters per pixel...
+            # At zoom level 0 (at the equator) there are ~156413 m/pixel, then it halves for
+            # each zoom level beyond that...
+            resolution = 156543.03392804062 / (2 ** zoom_level)
+            spacing = pixels * resolution
 
-        p = Point(x - spacing, y - spacing, srid=3857)
-        p.transform(4326)
-        xv1, yv1 = p.coords
-        p = Point(x + spacing, y + spacing, srid=3857)
-        p.transform(4326)
-        xv2, yv2 = p.coords
+            p = Point(x - spacing, y - spacing, srid=3857)
+            p.transform(4326)
+            xv1, yv1 = p.coords
+            p = Point(x + spacing, y + spacing, srid=3857)
+            p.transform(4326)
+            xv2, yv2 = p.coords
+        else:
+            xv1, yv1 = p.coords
+            xv2, yv2 = p.coords
 
         xmin = min(xv1, xv2)
         xmax = max(xv1, xv2)
@@ -58,17 +64,19 @@ def getQuerySet(datafile):
     return qs
 
 
-def stream_csv(datafile):
+def stream_csv(datafile, include_wkt=False):
     csvfile = StringIO.StringIO()
     csvwriter = csv.writer(csvfile)
     qs = getQuerySet(datafile)
     row = qs[0]
-    db_map = [
-        (field.db_column or field.name,
-         field.name) for field in row._meta.fields if field.name and field.name not in (
-            'nmtk_id',
-            'nmtk_geometry',
-            'nmtk_feature_id')]
+#     db_map = [
+#         (field.db_column or field.name,
+#          field.name) for field in row._meta.fields if field.name and field.name not in (
+#             'nmtk_id',
+#             'nmtk_geometry',
+#             'nmtk_feature_id')]
+    db_map = [datafile.field_attributes[field]['field_name']
+              for field in datafile.fields]
 
     def read_and_flush():
         csvfile.seek(0)
@@ -79,9 +87,9 @@ def stream_csv(datafile):
 
     def data():
         # Output the CSV headings
-        csvwriter.writerow([i[0] for i in db_map])
+        csvwriter.writerow(datafile.fields)
         for row in qs:
-            csvwriter.writerow([getattr(row, mf) for dbf, mf in db_map])
+            csvwriter.writerow([getattr(row, dbf) for dbf in db_map])
         data = read_and_flush()
         yield data
 
@@ -95,12 +103,9 @@ def stream_xls(datafile):
     try:
         qs = getQuerySet(datafile)
         row = qs[0]
-        db_map = [
-            (field.db_column or field.name,
-             field.name) for field in row._meta.fields if field.name not in (
-                'nmtk_id',
-                'nmtk_geometry',
-                'nmtk_feature_id')]
+        # Contains the field names used in the model(s)
+        db_map = [datafile.field_attributes[field]['field_name']
+                  for field in datafile.fields]
         font0 = xlwt.Font()
         font0.name = 'Times New Roman'
         font0.colour_index = 2
@@ -114,13 +119,13 @@ def stream_xls(datafile):
         wb = xlwt.Workbook()
         ws = wb.add_sheet('NMTK Results')
         rowid = 0
-        for i, v in enumerate(db_map):
-            ws.write(rowid, i, v[0], style0)
+        # Generate the header fields.
+        for i, v in enumerate(datafile.fields):
+            ws.write(rowid, i, v, style0)
         for row in qs:
             rowid += 1
             for i, v in enumerate(db_map):
-                ws.write(rowid, i, getattr(row, v[1]), style1)
-        logger.debug('Getting ready to return XLS response...')
+                ws.write(rowid, i, getattr(row, v), style1)
         response = HttpResponse(content_type="application/ms-excel")
         response.streaming = True
         response['Content-Disposition'] = "attachment; filename=results.xls"
@@ -145,18 +150,28 @@ def data_query(request, datafile):
             long = float(request.GET.get('lon'))
             # Get the zoom and compute the resolution.
             zoom = int(request.GET.get('zoom'))
-            pixels = int(request.GET.get('pixels', 5))
-
-            bbox = getBbox(long, lat, zoom, pixels)
+            if datafile.geom_type in datafile.POLY_TYPES:
+                bbox = None
+                pixels = 0
+                qs = qs.filter(
+                    nmtk_geometry__intersects=Point(long, lat,
+                                                    srid=4326))
+            else:
+                pixels = int(request.GET.get('pixels', 5))
+                bbox = getBbox(long, lat, zoom, pixels)
+                p = Point(long, lat, srid=4326)
+                qs = qs.filter(nmtk_geometry__intersects=bbox)
             if bbox:
                 logger.debug(
-                    'Found BBOx of %s given long: %s, lat: %s, zoom: %s, pixles: %s',
+                    'Found BBOx of %s given long: %s, lat: %s, zoom: %s, pixels: %s',
                     bbox,
                     long,
                     lat,
                     zoom,
                     pixels)
                 qs = qs.filter(nmtk_geometry__intersects=bbox)
+            else:
+                qs = qs.filter()
         except:
             logger.exception('Something went wrong with geo_query parameters?')
     ids = request.GET.get('id', None)

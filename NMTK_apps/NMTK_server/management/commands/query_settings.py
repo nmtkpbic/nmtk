@@ -58,7 +58,7 @@ class Command(BaseCommand):
         elif options['username']:
             print settings.DATABASES['default']['USER']
         elif options['self_signed_cert']:
-            if settings.SELF_SIGNED_SSL_CERT:
+            if getattr(settings, 'SELF_SIGNED_SSL_CERT', 1):
                 print 1
             else:
                 print 0
@@ -78,11 +78,11 @@ class Command(BaseCommand):
             else:
                 print 0
         elif options['tool_server_url']:
-            if settings.SSL:
+            if getattr(settings, 'SSL', True):
                 ssl = 's'
             else:
                 ssl = ''
             print 'http{0}://{1}{2}{3}'.format(ssl,
                                                settings.SITE_DOMAIN,
-                                               settings.PORT,
+                                               getattr(settings, 'PORT', ''),
                                                reverse('tool_index'))

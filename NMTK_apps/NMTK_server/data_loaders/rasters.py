@@ -157,8 +157,8 @@ class RasterLoader(BaseDataLoader):
             srs = self.raster_obj.srs
             geos_extent = Polygon.from_bbox(self.raster_obj.extent)
             ogr_extent = geos_extent.ogr
-            srid = None
-            # USer supplied SRID, so we will use that...
+            srid = epsg = None
+            # User supplied SRID, so we will use that...
             if self._srid:
                 srs = None
                 geom_srid = self._srid
@@ -171,14 +171,25 @@ class RasterLoader(BaseDataLoader):
                     srs.validate()
                     geom_srid = srs.srid
                 except Exception, e:
-                    if logger.isEnabledFor(logging.DEBUG):
-                        logger.exception('Invalid SRS (or none): %s', e)
+                    logger.debug('Invalid SRS (or none): %s', e,
+                                 exc_info=True)
                     srs = None
             # No SRID! Let's try to detect it
             if srs and not geom_srid:
-                srs.identify_epsg()
-                geom_srid = srs.srid
-                logger.debug('Auto-detect of SRID yielded %s', srid)
+                if not srs.srid:
+                    try:
+                        srs.identify_epsg()
+                        logger.debug('Auto-detect of SRID yielded %s',
+                                     geom_srid)
+                    except Exception as e:
+                        logger.debug(
+                            'SRID identification failed: %s', e,
+                            exc_info=True)
+                else:
+                    geom_srid = srs.srid
+                epsg = str('EPSG:%s' % (geom_srid,))
+                logger.debug('Final SRID of file is %s', geom_srid)
+
             if srs and not geom_srid:
                 '''
                 Still no SRID - but we have an srs - so let's try to 

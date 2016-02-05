@@ -1,10 +1,3 @@
-<IFRAME ng-hide="1" id="hidden_upload" name="hidden_upload" title="Hidden upload" src="" onLoad="uploadDone()"
-        style="width:0;height:0;border:0px solid #fff"></IFRAME>
-<script type="text/ng-template"  id="ie_upload.html">
-	<input type="file" ng-model="fileupload" name="file" /><br />
-    <input type="submit" name="submit" value="Upload File" />
-</script>
-
 <div class="container" keep-scroll-pos>
    <div class="row">
       <div class="col-md-12">
@@ -47,46 +40,33 @@
         </div><!-- /widget stacked -->
       </div><!-- /span12 -->
     </div><!-- /row -->
+    
     <div class="row">
       <div class="col-md-12">
-        <div ng-click="toggleDiv('nmtk_fileupload_panel')" class="widget stacked">
+        <div class="widget stacked">
           <div class="widget-header">
             <span class="glyphicon glyphicon-upload"></span>
             <h1>Add New Files</h1>
-                        <span ng-class="{'glyphicon-chevron-right': !isDivEnabled('nmtk_fileupload_panel'), 'glyphicon-chevron-down': isDivEnabled('nmtk_fileupload_panel')}" 
-               class="navbar-right glyphicon ic-right"></span>
-            <button class="navbar-right btn btn-xs btn-primary ic-right" ng-click="switchView('classic_file_upload')" 
-                    stop-event="click" 
-                    ng-show="(browser_name!='Explorer') && (views.classic_file_upload)">Drag &amp; Drop Upload</button>
-            <button class="navbar-right btn btn-xs btn-primary ic-right" ng-click="switchView('classic_file_upload')" 
-                    stop-event="click" 
-                    ng-show="(browser_name!='Explorer') && (!views.classic_file_upload)">Classic Upload Form</button>
-
+            <span class="add-files">
+            	<button class="navbar-right btn btn-xs btn-primary ic-right">Upload File</button>
+            	<droplet-upload-single ng-model="upload_files" class="pull-right"></droplet-upload-single>
+			</span>
           </div> <!-- /widget-header -->
-          <div ng-show="isDivEnabled('nmtk_fileupload_panel')" class="widget-content">
-          
-            <div ng-hide="(browser_name=='Explorer' || views.classic_file_upload)" class="fileUploadView well">
-	          <form action="{{upload_uri}}" id="fileUpload" method="POST" enctype="multipart/form-data">
-		         <div class="progress progress-success progress-striped active" id="progress">
-		           <div class="bar" style="width: 0%;"></div>
-		         </div> <!-- /progress -->
+          <div droplet ng-model="upload_files" class="widget-content">
+            <div class="fileUploadView well">
+		         
 		        <h4 class="text-center">Drag one or more data files here to add them to your list of files.</h4>
 		        <p class="text-center">(Files will upload one at a time, with a progress bar reflecting upload status.)</p>
-	          </form>
-	        </div> <!-- /fileUploadView -->
-	        
-	        <div ng-show="(browser_name=='Explorer' || views.classic_file_upload)" class="fileUploadView well">
-	          <h4 class="text-center">Use the upload dialog below to select a file, then press <strong>Upload File</strong>
-	          to add the file to your account.</h4>
-	        
-	          <form id="ie_uploadform" ng-include="'ie_upload.html'" target="hidden_upload" action="{{upload_uri}}?format=json" method="POST" enctype="multipart/form-data">
-	             
-	          </form>
 	        </div> <!-- /fileUploadView -->
           </div> <!-- /widget-content -->
         </div><!-- /widget stacked -->
       </div><!-- /span12 -->
     </div><!-- /row -->
+    <div class="progress progress-success progress-striped active" id="progress">
+       <div class="progress-bar" ng-style="progressBarStyle">
+       		<span class="sr-only">{{percent}}% Complete</span>
+       </div>
+    </div> <!-- /progress -->
     <div ng-hide="datafile_cache.length" class="row">
       <div class="col-md-12">
         <div class="widget stacked">

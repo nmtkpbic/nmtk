@@ -90,11 +90,18 @@ def generateToolConfiguration(request, tool_name, subtool_name=None):
             logger.debug(
                 "Using Django template to generate config: %s" %
                 (config_file,))
-            toolconfig = json.loads(
-                render_to_string(
-                    os.path.join(
+            try:
+                toolconfig = json.loads(
+                    render_to_string(
+                        os.path.join(
+                            tool_name,
+                            config_file)))
+            except ValueError as e:
+                toolconfig = {}
+                logger.exception(
+                    'Failed to parse config: %s - invalid tool config?', os.path.join(
                         tool_name,
-                        config_file)))
+                        config_file))
     except Exception as e:
         logger.exception('Failed to get config for tool!')
         raise Http404

@@ -84,7 +84,10 @@
 				  <tbody>
 					<tr ng-repeat="link in selections[0].config.documentation.links">						            
 					  <td><a target="_blank" ng-href="{{link.url}}">{{link.title}}</td>
-				    </tr>						          
+				    </tr>
+					<tr ng-repeat="doc in selections[0].config.documentation.docs">
+					  <td><a ng-href="{{doclink(selections[0].config.host.url,selections[0].config.host.route,doc.url)}}">{{doc.name}}</td>
+				    </tr>
 				  </tbody>
 				</table>
 			 </section>
@@ -96,12 +99,14 @@
           <div class="widget ">
             <div class="widget-content centered">
               <button ng-click="createJob(selections[0].resource_uri)" class="btn btn-sm btn-primary">Create Job with this Tool</button>
+              <span ng-show="sample_job_exists">
               <button ng-click="loadSampleData(selections[0])" ng-hide="sample_data_loaded" class="btn btn-sm btn-primary">Load Tool Sample Data</button>
               <button ng-click="createJob(selections[0].resource_uri, selections[0].config.sample.config,
                                           selections[0].config.sample.files)"
                       ng-hide="!sample_data_loaded || sample_data_pending"
                       class="btn btn-sm btn-primary">Create Sample Job</button>
               <button class="btn btn-sm" ng-show="sample_data_pending">Sample Data Loading...</button>
+              </span>
             </div>
           </div>
         </div>

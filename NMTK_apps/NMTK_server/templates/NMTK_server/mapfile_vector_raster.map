@@ -289,12 +289,12 @@ MAP
     CLASS
       NAME "Selected Results"
       STYLE
-        COLOR 160 160 160
+        COLOR 255 255 255
   	    {% if geom_type == 'point' %}
-	      OUTLINECOLOR 0 0 0
+	      OUTLINECOLOR 255 255 255
 	      SYMBOL "circle"
 	    {% elif geom_type != 'line' %}
-	      OUTLINECOLOR 0 0 0
+	      OUTLINECOLOR 255 255 255
 	    {% else %}
 	      WIDTH 3
 	    {% endif %}

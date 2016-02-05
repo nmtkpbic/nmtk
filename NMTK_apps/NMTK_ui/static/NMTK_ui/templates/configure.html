@@ -1,7 +1,7 @@
 <script type="text/ng-template" id="config.html">
      <!-- Handle the case where we are getting a file whose inputs we use for 
           data mappings -->
-     <div ng-if="config.type == 'File'" class="col-md-12" >
+     <div ng-if="namespacePrerequisites(config.namespace) && config.type == 'File'" class="col-md-12" >
        <div class="widget stacked">
          <div ng-click="toggleSection(config.namespace)"  class="widget-header">
            <span class="glyphicon glyphicon-edit"></span>
@@ -22,7 +22,7 @@
              <p><label for="{{config.namespace}}">{{config.description}}</label></p>
 			 <h4>Choose a file: <select ng-model="$parent.job_config_files[config.namespace]" dynamic-name="config.namespace" 
 									    ng-change="updateFileFieldsFromResourceURI(config.namespace)" required
-										ng-disabled="disabled"
+										ng-disabled="disabled" 
 										ng-init="updateFileFieldsFromResourceURI(config.namespace)"
                      ng-options="o.resource_uri as getFileStr(o) for o in list_files(config)"></select>
 			     <p class="help-block error" ng-show="submit_attempted && job_config_form[config.namespace].$invalid">This field is required</p>
@@ -45,8 +45,10 @@
                              ng-model="$parent.job_config[config.namespace][property.name]['value']" ng-required="isFieldRequired(property)"
                              dynamic-name="config.namespace + ':' + property.name" 
 							 ng-init="setFieldDefaultValue(config.namespace, property.name)"
-							 ng-disabled="disabled"
-                             ng-options="o.value as o.label for o in file_fields[config.namespace]"></select>
+							 ng-change="notifyDuplicate(config.namespace, property.name)"
+							 ng-disabled="disabled"  ng-class="{'duplicate': fieldUseCount(config.namespace, $parent.job_config[config.namespace][property.name]['value']) > 1}"
+                             ng-options="o.value as o.label for o in file_fields[config.namespace]">
+							 <option value=""></option></select>
                      <input ng-if="$parent.job_config[config.namespace][property.name]['type'] != 'property' && ! validation[config.namespace][property.name]['choices'] && validation[config.namespace][property.name]['type']!='boolean'"  
                             size="10" type="text" ng-model="$parent.job_config[config.namespace][property.name]['value']" 
 							ng-disabled="disabled || validation[config.namespace][property.name].readonly" ng-required="isFieldRequired(property)" 
@@ -56,7 +58,7 @@
 					 <select ng-if="$parent.job_config[config.namespace][property.name]['type'] != 'property' && validation[config.namespace][property.name]['choices'] && validation[config.namespace][property.name]['type']!='boolean'"
 							name="config.namespace + ':' + property.name"  ng-required="isFieldRequired(property)"
 							ng-disabled="disabled  || validation[config.namespace][property.name].readonly" 
-							ng-init="setFieldDefaultValue(config.namespace, property.name)"
+							ng-init="setFieldDefaultValue(config.namespace, property.name)" 
                             ng-model="$parent.job_config[config.namespace][property.name]['value']" 
  							ng-options="item.value as item.label for item in get_options(validation[config.namespace][property.name]['choices'])"></select>
 					<!-- The option when we have a boolean field (so on/off) -->
@@ -71,7 +73,7 @@
 					<input type="radio"
 							dynamic-name="config.namespace + ':' + property.name" ng-required="!$parent.job_config[config.namespace][property.name]['value']"
 							ng-disabled="disabled  || validation[config.namespace][property.name].readonly"
-							ng-init="setFieldDefaultValue(config.namespace,property.name)"
+							ng-init="setFieldDefaultValue(config.namespace,property.name)" 
 							value="0"
                             ng-model="$parent.job_config[config.namespace][property.name]['value']" 
  							ng-options="item.value as item.label for item in get_options(validation[config.namespace][property.name]['choices'])"></input> False
@@ -80,7 +82,7 @@
 			       </td>
                    <td>
 					  <select ng-disabled="disabled || constants_only[config.namespace]" ng-change="switchFieldMode(config.namespace, property.name)" 
-                              ng-model="$parent.job_config[config.namespace][property.name]['type']" 
+                              ng-model="$parent.job_config[config.namespace][property.name]['type']"  
                               ng-if="validation[config.namespace][property.name]['type'] != 'property'"
 						      ng-options="item.value as item.detail for item in getFieldOptions(config.namespace, property.name)">
                       </select>
@@ -100,7 +102,7 @@
      </div><!-- /col-md-12 -->
 
   <!--  Handle the case where the user needs to enter configuration data -->
-     <div ng-if="config.type == 'ConfigurationPage'" class="col-md-12" >
+     <div ng-if="namespacePrerequisites(config.namespace) && config.type == 'ConfigurationPage'" class="col-md-12" >
        <div class="widget stacked">
          <div ng-click="toggleSection(config.namespace)"  class="widget-header">
            <span class="glyphicon glyphicon-edit"></span>
@@ -139,7 +141,7 @@
 					<select ng-if="validation[config.namespace][property.name]['choices'] && validation[config.namespace][property.name]['type'] != 'boolean'"
 							dynamic-name="config.namespace + ':' + property.name"  required
 							ng-disabled="disabled  || validation[config.namespace][property.name].readonly"
-							ng-init="setFieldDefaultValue(config.namespace,property.name)"
+							ng-init="setFieldDefaultValue(config.namespace,property.name)" 
                             ng-model="$parent.job_config[config.namespace][property.name]['value']" 
  							ng-options="item.value as item.label for item in get_options(validation[config.namespace][property.name]['choices'])"></select>
 					<!-- The option when we have a boolean field (so on/off) -->
@@ -147,14 +149,14 @@
 					<input type="radio" 
 							dynamic-name="config.namespace + ':' + property.name" ng-required="!$parent.job_config[config.namespace][property.name]['value']"
 							ng-disabled="disabled  || validation[config.namespace][property.name].readonly"
-							ng-init="setFieldDefaultValue(config.namespace,property.name)"
+							ng-init="setFieldDefaultValue(config.namespace,property.name)" 
                             ng-model="$parent.job_config[config.namespace][property.name]['value']" 
 							value="1"
  							ng-options="item.value as item.label for item in get_options(validation[config.namespace][property.name]['choices'])"></input> True<br />
 					<input type="radio"
 							dynamic-name="config.namespace + ':' + property.name" ng-required="!$parent.job_config[config.namespace][property.name]['value']"
 							ng-disabled="disabled  || validation[config.namespace][property.name].readonly"
-							ng-init="setFieldDefaultValue(config.namespace,property.name)"
+							ng-init="setFieldDefaultValue(config.namespace,property.name)" 
 							value="0"
                             ng-model="$parent.job_config[config.namespace][property.name]['value']" 
  							ng-options="item.value as item.label for item in get_options(validation[config.namespace][property.name]['choices'])"></input> False

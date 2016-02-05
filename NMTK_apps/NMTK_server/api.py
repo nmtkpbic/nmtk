@@ -441,7 +441,15 @@ class UserPreferenceAuthorization(Authorization):
         '''
         raise Unauthorized('You lack the privilege to create this resource')
 
-    create_detail = create_list
+    def create_detail(self, object_list, bundle):
+        '''
+        Each record being created is passed through this method, which is
+        used to determine if the object can be created - an exception means
+        that it cannot, a True (or anything else for that matter) means that it
+        can be created.  In our case, we only allow this record to be created
+        when the user is an admin user.
+        '''
+        return (models.UserPreference.objects.filter(user=bundle.request.user).count() == 0)
 
 
 class UserPreference(ModelResource):
@@ -451,7 +459,7 @@ class UserPreference(ModelResource):
         authorization = UserPreferenceAuthorization()
         always_return_data = True
         resource_name = 'preference'
-        allowed_methods = ['get', 'put']
+        allowed_methods = ['get', 'put', 'post']
         excludes = ['user']
         authentication = SessionAuthentication()
         validation = Validation()
@@ -464,6 +472,11 @@ class UserPreference(ModelResource):
             UserPreference,
             self).get_object_list(request).filter(
             user=request.user)
+
+    def pre_save(self, bundle):
+        super(UserPreference, self).pre_save(bundle)
+        bundle.obj.user = bundle.request.user
+        return bundle
 
 
 class DataFileResourceAuthorization(Authorization):
@@ -857,6 +870,31 @@ class DataFileResource(ModelResource):
         return bundle
 
 
+class ToolResourceAuthorization(Authorization):
+
+    def read_list(self, object_list, bundle):
+        '''
+        Ensure that users can see tools if there is either no list of 
+        authorized_users, or if the user is in the list of users.
+        '''
+        if bundle.request.user.is_superuser:
+            return object_list
+
+        return [record for record in object_list
+                if (record.authorized_users.count() == 0 or
+                    bundle.request.user in record.authorized_users.all())]
+
+    def read_detail(self, object_list, bundle):
+        '''
+        Ensure that users can see tools if there is either no list of 
+        authorized_users, or if the user is in the list of users.
+        '''
+        if bundle.request.user.is_superuser:
+            return True
+        return (record.authorized_users.count() == 0 or
+                bundle.request.user in record.authorized_users.all())
+
+
 class ToolResource(ModelResource):
     last_modified = fields.DateTimeField('last_modified', readonly=True,
                                          null=True)
@@ -866,8 +904,10 @@ class ToolResource(ModelResource):
                               help_text='Tool Configuration (as JSON)')
 
     class Meta:
-        queryset = models.Tool.objects.filter(active=True)
+        queryset = models.Tool.objects.prefetch_related(
+            'authorized_users').filter(active=True)
         resource_name = 'tool'
+        authorization = ToolResourceAuthorization()
         always_return_data = True
         fields = ['name', 'last_modified']
         allowed_methods = ['get', ]

@@ -1,0 +1,24 @@
+<div class="modal-content">
+    <div class="modal-header">
+        <button type="button" ng-click="close()" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h3 class="modal-title" id="configuration_errors_title">Configuration Warning</h3>
+    </div>
+    <div class="modal-body">
+      <div class="row">
+        <div class="col-md-12">     
+          <p>Your configuration uses a input field from a data file more than once, this
+             is typically indicative of an error in your configuration.</p>
+          <ul>
+             <li>Duplicate fields have been highlighted in your job configuration.</li>
+             <li>You may still submit the job with these settings, but the results
+                 may not be reliable as a result.</li>  
+             <li>Please refer to the tool documentation for more information about
+                 allowable configuration settings.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button  ng-click="close()" class="btn btn-primary">Close</button>
+    </div>
+</div>

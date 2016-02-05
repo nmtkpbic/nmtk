@@ -46,11 +46,25 @@ def generateMapfile(datafile, style_field,
     if geom_type == 'raster':
         data['data'] = datafile.file.path
     else:
-        data['data'] = 'nmtk_geometry from userdata_results_{0}'.format(
+        data['data'] = ('nmtk_geometry from (select {0}, nmtk_geometry, ' +
+                        'nmtk_id from userdata_results_{1})  as data using ' +
+                        'unique nmtk_id using srid=4326').format(
+            ','.join(r'\"{0}\"'.format(f) for f in datafile.fields),
             datafile.id)
-    data[
-        'highlight_data'] = '''nmtk_geometry from (select * from userdata_results_{0} where nmtk_id in (%ids%)) as subquery
-                              using unique nmtk_id'''.format(datafile.id)
+#     data[
+#         'highlight_data'] = ('nmtk_geometry from (select *, ' +
+#                              'st_astext(nmtk_geometry) as geom_text from ' +
+#                              'userdata_results_{0} where nmtk_id in ' +
+#                              '(%ids%)) as subquery ' +
+#                              'using unique nmtk_id using srid=4326').format(
+#         datafile.id)
+    # There's no point in getting all the data, since we style this
+    # black always...
+    data['highlight_data'] = ('nmtk_geometry from (select nmtk_geometry, ' +
+                              'nmtk_id from userdata_results_{0} where ' +
+                              'nmtk_id in (%ids%)) as subquery ' +
+                              'using unique nmtk_id using srid=4326').format(
+        datafile.id)
 
     # Determine which of the mapfile types to use (point, line, polygon...)
 
@@ -66,8 +80,20 @@ def handleWMSRequest(request, datafile):
     style_field = legend = None
     raster = (datafile.geom_type == 99)
     style_field = get_uc.get('STYLE_FIELD', datafile.result_field or None)
+    logger.info('Style field is %s, attributes are %s (Found: %s)',
+                style_field, datafile.field_attributes.keys(),
+                style_field in datafile.field_attributes.keys())
     if raster:
-        if datafile.field_attributes.keys() > 0:
+        if datafile.field_attributes:
+            if (style_field not in
+                    datafile.field_attributes.keys()):
+                logger.debug('Requested style_field was %s', style_field)
+                style_field = datafile.field_attributes.keys()[0]
+                logger.debug(
+                    'Setting the style field to %s', style_field)
+        else:
+            logger.error(
+                'No style fields found for raster, using default of 1')
             style_field = '1'
     legend_units = get_uc.get('LEGEND_UNITS', None)
     reverse = get_uc.get('REVERSE', 'false')
@@ -77,8 +103,10 @@ def handleWMSRequest(request, datafile):
         reverse = False
     ramp = get_uc.get('RAMP', 0)
     attributes = datafile.field_attributes
-    if style_field == datafile.result_field:
-        legend_units = datafile.result_field_units
+    logger.debug('Units is %s', datafile.units)
+    logger.debug('Style field is %s', style_field)
+    if datafile.units and style_field in datafile.units:
+        legend_units = datafile.units[style_field]
     if style_field and style_field not in attributes:
         logger.error(
             'Field specified (%s) does not exist (%s): %s.',

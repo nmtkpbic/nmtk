@@ -48,6 +48,7 @@ define(['jquery'
         , 'angular-cookies'
         , 'angular-bootstrap'
         , 'bootstrap-slider'
+        , 'ng-droplet'
         ],
 		function ($, angular, _, controllers, deleteModalTemplate,
 				  resultsTemplate, jobTemplate, filesTemplate, configureTemplate,
@@ -64,7 +65,9 @@ define(['jquery'
 				 */
 				
 				var nmtk_app=angular.module('nmtk', ['ui.bootstrap', 'restangular', 'ngGrid', 'ngCookies',
-				                                     'leaflet-directive', 'monospaced.elastic']).
+				                                     'leaflet-directive', 'monospaced.elastic',
+				                                     'ui.bootstrap.progressbar',
+				                                     'ngDroplet']).
 				   config(['RestangularProvider', 
 					function(RestangularProvider) {
 					  var api_path=CONFIG.api_path;
@@ -175,6 +178,153 @@ define(['jquery'
 					            }
 					        });
 					    }
+					}]).filter('range', [function() {
+						  return function(input, min, max, step) {
+							    min = parseInt(min); //Make string input int
+							    max = parseInt(max);
+							    for (var i=min; i<=max; i+=step)
+							      input.push(i);
+							    return input;
+							  };
+					}]).filter('addUsageClass', ['$log', function($log) {
+					  return function(curr_property, namespace, field, scope) {
+						    var i=-1;
+						    /*
+						     * The value for options is numeric starting at 0
+						     * based on the field position in the list of available
+						     * fields, so we need to figure out what the position
+						     * is for this one.  Look through until we find a 
+						     * item whose field name (value) matches the currently
+						     * selected property.
+						     */
+						    _.find(scope.file_fields[namespace],function(item, index) {
+						    	i += 1;
+						        return (item.value === curr_property) 
+						    });
+						    /*
+						     * Count up the number of times a field is used from
+						     * the current property.
+						     */
+						    var useCount=scope.fieldUseCount(namespace, curr_property);
+						    /*
+						     * Construct a jQuery query to selectively get just this
+						     * option from the select list for this particular field.
+						     * Note: The fields are (dynamically) named "namespace:field"
+						     */
+						    var elem = angular.element("select[name='"+ namespace + ":" + field  +"'] > option[value='" + i + "']");
+						  
+						    /*
+						     * Apply classes to the option based on the usage count, allowing
+						     * us to style these option values differently based on CSS style 
+						     * rules.
+						     */
+						    if (useCount == 1) {
+						      elem.addClass('used');
+						      elem.removeClass('duplicate');
+						    } else if (useCount > 1) {
+						      elem.addClass('duplicate');
+						      elem.removeClass('used');
+						    } else {
+						    	elem.removeClass('used');
+						    	elem.removeClass('duplicate');
+						    }
+						    return curr_property;
+						  }
+					}]).service('preferences', ['Restangular',
+					                            function (Restangular) {
+						var self=this;
+						var default_config = {'divs': [],
+											  'ramp': {'ramp_id': 0,
+												  	   'reverse': 'false'}
+											  };
+						var config=angular.copy(default_config);
+						this.login=_.debounce(function() {
+							Restangular.all('preference').getList().then(function (response) {
+								if (response.length) {
+									self.preferences=response[0]
+				            		config=JSON.parse(self.preferences.config);
+									/*
+									 * Handle the historic case when the opacity
+									 * was a single value for all geom types by
+									 * removing the old setting.
+									 */
+									if (! _.isObject(config.opacity)) {
+										delete config.opacity;
+									}
+									/* 
+									 * If the default config has keys that the
+									 * user config doesn't have, then update the
+									 * user config.
+									 */
+									_.each(default_config, function (value, key) {
+										if (_.isUndefined(config[key])) {
+											config[key]=angular.copy(value);
+										};
+									});
+				            	} else {
+				            		self.preferences=Restangular.all('preference');
+				            	}
+							}, function () {
+								self.logout();
+							});
+						}, 200);
+					    this.logout = function () {
+					    	/*
+							 * If the user is not logged in then we give them 
+							 * empty preference data.
+							 */
+					    	config = angular.copy(default_config);
+					    	self.preferences=undefined
+					    };
+						this.save = function () {
+							if (self.preferences) {
+								self.preferences.config=JSON.stringify(config);
+								if (_.isUndefined(self.preferences.resource_uri)) {
+									self.preferences.post();
+									self.login();
+								} else {
+									self.preferences.put();
+								}
+							}
+						};
+						this.toggleDiv=function(div) {
+							if (_.isUndefined(config.divs)) {
+								config.divs=[];
+							}
+							if (_.indexOf(config.divs, div) > -1) {
+								config.divs=_.without(config.divs, div);
+							} else {
+								config.divs.push(div);
+							}
+							self.save();
+						};
+						this.isDivEnabled=function(div) {
+							return _.indexOf(config.divs, div) == -1;
+						}
+						this.getRampSettings =function () {
+							return config.ramp;
+						}
+						this.setRampSettings =function (setting) {
+							config.ramp=setting;
+							self.save();
+						}
+						this.setOpacity = function (type, opacity) {
+							if (! config.opacity) {
+								config.opacity={};
+							} 
+							config.opacity[type]=opacity;
+							self.save();
+						}
+						this.getOpacity = function (type) {
+							if ((config.opacity) && config.opacity[type]) {
+								return config.opacity[type];
+							} else if (/line/i.test(type) || /point/i.test(type)) {
+								return 1;
+							} else {
+								return .7;
+							}
+						}
+						
 					}]);
 				
 		        controllers.initialize(nmtk_app);

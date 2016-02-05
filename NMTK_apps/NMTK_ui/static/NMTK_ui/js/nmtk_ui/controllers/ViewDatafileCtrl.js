@@ -42,16 +42,19 @@ define([  'angular'
 	"use strict";
 	var controller=['$scope','$routeParams','$location','$log','$http',
 	                '$timeout', 'leafletData','Restangular', '$q', '$modal',
+	                'preferences',
         /*
 		 * A variant of the ViewResults Controller that uses leaflet-directive 
 		 * rather than leaflet directly.
 		 */
 	        
 		function ($scope, $routeParams, $location, $log, $http, $timeout, 
-				  leafletData, Restangular, $q, $modal) {
-			$scope.loginCheck();
+				  leafletData, Restangular, $q, $modal, preferences) {
+			$scope.loginCheck(true); 
 			$scope.changeTab('datafile_view');
 			$scope.layercount=0;
+			$scope.preferences=preferences;
+			$scope.opacity=preferences.getOpacity(); 
 			/*
 			 * Filters will be specific for datafile or job, so here we will
 			 * actually store the filters and reset them if the results_uri
@@ -64,10 +67,7 @@ define([  'angular'
 				$scope.$parent.result_data={'field': ''};
 				$scope.$parent.customFilters=[];
 			} 
-			if (_.isUndefined($scope.preferences.config.ramp)) {
-				$scope.preferences.config.ramp={'ramp_id': 0,
-						     					'reverse': 'false'};
-			} 
+			
 			/*
 			 * Here we figure out of we are viewing a file, or a set of job
 			 * results.  The difference is that a file will have an integer
@@ -109,7 +109,7 @@ define([  'angular'
 				var opts = {
 					    template:  ColorRampSelectionTemplate, // OR: templateUrl: 'path/to/view.html',
 					    controller: 'ColorRampSelectionCtrl',
-					    resolve:{'ramp': function () { return $scope.preferences.config.ramp; } },
+					    resolve:{'ramp': function () { return preferences.getRampSettings(); } },
 					    scope: $scope
 					  };
 				
@@ -121,10 +121,11 @@ define([  'angular'
 					 * we let that happen in the $watch defined later - so no 
 					 * need to handle it here - we'll just store the changed value.
 					 */
-					$scope.preferences.config.ramp=result;
-					$scope.savePreferences();
+					preferences.setRampSettings(result);
 				});
 			}
+			
+			
 			
 			$scope.advanced_filters=function () {
 				var opts = {
@@ -232,6 +233,7 @@ define([  'angular'
 			$scope.pagingOptions= {
 			};
 			$scope.columnOptions=[];
+			$scope.columnOptions2=[];
 			$scope.sortInfo= { fields: ['nmtk_id'],
 							   directions: ['asc'] };
 
@@ -285,7 +287,8 @@ define([  'angular'
 							$scope.data=data.data;
 						}
 						if ($scope.columnOptions.length == 0) {
-							$scope.columnOptions=[]
+							$scope.columnOptions=[];
+							$scope.columnOptions2=[];
 							var visible=false;
 							var i=0;
 							var result_field=$scope.datafile_api.result_field;
@@ -303,29 +306,70 @@ define([  'angular'
 								}
 								$scope.columnOptions.push({ field: col_name,
 									                        visible: visible});
+								$scope.columnOptions2.push({ field: col_name,
+			                        						 visible: visible});
 								i += 1;
 							});
+							$scope.columnOptions2.push({ sortable: false,
+					              						 visible: true,
+					              						 width: '70px',
+					              						 cellTemplate: '<div class="ngCellText"><button style="line-height: 0;" ng-click="removeRow(row.entity);"><span class="glyphicon glyphicon-remove"></span></button></div>',
+					              						 displayName: ''});
 //							}
 						}
 					});
 				}
 			};
+			
+			$scope.removeRow=function (data) {
+				var pos=-1; // Start with -1, since we increment before we return.
+				_.find($scope.selected_features, function (value) {
+					pos += 1;
+					return value.nmtk_id == data.nmtk_id; // Stop iterating when we find it.
+				});
+				if (pos < $scope.selected_features.length) {
+					$scope.selected_features.splice(pos, 1);
+				}
+				
+				/*
+				 * In the case when the table is used to select rows, we
+				 * need to remove the selections to ensure that selecting 
+				 * a new row won't cause all the rows to be copied back
+				 * to the selected_features list.
+				 */
+				if ($scope.selections.length > 0) {
+					var pos=-1; // Start with -1, since we increment before we return.
+					_.find($scope.data, function (value) {
+						pos += 1;
+						return value.nmtk_id == data.nmtk_id; // Stop iterating when we find it.
+					});
+					if (pos < $scope.data.length) {
+						$scope.gridOptions.selectItem(pos, false);
+					}
+				}
+			}
+			
 			$scope.olcount=0;
 			$scope.olsubcount=0;
 			$scope.leaflet_layer_count=0;
-			
+			var flasher;
 			var updateHighlightSelected=function () {
 				if ($scope.spatial) {
+					if (!_.isUndefined(flasher)) {
+						$timeout.cancel(flasher);
+						flasher=undefined;
+					}
 					if ($scope.leaflet.layers.overlays['highlight_selected' + $scope.olsubcount]) {
 						delete $scope.leaflet.layers.overlays['highlight_selected'+$scope.olsubcount];
 					}
 					$scope.olsubcount += 1;
-					if ($scope.highlight_selected) {
+					$scope.highlight_selected=1;
+					if ($scope.selected_selected.length > 0) {
 						var ids=[];
-						_.each(newVal, function (data) {
+						_.each($scope.selected_selected, function (data) {
 							ids.push(data.nmtk_id);
 						});
-						$scope.leaflet.layers.overlays['highlight_selected'+$scope.olsubcount]= {
+						var layer_def={
 					            name: 'Visible Feature',
 					            type: 'wms',
 					            visible: true,
@@ -334,10 +378,21 @@ define([  'angular'
 					            	            ids: ids,
 					            	            style_field: $scope.result_data['field'] || '',
 					                    		format: 'image/png',
-					                    		ramp: $scope.preferences.config.ramp.ramp_id,
-					                    		reverse: $scope.preferences.config.ramp.reverse,
+					                    		ramp: preferences.getRampSettings().ramp_id,
+					                    		reverse: preferences.getRampSettings().reverse,
 					                    		transparent: true }
 					    }
+						var flash_layer=function (olsubcount, layer_def) {
+							if (olsubcount == $scope.olsubcount) {
+								if ($scope.leaflet.layers.overlays['highlight_selected' + olsubcount]) {
+									delete $scope.leaflet.layers.overlays['highlight_selected'+olsubcount];
+								} else {
+									$scope.leaflet.layers.overlays['highlight_selected'+olsubcount]=layer_def;
+								}
+								flasher=$timeout(function () { flash_layer(olsubcount, layer_def) }, 1000);
+							}
+						}
+						flash_layer($scope.olsubcount, layer_def)
 					}
 				}
 			}
@@ -365,9 +420,7 @@ define([  'angular'
 					if ($scope.leaflet.layers.overlays['highlight' + $scope.olcount]) {
 						delete $scope.leaflet.layers.overlays['highlight'+$scope.olcount];
 					}
-				}
-				$scope.olcount += 1;
-				if ($scope.spatial) {
+					$scope.olcount += 1;
 					if (ids.length) {
 						$scope.leaflet.layers.overlays['highlight'+$scope.olcount]= {
 					            name: 'Selected Features',
@@ -378,8 +431,8 @@ define([  'angular'
 					            	            ids: ids.join(','),
 					            	            style_field: $scope.result_data['field'] ||'',
 					                    		format: 'image/png',
-					                    		ramp: $scope.preferences.config.ramp.ramp_id,
-					                    		reverse: $scope.preferences.config.ramp.reverse,
+					                    		ramp: preferences.getRampSettings().ramp_id,
+					                    		reverse: preferences.getRampSettings().reverse,
 					                    		transparent: true }
 					    }
 					}
@@ -399,14 +452,17 @@ define([  'angular'
 				            visible: true,
 				            url: $scope.datafile_api.wms_url,
 				            layerOptions: { layers: $scope.datafile_api.layer,
+					            			opacity: $scope.opacity,
 				            				style_field: $scope.result_data['field'] || '',
 				                    		format: 'image/png',
-				                    		ramp: $scope.preferences.config.ramp.ramp_id,
-				                    		reverse: $scope.preferences.config.ramp.reverse,
+				                    		ramp: preferences.getRampSettings().ramp_id,
+				                    		reverse: preferences.getRampSettings().reverse,
 				                    		transparent: true }
 				    };
 				}
 			}
+			
+			
 			
 			var updateLegendGraphic=function () {
 				if ($scope.spatial) {
@@ -416,14 +472,23 @@ define([  'angular'
             					style_field: $scope.result_data['field'] || '',
             					request: 'getLegendGraphic',
             					format: 'image/png',
-            					ramp: $scope.preferences.config.ramp.ramp_id,
-            					reverse: $scope.preferences.config.ramp.reverse,
+            					ramp: preferences.getRampSettings().ramp_id,
+            					reverse: preferences.getRampSettings().reverse,
             					transparent: true }
 				    for (var d in data)
 				       ret.push(encodeURIComponent(d.toUpperCase()) + "=" + encodeURIComponent(data[d]));
 					url = url + '?' + ret.join("&");
 					$scope.legend_url=url;
 				}
+			}
+			/*
+			 * When the user changes the opacity, update it in preferences
+			 * 
+			 */
+			$scope.updateOpacity=function () {
+				$scope.opacity=$scope.opacity_percent/100
+				preferences.setOpacity($scope.datafile_api.geom_type, $scope.opacity);
+				addResultWMS();
 			}
 			
 			$scope.updateMapComponents=function () {
@@ -442,7 +507,11 @@ define([  'angular'
 			 * If preferences are loaded then we need to use the loaded preference
 			 * data.
 			 */
-			$scope.$watch('preferences', function (newVal, oldVal) {
+			$scope.$watch(function () { return preferences.getRampSettings().ramp_id; }, function (newVal, oldVal) {
+				$scope.updateMapComponents();
+			});
+			
+			$scope.$watch(function () { return preferences.getRampSettings().reverse; } , function (newVal, oldVal){
 				$scope.updateMapComponents();
 			});
 			
@@ -460,9 +529,7 @@ define([  'angular'
 			});
 			
 			
-			$scope.$watch('preferences.config.ramp', function (newVal, oldVal){
-				$scope.updateMapComponents();
-			});
+			
 			
 			// Whenever a feature is selected in the table, we will match that feature in
 			// the view window...
@@ -479,16 +546,17 @@ define([  'angular'
 			
 			// When someone selects items via the "results" grid it goes
 			// into selections, which we then need to copy over to selected_features
-			
+			$scope.selected_features=[];
 			$scope.$watch('selections', function (newVal, oldVal) {
 				// If we're working with results from a map-click, then clicking on
 				// a row will remove those results.
+				$scope.selected_features.length=0;
 				if ($scope.feature_query_results) {
-					$scope.selected_features=[];
+					
 					$scope.selected_selected.length=0;
 					$scope.feature_query_results=false;
 				}
-				var ids=[]
+				var ids=[];
 				_.each($scope.selected_features, function (data) {
 					ids.push(data.nmtk_id);
 				});
@@ -513,9 +581,6 @@ define([  'angular'
 			 * stuff to 0 and then reload the data for the grid (to unselect items.)
 			 */
 			$scope.clearSelection=function() {
-//				_.each($scope.selected_features, function (v, index) {
-//					$scope.gridOptions2.selectItem(index, false);
-//				});
 				_.each($scope.data, function (v, index) {
 					$scope.gridOptions.selectItem(index, false);
 				});
@@ -566,7 +631,7 @@ define([  'angular'
 		    $scope.gridOptions2={data: 'selected_features',
 		    		             showColumnMenu: true,
 		    		             multiSelect: false,
-		    		             columnDefs: 'columnOptions',
+		    		             columnDefs: 'columnOptions2',
 		    		             showFooter: false,
 		    		             selectedItems: $scope.selected_selected}
 		    
@@ -727,6 +792,7 @@ define([  'angular'
 			var process_data=function () {
 				if ($scope.datafile_api.geom_type) {
 					$scope.bounds=getBounds($scope.datafile_api.bbox);
+					$scope.opacity_percent=Math.round(preferences.getOpacity($scope.datafile_api.geom_type)*100);
 					$scope.spatial=true;
 				} else {
 					$scope.spatial=false;

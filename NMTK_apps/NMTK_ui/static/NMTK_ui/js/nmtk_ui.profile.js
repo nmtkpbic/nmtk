@@ -37,7 +37,6 @@
     paths: {
     	requireLib: "lib/require",
     },
-	include: ["requireLib", "json2","html5shiv", "jquery.ui.widget",
-	          "jquery-fileupload", "jquery-iframe-transport",
+	include: ["requireLib", "json2","html5shiv", 
 	          "browserdetect", "respond"]
 })

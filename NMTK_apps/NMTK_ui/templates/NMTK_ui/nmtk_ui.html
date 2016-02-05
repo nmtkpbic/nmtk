@@ -54,14 +54,14 @@
               <span>Tool Explorer</span> 
             </a> 
           </li>
-          <li ng-show="user.is_active" class="ng-cloak" ng-class="{'active': (activeTab == 'files')}">
+          <li class="ng-cloak" ng-class="{'active': (activeTab == 'files')}">
                <a href="#/files/">
                     <i ng-hide="activeTab == 'files'" class="glyphicon glyphicon-folder-close"></i>
                     <i ng-show="activeTab == 'files'" class="glyphicon glyphicon-folder-open"></i>
                     <span>Files</span>
                </a>                    
           </li>
-          <li ng-show="user.is_active" ng-class="{'active': (activeTab == 'viewjob')}" class="ng-cloak">                         
+          <li ng-class="{'active': (activeTab == 'viewjob')}" class="ng-cloak">                         
                <a href="#/job/">
               <i class="glyphicon glyphicon-asterisk"></i> 
                     <span>Jobs</span>

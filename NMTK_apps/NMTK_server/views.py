@@ -208,8 +208,41 @@ def processResults(request):
                 timestamp=timezone.now(),
                 job=request.NMTK_JOB).save()
             return HttpResponseServerError('Invalid result format')
-        result_field = config['results']['field']
-        result_field_units = config['results'].get('units', None)
+        result_field = config['results'].get('field', None)
+        result_field_units = field_units = None
+        field_units = {}
+        # field units can be an object also, in which case it's really
+        # a set of fields and their units:
+        if 'units' in config['results']:
+            if result_field and isinstance(config['results'].get('units', None),
+                                           (str, unicode)):
+                result_field_units = config['results']['units']
+                field_units[result_field] = result_field_units
+            elif 'units' in config['results']:
+                try:
+                    result_field_units = config['results'][
+                        'units'].get(result_field, None)
+                    field_units = config['results']['units']
+                except Exception as e:
+                    logger.debug('Failed to parse field units' +
+                                 ', expected an object: %s', e)
+
+        # the optional ordered list of fields, we require a list
+        # of field names, and use a default of nothing if such a list isn't
+        # provided.
+        field_order = config['results'].get('field_order', None)
+        if field_order is None:
+            field_order = []
+        elif not isinstance(field_order, (list, tuple),):
+            logger.error('Result field_order should be a list or ' +
+                         'tuple, not %s: %s', type(
+                             field_order),
+                         str(field_order))
+            field_order = []
+        logger.debug('Default field order is %s', field_order)
+        # Now we have the field order provided by the tool itself
+        # which we need to (eventually) augment with the fields from
+        # the job itself.
 
         result_file = config['results']['file']
 
@@ -247,6 +280,8 @@ def processResults(request):
                                      content_type=request.FILES[
                                          namespace].content_type,
                                      type=models.DataFile.JOB_RESULT,
+                                     fields=field_order,
+                                     units=field_units,
                                      result_field=field,
                                      result_field_units=result_field_units)
             filename = os.path.basename(request.FILES[namespace].name)

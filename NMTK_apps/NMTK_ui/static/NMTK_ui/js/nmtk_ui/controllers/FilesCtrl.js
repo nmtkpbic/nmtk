@@ -37,36 +37,91 @@ define(['underscore'
 				  viewJobModalTemplate) {	
 	"use strict";
 	var controller=['$scope','$timeout','$route','$modal','$location', '$log',
-	                '$q', 'Restangular',
+	                '$q', 'Restangular','$window',
         function ($scope, $timeout, $route, $modal, $location, $log, $q,
-        		  Restangular) {
-			$scope.loginCheck();
+        		  Restangular, $window) {
+			$scope.loginCheck(true);
 			$scope.enableRefresh(['datafile']);
 			$scope.changeTab('files');
 			
 			$scope.initialload=false;
 			$scope.fileupload='';
 			$scope.upload_uri=CONFIG.api_path + 'datafile/';
-			$('#fileUpload').fileupload();
-			$('#fileUpload').fileupload('option', {
-				   url: CONFIG.api_path + 'datafile/',
-				   paramName: 'file',
-				   progressall: function (e, data) {
-					    $('#progress .bar').show();
-				        var progress = parseInt(data.loaded / data.total * 100, 10);
-				        $('#progress .bar').css(
-				            'width',
-				            progress + '%'
-				         );
-				   },
-				   done: function () { 
-					   $scope.refreshData('datafile'); 
-					   $timeout(function () {
-						   $('#progress .bar').hide();
-					   	   $('#progress .bar').css('width', '0%');
-					   }, 1000);
-				   }	 
+			
+			
+			$scope.upload_files=[];
+			$scope.$on('$dropletReady', function () {
+				// Allow uploads of any files/any extension.
+				$scope.upload_files.allowedExtensions([/.+/]);
 			});
+			
+			/*
+			 * when a file is added we can do the upload immediately
+			 */
+			$scope.percent=0;
+			$scope.progressBarStyle={width: '0%'}
+			$scope.$on('$dropletFileAdded', function (v) {
+//				$timeout(function () {
+				$scope.uploading = true;
+					// Only iterate over the non-deleted files, since they haven't been uploaded yet.
+					_.each($scope.upload_files.getFiles($scope.upload_files.FILE_TYPES.VALID), function (data) {
+						var formData = new $window.FormData();
+						var deferred = $q.defer();
+						formData.append('file', data.file)
+						formData.append('content_type', data.mimeType);
+						formData.append('name', data.file.name);
+						var httpRequest = new $window.XMLHttpRequest();
+						httpRequest.open('post',
+								         $scope.upload_uri + '?format=json',
+								         true);
+						httpRequest.setRequestHeader('X-CSRFToken',
+								$scope.csrftoken);
+						httpRequest.upload.onprogress = function (event) {
+							var requestLength = data.file.size;
+							$scope.$apply(function (scope) {
+								if (event.lengthComputable) {
+									scope.percent = Math.min(100, Math.round(100*(event.loaded/requestLength)))
+									$log.info('Percent uploaded is', scope.percent, '%');
+									$scope.progressBarStyle.width = scope.percent + '%';
+									if (scope.percent == 100) {
+										$timeout(function () {
+											$log.debug('Disabling display...')
+											scope.progressBarStyle.width = '0%';
+											scope.percent=0;
+											$scope.refreshData('datafile');
+										}, 1000)
+									}
+								}
+							});
+						}
+						httpRequest.send(formData);
+						/* Mark it as deleted, since it's been uploaded now. */
+						data.deleteFile();
+					});
+//				});
+			});
+			
+//			
+//			
+//			$('#fileUpload').fileupload('option', {
+//				   url: CONFIG.api_path + 'datafile/',
+//				   paramName: 'file',
+//				   progressall: function (e, data) {
+//					    $('#progress .bar').show();
+//				        var progress = parseInt(data.loaded / data.total * 100, 10);
+//				        $('#progress .bar').css(
+//				            'width',
+//				            progress + '%'
+//				         );
+//				   },
+//				   done: function () { 
+//					   $scope.refreshData('datafile'); 
+//					   $timeout(function () {
+//						   $('#progress .bar').hide();
+//					   	   $('#progress .bar').css('width', '0%');
+//					   }, 1000);
+//				   }	 
+//			});
 			
 			$scope.openJobViewDialog=function(datafile) {
 				$q.all([Restangular.all('job_results').getList({'datafile': datafile.id,
