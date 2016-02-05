@@ -53,7 +53,10 @@ body {
   border-radius: 10px 10px 0px 0px;	
 }
 .navbar-header h1 {
-  color: #ff00ff;
+  color: #fff;
+  font: 20px/1.85em "Open Sans";
+  font-weight:bold;
+  padding-left: 0px;
   text-decoration: none;
 }
 .footer {
@@ -91,6 +94,9 @@ div.main a {
 .footer {
   padding: 15px;
 }
+}
+.navbar-header h1 {
+  padding-left: 15px;
 }
 .widget .widget-header h3 {
   top: 2px;
