@@ -34,11 +34,13 @@ define([  'angular'
         , 'leaflet'
         , 'text!AdvancedFiltersTemplate'
         , 'text!ColorRampSelectionTemplate'
-        , 'text!JobMessageTemplate'], function (angular, _, 
+        , 'text!JobMessageTemplate'
+        , 'text!ngGridMenuTemplate'], function (angular, _, 
         										   L, 
         										   AdvancedFiltersTemplate,
         										   ColorRampSelectionTemplate,
-        										   JobMessageTemplate) {
+        										   JobMessageTemplate,
+        										   ngGridMenuTemplate) {
 	"use strict";
 	var controller=['$scope','$routeParams','$location','$log','$http',
 	                '$timeout', 'leafletData','Restangular', '$q', '$modal',
@@ -646,6 +648,7 @@ define([  'angular'
 		//						 pagingOptions: $scope.pagingOptions,
 								 filterOptions: $scope.filterOptions,
 								 useExternalSorting: true,
+								 menuTemplate: ngGridMenuTemplate,
 			                     showColumnMenu: true };
 			_.each(['filterOptions', 'sortInfo'], function (item) {
 				$scope.$watch(item, function (newVal, oldVal) {
