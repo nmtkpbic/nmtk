@@ -676,7 +676,7 @@ def importDataFile(datafile, job_id=None):
         # any fields not in the ordered list, but in the output list
         # of fields.
         datafile.fields = list(unique_everseen(
-            desired_field_order + available_fields))
+            ordered_fields + available_fields))
 
         logger.debug('Final field order is %s', datafile.fields)
         # Create an empty file using ContentFile, then we can overwrite it
