@@ -80,9 +80,11 @@ def handleWMSRequest(request, datafile):
     style_field = legend = None
     raster = (datafile.geom_type == 99)
     style_field = get_uc.get('STYLE_FIELD', datafile.result_field or None)
-    logger.info('Style field is %s, attributes are %s (Found: %s)',
+    logger.info('Style field is %s, attributes are %s (Found: %s), geom %s, raster %s',
                 style_field, datafile.field_attributes.keys(),
-                style_field in datafile.field_attributes.keys())
+                style_field in datafile.field_attributes.keys(),
+                datafile.geom_type, raster)
+    band = ''
     if raster:
         if datafile.field_attributes:
             if (style_field not in
@@ -95,6 +97,7 @@ def handleWMSRequest(request, datafile):
             logger.error(
                 'No style fields found for raster, using default of 1')
             style_field = '1'
+        band = '_band_{0}'.format(style_field)
     legend_units = get_uc.get('LEGEND_UNITS', None)
     reverse = get_uc.get('REVERSE', 'false')
     if reverse.lower() in ('true', 't', '1'):
@@ -179,15 +182,16 @@ def handleWMSRequest(request, datafile):
         if 'field_name' in field_attributes:
             mapfile_path = os.path.join(
                 datafile.mapfile_path,
-                "{0}{1}_ramp_{2}_{3}.map".format(
+                "{0}{1}_ramp_{2}_{3}{4}.map".format(
                     base_name,
                     datafile.pk,
                     ramp_id,
-                    field_attributes['field_name']))
+                    field_attributes['field_name'],
+                    band))
         else:
             mapfile_path = os.path.join(
-                datafile.mapfile_path, "{0}{1}_ramp_{2}.map".format(
-                    base_name, datafile.pk, ramp_id))
+                datafile.mapfile_path, "{0}{1}_ramp_{2}{3}.map".format(
+                    base_name, datafile.pk, ramp_id, band))
         if not os.path.exists(mapfile_path):
             if not os.path.exists(os.path.dirname(mapfile_path)):
                 os.makedirs(os.path.dirname(mapfile_path), 0750)
