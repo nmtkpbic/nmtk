@@ -790,6 +790,9 @@ define([  'angular'
 					if (job_result_datafile.length > 0) {
 						var job_id=job_result_datafile[0].job.split('/').reverse()[1]
 						getJobStatusData(job_id);
+						Restangular.all('job').getList({'job_id': job_id}).then(function (jobs) {
+							$scope.job_api=jobs[0];
+						});
 						$scope.other_datafiles=[];
 						Restangular.all('job_results').getList({'job': job_id}).then(function (job_results) {
 							// Get the ids of the datafiles that go with this job

@@ -20,6 +20,7 @@ from django.contrib.auth import logout
 from django.utils import timezone
 from django.conf import settings
 import dateutil.parser
+import datetime
 import hashlib
 import random
 from registration import models as registration_models
@@ -256,6 +257,7 @@ def processResults(request):
         total = len(request.FILES) - 1
 
         i = 0
+        timedata = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
         for namespace in request.FILES.keys():
             if namespace == 'config':
                 continue
@@ -273,8 +275,10 @@ def processResults(request):
                 field = None
                 primary = False
             result = models.DataFile(user=request.NMTK_JOB.user,
-                                     name="job_{0}_results".format(
-                                         request.NMTK_JOB.pk),
+                                     #                                      name="job_{0}_results".format(
+                                     # request.NMTK_JOB.pk),
+                                     name="{0}_{1}".format(
+                                         namespace, timedata),
                                      # name=os.path.basename(request.FILES[result_file].name),
                                      description=description,
                                      content_type=request.FILES[
