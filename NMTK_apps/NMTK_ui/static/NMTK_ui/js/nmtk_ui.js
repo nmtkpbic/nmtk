@@ -87,7 +87,7 @@ require.config({
 		, "JobStatusHistoryTemplate": "../templates/job_status_history_modal.html" // Template for job status history
 		, "JobMessageTemplate": "../templates/job_message_modal.html" // Template for job status messages
 		, "duplicateErrorTemplate": "../templates/duplicate_error_modal.html" // Modal template for duplicate fields in job config.
-
+		, "ngGridMenuTemplate": "../templates/ngGridMenuTemplate.html" // ng-grid menu template to add tooltip
 	}
 	, shim: {
 	    "underscore": { exports: '_' }

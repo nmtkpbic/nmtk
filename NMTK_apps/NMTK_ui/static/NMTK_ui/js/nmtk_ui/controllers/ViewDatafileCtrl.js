@@ -34,11 +34,13 @@ define([  'angular'
         , 'leaflet'
         , 'text!AdvancedFiltersTemplate'
         , 'text!ColorRampSelectionTemplate'
-        , 'text!JobMessageTemplate'], function (angular, _, 
+        , 'text!JobMessageTemplate'
+        , 'text!ngGridMenuTemplate'], function (angular, _, 
         										   L, 
         										   AdvancedFiltersTemplate,
         										   ColorRampSelectionTemplate,
-        										   JobMessageTemplate) {
+        										   JobMessageTemplate,
+        										   ngGridMenuTemplate) {
 	"use strict";
 	var controller=['$scope','$routeParams','$location','$log','$http',
 	                '$timeout', 'leafletData','Restangular', '$q', '$modal',
@@ -287,8 +289,8 @@ define([  'angular'
 							$scope.data=data.data;
 						}
 						if ($scope.columnOptions.length == 0) {
-							$scope.columnOptions=[];
-							$scope.columnOptions2=[];
+//							$scope.columnOptions=[];
+//							$scope.columnOptions2.length=0;
 							var visible=false;
 							var i=0;
 							var result_field=$scope.datafile_api.result_field;
@@ -306,20 +308,22 @@ define([  'angular'
 								}
 								$scope.columnOptions.push({ field: col_name,
 									                        visible: visible});
-								$scope.columnOptions2.push({ field: col_name,
-			                        						 visible: visible});
+//								$scope.columnOptions2.push({ field: col_name,
+//			                        						 visible: visible});
 								i += 1;
 							});
-							$scope.columnOptions2.push({ sortable: false,
-					              						 visible: true,
-					              						 width: '70px',
-					              						 cellTemplate: '<div class="ngCellText"><button style="line-height: 0;" ng-click="removeRow(row.entity);"><span class="glyphicon glyphicon-remove"></span></button></div>',
-					              						 displayName: ''});
+//							$scope.columnOptions2.push({ sortable: false,
+//					              						 visible: true,
+//					              						 width: '70px',
+//					              						 cellTemplate: '<div class="ngCellText"><button style="line-height: 0;" ng-click="removeRow(row.entity);"><span class="glyphicon glyphicon-remove"></span></button></div>',
+//					              						 displayName: ''});
 //							}
 						}
 					});
 				}
 			};
+			
+			
 			
 			$scope.removeRow=function (data) {
 				var pos=-1; // Start with -1, since we increment before we return.
@@ -629,10 +633,11 @@ define([  'angular'
 
 		
 		    $scope.gridOptions2={data: 'selected_features',
-		    		             showColumnMenu: true,
+		    		             showColumnMenu: false,
 		    		             multiSelect: false,
 		    		             columnDefs: 'columnOptions2',
 		    		             showFooter: false,
+//		    		             plugins: [ngGridLayoutPlugin],
 		    		             selectedItems: $scope.selected_selected}
 		    
 			$scope.gridOptions= {data: 'data',
@@ -646,7 +651,24 @@ define([  'angular'
 		//						 pagingOptions: $scope.pagingOptions,
 								 filterOptions: $scope.filterOptions,
 								 useExternalSorting: true,
+								 menuTemplate: ngGridMenuTemplate,
 			                     showColumnMenu: true };
+		    
+		    $scope.$watch('gridOptions.$gridScope.columns', function (newVal) {
+				var columnOptions2= _.map(newVal, _.clone);
+				columnOptions2.push({ sortable: false,
+						 visible: true,
+						 width: '70px',
+						 cellTemplate: '<div class="ngCellText"><button style="line-height: 0;" ng-click="removeRow(row.entity);"><span class="glyphicon glyphicon-remove"></span></button></div>',
+						 displayName: ''});
+				$scope.columnOptions2=columnOptions2;
+				/*
+				 * Note that $scope.columnOptions2 has one more column than
+				 * $scope.columnOptions - but that column is never touched by
+				 * this since we never iterate that high.  Just copy the visible
+				 * column list over so that things look the same...
+				 */
+			}, true);
 			_.each(['filterOptions', 'sortInfo'], function (item) {
 				$scope.$watch(item, function (newVal, oldVal) {
 					$log.info('Got change to ', item, newVal, oldVal);
@@ -768,6 +790,9 @@ define([  'angular'
 					if (job_result_datafile.length > 0) {
 						var job_id=job_result_datafile[0].job.split('/').reverse()[1]
 						getJobStatusData(job_id);
+						Restangular.all('job').getList({'job_id': job_id}).then(function (jobs) {
+							$scope.job_api=jobs[0];
+						});
 						$scope.other_datafiles=[];
 						Restangular.all('job_results').getList({'job': job_id}).then(function (job_results) {
 							// Get the ids of the datafiles that go with this job

@@ -22,7 +22,7 @@
           <div ng-click="toggleDiv('job_result_help')" class="widget-header">
             <span class="glyphicon glyphicon-info-sign"></span>
             <h1 ng-show="data_file_tab_name == 'Results'">Job Results <span ng-if="datafile_api.description">- {{datafile_api.description}}</span></h1>            
-            <h1 ng-hide="data_file_tab_name == 'Results'">Data file <span ng-if="datafile_api.description">- {{datafile_api.description}}</span></h1>
+            <h1 ng-hide="data_file_tab_name == 'Results'">Data file {{datafile_api.name}} from {{job_api.description}}</h1>
             <button type="button" class="btn btn-link pull-right btn-right" 
 	                    tooltip="Expand or collapse"
 	                    data-toggle="tooltip" data-placement="right" id="right" 
